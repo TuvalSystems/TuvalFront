@@ -1,0 +1,639 @@
+<template>
+  <!-- Hero -->
+  <BasePageHeading
+    title="Cotizaciones"
+  >
+    <template #extra>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-alt">
+          <li class="breadcrumb-item">
+            <a class="link-fx" href="javascript:void(0)">Ventas</a>
+          </li>
+          <li class="breadcrumb-item" aria-current="page">Cotizaciones</li>
+        </ol>
+      </nav>
+    </template>
+  </BasePageHeading>
+  <!-- END Hero -->
+
+   <!-- Page Content -->
+  <div class="content">
+    <BaseBlock title="Cotizaciones" content-full>
+      <template #options>
+        <div class="space-x-1">
+          <div class="block-options-item">
+            <div class="row g-3 align-items-center">
+              <div class="col-auto">
+                <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
+              </div>
+              <div class="col-auto">
+                <flat-pickr
+                    style="width:120px;"
+                    id="fecha_desde"
+                    class="form-control form-control-sm"
+                    v-model="fecha_desde"
+                    :config="flatPickrState.fecha_desde"
+                    @change="refrescarFecha()"
+                />
+              </div>
+              <div class="col-auto">
+                <label for="fecha_hasta" class="col-form-label fs-sm">Hasta</label>
+              </div>
+              <div class="col-auto">
+                <flat-pickr
+                    style="width:120px;"
+                    id="fecha_hasta"
+                    class="form-control form-control-sm"
+                    v-model="fecha_hasta"
+                    :config="flatPickrState.fecha_hasta"
+                    @change="refrescarFecha()"
+                />
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> Limpiar fecha</button>
+              </div>
+            </div>
+          </div>
+          <div class="block-options-item">
+            <button type="button" title="Refrescar tabla" @click="llenarcotizaciones('pendientes')" class="btn btn-success btn-sm"><i class="si si-refresh"></i></button>
+          </div>
+          <div class="dropdown d-inline-block">
+            <button
+              type="button"
+              class="btn btn-sm btn-alt-secondary"
+              id="dropdown-recent-orders-filters"
+              data-bs-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              <i class="fa fa-fw fa-flask"></i>
+              Filtrar
+              <i class="fa fa-angle-down ms-1"></i>
+            </button>
+            <div
+              class="dropdown-menu dropdown-menu-md dropdown-menu-end fs-sm"
+              aria-labelledby="dropdown-recent-orders-filters"
+            >
+              <a
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarcotizaciones('pendientes');"
+                href="javascript:void(0)"
+              >
+                Pendientes
+              </a>
+              <a
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarcotizaciones('procesadas');"
+                href="javascript:void(0)"
+              >
+                Procesadas
+              </a>
+              <a
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarcotizaciones('prospectos');"
+                href="javascript:void(0)"
+              >
+                Prospectos
+              </a>
+              <a
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarcotizaciones('caducado');"
+                href="javascript:void(0)"
+              >
+                Caducadas
+              </a>
+              <a
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarcotizaciones('rechazadas');"
+                href="javascript:void(0)"
+              >
+                Rechazadas
+              </a>
+              <a
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarcotizaciones('todas');"
+                href="javascript:void(0)"
+                >
+                Todas
+              </a>
+            </div>
+          </div>
+        </div>
+      </template>
+      <Dataset
+        v-slot="{ ds }"
+        :ds-data="cotizaciones.data"
+        :ds-sortby="sortBy"
+        :ds-search-in="['cotizacion', 'id', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at']"
+        >
+        <div class="row" :data-page-count="ds.dsPagecount">
+          <div id="datasetLength" class="col-md-8 py-2">
+            <DatasetShow />
+          </div>
+          <div class="col-md-4 py-2">
+            <DatasetSearch ds-search-placeholder="Buscar..." />
+          </div>
+        </div>
+        <hr />
+        <div v-if="cotizaciones.loading" class="text-center">
+          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+        </div>
+        <div class="row" v-if="vercotizaciones && cotizaciones.data.length && !cotizaciones.loading">
+          <div class="col-md-12">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover table-vcenter mb-0">
+                <thead>
+                  <tr>
+                    <th
+                      v-for="(th, index) in cols"
+                      :key="th.field"
+                      :class="['sort', th.sort]"
+                      @click="onSort($event, index)"
+                    >
+                      {{ th.name }} <i class="gg-select float-end"></i>
+                    </th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <DatasetItem tag="tbody" class="fs-sm">
+                  <template #default="{ row }">
+                    <tr>
+                      <td class="fs-sm">
+                      <a href="javascript:void(0);" @click="funcionvercotizacion(row, index)">{{ row.cotizacion }}</a>
+                      </td>
+                      <td class="fs-sm">
+                          {{  row.CLI_RAZON_SOCIAL }}
+                      </td>
+                      <td class="fs-sm">
+                          {{ row.CLI_RUC }}
+                      </td>
+                      <td class="fs-sm">
+                          {{ row.USERID }}
+                      </td>
+                      <td class="fs-sm">
+                          {{ row.COND_ID }}
+                      </td>
+                      <td class="fs-sm">
+                          {{ row.created_at }}
+                      </td>
+                      <td class="fs-sm text-end">
+                          ${{ format(parseFloat(row.total)) }}
+                      </td>
+                      <td v-if="row.prospecto_id && !row.cliente_id"  class="fs-sm">
+                        <span v-if="row.estado == 'procesado'" class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill">
+                          procesado
+                        </span>
+                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-info-light text-info">
+                          prospecto
+                        </span>
+                      </td>
+                      <td v-else class="fs-sm">
+                        <a
+                          v-if="row.estado == 'espera'"
+                          href="javascript:void(0)"
+                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-warning"
+                          @click="motivoEspera(row)"
+                          >
+                          {{ row.estado }}
+                        </a>
+                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill "
+                        :class="
+                          row.aprobado_comercial_mensaje ? 'pointer bg-danger-light text-danger':'' ||
+                          row.estado == 'aprobado' ? 'bg-success-light text-success': '' ||
+                          row.estado == 'rechazado' ? 'bg-danger-light text-danger': '' ||
+                          row.estado == 'caducado' ? 'bg-danger-light text-danger': ''
+                          "
+                          @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo',row.aprobado_comercial_mensaje) : ''"
+                        >
+                        {{ row.estado }}</span>
+                      </td>
+                      <td v-if="row.prospecto_id  && !row.cliente_id"  class="fs-sm nowrap text-end">
+                        <button type="button" class="btn btn-primary btn-sm mx-2" title="Imprimir Cotización" @click="imprimircotizacionprospecto(row)">
+                          <i class="fa fa-print"></i>
+                        </button>
+                        <button v-if="row.estado != 'procesado'" type="button" class="btn btn-success btn-sm mx-2" title="Recuperar Cotización" @click="recuperarcotizacionprospecto(row)">
+                          <i class="fa fa-upload"></i>
+                        </button>
+                        <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido" @click="levantarcliente(row)">
+                          <i class="fa fa-copy"></i>
+                        </button>
+                      </td>
+                      <td v-else class="fs-sm nowrap text-end">
+                        <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button" class="btn btn-primary btn-sm mx-2" title="Imprimir Cotización" @click="imprimircotizacion(row)">
+                          <i class="fa fa-print"></i>
+                        </button>
+                        <button v-if="row.recuperar == 'yes' && row.estado != 'caducado' && row.estado != 'procesado'" type="button" class="btn btn-success btn-sm mx-2" title="Recuperar Cotización" @click="recuperarcotizacion(row)">
+                          <i class="fa fa-upload"></i>
+                        </button>
+                        <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir" @click="volverapedir(row)">
+                        <i class="far fa-copy"></i>
+                        </button>
+                        <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido" @click="levantarcliente(row)">
+                          <i class="fa fa-copy"></i>
+                        </button>
+                        <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button" class="btn btn-warning btn-sm mx-2" title="Imprimir Cotización Imágenes" @click="imprimircotizacionimagenes(row)">
+                          <i class="fa fa-print"></i>
+                        </button>
+                      <!-- <button
+                        v-if="row.facturar == 'yes' && row.estado != 'procesado'"
+                        type="button" class="btn btn-danger btn-sm mx-1" title="Procesar cotización" @click="confirmfacturar(row)">
+                        <i class="fa fa-file-invoice-dollar"></i>
+                      </button> -->
+                      </td>
+                    </tr>
+                  </template>
+                </DatasetItem>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div
+          class="d-flex flex-md-row flex-column justify-content-between align-items-center"
+        >
+          <DatasetInfo class="py-3 fs-sm" />
+          <DatasetPager class="flex-wrap py-3 fs-sm" />
+        </div>
+      </Dataset>
+     
+    </BaseBlock>
+  </div>
+  <!-- END Page Content -->
+
+  <div
+    class="modal"
+    id="modal-cotizacion"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modal-cotizacion"
+    aria-hidden="true"
+    ref="vercotizacionModal"
+    >
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <VerCotizacionModal 
+          :vercotizacion="vercotizacion" 
+          :indexCotizacion="indexCotizacion"
+          :tipo="tipo"
+          ></VerCotizacionModal>
+      </div>
+    </div>
+  </div>
+  <div
+    class="modal"
+    id="modal-levantar-cliente"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modal-levantar-cliente"
+    aria-hidden="true"
+    ref="levantarClienteModal"
+    >
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <LevantarClienteModal
+          :verpedido="vercotizacion" 
+          :tipo="tipo"
+          ></LevantarClienteModal>
+      </div>
+    </div>
+  </div>
+</template>
+<script setup>
+import { ref, reactive, computed, onMounted } from "vue";
+import { useStore} from 'vuex'
+import { useRouter } from "vue-router";
+import { useTemplateStore } from "@/stores/template";
+import { Modal } from "bootstrap";
+import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import VerCotizacionModal from "../modals/VerCotizacionModal.vue";
+import LevantarClienteModal from "../modals/LevantarCliente.vue";
+import flatPickr from 'vue-flatpickr-component';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import {formatPrice, format} from "@/functions";
+
+const flatPickrState = reactive({
+  fecha_desde: {
+    maxDate: Date.now(),
+    locale: Spanish,
+  },
+  fecha_hasta: {
+    maxDate: Date.now(),
+    locale: Spanish,
+  },
+});
+// Helper variables
+const cols = reactive([
+  {
+    name: "COTIZACION",
+    field: "cotizacion",
+    sort: "",
+  },
+  {
+    name: "Cliente",
+    field: "CLI_RAZON_SOCIAL",
+    sort: "",
+  },
+  {
+    name: "RUC",
+    field: "CLI_RUC",
+    sort: "",
+  },
+  {
+    name: "Usuario",
+    field: "USERID",
+    sort: "",
+  },
+  {
+    name: "Cond. Pago",
+    field: "COND_ID",
+    sort: "",
+  },
+  {
+    name: "Fecha/hora",
+    field: "created_at",
+    sort: "",
+  },
+  {
+    name: "Total",
+    field: "total",
+    sort: "",
+  },
+  {
+    name: "Estado",
+    field: "estado",
+    sort: "",
+  },
+]);
+
+// Sort by functionality
+const sortBy = computed(() => {
+  return cols.reduce((acc, o) => {
+    if (o.sort) {
+      o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
+    }
+    return acc;
+  }, []);
+});
+
+// On sort th click
+function onSort(event, i) {
+  let toset;
+  const sortEl = cols[i];
+
+  if (!event.shiftKey) {
+    cols.forEach((o) => {
+      if (o.field !== sortEl.field) {
+        o.sort = "";
+      }
+    });
+  }
+
+  if (!sortEl.sort) {
+    toset = "asc";
+  }
+
+  if (sortEl.sort === "desc") {
+    toset = event.shiftKey ? "" : "asc";
+  }
+
+  if (sortEl.sort === "asc") {
+    toset = "desc";
+  }
+
+  sortEl.sort = toset;
+}
+const templateStore = useTemplateStore();
+const store = useStore();
+const router = useRouter();
+const vercotizacion = ref({});
+const indexCotizacion = ref(null);
+const tipo = ref(null);
+const fecha_desde = ref(null);
+const fecha_hasta = ref(null);
+const estado_filtro = ref(null);
+function limpiarFecha(){
+  fecha_desde.value = null;
+  fecha_hasta.value = null;
+  llenarcotizaciones('pendientes')
+}
+
+function refrescarFecha(){
+  if(!fecha_desde.value)
+    return;
+  if(!fecha_hasta.value)
+    return;
+
+  llenarcotizaciones(estado_filtro.value);
+}
+async function funcionvercotizacion(cotizacion, index) {
+  vercotizacionModalObj.show();
+  vercotizacion.value = cotizacion;
+  tipo.value = 'cotizacion';
+  store.dispatch('detallecotizacion', cotizacion)
+}
+
+function motivoEspera(cotizacion){
+  let msg = 'La cotización requiere ';
+  if(cotizacion.requiere_aprobacion_comercial === 'yes'){
+    msg += 'aprobación comercial ';
+  }
+  if(cotizacion.requiere_aprobacion_comercial === 'yes' && cotizacion.requiere_aprobacion_crediticia === 'yes'){
+    msg += 'y ';
+  }
+  if(cotizacion.requiere_aprobacion_crediticia === 'yes'){
+    msg += 'aprobación crediticia';
+  }
+  swalWarning(msg);
+}
+
+let vercotizacionModal= ref(null);
+let vercotizacionModalObj = null;
+
+let errorMsg = ref('');
+const cotizaciones = computed(() => store.state.cotizaciones);
+const vercotizaciones = ref(false);
+
+llenarcotizaciones('pendientes');
+
+async function llenarcotizaciones(estado){
+  estado_filtro.value = estado;
+  const consulta = reactive({
+    puntodeventa_id: store.state.puntodeventaselect,
+    estado: estado,
+    fecha_desde: fecha_desde.value,
+    fecha_hasta: fecha_hasta.value,
+  })
+  store.dispatch('llenarcotizaciones', consulta).then(() => {
+    vercotizaciones.value = true;
+  }).catch(err => {
+      vercotizaciones.value = false;
+      swalError(err.response.data.error);
+  });
+}
+
+function recuperarcotizacion(cotizacion){
+  templateStore.pageLoader({ mode: "on" });
+  store.dispatch('recuperarCotizacion', cotizacion).then(() => {
+    templateStore.pageLoader({ mode: "off" });
+    router.push({
+      name: 'ventas-crearcotizacion'
+    })
+  }).catch(err => {
+      errorMsg.value = err.response.data.error
+  });
+}
+
+ 
+function recuperarcotizacionprospecto(cotizacion){
+  templateStore.pageLoader({ mode: "on" });
+
+  store.dispatch("checkRucProspecto", cotizacion).then((res) => {
+    if(res.prospecto){
+      store.dispatch('recuperarCotizacionProspecto', cotizacion).then(() => {
+        templateStore.pageLoader({ mode: "off" });
+        router.push({
+          name: 'ventas-crearcliente'
+        })
+      }).catch(err => {
+        swalError(err.response.data.error);
+      });
+    }else{
+      cotizacion.cliente_id = res.cliente.id;
+      cotizacion.sucursal_id = res.cliente.sucursales[0].id;
+      recuperarcotizacion(cotizacion);
+      templateStore.pageLoader({ mode: "off" });
+    }
+  });
+
+}
+
+function volverapedir(cotizacion){
+  templateStore.pageLoader({ mode: "on" });
+  store.dispatch('volverapedirCotizacion', cotizacion).then(() => {
+    templateStore.pageLoader({ mode: "off" });
+    router.push({
+      name: 'ventas-crearcotizacion'
+    })
+  }).catch(err => {
+      errorMsg.value = err.response.data.error
+  });
+}
+
+function levantarcliente(pedido){
+  store.commit('resetCotizacion');
+  levantarClienteModalObj.show();
+  vercotizacion.value = pedido;
+  tipo.value = 'cotizacion';
+}
+
+let levantarClienteModal= ref(null);
+let levantarClienteModalObj = null;
+
+async function imprimircotizacion(cotizacion){
+  store.dispatch('imprimir', '/cotizaciones/imprimircotizacion/'+cotizacion.id)
+  .then((response) => {
+    if(response.status == 200){
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'cotizacion-'+cotizacion.cotizacion+'.pdf');
+        document.body.appendChild(link);
+        link.click();
+    }
+    llenarcotizaciones('pendientes');
+  });
+}
+
+async function imprimircotizacionimagenes(cotizacion){
+  store.dispatch('imprimir', '/cotizaciones/imprimircotizacionimagenes/'+cotizacion.id)
+      .then((response) => {
+        if(response.status == 200){
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'cotizacion-'+cotizacion.cotizacion+'.pdf');
+          document.body.appendChild(link);
+          link.click();
+        }
+        //llenarcotizaciones('pendientes');
+      });
+}
+
+async function imprimircotizacionprospecto(cotizacion){
+  store.dispatch('imprimir', '/cotizaciones/imprimircotizacionprospecto/'+cotizacion.id)
+  .then((response) => {
+    if(response.status == 200){
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'cotizacion-'+cotizacion.cotizacion+'.pdf');
+        document.body.appendChild(link);
+        link.click();
+    }
+    llenarcotizaciones('pendientes');
+  });
+}
+
+/* function confirmfacturar(cotizacion) {
+  toast
+    .fire({
+      title: "Estás seguro?",
+      text: "Desea procesar la cotización "+cotizacion.cotizacion +"",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+        confirmButton: "btn btn-success m-1",
+        cancelButton: "btn btn-secondary m-1",
+      },
+      confirmButtonText: "Si, procesar",
+      cancelButtonText: "Cancelar",
+      html: false,
+      preConfirm: () => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 50);
+        });
+      },
+    })
+    .then((result) => {
+      if (result.value) {
+        facturarcotizacion(cotizacion);
+      }
+    });
+} */
+
+/* function facturarcotizacion(cotizacion){
+  templateStore.pageLoader({ mode: "on" });
+  store.dispatch('consultaStockCotizacion', cotizacion).then((res) => {
+    if(res.data.success == false){
+      templateStore.pageLoader({ mode: "off" });
+      swalError(res.data.message);
+      return; 
+    }
+    store.dispatch('facturarCotizacion', cotizacion).then(() => {
+      templateStore.pageLoader({ mode: "off" });
+      llenarcotizaciones('pendientes');
+    }).catch(err => {
+        errorMsg.value = err.response.data.error
+    });
+  });
+} */
+
+onMounted(() => {
+
+  vercotizacionModalObj = new Modal(vercotizacionModal.value);
+  levantarClienteModalObj = new Modal(levantarClienteModal.value);
+  // Remove labels from
+  document.querySelectorAll("#datasetLength label").forEach((el) => {
+    el.remove();
+  });
+
+  // Replace select classes
+  let selectLength = document.querySelector("#datasetLength select");
+
+  selectLength.classList = "";
+  selectLength.classList.add("form-select");
+  selectLength.style.width = "80px";
+});
+
+</script>
