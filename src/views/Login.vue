@@ -7,58 +7,35 @@
           <!-- Sign In Block -->
           <BaseBlock title="Acceso" class="mb-0">
             <template #options>
-              
+
             </template>
 
             <div class="p-sm-3 px-lg-4 px-xxl-5 py-lg-5">
               <h1 class="h2 mb-1">TUVAL</h1>
               <p class="fw-medium text-muted">Bienvenido</p>
-              <p v-if="errorMsg" class="alert alert-danger">{{errorMsg}}</p>
+              <p v-if="errorMsg" class="alert alert-danger">{{ errorMsg }}</p>
               <!-- Sign In Form -->
               <form @submit.prevent="login">
                 <div class="py-3">
                   <div class="mb-4">
-                    <input
-                      type="text"
-                      class="form-control form-control-alt form-control-lg"
-                      id="login-username"
-                      name="login-username"
-                      placeholder="Usuario"
-                      :class="{
+                    <input type="text" class="form-control form-control-alt form-control-lg" id="login-username"
+                      name="login-username" placeholder="Usuario" :class="{
                         'is-invalid': v$.username.$errors.length,
-                      }"
-                      v-model="state.username"
-                      @blur="v$.username.$touch"
-                    />
-                    <div
-                      v-if="v$.username.$errors.length"
-                      class="invalid-feedback animated fadeIn"
-                    >
+                      }" v-model="state.username" @blur="v$.username.$touch" />
+                    <div v-if="v$.username.$errors.length" class="invalid-feedback animated fadeIn">
                       Por favor ingrese su nombre de usuario
                     </div>
                   </div>
                   <div class="mb-4">
-                    <input
-                      type="password"
-                      class="form-control form-control-alt form-control-lg"
-                      id="login-password"
-                      name="login-password"
-                      placeholder="Password"
-                      :class="{
+                    <input type="password" class="form-control form-control-alt form-control-lg" id="login-password"
+                      name="login-password" placeholder="Password" :class="{
                         'is-invalid': v$.password.$errors.length,
-                      }"
-                      v-model="state.password"
-                      @blur="v$.password.$touch"
-                      @keyup.enter="login"
-                    />
-                    <div
-                      v-if="v$.password.$errors.length"
-                      class="invalid-feedback animated fadeIn"
-                    >
+                      }" v-model="state.password" @blur="v$.password.$touch" @keyup.enter="login" />
+                    <div v-if="v$.password.$errors.length" class="invalid-feedback animated fadeIn">
                       Por favor ingrese su password
                     </div>
                   </div>
-                  
+
                 </div>
                 <div class="row mb-4">
                   <div ref="boton" class="col-md-6 col-xl-5">
@@ -69,7 +46,8 @@
                   </div>
                 </div>
                 <div ref="cargando" class="text-center hide">
-                  <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+                  <div class="spinner-border text-primary mt-4" role="status"><span
+                      class="visually-hidden">Loading...</span></div>
                 </div>
               </form>
               <!-- END Sign In Form -->
