@@ -135,7 +135,7 @@
                         </td>
                         <td class="fs-sm fw-medium text-muted mb-0 text-right">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stock)">
-                            <code v-for="stock in row.stock">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
+                            <code v-for="stock in row.stock" :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stock & !row.loading)">
                             <button class="btn btn-sm btn-primary" @click="consultarStock(row)"><i class="fa fa-magnifying-glass"></i> Ver stock</button>
@@ -144,6 +144,19 @@
                             <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
                           </div>
                         </td>
+
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right">
+                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockImport)">
+                             <code v-for="stock in row.stockImport" :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code> 
+                          </div>
+                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockImport & !row.loading1)">
+                            <button class="btn btn-sm btn-primary" @click="consultOtherStocksImports(row)"><i class="fa fa-magnifying-glass"></i>Ver stock</button>
+                          </div>
+                          <div v-if="row.loading1" class="text-center">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                          </div>
+                        </td>
+
                         <td class="text-end">
                           ${{ formatPrice(row.ART_VALOR) }}
                         </td>
@@ -313,6 +326,11 @@ const cols = reactive([
     sort: "",
   },
   {
+    name: "Otros Stock",
+    field: "ART_STOCK_IMPORT",
+    sort: "",
+  },
+  {
     name: "P.Lista",
     field: "ART_VALOR",
     sort: "",
@@ -347,6 +365,27 @@ function consultarStock(articulo){
     articulo.stock = res.stock;
     articulo.ART_STOCK = res.ART_STOCK;
     articulo.loading = false;
+  });
+}
+
+function consultOtherStocksImports(articulo){
+  articulo.loading1 = true;
+
+  let cliente_id = null;
+  if(currentCliente.value){
+    cliente_id = currentCliente.value.id;
+  }
+
+  const consulta = reactive({
+    articulo: articulo,
+    sucursal_id: currentSucursal.value,
+    cliente_id: cliente_id,
+    puntodeventa_id: store.state.puntodeventaselect,
+  })
+  store.dispatch('consultaStockOthers', consulta).then( res => {
+    articulo.stockImport = res.stock;
+    articulo.ART_STOCK_IMPORT = res.ART_STOCK;
+    articulo.loading1 = false;
   });
 }
 

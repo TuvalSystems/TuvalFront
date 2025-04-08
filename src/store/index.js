@@ -502,6 +502,12 @@ const store = createStore({
                     return res.data;
                 })
         },
+        consultaStockOthers({commit}, data) {
+            return axiosClient.post('/consultas/consultastockothers', data)
+                .then(res => {
+                    return res.data;
+                })
+        },
         selectarticulo({commit}, data) {
             commit('setCotizacionLoading', true)
             return axiosClient.post('/cotizaciones/selectarticulo', data)
@@ -1503,10 +1509,10 @@ const store = createStore({
                 return res.data;
             })
         },
-        getReposicion({commit}, fecha) {
-            return axiosClient.get('/bodegas/getreposicion/'+fecha)
+        getReposicion({commit}, params) {
+            return axiosClient.post('/bodegas/getreposicion', params)
             .then(res => {
-                return res.data;
+            return res.data;
             })
         },
         solicitardevolucion({commit}, pedido) {
