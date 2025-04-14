@@ -504,6 +504,12 @@ const store = createStore({
         return res.data;
       });
     },
+    consultaStockOthers({commit}, data) {
+      return axiosClient.post('/consultas/consultastockothers', data)
+          .then(res => {
+              return res.data;
+          })
+  },
     selectarticulo({ commit }, data) {
       commit("setCotizacionLoading", true);
       return axiosClient
