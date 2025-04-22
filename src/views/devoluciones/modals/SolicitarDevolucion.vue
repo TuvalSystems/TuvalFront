@@ -216,7 +216,7 @@ import { formatPrice, format, format4 } from "@/functions";
 const { verpedido } = defineProps({
   verpedido: Object,
 })
-const emit = defineEmits(["enviarDevolucion", "anularPedido"]);
+const emit = defineEmits(["enviarDevolucion"]);
 
 const store = useStore();
 const detallepedido = computed(() => store.state.detallepedido_devolucion);
@@ -304,11 +304,7 @@ function checkgenerardevolucion() {
 }
 
 function enviarDevolucion(verpedido) {
-  let isDespachadoPending = verpedido.despachado == 0 || verpedido.despachado === null;
-  let isDespachoenProcesoActivo = verpedido.despacho_en_proceso == 0 || verpedido.despacho_en_proceso === null;
-  if (isDespachadoPending && isDespachoenProcesoActivo) {
-        anularPedido(verpedido);
-      }
+ 
   botonEnviar.value.classList.add('hide');
   if (!devolucion.value.motivo) {
     swalError('Es necesario seleccionar un motivo');
@@ -336,26 +332,13 @@ function enviarDevolucion(verpedido) {
      
     }
   }).catch(err => {
-    swalError(err.response.data.message)
+    swalError(err.response.data.error)
     botonEnviar.value.classList.remove('hide');
     emit('enviarDevolucion');
   });
 }
 
-function anularPedido(verpedido) {
- store.dispatch('enviarAnulacion', verpedido).then((res) => {
-    if (res.success == true) {
-      swalSuccess(res.message);
-      emit('anularPedido');
-    }
- }).catch(err => {
-    swalError(err.response.data.message)
-    emit('anularPedido');
-  });
 
-
-  emit('anularPedido');
-}
 
 watch(
   () => devolucion.value.tipo_devolucion,

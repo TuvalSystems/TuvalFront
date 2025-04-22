@@ -1727,13 +1727,6 @@ const store = createStore({
           return res.data;
         });
     },
-    enviarAnulacion({ commit }, devolucion) {
-        return axiosClient
-          .post("/devoluciones/anulardevolucion", devolucion)
-          .then((res) => {
-            return res.data;
-          })
-    },
     detalleDevolucion({ commit }, devolucion) {
       commit("setDetalleDevolucionLoading", true);
 
