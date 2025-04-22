@@ -130,6 +130,13 @@
               >
                 Rechazados
               </a>
+              <a
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('anulada');"
+                href="javascript:void(0)"
+              >
+                Anulada
+              </a>
             </div>
           </div>
         </div>
@@ -220,7 +227,8 @@
                           row.estado === 'orden_de_compra' ? 'bg-info-light text-info': '' ||
                           row.estado === 'traslado' ? 'bg-danger-light text-danger': '' ||
                           row.estado === 'rechazado' && !row.aprobado_crediticio_mensaje ? 'bg-danger-light text-danger': '' ||
-                          row.estado === 'rechazado' && row.aprobado_crediticio_mensaje ? 'pointer bg-danger-light text-danger':''
+                          row.estado === 'rechazado' && row.aprobado_crediticio_mensaje ? 'pointer bg-danger-light text-danger':''  ||
+                          row.estado === 'anulada' ? 'bg-warning-light text-danger': '' 
                           "
                         >
                         {{ row.estado }}</span>
