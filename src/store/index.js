@@ -1706,7 +1706,7 @@ const store = createStore({
         });
     },
     getReposicion({ commit }, params) {
-      return axiosClient.post("/bodegas/getreposicion/", {
+      return axiosClient.post("/bodegas/getreposicion", {
         fecha: params.fecha,
         numDoc: params.numDoc
       }
