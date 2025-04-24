@@ -122,7 +122,7 @@ function consultarreposicion(fecha) {
   }
   loading.value = true;
   store.dispatch('getReposicion', params).then((res) => {
-    console.log(res, '2');
+  
 
     if (res.success) {
       swalSuccess(res.message);
