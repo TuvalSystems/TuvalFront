@@ -16,7 +16,7 @@
 
   <!-- Page Content -->
   <div class="content">
-    <BaseBlock class="d-flex flex-column h-100 mb-4 pb-3">
+    <!-- <BaseBlock class="d-flex flex-column h-100 mb-4 pb-3">
       <form class="row row-cols-lg-auto g-3 align-items-center" @submit.prevent="onSubmit">
         <div class="col-12">
           <div class="row">
@@ -34,7 +34,7 @@
           <button type="button" v-on:click="consultarreposicion(set_fecha)" class="btn btn-primary">Consultar</button>
         </div>
       </form>
-    </BaseBlock>
+    </BaseBlock> -->
     <div v-if="loading" class="text-center">
       <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
     </div>
