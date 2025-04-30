@@ -1,8 +1,6 @@
 <template>
   <!-- Hero -->
-  <BasePageHeading
-    title="Pedidos"
-  >
+  <BasePageHeading title="Pedidos">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
@@ -16,17 +14,18 @@
   </BasePageHeading>
   <!-- END Hero -->
 
-   <!-- Page Content -->
+  <!-- Page Content -->
   <div class="content">
-    
-    
+
+
     <BaseBlock title="Pedidos" content-full>
       <template #options>
-        
+
         <div class="space-x-1">
           <div class="block-options-item">
-            <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()" class="btn btn-info btn-sm mx-1"><i class="fa fa-user"></i> Cliente</button>
-            <code class="text-muted" v-if="filtrar_cliente"> {{filtrar_cliente.CLI_RUC}}</code>
+            <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()"
+              class="btn btn-info btn-sm mx-1"><i class="fa fa-user"></i> Cliente</button>
+            <code class="text-muted" v-if="filtrar_cliente"> {{ filtrar_cliente.CLI_RUC }}</code>
           </div>
           <div class="block-options-item">
             <div class="row g-3 align-items-center">
@@ -34,119 +33,73 @@
                 <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
               </div>
               <div class="col-auto">
-                <flat-pickr
-                    style="width:120px;"
-                    id="fecha_desde"
-                    class="form-control form-control-sm"
-                    v-model="fecha_desde"
-                    :config="flatPickrState.fecha_desde"
-                    @change="refrescarFecha()"
-                />
+                <flat-pickr style="width:120px;" id="fecha_desde" class="form-control form-control-sm"
+                  v-model="fecha_desde" :config="flatPickrState.fecha_desde" @change="refrescarFecha()" />
               </div>
               <div class="col-auto">
                 <label for="fecha_hasta" class="col-form-label fs-sm">Hasta</label>
               </div>
               <div class="col-auto">
-                <flat-pickr
-                    style="width:120px;"
-                    id="fecha_hasta"
-                    class="form-control form-control-sm"
-                    v-model="fecha_hasta"
-                    :config="flatPickrState.fecha_hasta"
-                    @change="refrescarFecha()"
-                />
+                <flat-pickr style="width:120px;" id="fecha_hasta" class="form-control form-control-sm"
+                  v-model="fecha_hasta" :config="flatPickrState.fecha_hasta" @change="refrescarFecha()" />
               </div>
               <div class="col-auto">
-                <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> Limpiar filtros</button>
+                <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> Limpiar
+                  filtros</button>
               </div>
             </div>
           </div>
           <div class="block-options-item">
-            <button type="button" title="Refrescar tabla" @click="refreshllenarpedidos()" class="btn btn-success btn-sm"><i class="si si-refresh"></i></button>
+            <button type="button" title="Refrescar tabla" @click="refreshllenarpedidos()"
+              class="btn btn-success btn-sm"><i class="si si-refresh"></i></button>
           </div>
           <div class="dropdown d-inline-block">
-            <button
-              type="button"
-              class="btn btn-sm btn-alt-secondary"
-              id="dropdown-recent-orders-filters"
-              data-bs-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-            >
+            <button type="button" class="btn btn-sm btn-alt-secondary" id="dropdown-recent-orders-filters"
+              data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <i class="fa fa-fw fa-flask"></i>
               Estado
               <i class="fa fa-angle-down ms-1"></i>
             </button>
-            <div
-              class="dropdown-menu dropdown-menu-md dropdown-menu-end fs-sm"
-              aria-labelledby="dropdown-recent-orders-filters"
-            >
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('todos');"
-                href="javascript:void(0)"
-              >
+            <div class="dropdown-menu dropdown-menu-md dropdown-menu-end fs-sm"
+              aria-labelledby="dropdown-recent-orders-filters">
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('todos');" href="javascript:void(0)">
                 Todos
               </a>
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('espera');"
-                href="javascript:void(0)"
-              >
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('espera');" href="javascript:void(0)">
                 Espera
               </a>
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('eliminado');"
-                href="javascript:void(0)"
-              >
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('eliminado');" href="javascript:void(0)">
                 Eliminados
               </a>
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('facturado');"
-                href="javascript:void(0)"
-              >
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('facturado');" href="javascript:void(0)">
                 Facturados
               </a>
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('traslado');"
-                href="javascript:void(0)"
-              >
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('traslado');" href="javascript:void(0)">
                 Traslado
               </a>
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('orden_de_compra');"
-                href="javascript:void(0)"
-              >
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('orden_de_compra');" href="javascript:void(0)">
                 Orden de Compra
               </a>
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('rechazado');"
-                href="javascript:void(0)"
-              >
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('rechazado');" href="javascript:void(0)">
                 Rechazados
               </a>
-              <a
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarpedidos('anulada');"
-                href="javascript:void(0)"
-              >
+              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                @click="llenarpedidos('anulada');" href="javascript:void(0)">
                 Anulada
               </a>
             </div>
           </div>
         </div>
       </template>
-      <Dataset
-        v-slot="{ ds }"
-        :ds-data="pedidos.data"
-        :ds-sortby="sortBy"
-        :ds-search-in="['pedido', 'cotizacion', 'factura',  'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at', 'cotizacion']"
-        >
+      <Dataset v-slot="{ ds }" :ds-data="pedidos.data" :ds-sortby="sortBy"
+        :ds-search-in="['pedido', 'cotizacion', 'factura', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at', 'cotizacion']">
         <div class="row" :data-page-count="ds.dsPagecount">
           <div id="datasetLength" class="col-md-8 py-2">
             <DatasetShow />
@@ -157,7 +110,8 @@
         </div>
         <hr />
         <div v-if="pedidos.loading" class="text-center">
-          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+          </div>
         </div>
         <div class="row" v-if="verpedidos && pedidos.data.length && !pedidos.loading">
           <div class="col-md-12">
@@ -165,13 +119,8 @@
               <table class="table table-sm table-hover table-vcenter mb-0">
                 <thead>
                   <tr>
-                    <th
-                      v-for="(th, index) in cols"
-                      :key="th.field"
-                      :class="['sort', th.sort]"
-                      @click="onSort($event, index)"
-                      class="nowrap"
-                    >
+                    <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                      @click="onSort($event, index)" class="nowrap">
                       {{ th.name }} <i class="gg-select float-end"></i>
                     </th>
                     <th></th>
@@ -185,88 +134,101 @@
                         <a href="javascript:void(0);" @click="funcionverpedido(row)">{{ row.pedido }}</a>
                       </td>
                       <td class="fs-sm">
-                          {{  row.cotizacion }}
+                        {{ row.cotizacion }}
                       </td>
                       <td class="fs-sm">
-                          {{  row.factura }}
+                        {{ row.factura }}
                       </td>
                       <td class="fs-sm">
-                          {{  row.CLI_RAZON_SOCIAL }}
+                        {{ row.CLI_RAZON_SOCIAL }}
                       </td>
                       <td class="fs-sm">
-                          {{ row.CLI_RUC }}
+                        {{ row.CLI_RUC }}
                       </td>
                       <td class="fs-sm">
-                          {{ row.USERID }}
+                        {{ row.USERID }}
                       </td>
                       <td class="fs-sm">
-                          {{ row.COND_ID }}
+                        {{ row.COND_ID }}
                       </td>
                       <td class="fs-sm">
-                          {{ row.created_at }}
+                        {{ row.created_at }}
                       </td>
                       <td class="fs-sm text-end">
-                          ${{ format(parseFloat(row.total)) }}
+                        ${{ format(parseFloat(row.total)) }}
                       </td>
                       <td class="fs-sm">
-                        <a 
-                          v-if="row.estado === 'espera'"
-                          href="javascript:void(0)"
+                        <a v-if="row.estado === 'espera'" href="javascript:void(0)"
                           class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-warning"
-                          @click="motivoEspera(row)"
-                          >
+                          @click="motivoEspera(row)">
                           {{ row.estado }}
                         </a>
 
-                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill " 
-                        @click="
-                        row.estado === 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning(row.aprobado_comercial_mensaje) : '' ||
-                        row.estado === 'rechazado' && row.aprobado_crediticio_mensaje ? swalWarning(row.aprobado_crediticio_mensaje) : ''"
-                        :class="
-                          row.estado === 'facturado' ? 'bg-success-light text-success': '' ||
-                          row.estado === 'orden_de_compra' ? 'bg-info-light text-info': '' ||
-                          row.estado === 'traslado' ? 'bg-danger-light text-danger': '' ||
-                          row.estado === 'rechazado' && !row.aprobado_crediticio_mensaje ? 'bg-danger-light text-danger': '' ||
-                          row.estado === 'rechazado' && row.aprobado_crediticio_mensaje ? 'pointer bg-danger-light text-danger':''  ||
-                          row.estado === 'anulada' ? 'bg-warning-light text-danger': '' 
-                          "
-                        >
-                        {{ row.estado }}</span>
+                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill "
+                          @click="
+                            row.estado === 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning(row.aprobado_comercial_mensaje) : '' ||
+                              row.estado === 'rechazado' && row.aprobado_crediticio_mensaje ? swalWarning(row.aprobado_crediticio_mensaje) : ''" :class="row.estado === 'facturado' ? 'bg-success-light text-success' : '' ||
+                                row.estado === 'orden_de_compra' ? 'bg-info-light text-info' : '' ||
+                                  row.estado === 'traslado' ? 'bg-danger-light text-danger' : '' ||
+                                    row.estado === 'rechazado' && !row.aprobado_crediticio_mensaje ? 'bg-danger-light text-danger' : '' ||
+                                      row.estado === 'rechazado' && row.aprobado_crediticio_mensaje ? 'pointer bg-danger-light text-danger' : '' ||
+                                        row.estado === 'anulada' ? 'bg-warning-light text-danger' : ''">
+                          {{ row.estado }}
+                        </span>
                       </td>
                       <td class="nowrap">
-                        <span v-if="row.estado === 'rechazado'" class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-danger" >
+                        <span v-if="row.estado === 'rechazado'"
+                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-danger">
                           <i class="fa fa-circle-xmark"></i>
                         </span>
-                        <span v-else
-                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill " 
-                          :class="row.imprimir === 'yes' ? 'bg-success-light text-success':'bg-warning-light text-warning'"
-                          :title="row.imprimir === 'yes' ? 'Pedido aprobado':'Por aprobar'">
-                          <i :class="row.imprimir === 'yes' ? 'fa fa-circle-check':'fa fa-circle-xmark'"></i>
-                        </span>  
-                        <span v-if="(row.despachado === 1)" class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-info-light text-info mx-1" title="Despachado">
+                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill "
+                          :class="row.imprimir === 'yes' ? 'bg-success-light text-success' : 'bg-warning-light text-warning'"
+                          :title="row.imprimir === 'yes' ? 'Pedido aprobado' : 'Por aprobar'">
+                          <i :class="row.imprimir === 'yes' ? 'fa fa-circle-check' : 'fa fa-circle-xmark'"></i>
+                        </span>
+                        <span v-if="(row.despachado === 1)"
+                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-info-light text-info mx-1"
+                          title="Despachado">
                           <i class="fa fa-truck-fast"></i>
                         </span>
                       </td>
                       <td class="fs-sm text-end nowrap">
-                        <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-primary btn-sm mx-1" @click="imprimirpedido(row)">
+                        <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-primary btn-sm mx-1"
+                          @click="imprimirpedido(row)">
                           <i class="fa fa-print"></i>
                         </button>
-                        <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir" @click="recuperarpedido(row)">
+                        <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir"
+                          @click="recuperarpedido(row)">
                           <i class="far fa-copy"></i>
                         </button>
-                        <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido" @click="levantarcliente(row)">
+                        <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido"
+                          @click="levantarcliente(row)">
                           <i class="fa fa-copy"></i>
                         </button>
-                        <button 
+                        <button
                           v-if="((row.estado === 'espera' && (row.factura_posterior_despacho === 1 && row.factura_a_demanda === 1 && row.despachado === 1))
-                          || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null)   && row.factura_siguiente_mes === 1))
-                          && !((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))"
-                          type="button" class="btn btn-danger btn-sm mx-1" title="Enviar a facturar" @click="confirmfacturar(row)">
+                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 1))
+                            && !((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))"
+                          type="button" class="btn btn-danger btn-sm mx-1" title="Enviar a facturar"
+                          @click="confirmfacturar(row)">
                           <i class="fa fa-file-invoice-dollar"></i>
                         </button>
-                        <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-warning btn-sm mx-1" @click="imprimirpedidoimagenes(row)">
+                        <!-- <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-warning btn-sm mx-1"
+                          @click="imprimirpedidoimagenes(row)">
                           <i class="fa fa-print"></i>
+                        </button> -->
+                        <!-- dropdown -->
+                        <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
+                          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="fa fa-angle-down ms-1"></i>
                         </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropOptions">
+                          <li><button class="dropdown-item"  v-if="row.imprimir === 'yes'"  @click="imprimirpedidoimagenes(row)"><i class="fa-solid fa-file-pdf"></i> Generar Pedido</button></li>
+                          <li><button class="dropdown-item"  v-if="row.imprimir === 'yes'" @click="imprimirpedidoride(row)"><i class="fa-solid fa-file-pdf" ></i> Generar RIDE</button></li>
+                          <li><button class="dropdown-item"  v-if="row.imprimir === 'yes'" @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print" ></i> Generar XML</button></li>
+                        </ul>
+
+                            <!-- dropdown -->
                       </td>
                     </tr>
                   </template>
@@ -283,107 +245,58 @@
     </BaseBlock>
   </div>
   <!-- END Page Content -->
-  <div
-    class="modal"
-    id="modal-pedido"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-pedido"
-    aria-hidden="true"
-    ref="verpedidoModal"
-    >
+  <div class="modal" id="modal-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-pedido" aria-hidden="true"
+    ref="verpedidoModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerPedidoModal 
-          :verpedido="verpedido" 
-          :indexPedido="indexPedido"
-          :tipo="tipo"
-          @consultarExistente="consultarExistente(verpedido)"
-          @consultarDespachado="consultarDespachado(verpedido)"
-          @cancelarPedido="cancelarPedido()"
-          ></VerPedidoModal>
+        <VerPedidoModal :verpedido="verpedido" :indexPedido="indexPedido" :tipo="tipo"
+          @consultarExistente="consultarExistente(verpedido)" @consultarDespachado="consultarDespachado(verpedido)"
+          @cancelarPedido="cancelarPedido()"></VerPedidoModal>
       </div>
     </div>
   </div>
-  <div
-    class="modal"
-    id="modal-facturarexistente"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-facturarexistente"
-    aria-hidden="true"
-    ref="facturarexistenteModal"
-    >
+  <div class="modal" id="modal-facturarexistente" tabindex="-1" role="dialog" aria-labelledby="modal-facturarexistente"
+    aria-hidden="true" ref="facturarexistenteModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <FacturarExistenteModal 
-          :verpedido="verpedido" 
-          @cerrarFacturarExistente="cerrarFacturarExistente()"
-          ></FacturarExistenteModal>
+        <FacturarExistenteModal :verpedido="verpedido" @cerrarFacturarExistente="cerrarFacturarExistente()">
+        </FacturarExistenteModal>
       </div>
     </div>
   </div>
-  <div
-      class="modal"
-      id="modal-facturardespachado"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="modal-facturardespachado"
-      aria-hidden="true"
-      ref="facturardespachadoModal"
-  >
+  <div class="modal" id="modal-facturardespachado" tabindex="-1" role="dialog"
+    aria-labelledby="modal-facturardespachado" aria-hidden="true" ref="facturardespachadoModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <FacturarDespachadoModal
-            :verpedido="verpedido"
-            @cerrarFacturarDespachado="cerrarFacturarDespachado()"
-        ></FacturarDespachadoModal>
+        <FacturarDespachadoModal :verpedido="verpedido" @cerrarFacturarDespachado="cerrarFacturarDespachado()">
+        </FacturarDespachadoModal>
       </div>
     </div>
   </div>
-  <div
-    class="modal"
-    id="modal-levantar-cliente"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-levantar-cliente"
-    aria-hidden="true"
-    ref="levantarClienteModal"
-    >
+  <div class="modal" id="modal-levantar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-levantar-cliente"
+    aria-hidden="true" ref="levantarClienteModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <LevantarClienteModal 
-          :verpedido="verpedido" 
-          :tipo="tipo"
-          ></LevantarClienteModal>
+        <LevantarClienteModal :verpedido="verpedido" :tipo="tipo"></LevantarClienteModal>
       </div>
     </div>
   </div>
-  <div
-      class="modal"
-      id="modal-filtrar-cliente"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="modal-filtrar-cliente"
-      aria-hidden="true"
-      ref="filtrarClienteModal"
-  >
+  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true" ref="filtrarClienteModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <FiltrarCliente
-            @filtrarCliente="filtrarCliente()"
-        ></FiltrarCliente>
+        <FiltrarCliente @filtrarCliente="filtrarCliente()"></FiltrarCliente>
       </div>
     </div>
   </div>
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
-import {swalError, swalWarning, toast} from "@/functions/swal-alert.js";
+import { swalError, swalWarning, toast } from "@/functions/swal-alert.js";
 import VerPedidoModal from "../modals/VerPedidoModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import FiltrarCliente from "../modals/FiltrarCliente.vue";
@@ -391,7 +304,7 @@ import FacturarExistenteModal from "../modals/FacturarExistenteModal.vue";
 import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
-import {formatPrice, format} from "@/functions";
+import { formatPrice, format } from "@/functions";
 
 const flatPickrState = reactive({
   fecha_desde: {
@@ -503,24 +416,24 @@ const fecha_hasta = ref(null);
 const estado_filtro = ref(null);
 const filtrar_cliente = computed(() => store.state.filtrar_cliente);
 
-function limpiarFecha(){
+function limpiarFecha() {
   fecha_desde.value = null;
   fecha_hasta.value = null;
   store.commit('resetFiltrarCliente');
   llenarpedidos('todos');
 }
 
-function refrescarFecha(){
-  if(!fecha_desde.value)
+function refrescarFecha() {
+  if (!fecha_desde.value)
     return;
-  if(!fecha_hasta.value)
+  if (!fecha_hasta.value)
     return;
 
   llenarpedidos(estado_filtro.value);
 
 }
 async function funcionverpedido(pedido) {
-  store.dispatch('despachoenproceso', pedido.id).then( (res) => {
+  store.dispatch('despachoenproceso', pedido.id).then((res) => {
     pedido.despacho_en_proceso = res.despacho_en_proceso;
     pedido.transferencia_en_proceso = res.transferencia_en_proceso;
     verpedidoModalObj.show();
@@ -528,60 +441,60 @@ async function funcionverpedido(pedido) {
     tipo.value = 'pedido';
     store.dispatch('detallepedido', pedido).then(() => {
       const elem = document.getElementById('btabs-alt-static-detalle-tab');
-      if(elem)
+      if (elem)
         elem.click();
     });
   })
 }
 
-function levantarcliente(pedido){
+function levantarcliente(pedido) {
   store.commit('resetCotizacion');
   levantarClienteModalObj.show();
   verpedido.value = pedido;
   tipo.value = 'pedido';
 }
 
-let verpedidoModal= ref(null);
+let verpedidoModal = ref(null);
 let verpedidoModalObj = null;
 
-let facturarexistenteModal= ref(null);
+let facturarexistenteModal = ref(null);
 let facturarexistenteModalObj = null;
 
-let facturardespachadoModal= ref(null);
+let facturardespachadoModal = ref(null);
 let facturardespachadoModalObj = null;
 
-let levantarClienteModal= ref(null);
+let levantarClienteModal = ref(null);
 let levantarClienteModalObj = null;
 
-let filtrarClienteModal= ref(null);
+let filtrarClienteModal = ref(null);
 let filtrarClienteModalObj = null;
 
-function levantarFiltrocliente(){
+function levantarFiltrocliente() {
   store.commit('resetClientes');
   filtrarClienteModalObj.show();
 }
-function consultarExistente(verpedido){
+function consultarExistente(verpedido) {
   verpedidoModalObj.hide();
   store.dispatch('consultarExistente', verpedido).then(() => {
     facturarexistenteModalObj.show();
   })
 }
-function consultarDespachado(verpedido){
+function consultarDespachado(verpedido) {
   verpedidoModalObj.hide();
   store.dispatch('consultarDespachado', verpedido).then(() => {
     facturardespachadoModalObj.show();
   })
 }
 
-function cancelarPedido(){
+function cancelarPedido() {
   verpedidoModalObj.hide();
   llenarpedidos('todos');
 }
-function cerrarFacturarExistente(){
+function cerrarFacturarExistente() {
   facturarexistenteModalObj.hide();
   llenarpedidos('todos');
 }
-function cerrarFacturarDespachado(){
+function cerrarFacturarDespachado() {
   facturardespachadoModalObj.hide();
   llenarpedidos('todos');
 }
@@ -592,29 +505,29 @@ const verpedidos = ref(false);
 
 llenarpedidos('todos');
 
-async function llenarpedidos(estado){
+async function llenarpedidos(estado) {
   estado_filtro.value = estado;
   const consulta = reactive({
-      puntodeventa_id: store.state.puntodeventaselect,
-      estado: estado,
-      fecha_desde: fecha_desde.value,
-      fecha_hasta: fecha_hasta.value,
-      cliente: filtrar_cliente.value,
+    puntodeventa_id: store.state.puntodeventaselect,
+    estado: estado,
+    fecha_desde: fecha_desde.value,
+    fecha_hasta: fecha_hasta.value,
+    cliente: filtrar_cliente.value,
   })
   store.dispatch('llenarpedidos', consulta).then(() => {
     verpedidos.value = true;
   }).catch(err => {
-      verpedidos.value = false;
-     swalError(err.response.data.error);
+    verpedidos.value = false;
+    swalError(err.response.data.error);
   });
 }
 
-function filtrarCliente(){
+function filtrarCliente() {
   filtrarClienteModalObj.hide();
   llenarpedidos(estado_filtro.value);
 }
 
-function refreshllenarpedidos(){
+function refreshllenarpedidos() {
   // store.dispatch('sendfacturasgp').then(() => {
   //   verpedidos.value = true;
   //   llenarpedidos('todos');
@@ -625,7 +538,7 @@ function refreshllenarpedidos(){
   llenarpedidos('todos');
 }
 
-function recuperarpedido(pedido){
+function recuperarpedido(pedido) {
   templateStore.pageLoader({ mode: "on" });
   store.dispatch('recuperarPedido', pedido).then(() => {
     templateStore.pageLoader({ mode: "off" });
@@ -633,43 +546,79 @@ function recuperarpedido(pedido){
       name: 'ventas-crearcotizacion'
     })
   }).catch(err => {
-      console.log(err);
+    console.log(err);
   });
 }
 
-async function imprimirpedido(pedido){
-  store.dispatch('imprimir', '/pedidos/imprimirpedido/'+pedido.id)
-  .then((response) => {
-    if(response.status === 200){
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'pedido-'+pedido.pedido+'.pdf');
-      document.body.appendChild(link);
-      link.click();
-    }
+async function imprimirpedido(pedido) {
+  store.dispatch('imprimir', '/pedidos/imprimirpedido/' + pedido.id)
+    .then((response) => {
+      if (response.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'pedido-' + pedido.pedido + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
+}
+
+async function imprimirpedidoimagenes(pedido) {
+  store.dispatch('imprimir', '/pedidos/imprimirpedidoimagenes/' + pedido.id)
+    .then((response) => {
+      if (response.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'pedido-' + pedido.pedido + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
+}
+
+async function imprimirpedidoride(pedido) { 
+  store.dispatch('imprimir', '/pedidos/imprimirpedidoride/' + pedido.id)
+    .then((response) => {
+      if (response.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'RIDE-' + pedido.pedido  + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      } else if (response.status === 500) {
+        errorMsg.value = response.error;
+      }
+  }).catch(err => {
+    errorMsg.value = err.response.error
   });
 }
 
-async function imprimirpedidoimagenes(pedido){
-  store.dispatch('imprimir', '/pedidos/imprimirpedidoimagenes/'+pedido.id)
-      .then((response) => {
-        if(response.status === 200){
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'pedido-'+pedido.pedido+'.pdf');
-          document.body.appendChild(link);
-          link.click();
-        }
-      });
+async function imprimirpedidoxml(pedido) {
+  store.dispatch('imprimir', '/pedidos/imprimirpedidoxml/' + pedido.id)
+    .then((response) => {
+      if (response.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'xml-' + pedido.pedido + '.xml');
+        document.body.appendChild(link);
+        link.click();
+      }else if (response.status === 500) {
+        errorMsg.value = response.error;
+      }
+  }).catch(err => {
+    errorMsg.value = err.response.data.error
+  });
 }
 
 function confirmfacturar(pedido) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De facturar el pedido "+pedido.pedido +"",
+      text: "De facturar el pedido " + pedido.pedido + "",
       icon: "question",
       showCancelButton: true,
       customClass: {
@@ -694,30 +643,30 @@ function confirmfacturar(pedido) {
     });
 }
 
-function facturarpedido(pedido){
+function facturarpedido(pedido) {
   store.dispatch('facturarPedido', pedido).then(() => {
     llenarpedidos('todos');
   }).catch(err => {
-      errorMsg.value = err.response.data.error
+    errorMsg.value = err.response.data.error
   });
-  
+
 }
 
-function motivoEspera(pedido){
+function motivoEspera(pedido) {
   let msg = 'Pedido ';
-  if(pedido.factura_siguiente_mes){
+  if (pedido.factura_siguiente_mes) {
     msg += 'factura a siguiente mes';
   }
-  if(pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no'){
+  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
     msg += ' requiere aprobación comercial ';
   }
-  if(pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no' && pedido.requiere_aprobacion_crediticia === 'yes'){
+  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no' && pedido.requiere_aprobacion_crediticia === 'yes') {
     msg += ' y ';
   }
-  if(pedido.requiere_aprobacion_crediticia === 'yes' && pedido.aprobado_crediticio === 'no'){
+  if (pedido.requiere_aprobacion_crediticia === 'yes' && pedido.aprobado_crediticio === 'no') {
     msg += ' requiere aprobación crediticia ';
   }
-  if(pedido.factura_a_demanda){
+  if (pedido.factura_a_demanda) {
     msg += 'requiere factura a demanda posterior al despacho ';
   }
   swalWarning(msg);
