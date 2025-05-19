@@ -1,176 +1,85 @@
 <template>
-
-  <Dataset
-    v-slot="{ ds }"
-    :ds-data="guiasprocesadas.data.transferencias_recibidas"
-    :ds-sortby="sortBy"
-    :ds-search-in="[
-      'GUI_REM_GUIA_REMISION',
-      'pedido',
-      'GUI_REM_NUME_DOCU_SUSTENTO',
-      'CLI_RAZON_SOCIAL',
-      'GUI_REM_RAZON_SOCIAL_DESTINATARIO',
-      'BOD_BODEGA',
-      'GUI_REM_RAZON_SOCIAL_TRANSPORTISTA',
-      'GUI_REM_PLACA',
-      'GUI_REM_FECHA_INICIO',
-    ]"
-    >
-    <div class="row" :data-page-count="ds.dsPagecount">
-      <div id="datasetLengthTransferenciasRecibidas" class="col-md-8 py-2">
-        <DatasetShow />
-      </div>
-      <div class="col-md-4 py-2">
-        <DatasetSearch ds-search-placeholder="Buscar..." />
-      </div>
+  <div class="cold-md-0 py-2 text-end">
+    <button @click="refreshData" class="btn btn-outline-success" aria-placeholder="Actualizar">
+      <i class="fa fa-refresh"></i>
+    </button>
+  </div>
+  <div class="d-flex justify-content-between mb-3">
+    <div class="col-md-4 py-2">
+      <select v-model="perPage" class="form-select w-25">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+      </select>
     </div>
-    <hr />
-    <div class="row" v-if="guiasprocesadas.data.transferencias_recibidas && !guiasprocesadas.loading">
-      <div class="col-md-12">
-        <div class="table-responsive">
-          <table class="table table-sm table-hover table-vcenter mb-0">
-            <thead>
-              <tr>
-                <th
-                  v-for="(th, index) in cols"
-                  :key="th.field"
-                  :class="['sort', th.sort]"
-                  @click="onSort($event, index)"
-                  class="nowrap"
-                >
-                  {{ th.name }} <i class="gg-select float-end"></i>
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <DatasetItem tag="tbody" class="fs-sm">
-              <template #default="{ row }">
-                <tr>
-                  <td>{{ row.GUI_REM_GUIA_REMISION }}</td>
-                  <td>{{ row.bodega_origen }}</td>
-                  <td>{{ row.GUI_REM_RAZON_SOCIAL_DESTINATARIO }}</td>
-                  <td>{{ row.GUI_REM_DIRECCION_DESTINATARIO }}</td>
-                  <td>{{ row.GUI_REM_FECHA_INICIO }}</td>
-                  <td>{{ row.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
-                  <td>{{ row.GUI_REM_PLACA }}</td>
-                  <td class="text-end">
-                    <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm mx-2"
-                        @click="imprimirGuia(row)"
-                    >
-                      <i class="fa fa-print"></i> Imprimir
-                    </button>
-                  </td>
-                </tr>
-              </template>
-            </DatasetItem>
-          </table>
-        </div>
-      </div>
+    <div class="col-md-4 py-2">
+      <input v-model="searchTerm" placeholder="Buscar..." class="form-control w-60" />
     </div>
-    <div v-if="guiasprocesadas.loading" class="text-center">
-      <div class="spinner-border text-primary mt-4" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    <div
-      v-if="!guiasprocesadas.loading"
-      class="d-flex flex-md-row flex-column justify-content-between align-items-center"
-      >
-      <DatasetInfo class="py-3 fs-sm" />
-      <DatasetPager class="flex-wrap py-3 fs-sm" />
-    </div>
-  </Dataset>
+  </div>
+  <BaseTable :columns="columns" :data="items" :loading="loading" :perPage="perPage" :totalItems="totalItems"
+    :currentPage="currentPage" :totalPage="totalPage" :sortField="sortField" :sortOrder="sortOrder" @onSort="onSort"
+    @onPageChange="fetchItems" @onSearch="searchTerm" @onClick="handleClick">
+    <template #actions="{ row }">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
+        <i class="fa fa-print"></i> Imprimir
+      </button>
+    </template>
+  </BaseTable>
 </template>
+
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
-import { useStore} from 'vuex'
-import { Modal } from "bootstrap";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import Picking from "../modals/Picking.vue";
-import OrdenDespacho from "../modals/OrdenDespacho.vue";
+import BaseTable from "@/components/BaseTable.vue";
+import { usePagination } from "@/composables/usePagination";
+import { onMounted } from "vue";
 
+import { useStore } from "vuex";
 const store = useStore();
-const guiasprocesadas = computed(() => store.state.guiasprocesadas);
-const verpedido = ref({});
+const puntoVentaId = store.state.puntodeventaselect;
 
-// Helper variables
-const cols = reactive([
-  {
-    name: "#Guia",
-    field: "GUI_REM_GUIA_REMISION",
-    sort: "",
-  },
-  {
-    name: "#Origen",
-    field: "bodega_origen",
-    sort: "",
-  },
-  {
-    name: "Cliente",
-    field: "GUI_REM_RAZON_SOCIAL_DESTINATARIO",
-    sort: "",
-  },
-  {
-    name: "Dirección",
-    field: "GUI_REM_DIRECCION_DESTINATARIO",
-    sort: "",
-  },
-  {
-    name: "Fecha/Hora",
-    field: "GUI_REM_FECHA_INICIO",
-    sort: "",
-  },
-  {
-    name: "Transportista",
-    field: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA",
-    sort: "",
-  },
-  {
-    name: "Vehiculo",
-    field: "GUI_REM_PLACA",
-    sort: "",
-  },
-]);
+const {
+  items,
+  loading,
+  currentPage,
+  totalPage,
+  totalItems,
+  fetchItems,
+  searchTerm,
+  perPage,
+  initialize,
+  sortField,
+  sortOrder,
+} = usePagination();
 
-// Sort by functionality
-const sortBy = computed(() => {
-  return cols.reduce((acc, o) => {
-    if (o.sort) {
-      o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
-    }
-    return acc;
-  }, []);
+const refreshData = () => {
+  // console.log("🔄 Refrescando datos...");
+  fetchItems(currentPage.value);
+};
+// Inicialización
+onMounted(async () => {
+  initialize("/despachos/transferenciasRecibidas/", puntoVentaId);
+  // await fetchItems(); // 👈 Forzamos un fetch manual aquí
 });
 
-// On sort th click
-function onSort(event, i) {
-  let toset;
-  const sortEl = cols[i];
+// Columnas de la tabla
+const columns = [
+  { label: "#Guia", key: "GUI_REM_GUIA_REMISION", sortable: true, clickable: false, render: (value) => value},
+  { label: "#Origen", key: "bodega_origen", sortable: true, clickable: false },
+  { label: "#Cliente", key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO", sortable: true, clickable: false },
+  { label: "Dirección", key: "GUI_REM_DIRECCION_DESTINATARIO", sortable: true, clickable: false },
+  { label: "Fecha/Hora", key: "GUI_REM_FECHA_INICIO", sortable: true, clickable: false },
+  { label: "Transportista", key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA", sortable: true, clickable: false },
+  { label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false },
+];
 
-  if (!event.shiftKey) {
-    cols.forEach((o) => {
-      if (o.field !== sortEl.field) {
-        o.sort = "";
-      }
-    });
-  }
-  if (!sortEl.sort) {
-    toset = "asc";
-  }
-  if (sortEl.sort === "desc") {
-    toset = event.shiftKey ? "" : "asc";
-  }
-  if (sortEl.sort === "asc") {
-    toset = "desc";
-  }
-  sortEl.sort = toset;
-}
+// Función para el sort
+const onSort = ({ field, order }) => {
+  sortField.value = field;
+  sortOrder.value = order;
+  fetchItems(1);
+};
 
-let errorMsg = ref('');
-const pedidos = computed(() => store.state.pedidos);
-
+// Función para acciones
 async function imprimirGuia(guia) {
   store
     .dispatch("imprimir", "/bodegas/guiasderemision/imprimirguia/" + guia.id)
@@ -179,27 +88,27 @@ async function imprimirGuia(guia) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "guia-" + guia.GUI_REM_GUIA_REMISION + ".pdf");
+        link.setAttribute(
+          "download",
+          "guia-" + guia.GUI_REM_GUIA_REMISION + ".pdf"
+        );
         document.body.appendChild(link);
         link.click();
       }
     });
 }
 
+//funcion de prueba para ver que si funciona la ejecucion de funciones
+const handleClick = ({ row, col }) => {
+  // console.log(row, col, "test si esta llegado sino la falla");
 
-onMounted(() => {
-  // Remove labels from
-  document.querySelectorAll("#datasetLengthTransferenciasRecibidas label").forEach((el) => {
-    el.remove();
-  });
+  if (col.key === "GUI_REM_GUIA_REMISION") {
+    functionTest(row.GUI_REM_GUIA_REMISION);
+  }
+};
 
-  // Replace select classes
-  let selectLength = document.querySelector("#datasetLengthTransferenciasRecibidas select");
-
-  selectLength.classList = "";
-  selectLength.classList.add("form-select");
-  selectLength.style.width = "80px";
-
-});
-
+const functionTest = (guideId) => {
+  console.log(`🖨️ Imprimiendo Guia: ${guideId}`);
+  // Aquí puedes llamar al método de impresión real
+};
 </script>
