@@ -144,7 +144,7 @@
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockImport & !row.loading1)">
                             <button class="btn btn-sm btn-primary" @click="consultOtherStocksImports(row)"><i
-                                class="fa fa-magnifying-glass"></i>Ver stocks</button>
+                                class="fa fa-magnifying-glass"></i> Ver stock</button>
                           </div>
                           <div v-if="row.loading1" class="text-center">
                             <div class="spinner-border spinner-border-sm text-primary" role="status"><span
