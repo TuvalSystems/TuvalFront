@@ -60,8 +60,6 @@ export function useFormNoVenta(vercotizacion, motivos = []) {
   });
 
   const guardar = async () => {
-    console.log(formData, isValid.value);
-
     if (!isValid.value) {
       swalWarning(
         "Al seleccionar Proyecto debe seleccionar recordar e ingresar la fecha del recordatorio"

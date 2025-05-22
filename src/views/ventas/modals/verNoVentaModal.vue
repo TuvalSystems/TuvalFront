@@ -48,8 +48,9 @@ watch(
   (nuevoMotivo) => {
     const motivo = motivoStore.motivos.find(m => m.id == nuevoMotivo)
     if (motivo && motivo.descripcion.toLowerCase().includes('proyecto')) {
+        formData.recordar = 1
       if (formData.recordar !== 1) {
-        swalWarning('Si el motivo es Proyecto, el recordatorio debe ser Sí y debe tener una fecha de recordatorio.')
+        swalWarning('Si el motivo es "Proyecto", el campo "Recordar" debe estar activado y la fecha debe ser ingresada.')
       }
     }
   }
