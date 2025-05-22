@@ -122,7 +122,7 @@
                         <td class="fs-sm">
                           {{ row.ART_PLAN_UMEDIDA }}
                         </td>
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem;">
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem; justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stock)">
                             <code v-for="stock in row.stock"
                               :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
@@ -137,7 +137,7 @@
                           </div>
                         </td>
 
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem;">
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem;justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockImport)">
                             <code v-for="stock in row.stockImport"
                               :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
