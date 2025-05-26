@@ -43,26 +43,34 @@ export function useFormNoVenta(vercotizacion, motivos = []) {
     { immediate: true }
   );
 
+  watch(
+    () => formData.motivo_id,
+    (nuevoMotivo) => {
+      const motivo = motivos.find((m) => m.id == nuevoMotivo);
+      formData.fecha_recordatorio = vercotizacion.fecha_recordatorio ?? "";
+      formData.recordar = motivo?.recordatorio == 1 ? 1 : 0;
+    },
+    { immediate: true }
+  );
+
   const motivoSeleccionado = computed(() =>
     motivos.find((m) => m.id == formData.motivo_id)
   );
+  
+ 
 
-  const esProyecto = computed(() =>
-    motivoSeleccionado.value?.descripcion?.toLowerCase().includes("proyecto")
-  );
+  console.log("Formulario:", formData.value);
+  
 
   const isValid = computed(() => {
     errors.motivo_id = !formData.motivo_id;
-    errors.recordar = esProyecto.value && formData.recordar !== 1;
-    errors.fecha_recordatorio =
-      esProyecto.value && !formData.fecha_recordatorio;
-    return !errors.motivo_id && !errors.recordar && !errors.fecha_recordatorio;
+    errors.fecha_recordatorio =  motivoSeleccionado.value?.recordatorio == 1 && !formData.fecha_recordatorio ;
+    return !errors.motivo_id && !errors.fecha_recordatorio;
   });
-
   const guardar = async () => {
     if (!isValid.value) {
       swalWarning(
-        "Al seleccionar Proyecto debe seleccionar recordar e ingresar la fecha del recordatorio"
+        "Si esta en si el recordatorio, debe agregar una fecha de recordatorio",
       );
       return;
     }
@@ -92,7 +100,6 @@ export function useFormNoVenta(vercotizacion, motivos = []) {
   return {
     formData,
     motivoSeleccionado,
-    esProyecto,
     isValid,
     errors,
     guardar,

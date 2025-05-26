@@ -25,7 +25,6 @@ const {
     resetForm
 } = useFormNoVenta(props.vercotizacion, motivoStore.motivos)
 
-
 watch(
   () => props.vercotizacion?.id,
   (id) => {
@@ -41,19 +40,6 @@ watch(
     formData.cotizacion_id = row.id ?? null
   },
   { immediate: true }
-)
-
-watch(
-  () => formData.motivo_id,
-  (nuevoMotivo) => {
-    const motivo = motivoStore.motivos.find(m => m.id == nuevoMotivo)
-    if (motivo && motivo.descripcion.toLowerCase().includes('proyecto')) {
-        formData.recordar = 1
-      if (formData.recordar !== 1) {
-        swalWarning('Si el motivo es "Proyecto", el campo "Recordar" debe estar activado y la fecha debe ser ingresada.')
-      }
-    }
-  }
 )
 
 
