@@ -63,7 +63,8 @@
                       row.estado == 'solicitado' ? 'pointer bg-black-50': '' ||
                       row.estado == 'espera' ? 'bg-warning-light text-warning': '' ||
                       row.estado == 'rechazado' ? 'bg-danger-light text-danger': '' ||
-                      row.estado == 'anulada' ? 'bg-danger-light text-danger': ''
+                      row.estado == 'anulada' ? 'bg-danger-light text-danger': '' ||
+                      row.estado == 'recibido' ? 'bg-green-light text-green': ''
                       "
                       >
                         {{ row.estado }}</span>
