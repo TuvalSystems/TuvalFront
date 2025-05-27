@@ -6,7 +6,7 @@
   </div>
   <div class="d-flex justify-content-between mb-3">
     <div class="col-md-4 py-2">
-      <select v-model="perPage" class="form-select w-25">
+      <select v-model="table.perPage" class="form-select w-25">
         <option value="5">5</option>
         <option value="10">10</option>
         <option value="20">20</option>
@@ -14,12 +14,13 @@
       </select>
     </div>
     <div class="col-md-4 py-2">
-      <input v-model="searchTerm" placeholder="Buscar..." class="form-control w-60" />
+      <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control w-60" />
     </div>
   </div>
-  <BaseTable :columns="columns" :data="items" :loading="loading" :perPage="perPage" :totalItems="totalItems"
-    :currentPage="currentPage" :totalPage="totalPage" :sortField="sortField" :sortOrder="sortOrder" @onSort="onSort"
-    @onPageChange="fetchItems" @onSearch="searchTerm" @onClick="handleClick">
+  <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+    :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
+    :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
+    @onSearch="table.searchTerm" @onClick="handleClick">
     <template #actions="{ row }">
       <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
         <i class="fa fa-print"></i> Imprimir
@@ -30,35 +31,36 @@
 
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
-import { usePagination } from "@/composables/usePagination";
-import { onMounted } from "vue";
-
+import { onMounted, watch } from "vue";
+import { useReposicionesEnviadasPagination } from "../../../composables/bodegas/consultas/useReposicionesEnviadasPagiancion";
 import { useStore } from "vuex";
+
 const store = useStore();
 const puntoVentaId = store.state.puntodeventaselect;
 
-const {
-  items,
-  loading,
-  currentPage,
-  totalPage,
-  totalItems,
-  fetchItems,
-  searchTerm,
-  perPage,
-  initialize,
-  sortField,
-  sortOrder,
-} = usePagination();
+const { table, fetchItems, refresh } = useReposicionesEnviadasPagination(puntoVentaId);
+
+// 🧠 Watch para filtros y orden
+watch(
+  () => [table.searchTerm, table.perPage, table.sortField, table.sortOrder],
+  () => {
+    fetchItems(1);
+  },
+  { deep: true }
+);
+
+
+
 
 const refreshData = () => {
-  // console.log("🔄 Refrescando datos...");
-  fetchItems(currentPage.value);
+
+  refresh();
 };
 // Inicialización
 onMounted(async () => {
-  initialize("/despachos/reposicionesEnviadas/", puntoVentaId);
-  // await fetchItems(); // 👈 Forzamos un fetch manual aquí
+  if (!table.items.length) {
+    fetchItems();
+  }
 });
 
 // Columnas de la tabla
@@ -89,9 +91,9 @@ const columns = [
 
 // Función para el sort
 const onSort = ({ field, order }) => {
-  sortField.value = field;
-  sortOrder.value = order;
-  fetchItems(1);
+  table.sortField = field;
+  table.sortOrder = order;
+  //  fetchItems(1);
 };
 
 // Función para acciones
