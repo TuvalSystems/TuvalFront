@@ -60,7 +60,7 @@
           </li>
         </ul>
 
-        <div class="block-content">
+        <div class="block-content  tab-content">
           <DespachoPedidos v-if="activeTab === 'despacho'"></DespachoPedidos>
           <TransferenciasEnviadas v-if="activeTab === 'transferencias-enviadas'"></TransferenciasEnviadas>
           <TransferenciasRecibidas v-if="activeTab === 'transferencias-recibidas'"></TransferenciasRecibidas>

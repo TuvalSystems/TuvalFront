@@ -89,108 +89,110 @@ const handleRowClick = (event, row, col) => {
 
 <template>
     <div class="row">
-        <div class="col-md-12"></div>
-        <div class="table-responsive">
-            <table class="table table-sm table-hover table-vcenter mb-0">
-                <thead>
-                    <tr>
-                        <th v-for="col in columns" :key="col.key" @click="col.sortable ? handleSort(col.key) : null"
-                            :class="col.sortable ? 'sortable' : ''" class="text-left text-nowrap"
-                            style="font-size: 12px">
-                            {{ col.label }}
-                            <i :class="getSortIcon(col.key)" class="ms-1"></i>
-                        </th>
-                        <!-- Si hay acciones, se añade una columna adicional -->
-                        <th v-if="$slots.actions" class="text-center" style="font-size: 12px">
-                            Acciones
-                        </th>
-                    </tr>
-                </thead>
-                <tbody v-if="loading">
-                    <tr>
-                        <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-vcenter mb-0">
+                    <thead>
+                        <tr>
+                            <th v-for="col in columns" :key="col.key" @click="col.sortable ? handleSort(col.key) : null"
+                                :class="col.sortable ? 'sortable' : ''" 
+                                class="text-left nowrap"
+                                :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
+                                {{ col.label }}
+                                <i :class="getSortIcon(col.key)" class="ms-0"></i>
+                            </th>
+                            <!-- Si hay acciones, se añade una columna adicional -->
+                            <th v-if="$slots.actions" class="text-center nowrap" style="font-size: 12px">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody v-if="loading">
+                        <tr>
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
 
-                <!-- datos de la tabla  y acciones -->
-                <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
-                    <tr v-for="row in data" :key="row.id ?? index">
-                        <td v-for="col in columns" :key="col.key" class="text-left"
-                            style="font-size: 12px; overflow: hidden; text-overflow: ellipsis">
+                    <!-- datos de la tabla  y acciones -->
+                    <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
+                        <tr v-for="row in data" :key="row.id ?? index">
+                            <td v-for="col in columns" :key="col.key" class="text-left"
+                                style="font-size: 12px; overflow: hidden; text-overflow: ellipsis ">
 
 
-                            <!-- Si es clickable, lo renderizamos como enlace -->
-                            <a v-if="col.clickable" href="javascript:void(0)"
-                                @click="(event) => handleRowClick(event, row, col)">
-                                <span v-if="typeof col.render === 'function'">
-                                    {{ col.render(row[col.key]) }}
-                                </span>
+                                <!-- Si es clickable, lo renderizamos como enlace -->
+                                <a v-if="col.clickable" href="javascript:void(0)"
+                                    @click="(event) => handleRowClick(event, row, col)">
+                                    <span v-if="typeof col.render === 'function'">
+                                        {{ col.render(row[col.key]) }}
+                                    </span>
+                                    <span v-else>
+                                        {{ row[col.key] }}
+                                    </span>
+                                </a>
+
+                                <!-- Caso normal -->
                                 <span v-else>
                                     {{ row[col.key] }}
                                 </span>
-                            </a>
+                            </td>
 
-                            <!-- Caso normal -->
-                            <span v-else>
-                                {{ row[col.key] }}
-                            </span>
-                        </td>
+                            <!-- Slot para acciones -->
+                            <td v-if="$slots.actions" class="text-center text-nowrap" style="width: 150px">
+                                <slot name="actions" :row="row"></slot>
+                            </td>
+                        </tr>
+                    </transition-group>
+                </table>
 
-                        <!-- Slot para acciones -->
-                        <td v-if="$slots.actions" class="text-center text-nowrap" style="width: 150px">
-                            <slot name="actions" :row="row"></slot>
-                        </td>
-                    </tr>
-                </transition-group>
-            </table>
+                <!-- Paginacion Integrada -->
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+                    <div>
+                        <p class="mb-0 text-white" style="font-size: 12px">
+                            Mostrando
+                            <strong>{{ (currentPage - 1) * perPage + 1 }}</strong> a
+                            <strong>{{ Math.min(currentPage * perPage, totalItems) }}</strong>
+                            de <strong>{{ totalItems }}</strong> registros
+                        </p>
+                    </div>
 
-            <!-- Paginacion Integrada -->
-            <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-                <div>
-                    <p class="mb-0 text-white" style="font-size: 12px">
-                        Mostrando
-                        <strong>{{ (currentPage - 1) * perPage + 1 }}</strong> a
-                        <strong>{{ Math.min(currentPage * perPage, totalItems) }}</strong>
-                        de <strong>{{ totalItems }}</strong> registros
-                    </p>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                                <button class="page-link" @click="$emit('onPageChange', 1)">
+                                    <i class="fa fa-angle-double-left"></i>
+                                </button>
+                            </li>
+                            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                                <button class="page-link" @click="$emit('onPageChange', currentPage - 1)">
+                                    <i class="fa fa-angle-left"></i>
+                                </button>
+                            </li>
+
+                            <li v-for="page in pages" :key="page" class="page-item"
+                                :class="{ active: page === currentPage }">
+                                <button class="page-link" @click="$emit('onPageChange', page)">
+                                    {{ page }}
+                                </button>
+                            </li>
+
+                            <li class="page-item" :class="{ disabled: currentPage === totalPage }">
+                                <button class="page-link" @click="$emit('onPageChange', currentPage + 1)">
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </li>
+                            <li class="page-item" :class="{ disabled: currentPage === totalPage }">
+                                <button class="page-link" @click="$emit('onPageChange', totalPage)">
+                                    <i class="fa fa-angle-double-right"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
-
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                            <button class="page-link" @click="$emit('onPageChange', 1)">
-                                <i class="fa fa-angle-double-left"></i>
-                            </button>
-                        </li>
-                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                            <button class="page-link" @click="$emit('onPageChange', currentPage - 1)">
-                                <i class="fa fa-angle-left"></i>
-                            </button>
-                        </li>
-
-                        <li v-for="page in pages" :key="page" class="page-item"
-                            :class="{ active: page === currentPage }">
-                            <button class="page-link" @click="$emit('onPageChange', page)">
-                                {{ page }}
-                            </button>
-                        </li>
-
-                        <li class="page-item" :class="{ disabled: currentPage === totalPage }">
-                            <button class="page-link" @click="$emit('onPageChange', currentPage + 1)">
-                                <i class="fa fa-angle-right"></i>
-                            </button>
-                        </li>
-                        <li class="page-item" :class="{ disabled: currentPage === totalPage }">
-                            <button class="page-link" @click="$emit('onPageChange', totalPage)">
-                                <i class="fa fa-angle-double-right"></i>
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
             </div>
         </div>
     </div>

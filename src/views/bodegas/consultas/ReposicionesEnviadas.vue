@@ -65,28 +65,14 @@ onMounted(async () => {
 
 // Columnas de la tabla
 const columns = [
-  {
-    label: "#Guia",
-    key: "GUI_REM_GUIA_REMISION",
-    sortable: true,
-    clickable: false, render: (value) => value,
-  },
-  { label: "#Destino", key: "bodega_destino", sortable: true, clickable: false },
+  { label: "#Guia", key: "GUI_REM_GUIA_REMISION", sortable: true, clickable: false, render: (value) => value,width: "8.438rem" },  
+  { label: "#Destino", key: "bodega_destino", sortable: true, clickable: false, width: "3.125rem" },
   { label: "#Documento", key: "pedido", sortable: true, clickable: false },
-  {
-    label: "#Cliente",
-    key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO",
-    sortable: true, clickable: false
-  },
+  { label: "#Cliente", key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO", sortable: true, clickable: false  },
   { label: "Dirección", key: "GUI_REM_DIRECCION_DESTINATARIO", sortable: true, clickable: false },
   { label: "Fecha/Hora", key: "GUI_REM_FECHA_INICIO", sortable: true, clickable: false },
-  {
-    label: "Transportista",
-    key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA",
-    sortable: true, clickable: false
-  },
+  { label: "Transportista", key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA",  sortable: true, clickable: false  },
   { label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false },
-  // { label: "Acciones", key: "actions" },
 ];
 
 // Función para el sort

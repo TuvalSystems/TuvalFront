@@ -52,8 +52,8 @@ onMounted(async () => {
 
 // Columnas de la tabla
 const columns = [
-  { label: "#Guia", key: "GUI_REM_GUIA_REMISION", sortable: true, clickable: false, render: (value) => value},
-  { label: "#Origen", key: "bodega_origen", sortable: true, clickable: false },
+  { label: "#Guia", key: "GUI_REM_GUIA_REMISION", sortable: true, clickable: false, render: (value) => value,  width: "8.438rem" },
+  { label: "#Origen", key: "bodega_origen", sortable: true, clickable: false,width: "3.125rem" },
   { label: "#Documento", key: "pedido", sortable: true, clickable: false },
   { label: "#Cliente", key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO", sortable: true, clickable: false },
   { label: "Dirección", key: "GUI_REM_DIRECCION_DESTINATARIO", sortable: true, clickable: false },
@@ -90,7 +90,6 @@ async function imprimirGuia(guia) {
 
 //funcion de prueba para ver que si funciona la ejecucion de funciones
 const handleClick = ({ row, col }) => {
-  // console.log(row, col, "test si esta llegado sino la falla");
 
   if (col.key === "GUI_REM_GUIA_REMISION") {
     functionTest(row.GUI_REM_GUIA_REMISION);
