@@ -159,7 +159,7 @@
                                             </td>
                                             <td>
                                               <div v-if="(articulo.ART_TIPO_COMPRA != 'L' && articulo.stock)">
-                                                <code v-for="stock in articulo.stock">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
+                                                <code v-for="stock in articulo.stock" :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
                                               </div>
                                               <div v-if="(articulo.ART_TIPO_COMPRA != 'L' && !articulo.stock & !articulo.loading)">
                                                 <button class="btn btn-sm btn-primary" @click="consultarStock(articulo)"><i class="fa fa-magnifying-glass"></i> Ver stock</button>
