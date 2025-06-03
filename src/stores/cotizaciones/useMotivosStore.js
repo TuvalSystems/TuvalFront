@@ -19,7 +19,6 @@ export const useMotivosStore = defineStore('motivos', {
                 this.motivos = response.data;
                 this.loading = false;
             } catch (error) {
-                console.log(error);
                 this.error = error;
             } finally{
                 this.loading = false;
