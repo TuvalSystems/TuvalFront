@@ -1,13 +1,9 @@
 import axiosClient from "../../axios";
-import { useStore } from "vuex";
-import { ref, reactive, computed, watch } from "vue";
+import { reactive, computed, watch } from "vue";
 import {
-  swalSimple,
-  swalInfo,
   swalSuccess,
   swalWarning,
-  swalError,
-  toast,
+  swalError
 } from "@/functions/swal-alert.js";
 
 export function useFormNoVenta(vercotizacion, motivos = []) {
@@ -58,10 +54,6 @@ export function useFormNoVenta(vercotizacion, motivos = []) {
   );
   
  
-
-  console.log("Formulario:", formData.value);
-  
-
   const isValid = computed(() => {
     errors.motivo_id = !formData.motivo_id;
     errors.fecha_recordatorio =  motivoSeleccionado.value?.recordatorio == 1 && !formData.fecha_recordatorio ;
