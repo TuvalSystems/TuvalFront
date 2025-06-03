@@ -36,7 +36,9 @@
                 verdevolucion.estado == 'aprobado' ? 'bg-info-light text-info': '' ||
                 verdevolucion.estado == 'solicitado' ? 'bg-black-50': '' ||
                 verdevolucion.estado == 'espera' ? 'bg-warning-light text-warning': '' ||
-                verdevolucion.estado == 'rechazado' ? 'bg-danger-light text-danger': ''
+                verdevolucion.estado == 'rechazado' ? 'bg-danger-light text-danger': '' ||
+                verdevolucion.estado == 'anulada' ? 'bg-danger-light text-danger': '' ||
+                verdevolucion.estado == 'recibido' ? 'bg-success-light text-info': ''
                 "
               >
               {{ verdevolucion.estado }}</span>
