@@ -56,13 +56,14 @@ export function useFormNoVenta(vercotizacion, motivos = []) {
  
   const isValid = computed(() => {
     errors.motivo_id = !formData.motivo_id;
-    errors.fecha_recordatorio =  motivoSeleccionado.value?.recordatorio == 1 && !formData.fecha_recordatorio ;
-    return !errors.motivo_id && !errors.fecha_recordatorio;
+    errors.recordar = formData.recordar === 1  && !formData.fecha_recordatorio;
+    errors.fecha_recordatorio =  motivoSeleccionado.value?.recordatorio === 1 && !formData.fecha_recordatorio && formData.motivo_id && formData.recordar === 1;
+    return !errors.motivo_id && !errors.fecha_recordatorio && !errors.recordar;
   });
   const guardar = async () => {
     if (!isValid.value) {
       swalWarning(
-        "Si esta en si el recordatorio, debe agregar una fecha de recordatorio",
+        "Si esta seleccionado el motivo Proyecto, debe agregar una fecha de recordatorio",
       );
       return;
     }
