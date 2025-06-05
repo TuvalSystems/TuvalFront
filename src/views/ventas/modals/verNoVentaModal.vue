@@ -53,7 +53,7 @@ onMounted(() => {
 
 </script>
 <template>
-    <BaseBlock title="Cotización de Factura">
+    <BaseBlock :title="`Cotización de Factura: ${vercotizacion.cotizacion}`"> 
         <template #options>
             <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close"
                 @click="resetForm">

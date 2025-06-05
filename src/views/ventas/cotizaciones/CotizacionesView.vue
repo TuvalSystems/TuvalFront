@@ -187,16 +187,9 @@
                         </span>
                       </td>
                       <td>
-                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1" :class="row.facturado == 1
-                            ? 'bg-success-light text-success'
-                            : '' || row.facturado == 0
-                              ? 'bg-info-light text-info'
-                              : ''
-                          " @click="
-                            row.facturado == 0
-                              ? showModalNoVenta(row)
-                              : ''
-                            ">
+                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1" 
+                          :class="row.facturado == 1 ? 'bg-success-light text-success'  : '' || row.facturado == 0  ? 'bg-info-light text-info' : ''"
+                           @click="row.facturado == 0 ? showModalNoVenta(row) : ''" >
                           {{ row.facturado == 1 ? "Si" : "No" }}
                         </span>
                       </td>
@@ -675,7 +668,8 @@ function showModalNoVenta(row) {
       motivo_id: row.cotizacion_venta_motivo_id,
       recordar : row.recordar,
       observacion : row.observacion,
-      fecha_recordatorio : row.fecha_recordatorio
+      fecha_recordatorio : row.fecha_recordatorio,
+      cotizacion: row.cotizacion
     }
     nextTick(() => {
       verNoVentaModalObj?.show()
