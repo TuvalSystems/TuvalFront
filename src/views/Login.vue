@@ -116,8 +116,25 @@ async function login() {
     return;
   }
   cargando.value.classList.remove('hide');
-
   boton.value.classList.add('hide');
+
+  try {
+    const res = await actions.dispatch('login', state);
+    const userw = res?.data?.userWeb;
+
+    boton.value.classList.remove('hide');
+    cargando.value.classList.add('hide');
+
+    if (userw?.must_change_password) {
+      router.push({ name: 'password-change' }); // ajusta este nombre según tu ruta
+    } else {
+      router.push({ name: actions.state.home });
+    }
+
+  } catch (error) {
+
+  }
+
   actions.dispatch('login', state)
     .then((res) => {
       boton.value.classList.remove('hide');
