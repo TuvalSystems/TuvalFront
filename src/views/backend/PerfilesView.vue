@@ -196,6 +196,9 @@
                   <th class="d-none d-sm-table-cell" style="width: 15%">
                     Perfil Asignado
                   </th>
+                  <th style="width: 100px">
+                    Restaurar Contraseña
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -223,6 +226,13 @@
                         >{{ perfil.name }}</option>
                     </select>
                   
+                  </td>
+                  <td>
+                    <div style="text-align: center;">
+                      <button type="button" class="btn btn-sm btn-alt-secondary" @click="resetPassword(usuario)" >
+                        <i class="fa fa-fw fa-redo"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -339,6 +349,15 @@ function selectusuarioperfil(event, usuario){
   .catch(err => {
     errorMsg.value = err.response.data.error
   });
+}
+
+async function resetPassword(usuario) {
+  try {
+    const res = await store.dispatch('resetPassword', usuario.USERID);
+    await swalSuccess(res.data.message); 
+  } catch (err) {
+    errorMsg.value = err.response?.data?.error || 'Error al resetear contraseña';
+  }
 }
 
 </script>
