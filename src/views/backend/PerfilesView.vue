@@ -156,6 +156,8 @@
                   <th style="width: 100px">
                     Restaurar Contraseña
                   </th>
+                  <th>Credenciales Actualizadas</th>
+                  <th>Estado</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,7 +165,7 @@
                   <th class="text-center" scope="row">
                     {{ index + 1 }}
                   </th>
-                  <td class="fw-semibold fs-sm">
+                  <td class="fw-semibold fs-sm" style="width: 150px">
                     <a href="javascript:void(0)">{{ usuario.USERNAME }}</a>
                   </td>
                   <td class="fw-semibold fs-sm">
@@ -187,10 +189,29 @@
                   </td>
                   <td>
                     <div style="text-align: center;">
-                      <button type="button" class="btn btn-sm btn-alt-secondary" @click="resetPassword(usuario)">
+                      <button type="button" class="btn btn-sm btn-alt-secondary" @click="swalAlertResetPassword(usuario)">
                         <i class="fa fa-fw fa-redo"></i>
                       </button>
                     </div>
+                  </td>
+                  <td style="text-align: center;width: 50px">
+                    <div v-if="usuario.must_change_password == '0' || usuario.must_change_password == 0">
+                      <i class="fa fa-fw fa-check text-success"></i>
+
+                    </div>
+                    <div v-else-if="usuario.must_change_password == '1' || usuario.must_change_password == 1">
+                      <i class="fa fa-fw fa-times text-danger"></i>
+
+                    </div>
+
+                  </td>
+                  <td>
+                    <span v-if="usuario.status == 0"
+                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-danger"
+                      @click="swalChangeStatus(usuario)">Inactivo</span>
+                    <span v-else
+                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-success-light text-success"
+                      @click="swalChangeStatus(usuario)">Activo</span>
                   </td>
                 </tr>
               </tbody>
@@ -204,7 +225,7 @@
 </template>
 <script setup>
 
-import { ref, reactive, computed } from "vue";
+import { ref, computed } from "vue";
 import { useStore } from 'vuex';
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 
@@ -309,13 +330,79 @@ function selectusuarioperfil(event, usuario) {
     });
 }
 
+function swalAlertResetPassword(usuario) {
+  toast.fire({
+    title: "Estas seguro?",
+    text: "Si resetea la contraseña de " + usuario.USERNAME + " obligatoriamente tendra que cambiarla",
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: "btn btn-danger m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: "Si, resetearla!",
+    html: false,
+    preConfirm: () => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 50);
+      });
+    },
+  }).then((result) => {
+    if (result.value) {
+      resetPassword(usuario)
+    }
+  })
+}
+
 async function resetPassword(usuario) {
   try {
     const res = await store.dispatch('resetPassword', usuario.USERID);
     await swalSuccess(res.data.message);
   } catch (err) {
     errorMsg.value = err.response?.data?.error || 'Error al resetear contraseña';
+    swalError(errorMsg.value);
+
   }
 }
+function swalChangeStatus(usuario) {
+  toast.fire({
+    title: "Estas seguro?",
+    text: "Si cambias el estado de " + usuario.USERNAME + " no podra acceder al sistema",
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: "btn btn-danger m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: "Si, cambiarlo!",
+    html: false,
+    preConfirm: () => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 50);
+      });
+    },
+  }).then((result) => {
+    if (result.value) {
+      changeStatusUser(usuario)
+    }
+  });
+}
+
+async function changeStatusUser(usuario) {
+
+  try {
+    const res = await store.dispatch('changeStatusUser', usuario.USERID);
+    await swalSuccess(res.data.message);
+  } catch (err) {
+    errorMsg.value = err.response?.data?.error || 'Error al cambiar estado del usuario';
+    swalError(errorMsg.value);
+  }
+}
+
+
 
 </script>
