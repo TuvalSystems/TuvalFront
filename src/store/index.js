@@ -476,6 +476,12 @@ const store = createStore({
         return response;
       });
     },
+     changeStatusUser({ dispatch }, data) {
+      return axiosClient.post("/change-status-user", data).then((response) => {
+         dispatch("getPerfiles");
+        return response;
+      });
+    },
     buscararticulo({ commit }, data) {
       commit("setArticuloLoading", true);
       return axiosClient.post("/consultas/buscararticulo", data).then((res) => {
