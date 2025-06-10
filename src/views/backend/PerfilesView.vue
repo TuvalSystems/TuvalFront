@@ -161,7 +161,7 @@
               <tbody>
                 <tr v-for="(usuario, index) in usuarios.data" :key="index">
                   <th class="text-center" scope="row">
-                    {{ index }}
+                    {{ index + 1 }}
                   </th>
                   <td class="fw-semibold fs-sm">
                     <a href="javascript:void(0)">{{ usuario.USERNAME }}</a>
