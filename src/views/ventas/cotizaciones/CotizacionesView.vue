@@ -163,34 +163,16 @@
                           @click="motivoEspera(row)">
                           {{ row.estado }}
                         </a>
-                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill" :class="row.aprobado_comercial_mensaje
-                            ? 'pointer bg-danger-light text-danger'
-                            : '' || row.estado == 'aprobado'
-                              ? 'bg-success-light text-success'
-                              : '' || row.estado == 'rechazado'
-                                ? 'bg-danger-light text-danger'
-                                : '' || row.estado == 'caducado'
-                                  ? 'bg-danger-light text-danger'
-                                  : '' || row.estado == 'procesado'
-                                    ? 'bg-info-light text-info'
-                                    : ''
-                          " @click="
-                            row.estado == 'rechazado' &&
-                              row.aprobado_comercial_mensaje
-                              ? swalWarning(
-                                'Motivo de rechazo',
-                                row.aprobado_comercial_mensaje
-                              )
-                              : ''
-                            ">
-                          {{ row.estado }}
+                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill" :class="row.aprobado_comercial_mensaje ? 'pointer bg-danger-light text-danger' : '' || row.estado == 'aprobado' ? 'bg-success-light text-success'
+                              : '' || row.estado == 'rechazado'? 'bg-danger-light text-danger' : '' || row.estado == 'caducado'? 'bg-danger-light text-danger'
+                                  : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''" @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : '' ">{{ row.estado }}
                         </span>
                       </td>
                       <td>
                         <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1" 
-                          :class="row.facturado == 1 ? 'bg-success-light text-success'  : '' || row.facturado == 0  ? 'bg-info-light text-info' : ''"
-                           @click="row.facturado == 0 ? showModalNoVenta(row) : ''" >
-                          {{ row.facturado == 1 ? "Si" : "No" }}
+                          :class="row.recordatorioventa == 1 ? 'bg-success-light text-success'  : '' || row.recordatorioventa == 0  ? 'bg-info-light text-info' : ''"
+                           @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''" >
+                          {{ row.recordatorioventa == 1 ? "Si" : "No" }}
                         </span>
                       </td>
                       <td v-if="row.prospecto_id && !row.cliente_id" class="fs-sm nowrap text-end">
