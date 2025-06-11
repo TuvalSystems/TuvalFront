@@ -112,25 +112,33 @@ async function login() {
   const result = await v$.value.$validate();
 
   if (!result) {
-    // notify user form is invalid
     return;
   }
   cargando.value.classList.remove('hide');
-
   boton.value.classList.add('hide');
-  actions.dispatch('login', state)
-    .then((res) => {
-      boton.value.classList.remove('hide');
-      cargando.value.classList.add('hide');
-      router.push({
-        name: actions.state.home
-      })
-    })
-    .catch(err => {
-      boton.value.classList.remove('hide');
-      cargando.value.classList.add('hide');
-      errorMsg.value = err.response.data.error
-    });
+
+  try {
+    const res = await actions.dispatch('login', state);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const userw = actions.state.must_change_password;
+    
+    boton.value.classList.remove('hide');
+    cargando.value.classList.add('hide');
+
+    if (userw === true || userw === 1 || userw === '1') {
+      router.push({ name: 'password-change' }); // ajusta este nombre según tu ruta
+    } else {
+      router.push({ name: actions.state.home });
+    }
+
+  } catch (error) {
+
+    boton.value.classList.remove('hide');
+    cargando.value.classList.add('hide');
+    errorMsg.value = error.response?.data?.error ?? 'Error al iniciar sesión';
+  }
+
+ 
 }
 
 </script>

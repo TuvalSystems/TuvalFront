@@ -11,6 +11,7 @@ const store = createStore({
       data: JSON.parse(sessionStorage.getItem("USERDATA")),
       token: sessionStorage.getItem("TOKEN"),
     },
+    must_change_password: sessionStorage.getItem("MUST_CHANGE_PASSWORD"),
     menu: JSON.parse(sessionStorage.getItem("MENU")),
     home: sessionStorage.getItem("HOME"),
     puntosdeventa: JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA")),
@@ -465,6 +466,19 @@ const store = createStore({
     updateUsuarioPerfil({ dispatch }, data) {
       return axiosClient.post("/updateusuarioperfil", data).then((response) => {
         dispatch("getPerfiles");
+        return response;
+      });
+    },
+
+    resetPassword({ dispatch }, data) {
+      return axiosClient.post("/resetpassword", data).then((response) => {
+         dispatch("getPerfiles");
+        return response;
+      });
+    },
+     changeStatusUser({ dispatch }, data) {
+      return axiosClient.post("/change-status-user", data).then((response) => {
+         dispatch("getPerfiles");
         return response;
       });
     },
@@ -1852,6 +1866,7 @@ const store = createStore({
       state.currentCliente = null;
       state.currentSucursal = null;
       state.sucursal_facturacion_id = null;
+      state.must_change_password = null;
       sessionStorage.clear();
     },
     setCurrentcliente: (state, cliente) => {
@@ -1934,6 +1949,8 @@ const store = createStore({
       state.proveedores = userData.proveedores;
       state.puntodeventaselect = userData.puntodeventaselect.PTO_VTA_ID;
       state.bodegas = userData.puntodeventaselect.bodegas;
+      state.must_change_password = userData.must_change_password;
+      sessionStorage.setItem("MUST_CHANGE_PASSWORD", userData.must_change_password);
       sessionStorage.setItem("TOKEN", userData.token);
       sessionStorage.setItem("USERDATA", JSON.stringify(userData.user));
       sessionStorage.setItem("MENU", JSON.stringify(userData.menu));
