@@ -280,7 +280,7 @@ function selectcliente(cliente){
 function actualizar(){
   store.commit('setPedidosLoading', true);
   store.commit('setDevolucionesLoading', true);
-  store.dispatch('procesardevoluciones').then( () => {
+  // store.dispatch('procesardevoluciones').then( () => {
     store.dispatch('pedidoscliente', currentClienteDevolucion.value.id).then( () => {
       verpedidos.value = true;
 
@@ -298,7 +298,7 @@ function actualizar(){
 
       document.querySelectorAll("#datasetDevolucionesLength label").forEach((el) => {
         el.remove();
-      });
+      // });
 
       // Replace select classes
       let selectDevolucionesLength = document.querySelector("#datasetDevolucionesLength select");

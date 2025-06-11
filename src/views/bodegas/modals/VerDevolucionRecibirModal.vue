@@ -80,8 +80,8 @@
                   <select class="form-select form-select-sm" v-model="articulo.compartimiento">
                     <option
                         v-for="(compartimiento, index) in articulo.compartimientos" :key="index"
-                        :value="compartimiento.Compartimento"
-                    >{{ compartimiento.Compartimento }}</option>
+                        :value="compartimiento.bin"
+                    >{{ compartimiento.bin }}</option>
                   </select>
                 </td>
               </tr>

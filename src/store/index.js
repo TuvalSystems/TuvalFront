@@ -2172,9 +2172,9 @@ const store = createStore({
       state.motivos_devolucion = data.motivos;
       state.clientes_devolucion = data.clientes;
       state.devolucion_anterior = data.devolucion_anterior;
-
       let tiene_despacho = false;
       let sin_despacho = false;
+
       data.detalle.map((item) => {
         if (item.despacho) {
           tiene_despacho = true;
@@ -2182,11 +2182,9 @@ const store = createStore({
           sin_despacho = true;
         }
       });
-      if (tiene_despacho && sin_despacho) {
-        state.despacho_parcial = true;
-      } else {
-        state.despacho_parcial = false;
-      }
+
+      state.despacho_parcial = tiene_despacho && sin_despacho;
+      state.despacho_parcial_item = !!data.items_devueltos;
     },
     setFacturarExistente: (state, data) => {
       state.facturar_existente = data.facturar_existente;

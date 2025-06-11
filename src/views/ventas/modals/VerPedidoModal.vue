@@ -268,7 +268,7 @@
             <div class="input-group">
               <input v-model="verpedido.orden_de_compra" type="text"
                      id="orden-de-compra" class="form-control"
-                     :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado'"
+                     :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
                      :maxlength="max_length"
                      @change="guardarOrdenDeCompra(verpedido)"
               />
@@ -285,7 +285,7 @@
           <div class="col-sm-9">
             <input v-model="verpedido.nota_interna" type="text" 
               id="orden-de-compra" class="form-control" 
-              :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado'"
+              :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
               @change="guardarOrdenDeCompra(verpedido)"
               />
           </div>
@@ -302,6 +302,8 @@
                   && verpedido.estado !== 'eliminado'
                   && verpedido.estado !== 'espera'
                   && verpedido.estado !== 'rechazado'
+                  && verpedido.estado !== 'anulada'
+
                 "
                 type="button" class="btn btn-warning btn-sm mx-1 mb-2"  @click="emit('consultarExistente')">Facturar lo existente</button>
 <!--            <button-->
@@ -324,6 +326,7 @@
                       && verpedido.estado !== 'eliminado'
                       && verpedido.estado !== 'orden_de_compra'
                       && verpedido.estado !== 'rechazado'
+                      && verpedido.estado !== 'anulada'
                       && !verpedido.despacho_en_proceso
                       && !verpedido.transferencia_en_proceso
                       && verpedido.imprimir === 'yes'
