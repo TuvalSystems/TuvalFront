@@ -11,6 +11,7 @@ const store = createStore({
       data: JSON.parse(sessionStorage.getItem("USERDATA")),
       token: sessionStorage.getItem("TOKEN"),
     },
+    must_change_password: sessionStorage.getItem("MUST_CHANGE_PASSWORD"),
     menu: JSON.parse(sessionStorage.getItem("MENU")),
     home: sessionStorage.getItem("HOME"),
     puntosdeventa: JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA")),
@@ -468,6 +469,19 @@ const store = createStore({
         return response;
       });
     },
+
+    resetPassword({ dispatch }, data) {
+      return axiosClient.post("/resetpassword", data).then((response) => {
+         dispatch("getPerfiles");
+        return response;
+      });
+    },
+     changeStatusUser({ dispatch }, data) {
+      return axiosClient.post("/change-status-user", data).then((response) => {
+         dispatch("getPerfiles");
+        return response;
+      });
+    },
     buscararticulo({ commit }, data) {
       commit("setArticuloLoading", true);
       return axiosClient.post("/consultas/buscararticulo", data).then((res) => {
@@ -504,12 +518,13 @@ const store = createStore({
         return res.data;
       });
     },
-    consultaStockOthers({commit}, data) {
-      return axiosClient.post('/consultas/consultastockothers', data)
-          .then(res => {
-              return res.data;
-          })
-  },
+    consultaStockOthers({ commit }, data) {
+      return axiosClient
+        .post("/consultas/consultastockothers", data)
+        .then((res) => {
+          return res.data;
+        });
+    },
     selectarticulo({ commit }, data) {
       commit("setCotizacionLoading", true);
       return axiosClient
@@ -1706,13 +1721,14 @@ const store = createStore({
         });
     },
     getReposicion({ commit }, params) {
-      return axiosClient.post("/bodegas/getreposicion", {
-        fecha: params.fecha,
-        numDoc: params.numDoc
-      }
-      ).then((res) => {
-        return res.data;
-      });
+      return axiosClient
+        .post("/bodegas/getreposicion", {
+          fecha: params.fecha,
+          numDoc: params.numDoc,
+        })
+        .then((res) => {
+          return res.data;
+        });
     },
     solicitardevolucion({ commit }, pedido) {
       commit("setDetallePedidoDevolucionLoading", true);
@@ -1850,6 +1866,7 @@ const store = createStore({
       state.currentCliente = null;
       state.currentSucursal = null;
       state.sucursal_facturacion_id = null;
+      state.must_change_password = null;
       sessionStorage.clear();
     },
     setCurrentcliente: (state, cliente) => {
@@ -1932,6 +1949,8 @@ const store = createStore({
       state.proveedores = userData.proveedores;
       state.puntodeventaselect = userData.puntodeventaselect.PTO_VTA_ID;
       state.bodegas = userData.puntodeventaselect.bodegas;
+      state.must_change_password = userData.must_change_password;
+      sessionStorage.setItem("MUST_CHANGE_PASSWORD", userData.must_change_password);
       sessionStorage.setItem("TOKEN", userData.token);
       sessionStorage.setItem("USERDATA", JSON.stringify(userData.user));
       sessionStorage.setItem("MENU", JSON.stringify(userData.menu));
@@ -2153,9 +2172,9 @@ const store = createStore({
       state.motivos_devolucion = data.motivos;
       state.clientes_devolucion = data.clientes;
       state.devolucion_anterior = data.devolucion_anterior;
-
       let tiene_despacho = false;
       let sin_despacho = false;
+
       data.detalle.map((item) => {
         if (item.despacho) {
           tiene_despacho = true;
@@ -2163,11 +2182,9 @@ const store = createStore({
           sin_despacho = true;
         }
       });
-      if (tiene_despacho && sin_despacho) {
-        state.despacho_parcial = true;
-      } else {
-        state.despacho_parcial = false;
-      }
+
+      state.despacho_parcial = tiene_despacho && sin_despacho;
+      state.despacho_parcial_item = !!data.items_devueltos;
     },
     setFacturarExistente: (state, data) => {
       state.facturar_existente = data.facturar_existente;
