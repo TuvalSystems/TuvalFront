@@ -169,8 +169,9 @@
                         </span>
                       </td>
                       <td>
+                      
                         <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1" 
-                          :class="row.recordatorioventa == 1 ? 'bg-success-light text-success'  : '' || row.recordatorioventa == 0  ? 'bg-info-light text-info' : ''"
+                           :class="getReminderClass(row)"
                            @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''" >
                           {{ row.recordatorioventa == 1 ? "Si" : "No" }}
                         </span>
@@ -592,51 +593,6 @@ async function imprimircotizacionprospecto(cotizacion) {
     });
 }
 
-/* function confirmfacturar(cotizacion) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "Desea procesar la cotización "+cotizacion.cotizacion +"",
-      icon: "question",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, procesar",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        facturarcotizacion(cotizacion);
-      }
-    });
-} */
-
-/* function facturarcotizacion(cotizacion){
-  templateStore.pageLoader({ mode: "on" });
-  store.dispatch('consultaStockCotizacion', cotizacion).then((res) => {
-    if(res.data.success == false){
-      templateStore.pageLoader({ mode: "off" });
-      swalError(res.data.message);
-      return; 
-    }
-    store.dispatch('facturarCotizacion', cotizacion).then(() => {
-      templateStore.pageLoader({ mode: "off" });
-      llenarcotizaciones('pendientes');
-    }).catch(err => {
-        errorMsg.value = err.response.data.error
-    });
-  });
-} */
 
 let verNoVentaModal = ref(null);
 let verNoVentaModalObj = null;
@@ -656,8 +612,26 @@ function showModalNoVenta(row) {
     nextTick(() => {
       verNoVentaModalObj?.show()
     })
-  })
+  });
 }
+
+function getReminderClass(row){
+  if (row.recordatorioventa == 1) {
+    return 'bg-success-light text-success'
+  }
+
+  if (row.recordatorioventa == 0 && row.recordar == 1 && row.recordatorioventa == 0) {
+    return 'bg-success-light text-success';
+  }
+
+  if (row.recordatorioventa == 0 && row.recordar == 0) {
+    return 'bg-danger-light text-danger';
+    
+  }
+  return '';
+}
+
+
 
 onMounted(() => {
   vercotizacionModalObj = new Modal(vercotizacionModal.value);
