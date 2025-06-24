@@ -397,6 +397,10 @@ const store = createStore({
       data: [],
     },
     filtrar_cliente: null,
+    articulos_alternativos: {
+      loading: false,
+      data: [],
+    },
   },
   getters: {},
   actions: {
@@ -472,13 +476,13 @@ const store = createStore({
 
     resetPassword({ dispatch }, data) {
       return axiosClient.post("/resetpassword", data).then((response) => {
-         dispatch("getPerfiles");
+        dispatch("getPerfiles");
         return response;
       });
     },
-     changeStatusUser({ dispatch }, data) {
+    changeStatusUser({ dispatch }, data) {
       return axiosClient.post("/change-status-user", data).then((response) => {
-         dispatch("getPerfiles");
+        dispatch("getPerfiles");
         return response;
       });
     },
@@ -608,11 +612,38 @@ const store = createStore({
           return res;
         });
     },
+
+    updateCheckAlternative({commit}, itemUpdate) {
+      return axiosClient
+        .post("/cotizaciones/actualizar-check-item-alternativo", itemUpdate)
+        .then((res) => {
+          return res;
+        });
+    },
     saveProveedor({ commit }, articulo) {
       return axiosClient.post("/saveproveedor", articulo).then((res) => {
         return res;
       });
     },
+
+     /** nuevas funciones */
+    getListaItemsAlternativos({ commit }, item) {
+      commit("resetArticulosAlternativos");
+      commit("setArticulosAlternativosLoading", true);
+      return axiosClient
+        .get("cotizaciones/lista-items-alternativos", {
+          params: { item: item },
+        })
+        .then((res) => {
+          commit("setArticulosAlternativosLoading", false);
+          commit("setArticulosAlternativos", res.data);
+        }) // retornas solo el cuerpo de la respuesta
+        .catch((error) => {
+          console.error("Error al obtener descripciones alternativas:", error);
+          throw error; // lo relanzas para que lo maneje el componente si es necesario
+        });
+    },
+
     guardarCotizacion({ commit }, info) {
       return axiosClient
         .post("/cotizaciones/guardarcotizacion", info)
@@ -621,6 +652,10 @@ const store = createStore({
           return res;
         });
     },
+
+    /**
+     *  nuevas funciones
+     */
     guardarCotizacionProspecto({ commit }, info) {
       return axiosClient
         .post("/cotizaciones/guardarcotizacionprospecto", info)
@@ -924,6 +959,7 @@ const store = createStore({
     detallecotizacion({ commit }, cotizacion) {
       commit("setDetalleCotizacionLoading", true);
       commit("setEstadoDeCuentaLoading", true);
+      
       return axiosClient
         .post("/cotizaciones/detallecotizacion", cotizacion)
         .then((res) => {
@@ -1950,7 +1986,10 @@ const store = createStore({
       state.puntodeventaselect = userData.puntodeventaselect.PTO_VTA_ID;
       state.bodegas = userData.puntodeventaselect.bodegas;
       state.must_change_password = userData.must_change_password;
-      sessionStorage.setItem("MUST_CHANGE_PASSWORD", userData.must_change_password);
+      sessionStorage.setItem(
+        "MUST_CHANGE_PASSWORD",
+        userData.must_change_password
+      );
       sessionStorage.setItem("TOKEN", userData.token);
       sessionStorage.setItem("USERDATA", JSON.stringify(userData.user));
       sessionStorage.setItem("MENU", JSON.stringify(userData.menu));
@@ -2868,6 +2907,22 @@ const store = createStore({
     resetFiltrarCliente: (state) => {
       state.filtrar_cliente = null;
     },
+
+    /** NUEVAS FUNCIONALIDADES */
+    setArticulosAlternativosLoading: (state, value) => {
+      state.articulos_alternativos.loading = value;
+    },
+    setArticulosAlternativos: (state, data) => {
+      state.articulos_alternativos = data;
+    },
+
+    resetArticulosAlternativos: (state) => {
+      state.articulos_alternativos = {
+        loading: false,
+        data: [],
+      };
+    },
+    
   },
   modules: {},
 });

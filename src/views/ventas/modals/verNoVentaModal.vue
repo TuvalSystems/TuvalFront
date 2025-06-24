@@ -11,6 +11,8 @@ import {
     toast,
 } from "@/functions/swal-alert.js";
 
+const emit = defineEmits(['actualizarEstado']);
+
 const props = defineProps({
     vercotizacion: Object,
 })
@@ -42,6 +44,15 @@ watch(
     { immediate: true }
 )
 
+async function guardarYEmitir() {
+    try {
+        await guardar()
+        emit('actualizarEstado', true)
+        swalSuccess('Guardado correctamente')
+    } catch (error) {
+        swalError('Error al guardar la información')
+    }
+}
 
 onMounted(() => {
     if (motivoStore.motivos.length == 0) {
@@ -53,7 +64,7 @@ onMounted(() => {
 
 </script>
 <template>
-    <BaseBlock :title="`Cotización de Factura: ${vercotizacion.cotizacion}`"> 
+    <BaseBlock :title="`Cotización de Factura: ${vercotizacion.cotizacion}`">
         <template #options>
             <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close"
                 @click="resetForm">
@@ -110,7 +121,7 @@ onMounted(() => {
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</button>
             <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal" :disabled="!isValid"
-                @click="guardar">Guardar</button>
+                @click="guardarYEmitir">Guardar</button>
         </div>
     </div>
 </template>

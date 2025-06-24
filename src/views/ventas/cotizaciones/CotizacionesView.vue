@@ -267,7 +267,7 @@
     ref="verNoVentaModal">
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta"></VerNoVentaModalComponent>
+        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta" @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
       </div>
     </div>
   </div>
