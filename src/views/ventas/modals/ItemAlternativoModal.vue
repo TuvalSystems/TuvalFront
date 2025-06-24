@@ -12,13 +12,9 @@ const props = defineProps({
 const emit = defineEmits(['seleccionarAlternativa']);
 const descripcionAlternativa = ref('');
 
-function clearListAlternative(){
-    const listaDescripcionAlternativas = [];
-}
 
-const cargandoAlternativas = computed(() => {
-  return !listaDescripcionAlternativas?.data || listaDescripcionAlternativas.data.length === 0;
-});
+
+
 </script>
 <template>
     <BaseBlock :title="`Item: ${item}`">
@@ -29,8 +25,8 @@ const cargandoAlternativas = computed(() => {
         </template>
         <template #content>
             <div class="block-content fs-sm text-muted">
-                <div v-if="cargandoAlternativas"> Cargando Alternativas...</div>
-                <div class="mb-4" v-else>
+                <!-- <div v-if="listaDescripcionAlternativas && listaDescripcionAlternativas.data.length == 0"> Cargando Alternativas...</div> -->
+                <div class="mb-4">
                     <label class="form-label">Descripciones Alternativas</label>
                     <select  v-model="descripcionAlternativa"  class="form-select">
                         <option v-for="item in listaDescripcionAlternativas.data" :key="item.tx_itm"
@@ -45,7 +41,7 @@ const cargandoAlternativas = computed(() => {
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</button>
             <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal"
-                @click="() => {emit('seleccionarAlternativa', descripcionAlternativa), clearListAlternative()}" :disabled="!descripcionAlternativa">Seleccionar</button>
+                @click="emit('seleccionarAlternativa', descripcionAlternativa)" :disabled="!descripcionAlternativa">Seleccionar</button>
         </div>
     </div>
 </template>
