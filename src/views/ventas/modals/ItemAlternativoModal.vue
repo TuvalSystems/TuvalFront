@@ -27,9 +27,9 @@ function clearListAlternative(){
         </template>
         <template #content>
             <div class="block-content fs-sm text-muted">
-                <div v-if="listaDescripcionAlternativas.data.length === 0"> Cargando motivos...</div>
+                <div v-if="listaDescripcionAlternativas.data.length === 0"> Cargando Alternativas...</div>
                 <div class="mb-4" v-else>
-                    <label class="form-label">Descripciones alternativas</label>
+                    <label class="form-label">Descripciones Alternativas</label>
                     <select  v-model="descripcionAlternativa"  class="form-select">
                         <option v-for="item in listaDescripcionAlternativas.data" :key="item.tx_itm"
                             :value="item.tx_desLar">
