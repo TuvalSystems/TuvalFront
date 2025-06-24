@@ -1508,10 +1508,16 @@ const itemAlternativo = reactive({
   item: ''
 });
 function obtenerListaDescripcionAlternativas(event, articulo, index) {
-  store.dispatch('getListaItemsAlternativos', articulo.ART_CODIGO);
-  itemAlternativo.index = index;
-  itemAlternativo.item = articulo.ART_CODIGO;
-  verItemAlternativoObj.show();
+  store.dispatch('getListaItemsAlternativos', articulo.ART_CODIGO).then((res) => {
+    if(res.success == false) {
+      swalError(res.message);
+      return;
+    }else {
+      itemAlternativo.index = index;
+      itemAlternativo.item = articulo.ART_CODIGO;
+      verItemAlternativoObj.show();
+    }
+  });
 }
 
 function onSelectItemAlternativo(descripcion) {

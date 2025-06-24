@@ -14,9 +14,11 @@ const descripcionAlternativa = ref('');
 
 function clearListAlternative(){
     const listaDescripcionAlternativas = [];
-
-
 }
+
+const cargandoAlternativas = computed(() => {
+  return !listaDescripcionAlternativas?.data || listaDescripcionAlternativas.data.length === 0;
+});
 </script>
 <template>
     <BaseBlock :title="`Item: ${item}`">
@@ -27,7 +29,7 @@ function clearListAlternative(){
         </template>
         <template #content>
             <div class="block-content fs-sm text-muted">
-                <div v-if="listaDescripcionAlternativas.data.length === 0"> Cargando Alternativas...</div>
+                <div v-if="cargandoAlternativas"> Cargando Alternativas...</div>
                 <div class="mb-4" v-else>
                     <label class="form-label">Descripciones Alternativas</label>
                     <select  v-model="descripcionAlternativa"  class="form-select">
@@ -43,7 +45,7 @@ function clearListAlternative(){
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</button>
             <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal"
-                @click="() => {emit('seleccionarAlternativa', descripcionAlternativa), clearListAlternative()}">Seleccionar</button>
+                @click="() => {emit('seleccionarAlternativa', descripcionAlternativa), clearListAlternative()}" :disabled="!descripcionAlternativa">Seleccionar</button>
         </div>
     </div>
 </template>

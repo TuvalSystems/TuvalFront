@@ -637,6 +637,7 @@ const store = createStore({
         .then((res) => {
           commit("setArticulosAlternativosLoading", false);
           commit("setArticulosAlternativos", res.data);
+          return res.data;
         }) // retornas solo el cuerpo de la respuesta
         .catch((error) => {
           console.error("Error al obtener descripciones alternativas:", error);
