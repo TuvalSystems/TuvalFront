@@ -615,20 +615,20 @@ function showModalNoVenta(row) {
   });
 }
 
-function getReminderClass(row){
-  if (row.recordatorioventa == 1) {
-    return 'bg-success-light text-success'
-  }
-
-  if (row.recordatorioventa == 0 && row.recordar == 1 && row.recordatorioventa == 0) {
-    return 'bg-success-light text-success';
-  }
-
-  if (row.recordatorioventa == 0 && row.recordar == 0) {
-    return 'bg-danger-light text-danger';
+function getReminderClass(row){  
+  if (row.recordatorioventa == 0) {
+    if (row.cotizacion_venta_motivo_id != null || row.recordar == 1) {
+      return 'bg-success-light text-success'
+    } else {
+      return 'bg-warning-light text-warning'
+    }
     
+  }else if(row.recordatorioventa == 1){
+      return 'bg-info-light text-info'
   }
-  return '';
+  
+  
+  return 'bg-danger-light text-danger';
 }
 
 
