@@ -60,6 +60,9 @@ onMounted(() => {
     }
 });
 
+// limite de fecha para el recordatorio
+const today = new Date();
+const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 
 
 </script>
@@ -104,7 +107,7 @@ onMounted(() => {
                 <div class="mb-3">
                     <label for="fecha_recordatorio" class="form-label">Fecha del Recordatorio</label>
                     <input type="date" class="form-control form-control-sm" id="fecha_recordatorio"
-                        v-model="formData.fecha_recordatorio" :class="{ 'is-invalid': errors.fecha_recordatorio }">
+                        v-model="formData.fecha_recordatorio" :min = "date" :class="{ 'is-invalid': errors.fecha_recordatorio }">
                     <div class="invalid-feedback">Debe ingresar una fecha</div>
                 </div>
                 <!-- Observaciones -->

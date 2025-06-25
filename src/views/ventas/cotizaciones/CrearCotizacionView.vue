@@ -674,6 +674,7 @@ const bodegas = computed(() => store.state.bodegas);
 const clientes = computed(() => store.state.clientes);
 const registro_copia = computed(() => store.state.registro_copia);
 const currentSucursal = computed(() => store.state.currentSucursal);
+const currentTest = computed(() => store.state.currentTest);
 const sucursalFacturacion = ref(store.state.sucursal_facturacion_id);
 const sucursalEnvio = ref(store.state.currentSucursal);
 const pregunta_facturar = ref(store.state.pregunta_facturar);
@@ -893,6 +894,7 @@ async function llenarcotizacion() {
       puntodeventa_id: store.state.puntodeventaselect,
       serial: store.state.cotizacion_serial,
       registro_copia: registro_copia.value,
+      test : currentTest.value,
     })
     store.dispatch('llenarcotizacion', consulta).then(() => {
       calcTotales();
