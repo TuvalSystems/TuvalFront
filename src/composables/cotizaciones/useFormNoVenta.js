@@ -75,8 +75,10 @@ export function useFormNoVenta(vercotizacion, motivos = []) {
       );
       swalSuccess("Registro Guardado Exitosamente");
       resetForm();
+      return true;
     } catch (error) {
       swalError("Error al guardar el registro");
+      return Promise.reject(error);
     }
   };
 
