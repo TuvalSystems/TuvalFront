@@ -1188,6 +1188,8 @@ const store = createStore({
           commit("setRegistroCopia", res.data.registro_copia);
           commit("setCurrentSucursal", res.data.currentSucursal);
           commit("setCondicionPagoSinPrint", pedido);
+          commit("setCurrentTest", res.data.test);
+
         });
     },
     copiarPedido({ commit }, data) {
@@ -1196,6 +1198,7 @@ const store = createStore({
         commit("setCurrentcliente", res.data.cliente);
         commit("setRegistroCopia", res.data.registro_copia);
         commit("setCurrentSucursal", res.data.currentSucursal);
+        commit("setCurrentTest", res.data.test);
       });
     },
     cancelarPedido({ commit }, pedido) {
@@ -1902,6 +1905,7 @@ const store = createStore({
       state.user.menu = [];
       state.currentCliente = null;
       state.currentSucursal = null;
+      state.currentTest = null;
       state.sucursal_facturacion_id = null;
       state.must_change_password = null;
       sessionStorage.clear();
@@ -1945,6 +1949,10 @@ const store = createStore({
     setCurrentSucursal: (state, currentSucursal) => {
       sessionStorage.setItem("CURRENTSUCURSAL", currentSucursal);
       state.currentSucursal = currentSucursal;
+    },
+    setCurrentTest : (state, currentTest) => {
+      sessionStorage.setItem("CURRENTTEST", currentTest);
+      state.currentTest = currentTest;
     },
 
     setCurrentclienteCobro: (state, cliente) => {
@@ -2073,6 +2081,7 @@ const store = createStore({
     resetCotizacion: (state) => {
       state.currentCliente = null;
       state.currentSucursal = null;
+      state.currentTest = null;
       state.sucursal_facturacion_id = null;
       state.cotizacion_id = null;
       state.cotizacion_serial = null;

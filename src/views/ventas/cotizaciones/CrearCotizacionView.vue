@@ -281,7 +281,8 @@
                   <a v-if="!element.cambiar_descripcion" @click="cambiarDescripcion(index)" href="javascript:void(0)"
                     title="Cambiar Descripción" :class="{
                       'text-danger': (element.ART_DESCRIPCION != element.ART_DESCRIPCION_ORIGINAL && element.ART_TIPO_COMPRA != 'L') || (element.ART_DESCRIPCION == element.ART_DESCRIPCION_ORIGINAL && element.ART_TIPO_COMPRA == 'L'),
-                    }">{{ element.ART_DESCRIPCION }}</a>
+                    }">{{ element.ART_DESCRIPCION }}
+                    <span v-if="element.CHECK_ALTERNATIVO == 1" class="text-warning"> (Alternativa)</span></a>
                   <input v-else type="text" :id="`updatedescripcion-${element.id}`" class="form-control"
                     :class="element.errorDescripcion ? 'is-invalid' : ''" placeholder="Descripción"
                     :value="element.ART_DESCRIPCION" @change="updateDescripcion($event, element, index)"
@@ -673,6 +674,7 @@ const bodegas = computed(() => store.state.bodegas);
 const clientes = computed(() => store.state.clientes);
 const registro_copia = computed(() => store.state.registro_copia);
 const currentSucursal = computed(() => store.state.currentSucursal);
+const currentTest = computed(() => store.state.currentTest);
 const sucursalFacturacion = ref(store.state.sucursal_facturacion_id);
 const sucursalEnvio = ref(store.state.currentSucursal);
 const pregunta_facturar = ref(store.state.pregunta_facturar);
@@ -892,6 +894,7 @@ async function llenarcotizacion() {
       puntodeventa_id: store.state.puntodeventaselect,
       serial: store.state.cotizacion_serial,
       registro_copia: registro_copia.value,
+      test : currentTest.value,
     })
     store.dispatch('llenarcotizacion', consulta).then(() => {
       calcTotales();
