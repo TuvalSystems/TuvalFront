@@ -217,7 +217,7 @@ const pages = computed(() => {
 
 // 👀 Verificar reactividad en tiempo real
 watch(items, (newVal) => {
-  console.log("📌 Items recibidos en el template:", newVal);
+  // console.log("📌 Items recibidos en el template:", newVal);
 });
 
 // Funciones de impresión
