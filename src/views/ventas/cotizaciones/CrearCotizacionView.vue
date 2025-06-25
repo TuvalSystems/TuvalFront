@@ -281,7 +281,8 @@
                   <a v-if="!element.cambiar_descripcion" @click="cambiarDescripcion(index)" href="javascript:void(0)"
                     title="Cambiar Descripción" :class="{
                       'text-danger': (element.ART_DESCRIPCION != element.ART_DESCRIPCION_ORIGINAL && element.ART_TIPO_COMPRA != 'L') || (element.ART_DESCRIPCION == element.ART_DESCRIPCION_ORIGINAL && element.ART_TIPO_COMPRA == 'L'),
-                    }">{{ element.ART_DESCRIPCION }}</a>
+                    }">{{ element.ART_DESCRIPCION }}
+                    <span v-if="element.CHECK_ALTERNATIVO == 1" class="text-warning"> (Alternativa)</span></a>
                   <input v-else type="text" :id="`updatedescripcion-${element.id}`" class="form-control"
                     :class="element.errorDescripcion ? 'is-invalid' : ''" placeholder="Descripción"
                     :value="element.ART_DESCRIPCION" @change="updateDescripcion($event, element, index)"
