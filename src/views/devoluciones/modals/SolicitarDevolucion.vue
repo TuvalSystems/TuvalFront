@@ -57,9 +57,9 @@
             <div class="alert alert-info">
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="volver-a-facturar"
-                  v-model="devolucion.volver_a_facturar" :disabled="despacho_parcial" />
+                  v-model="devolucion.volver_a_facturar" :disabled="despacho_parcial_item" />
                 <label class="form-check-label" for="volver-a-facturar">Volver a facturar <span
-                    class="text-muted text-sm" v-if="despacho_parcial">(No se puede volver a facturar hasta que se
+                    class="text-muted text-sm" v-if="despacho_parcial_item">(No se puede volver a facturar hasta que se
                     despache todo el pedido)</span></label>
               </div>
             </div>
@@ -228,6 +228,7 @@ const botonEnviar = ref('botonEnviar');
 const clientes_devolucion = computed(() => store.state.clientes_devolucion);
 const devolucion_anterior = computed(() => store.state.devolucion_anterior);
 const despacho_parcial = computed(() => store.state.despacho_parcial);
+const despacho_parcial_item = computed(() => store.state.despacho_parcial_item);
 
 function aplicatodo(articulo) {
   if (articulo.aplicar_todo == false) {

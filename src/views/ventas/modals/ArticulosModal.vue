@@ -2,12 +2,7 @@
 
   <BaseBlock title="Seleccionar artículo" class="mb-0">
     <template #options>
-      <button
-          type="button"
-          class="btn-block-option"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-      >
+      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
         <i class="fa fa-fw fa-times"></i>
       </button>
     </template>
@@ -17,35 +12,41 @@
           <div class="col-md-4">
             <label class="form-label" for="select_codigo">Código Zafiro</label>
             <div class="input-group mb-3">
-              <select class="form-select btn btn-alt-primary fs-sm text-left" id="select_codigo" v-model="buscar_articulo.select_codigo">
+              <select class="form-select btn btn-alt-primary fs-sm text-left" id="select_codigo"
+                v-model="buscar_articulo.select_codigo">
                 <option value="empieza">Empieza por </option>
                 <option value="termina">Termina en </option>
                 <option value="contiene">Contiene </option>
               </select>
-              <input type="text" class="form-control" v-model="buscar_articulo.text_codigo" @keyup.enter="buscarArticulo"/>
+              <input type="text" class="form-control" v-model="buscar_articulo.text_codigo"
+                @keyup.enter="buscarArticulo" />
             </div>
           </div>
           <div class="col-md-2">
             <label class="form-label" for="codigo3l">Código 3L</label>
             <div class="input-group mb-3">
-              <input type="text" class="form-control" id="codigo3l" v-model="buscar_articulo.codigo3l"  @keyup.enter="buscarArticulo"/>
+              <input type="text" class="form-control" id="codigo3l" v-model="buscar_articulo.codigo3l"
+                @keyup.enter="buscarArticulo" />
             </div>
           </div>
           <div class="col-md-4">
             <label class="form-label" for="select_nombre">Nombre/Descripción</label>
             <div class="input-group mb-3">
-              <select class="form-select btn btn-alt-primary fs-sm text-left" id="select_nombre" v-model="buscar_articulo.select_nombre">
+              <select class="form-select btn btn-alt-primary fs-sm text-left" id="select_nombre"
+                v-model="buscar_articulo.select_nombre">
                 <option value="contiene">Contiene </option>
                 <option value="termina">Termina en </option>
                 <option value="empieza">Empieza por </option>
               </select>
-              <input type="text" class="form-control" v-model="buscar_articulo.text_nombre" @keyup.enter="buscarArticulo"/>
+              <input type="text" class="form-control" v-model="buscar_articulo.text_nombre"
+                @keyup.enter="buscarArticulo" />
             </div>
           </div>
           <div class="col-md-2">
             <label class="form-label" for="terminal">terminal</label>
             <div class="input-group mb-3">
-              <input type="text" class="form-control" id="terminal" v-model="buscar_articulo.terminal" @keyup.enter="buscarArticulo"/>
+              <input type="text" class="form-control" id="terminal" v-model="buscar_articulo.terminal"
+                @keyup.enter="buscarArticulo" />
             </div>
           </div>
         </div>
@@ -57,28 +58,21 @@
         </div>
       </div>
       <div v-if="articulos.loading" class="text-center">
-        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+        </div>
       </div>
       <div class="block-content fs-sm pt-0" v-if="!articulos.loading && articulos.data.length">
-        <Dataset
-            v-slot="{ ds }"
-            :ds-data="articulos.data"
-            :ds-sortby="sortBy"
-            :ds-search-in="['ART_CODIGO', 'ART_DESCRIPCION', 'ART_CODIGO_TRES_LETRAS', 'ART_PLAN_UMEDIDA', 'ART_STOCK', 'ART_VALOR']"
-        >
+        <Dataset v-slot="{ ds }" :ds-data="articulos.data" :ds-sortby="sortBy"
+          :ds-search-in="['ART_CODIGO', 'ART_DESCRIPCION', 'ART_CODIGO_TRES_LETRAS', 'ART_PLAN_UMEDIDA', 'ART_STOCK', 'ART_VALOR']">
           <div class="row" :data-page-count="ds.dsPagecount">
             <div id="datasetLengthPedidos" class="col-md-8 py-2">
-              <DatasetShow
-                  :ds-show-entries="100"
-              />
+              <DatasetShow :ds-show-entries="100" />
             </div>
             <div class="col-md-4 py-2">
               <DatasetSearch ds-search-placeholder="Buscar..." />
             </div>
           </div>
-          <div
-              class="d-flex flex-md-row flex-column justify-content-between align-items-center"
-          >
+          <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
             <DatasetInfo class="py-3 fs-sm" />
             <DatasetPager class="flex-wrap py-3 fs-sm" />
           </div>
@@ -89,42 +83,37 @@
           <div class="row" v-if="articulos.data.length">
             <div class="col-md-12">
               <div class="table-responsive">
-                <table class="table table-sm table-hover table-vcenter mb-0">
+                <table class="table table-sm table-hover table-vcenter mb-0 ">
                   <thead>
-                  <tr>
-                    <th></th>
-                    <th
-                        v-for="(th, index) in cols"
-                        :key="th.field"
-                        :class="['sort', th.sort]"
-                        @click="onSort($event, index)"
-                    >
-                      {{ th.name }} <i class="gg-select float-end"></i>
-                    </th>
-                  </tr>
+                    <tr>
+                      <th></th>
+                      <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                        @click="onSort($event, index)">
+                        {{ th.name }} <i class="gg-select float-end"></i>
+                      </th>
+                    </tr>
                   </thead>
                   <DatasetItem tag="tbody" class="fs-sm">
                     <template #default="{ row }">
                       <tr>
                         <td>
-                          <a
-                              v-if="row.imagenes.length"
-                              href="javascript:void(0)"
-                              @click="showPhoto(row.imagenes)"
-                            >
+                          <a v-if="row.imagenes.length" href="javascript:void(0)" @click="showPhoto(row.imagenes)">
                             <i class="fa fa-search"></i>
                           </a>
                         </td>
                         <td class="fs-sm">
-                          <a v-if="(row.ART_TIPO_COMPRA === 'L' && row.disponible) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0 )" @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO }}</a>
+                          <a v-if="(row.ART_TIPO_COMPRA === 'L' && row.disponible) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
+                            @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO }}</a>
                           <span v-else>{{ row.ART_CODIGO }}</span>
                         </td>
                         <td class="fs-sm">
-                          <a v-if="(row.ART_TIPO_COMPRA === 'L' && row.disponible) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0 )" @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO }}</a>
+                          <a v-if="(row.ART_TIPO_COMPRA === 'L' && row.disponible) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
+                            @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO }}</a>
                           <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
                         </td>
                         <td class="fs-sm">
-                          <a v-if="(row.ART_TIPO_COMPRA === 'L' && row.disponible) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0 )" @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_DESCRIPCION }}</a>
+                          <a v-if="(row.ART_TIPO_COMPRA === 'L' && row.disponible) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
+                            @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_DESCRIPCION }}</a>
                           <span v-else>{{ row.ART_DESCRIPCION }}</span>
                         </td>
                         <td class="fs-sm">
@@ -133,27 +122,33 @@
                         <td class="fs-sm">
                           {{ row.ART_PLAN_UMEDIDA }}
                         </td>
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right">
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem; justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stock)">
-                            <code v-for="stock in row.stock" :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
+                            <code v-for="stock in row.stock"
+                              :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stock & !row.loading)">
-                            <button class="btn btn-sm btn-primary" @click="consultarStock(row)"><i class="fa fa-magnifying-glass"></i> Ver stock</button>
+                            <button class="btn btn-sm btn-primary" @click="consultarStock(row)"><i
+                                class="fa fa-magnifying-glass"></i> Ver stock</button>
                           </div>
                           <div v-if="row.loading" class="text-center">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span
+                                class="visually-hidden">Loading...</span></div>
                           </div>
                         </td>
 
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right">
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem;justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockImport)">
-                             <code v-for="stock in row.stockImport" :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code> 
+                            <code v-for="stock in row.stockImport"
+                              :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockImport & !row.loading1)">
-                            <button class="btn btn-sm btn-primary" @click="consultOtherStocksImports(row)"><i class="fa fa-magnifying-glass"></i>Ver stock</button>
+                            <button class="btn btn-sm btn-primary" @click="consultOtherStocksImports(row)"><i
+                                class="fa fa-magnifying-glass"></i> Ver stock</button>
                           </div>
                           <div v-if="row.loading1" class="text-center">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span
+                                class="visually-hidden">Loading...</span></div>
                           </div>
                         </td>
 
@@ -173,9 +168,7 @@
               </div>
             </div>
           </div>
-          <div
-              class="d-flex flex-md-row flex-column justify-content-between align-items-center"
-          >
+          <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
             <DatasetInfo class="py-3 fs-sm" />
             <DatasetPager class="flex-wrap py-3 fs-sm" />
           </div>
@@ -183,18 +176,13 @@
       </div>
     </template>
   </BaseBlock>
-  <VueEasyLightbox
-      :visible="gallery.visible"
-      :index="gallery.index"
-      :imgs="gallery.photos"
-      @hide="handleHide"
-  />
+  <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import { useStore} from 'vuex'
-import {formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4} from "@/functions";
-import {swalError} from "@/functions/swal-alert";
+import { useStore } from 'vuex'
+import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4 } from "@/functions";
+import { swalError } from "@/functions/swal-alert";
 import VueEasyLightbox from "vue-easy-lightbox";
 const store = useStore();
 const articulos = computed(() => store.state.articulos);
@@ -230,7 +218,7 @@ function handleHide() {
   gallery.visible = false;
 }
 
-function limpiarBusqueda(){
+function limpiarBusqueda() {
   store.commit('limpiarBusqueda');
   store.commit('resetArticulo');
 }
@@ -263,14 +251,14 @@ function onSort(event, i) {
   sortEl.sort = toset;
 }
 
-function buscarArticulo(){
-  if(!buscar_articulo.value.text_codigo && !buscar_articulo.value.codigo3l && !buscar_articulo.value.text_nombre  && !buscar_articulo.value.terminal){
+function buscarArticulo() {
+  if (!buscar_articulo.value.text_codigo && !buscar_articulo.value.codigo3l && !buscar_articulo.value.text_nombre && !buscar_articulo.value.terminal) {
     swalError('Es necesario ingresar alguno de los parámetros de búsqueda')
     return;
   }
 
   let nivel_precio = 'GENERAL';
-  if(currentCliente.value){
+  if (currentCliente.value) {
     nivel_precio = currentCliente.value.CLI_NIVEL_PRECIO
   }
 
@@ -347,11 +335,11 @@ const cols = reactive([
   },
 ]);
 
-function consultarStock(articulo){
+function consultarStock(articulo) {
   articulo.loading = true;
 
   let cliente_id = null;
-  if(currentCliente.value){
+  if (currentCliente.value) {
     cliente_id = currentCliente.value.id;
   }
 
@@ -361,18 +349,18 @@ function consultarStock(articulo){
     cliente_id: cliente_id,
     puntodeventa_id: store.state.puntodeventaselect,
   })
-  store.dispatch('consultarStock', consulta).then( res => {
+  store.dispatch('consultarStock', consulta).then(res => {
     articulo.stock = res.stock;
     articulo.ART_STOCK = res.ART_STOCK;
     articulo.loading = false;
   });
 }
 
-function consultOtherStocksImports(articulo){
+function consultOtherStocksImports(articulo) {
   articulo.loading1 = true;
 
   let cliente_id = null;
-  if(currentCliente.value){
+  if (currentCliente.value) {
     cliente_id = currentCliente.value.id;
   }
 
@@ -382,27 +370,27 @@ function consultOtherStocksImports(articulo){
     cliente_id: cliente_id,
     puntodeventa_id: store.state.puntodeventaselect,
   })
-  store.dispatch('consultaStockOthers', consulta).then( res => {
+  store.dispatch('consultaStockOthers', consulta).then(res => {
     articulo.stockImport = res.stock;
     articulo.ART_STOCK_IMPORT = res.ART_STOCK;
     articulo.loading1 = false;
   });
 }
 
-async function selectArticulo(articulo){
+async function selectArticulo(articulo) {
   articulo.loading = true;
 
   let cliente_id = null;
-  if(currentCliente.value){
+  if (currentCliente.value) {
     cliente_id = currentCliente.value.id;
   }
 
-  if(articulo.ART_TIPO_COMPRA === 'L'){
+  if (articulo.ART_TIPO_COMPRA === 'L') {
     articulo.ART_STOCK = 0;
     articulo.stock = [];
     articulo.descuento = parseFloat(descuentoarticulo.value)
     articulo.descuento_original = parseFloat(descuentoarticulo.value)
-    if(!cliente_id){
+    if (!cliente_id) {
       articulo.ART_CANTIDAD = 0;
 
       const consulta = reactive({
@@ -410,7 +398,7 @@ async function selectArticulo(articulo){
       });
       await store.dispatch("addCotizacion", consulta);
       emit('calcTotales')
-    }else{
+    } else {
       const consulta = reactive({
         articulo: articulo,
         sucursal_id: currentSucursal.value,
@@ -428,27 +416,27 @@ async function selectArticulo(articulo){
     articulo.loading = false;
     emit('verificarProveedores')
     emit('verificarStock')
-  }else{
+  } else {
     const consulta = reactive({
       articulo: articulo,
       sucursal_id: currentSucursal.value,
       cliente_id: cliente_id,
       puntodeventa_id: store.state.puntodeventaselect,
     })
-    store.dispatch('consultarStock', consulta).then( res => {
+    store.dispatch('consultarStock', consulta).then(res => {
       articulo.stock = res.stock;
       articulo.ART_STOCK = res.ART_STOCK;
       articulo.descuento = parseFloat(descuentoarticulo.value)
       articulo.descuento_original = parseFloat(descuentoarticulo.value)
       articulo.loading = false;
 
-      if(!cliente_id){
+      if (!cliente_id) {
         articulo.ART_CANTIDAD = 0;
 
         const consulta = reactive({
           articulo: articulo,
         });
-      }else{
+      } else {
         const consulta = reactive({
           articulo: articulo,
           sucursal_id: currentSucursal.value,
@@ -456,10 +444,10 @@ async function selectArticulo(articulo){
           puntodeventa_id: store.state.puntodeventaselect,
         })
       }
-      if(!cliente_id){
+      if (!cliente_id) {
         store.dispatch("addCotizacion", consulta);
         emit('calcTotales')
-      }else{
+      } else {
         store.dispatch('selectarticulo', consulta).then((res) => {
           emit('calcTotales')
         }).catch(err => {
