@@ -1,5 +1,5 @@
 import { ref, watch } from "vue";
-import axiosClient from "../axios";
+import axiosClient from "../../../axios";
 
 export function usePagination() {
   const items = ref([]);

@@ -29,16 +29,6 @@ export function useGenericPagination({ cacheKey, endpoint }) {
         table.totalPage = data.last_page;
         table.totalItems = data.total;
 
-        // Guardar en caché
-        // store.setData(cacheKey, {
-        //   items: items.value,
-        //   currentPage: currentPage.value,
-        //   totalPage: totalPage.value,
-        //   totalItems: totalItems.value,
-        //   sortField: sortField.value,
-        //   sortOrder: sortOrder.value,
-        //   perPage: perPage.value,
-        // });
       }
     } catch (error) {
       console.error("Error fetching items:", error);

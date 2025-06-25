@@ -144,7 +144,7 @@
 </template>
 
 <script setup>
-import { usePagination } from '@/composables/usePagination';
+import { usePagination } from '../../../composables/bodegas/consultas/usePagination';
 import { onMounted, watch, computed } from 'vue';
 import { useStore } from 'vuex'
 
