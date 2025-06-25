@@ -35,14 +35,12 @@ export function usePagination() {
     endpoint.value = url;
     puntoVentaId.value = id;
     if (!isInitialized.value) {
-      // console.log("🔄 Inicializando y haciendo fetch...");
       fetchItems(); // Cargar la data al inicializar
       isInitialized.value = true;
     }
   };
 
   const fetchItems = async (page = 1) => {
-    // console.log("🧹 Limpiando items antes de cargar...");
     items.value = [];
     loading.value = true;
     currentPage.value = page;
