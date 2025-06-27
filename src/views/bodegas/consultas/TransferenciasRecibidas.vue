@@ -48,7 +48,7 @@ watch(
 
 
 const refreshData = () => {
-  refresh
+  refresh()
 };
 // Inicialización
 onMounted(async () => {
@@ -103,7 +103,7 @@ const handleClick = ({ row, col }) => {
 };
 
 const functionTest = (guideId) => {
-  console.log(`🖨️ Imprimiendo Guia: ${guideId}`);
+  // console.log(`🖨️ Imprimiendo Guia: ${guideId}`);
   // Aquí puedes llamar al método de impresión real
 };
 </script>
