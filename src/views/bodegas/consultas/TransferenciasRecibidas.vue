@@ -14,7 +14,7 @@
       </select>
     </div>
     <div class="col-md-4 py-2">
-      <input v-model="searchTerm" placeholder="Buscar..." class="form-control w-60" />
+      <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control w-60" />
     </div>
   </div>
   <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage" :totalItems="table.totalItems"
