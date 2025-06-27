@@ -6,7 +6,7 @@
       </button>
     </div>
     <div class="d-flex justify-content-between mb-3">
-      <div class="col-md-4 py-2">
+      <div class="col-md-3 py-2">
         <select v-model="perPage" class="form-select w-25">
           <option value="5">5</option>
           <option value="10">10</option>
@@ -14,6 +14,31 @@
           <option value="50">50</option>
         </select>
       </div>
+      <div class="col-md-1 py-2">
+      <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()" class="btn btn-info btn-sm mx-1"><i
+          class="fa fa-user"></i> Cliente</button>
+    </div>
+    <div class="col-md-4 py-2">
+      <div class="row g-1 align-items-center">
+        <div class="col-auto">
+          <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
+        </div>
+        <div class="col-auto">
+          <flat-pickr style="width:120px;" id="fecha_desde" class="form-control form-control-sm"
+            v-model="fecha_desde" :config="flatPickrState.fecha_desde" />
+        </div>
+        <div class="col-auto">
+          <label for="fecha_hasta" class="col-form-label fs-sm">Hasta</label>
+        </div>
+        <div class="col-auto">
+          <flat-pickr style="width:120px;" id="fecha_hasta" class="form-control form-control-sm"
+            v-model="fecha_hasta" :config="flatPickrState.fecha_hasta" />
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> </button>
+        </div>
+      </div>
+    </div>
       <div class="col-md-4 py-2">
         <input v-model="searchTerm" placeholder="Buscar..." class="form-control w-60" />
       </div>
@@ -141,12 +166,27 @@
       <!-- end new -->
     </div>
   </div>
+
+  <!-- Modal para filtro de cliente -->
+ <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true" ref="filtrarClienteModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
 import { usePagination } from '../../../composables/bodegas/consultas/usePagination';
-import { onMounted, watch, computed } from 'vue';
+import { onMounted, watch, computed, reactive , ref } from 'vue';
 import { useStore } from 'vuex'
+import flatPickr from 'vue-flatpickr-component';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import FiltrarClienteConsulta from "../modals/FiltrarClienteConsulta.vue";
+import { Modal } from "bootstrap";
 
 const store = useStore();
 const puntoVentaId = store.state.puntodeventaselect; // Pasar dinámicamente este valor
@@ -162,13 +202,24 @@ const {
   perPage,
   initialize,
   sortField,
-  sortOrder
+  sortOrder,
+  fecha_desde,
+  fecha_hasta,
+  cliente
 } = usePagination();
 
-onMounted(() => {
-  initialize('/despachos/guiasdespachadas/', puntoVentaId); // Llamada inicial para cargar datos
-
+const flatPickrState = reactive({
+  fecha_desde: {
+    maxDate: Date.now(),
+    locale: Spanish,
+  },
+  fecha_hasta: {
+    maxDate: Date.now(),
+    locale: Spanish,
+  },
 });
+
+
 
 // Ordenamiento
 const sortBy = (field) => {
@@ -192,7 +243,15 @@ const getSortIcon = (field) => {
 
 // 🔄 Función para refrescar datos
 const refreshData = () => {
-  console.log("🔄 Refrescando datos...");
+  // console.log("🔄 Refrescando datos...");
+  fecha_desde.value = null;
+  fecha_hasta.value = null;
+  searchTerm.value = '';
+  perPage.value = 10; // Reset to default perPage value
+  sortField.value = '';
+  sortOrder.value = 'asc';
+  currentPage.value = 1; // Reset to first page
+  cliente.value = null; // Reset cliente filter
   fetchItems(currentPage.value);
 };
 
@@ -215,14 +274,8 @@ const pages = computed(() => {
 });
 
 
-// 👀 Verificar reactividad en tiempo real
-watch(items, (newVal) => {
-  // console.log("📌 Items recibidos en el template:", newVal);
-});
 
 // Funciones de impresión
-
-
 async function imprimirGuia(guia) {
   store
     .dispatch("imprimir", "/bodegas/guiasderemision/imprimirguia/" + guia.id)
@@ -252,6 +305,30 @@ async function imprimirOrdendespacho(id) {
     });
 }
 
+// filtro de fecha 
+const limpiarFecha = () => {
+  fecha_desde.value = null;
+  fecha_hasta.value = null;
+  fetchItems(1);
+};
+
+// funcion para modal de filtro de cliente 
+let filtrarClienteModal = ref(null);
+let filtrarClienteModalObj = null;
+function levantarFiltrocliente() {
+  filtrarClienteModalObj.show();
+}
+function filtrarClienteConsulta(clienteRuc) {
+  filtrarClienteModalObj.hide();
+  cliente.value = clienteRuc
+}
+
+
+onMounted(() => {
+  initialize('/despachos/guiasdespachadas/', puntoVentaId); // Llamada inicial para cargar datos
+  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
+
+});
 </script>
 
 <style scoped>

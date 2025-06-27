@@ -1,11 +1,11 @@
 <template>
   <div class="cold-md-0 py-2 text-end">
-    <button @click="refreshData" class="btn btn-outline-success" aria-placeholder="Actualizar">
+    <button @click="refresh" class="btn btn-outline-success" aria-placeholder="Actualizar">
       <i class="fa fa-refresh"></i>
     </button>
   </div>
   <div class="d-flex justify-content-between mb-3">
-    <div class="col-md-4 py-2">
+    <div class="col-md-3 py-2">
       <select v-model="table.perPage" class="form-select w-25">
         <option value="5">5</option>
         <option value="10">10</option>
@@ -13,49 +13,82 @@
         <option value="50">50</option>
       </select>
     </div>
+    <div class="col-md-1 py-2">
+      <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()" class="btn btn-info btn-sm mx-1"><i
+          class="fa fa-user"></i> Cliente</button>
+    </div>
+    <div class="col-md-4 py-2">
+      <div class="row g-1 align-items-center">
+        <div class="col-auto">
+          <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
+        </div>
+        <div class="col-auto">
+          <flat-pickr style="width:120px;" id="fecha_desde" class="form-control form-control-sm"
+            v-model="table.fecha_desde" :config="flatPickrState.fecha_desde" />
+        </div>
+        <div class="col-auto">
+          <label for="fecha_hasta" class="col-form-label fs-sm">Hasta</label>
+        </div>
+        <div class="col-auto">
+          <flat-pickr style="width:120px;" id="fecha_hasta" class="form-control form-control-sm"
+            v-model="table.fecha_hasta" :config="flatPickrState.fecha_hasta" />
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> </button>
+        </div>
+      </div>
+    </div>
     <div class="col-md-4 py-2">
       <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control w-60" />
     </div>
   </div>
-  <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage" :totalItems="table.totalItems"
-    :currentPage="table.currentPage" :totalPage="table.totalPage" :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
-    @onPageChange="fetchItems" @onSearch="table.searchTerm" @onClick="handleClick">
+  <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+    :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
+    :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
+    @onSearch="table.searchTerm" @onClick="handleClick">
     <template #actions="{ row }">
       <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
         <i class="fa fa-print"></i> Imprimir
       </button>
     </template>
   </BaseTable>
+
+ <!-- Modal para filtro de cliente -->
+  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true" ref="filtrarClienteModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
 import { useReposicionesRecibidasPagination } from "../../../composables/bodegas/consultas/useTransferenciasRecibidasPagination";
-import { onMounted, watch } from "vue";
+import { onMounted, watch, reactive , ref} from "vue";
 import { useStore } from "vuex";
+import flatPickr from 'vue-flatpickr-component';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import FiltrarClienteConsulta from "../modals/FiltrarClienteConsulta.vue";
+import { Modal } from "bootstrap";
+
+
 const store = useStore();
 const puntoVentaId = store.state.puntodeventaselect;
-
-const { table, fetchItems, refresh } = useReposicionesRecibidasPagination(puntoVentaId);
-
-watch(
-  () => [table.searchTerm, table.perPage, table.sortField, table.sortOrder],
-  () => {
-    fetchItems(1);
+const { table, fetchItems, refresh, onSort , limpiarFecha } = useReposicionesRecibidasPagination(puntoVentaId);
+const flatPickrState = reactive({
+  fecha_desde: {
+    maxDate: Date.now(),
+    locale: Spanish,
   },
-  { deep: true }
-);
-
-
-const refreshData = () => {
-  refresh()
-};
-// Inicialización
-onMounted(async () => {
-  if (!table.items.length) {
-    fetchItems();
-  }
+  fecha_hasta: {
+    maxDate: Date.now(),
+    locale: Spanish,
+  },
 });
+
 
 // Columnas de la tabla
 const columns = [
@@ -68,11 +101,7 @@ const columns = [
   { label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false },
 ];
 
-// Función para el sort
-const onSort = ({ field, order }) => {
-  table.sortField = field;
-  table.sortOrder = order;
-};
+
 
 // Función para acciones
 async function imprimirGuia(guia) {
@@ -106,4 +135,27 @@ const functionTest = (guideId) => {
   // console.log(`🖨️ Imprimiendo Guia: ${guideId}`);
   // Aquí puedes llamar al método de impresión real
 };
+
+
+
+// funcion para modal de filtro de cliente 
+let filtrarClienteModal = ref(null);
+let filtrarClienteModalObj = null;
+function levantarFiltrocliente() {
+  filtrarClienteModalObj.show();
+}
+function filtrarClienteConsulta(cliente) {
+  filtrarClienteModalObj.hide();
+  table.cliente = cliente
+}
+
+
+
+// Inicialización
+onMounted(async () => {
+  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
+  if (!table.items.length && !table.loading) {
+    fetchItems(1);
+  }
+});
 </script>

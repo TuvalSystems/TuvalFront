@@ -83,7 +83,6 @@
         </BaseBlock>
       </div>
     </template>
-    {{ verpedido }}
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
     <button  type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cancelar</button>

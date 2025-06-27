@@ -1,4 +1,4 @@
-import { ref, watch } from "vue";
+import { ref, watch, reactive } from "vue";
 import axiosClient from "../../../axios";
 
 export function usePagination() {
@@ -11,6 +11,9 @@ export function usePagination() {
   const perPage = ref(10);
   const sortField = ref("");
   const sortOrder = ref("asc");
+  const fecha_desde = ref(null);
+  const fecha_hasta = ref(null);
+  const cliente = ref(null);
 
   //endPoint dinamico que cambia segun el componente
   const endpoint = ref("");
@@ -27,6 +30,9 @@ export function usePagination() {
     perPage.value = 10;
     sortField.value = "";
     sortOrder.value = "asc";
+    fecha_desde.value = null;
+    fecha_hasta.value = null;
+    cliente.value = null;
     isInitialized.value = false;
   };
 
@@ -55,6 +61,9 @@ export function usePagination() {
             search: searchTerm.value,
             sortBy: sortField.value,
             sortOrder: sortOrder.value,
+            fecha_desde: fecha_desde.value,
+            fecha_hasta: fecha_hasta.value,
+            cliente: cliente.value,
           },
         }
       );
@@ -62,8 +71,6 @@ export function usePagination() {
         items.value = response.data.data.data;
         totalPage.value = response.data.data.last_page;
         totalItems.value = response.data.data.total;
-      } else {
-        console.warn("⚠️ No se encontraron datos en la respuesta.");
       }
     } catch (error) {
       console.error("Error al cargar los datos paginados", error);
@@ -73,9 +80,27 @@ export function usePagination() {
   };
 
   // 👀 Watchers para recargar datos en tiempo real
-  watch([searchTerm, perPage, sortField, sortOrder], () => {
-    fetchItems(1);
-  });
+  watch(
+    () => [searchTerm, perPage, sortField, sortOrder, cliente],
+    () => {
+      if (searchTerm.value == "" || searchTerm.value.length >= 4) {
+        fetchItems(1);
+      }
+    },
+    { deep: true }
+  );
+
+  watch(
+    () => [fecha_desde, fecha_hasta],
+    () => {
+      if (fecha_desde.value && fecha_hasta.value) {
+        console.log("🔄 Refrescando datos..." , fecha_desde.value, fecha_hasta.value);
+        
+        fetchItems(1);
+      }
+    },
+    { deep: true }
+  );
 
   return {
     items,
@@ -90,5 +115,8 @@ export function usePagination() {
     sortField,
     sortOrder,
     resetState,
+    fecha_desde,
+    fecha_hasta,
+    cliente,
   };
 }

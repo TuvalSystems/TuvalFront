@@ -18,6 +18,9 @@ export const usePaginationCacheStore = defineStore("paginationCache", {
           perPage: 10,
           sortField: "",
           sortOrder: "asc",
+          fecha_desde: null,
+          fecha_hasta: null,
+          cliente: null,
         });
       }
     },
