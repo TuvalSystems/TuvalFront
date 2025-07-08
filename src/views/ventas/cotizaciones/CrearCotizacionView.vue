@@ -258,7 +258,7 @@
               <th>ALT</th>
               <th>CTL</th>
               <th>UDM</th>
-              <th >Cantidad</th>
+              <th>Cantidad</th>
               <th></th>
               <th class="text-end">Stock</th>
               <th>Mod %</th>
