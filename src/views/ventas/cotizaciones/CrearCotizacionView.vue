@@ -258,7 +258,7 @@
               <th>ALT</th>
               <th>CTL</th>
               <th>UDM</th>
-              <th>Cantidad</th>
+              <th >Cantidad</th>
               <th></th>
               <th class="text-end">Stock</th>
               <th>Mod %</th>
@@ -315,7 +315,7 @@
                 </td>
                 <td class="fs-sm col-1">
                   <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
-                    placeholder="Cantidad"
+                    placeholder="Cantidad" style="width: 6.25rem"
                     :class="element.errorCantidad || element.ART_CANTIDAD == 0 ? 'is-invalid' : ''"
                     :value="element.ART_CANTIDAD" @change="updateCantidad($event, element, index)" :tablindex="index">
                 </td>
@@ -340,7 +340,7 @@
 
                   <input type="text" v-if="element.ART_TIPO_COMPRA != 'L'" :id="`modificador-${element.id}`"
                     class="form-control text-end" placeholder="Modificador Precio" :value="element.modificador"
-                    @change="updateModificador($event, element, index)" style="width:65px;">
+                    @change="updateModificador($event, element, index)" style="width:75px;">
 
                 </td>
                 <td class="fs-sm text-end col-1">
