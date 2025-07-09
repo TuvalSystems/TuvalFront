@@ -16,7 +16,7 @@ export default defineConfig({
     port:3000,
   },
   build: {
-    outDir: '../vue',
+    outDir: 'vue',
     emptyOutDir: true,
     chunkSizeWarningLimit: 1600,
     cors: false,
