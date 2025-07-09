@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 import axiosClient from "../axios";
 import axiosPrint from "../axiosPrint";
+
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { addDays } from "@/functions";
 import { ref } from "vue";
