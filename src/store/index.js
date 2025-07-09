@@ -613,7 +613,7 @@ const store = createStore({
         });
     },
 
-    updateCheckAlternative({commit}, itemUpdate) {
+    updateCheckAlternative({ commit }, itemUpdate) {
       return axiosClient
         .post("/cotizaciones/actualizar-check-item-alternativo", itemUpdate)
         .then((res) => {
@@ -626,7 +626,7 @@ const store = createStore({
       });
     },
 
-     /** nuevas funciones */
+    /** nuevas funciones */
     getListaItemsAlternativos({ commit }, item) {
       commit("resetArticulosAlternativos");
       commit("setArticulosAlternativosLoading", true);
@@ -960,7 +960,7 @@ const store = createStore({
     detallecotizacion({ commit }, cotizacion) {
       commit("setDetalleCotizacionLoading", true);
       commit("setEstadoDeCuentaLoading", true);
-      
+
       return axiosClient
         .post("/cotizaciones/detallecotizacion", cotizacion)
         .then((res) => {
@@ -1056,6 +1056,7 @@ const store = createStore({
           commit("setCurrentSucursal", res.data.currentSucursal);
           commit("resetRegistroCopia");
           commit("setCondicionPago", cotizacion);
+          commit("setCurrentTest", res.data.test);
         });
     },
     recuperarCotizacionProspecto({ commit }, cotizacion) {
@@ -1152,6 +1153,7 @@ const store = createStore({
           commit("setCurrentSucursal", res.data.currentSucursal);
           commit("setRegistroCopia", res.data.registro_copia);
           commit("setCondicionPago", cotizacion);
+          commit("setCurrentTest", res.data.test);
         });
     },
     llenarcotizacionProspecto({ commit }, cotizacion) {
@@ -1189,7 +1191,6 @@ const store = createStore({
           commit("setCurrentSucursal", res.data.currentSucursal);
           commit("setCondicionPagoSinPrint", pedido);
           commit("setCurrentTest", res.data.test);
-
         });
     },
     copiarPedido({ commit }, data) {
@@ -1950,7 +1951,7 @@ const store = createStore({
       sessionStorage.setItem("CURRENTSUCURSAL", currentSucursal);
       state.currentSucursal = currentSucursal;
     },
-    setCurrentTest : (state, currentTest) => {
+    setCurrentTest: (state, currentTest) => {
       sessionStorage.setItem("CURRENTTEST", currentTest);
       state.currentTest = currentTest;
     },
@@ -2932,7 +2933,6 @@ const store = createStore({
         data: [],
       };
     },
-    
   },
   modules: {},
 });
