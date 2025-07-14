@@ -260,7 +260,8 @@
               <th>UDM</th>
               <th>Cantidad</th>
               <th></th>
-              <th class="text-end">Stock</th>
+              <th></th>
+              <!--   <th class="text-end">Stock</th> -->
               <th>Mod %</th>
               <th class="text-end">Precio</th>
               <th class="text-end">% Desc.</th>
