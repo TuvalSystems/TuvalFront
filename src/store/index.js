@@ -402,6 +402,10 @@ const store = createStore({
       loading: false,
       data: [],
     },
+    stock_por_articulo: {
+      loading: false,
+      data: [],
+    },
   },
   getters: {},
   actions: {
@@ -628,13 +632,11 @@ const store = createStore({
     },
 
     /** nuevas funciones */
-    getListaItemsAlternativos({ commit }, item) {
+    getListaItemsAlternativos({ commit }, articulo) {
       commit("resetArticulosAlternativos");
       commit("setArticulosAlternativosLoading", true);
       return axiosClient
-        .get("cotizaciones/lista-items-alternativos", {
-          params: { item: item },
-        })
+        .post("cotizaciones/lista-items-alternativos", articulo)
         .then((res) => {
           commit("setArticulosAlternativosLoading", false);
           commit("setArticulosAlternativos", res.data);
@@ -644,6 +646,21 @@ const store = createStore({
           console.error("Error al obtener descripciones alternativas:", error);
           throw error; // lo relanzas para que lo maneje el componente si es necesario
         });
+    },
+
+    /** obtener stock de articulos por cotización */
+    getArticuloStockPorBodega({ commit }, element){
+       commit("resetStockArticuloPorBodega");
+      commit("setStockArticuloPorBodegaLoading", true);
+      return axiosClient
+      .post("/cotizaciones/articulo-stock-por-bodega", element).then((res) => {
+          commit("setStockArticuloPorBodegaLoading", false);
+          commit("setStockArticuloPorBodega", res.data);
+        return res.data;
+      }).catch((error) => {
+        console.error("Error al obtener stock del Articulo:", error);
+        throw error; // lo relanzas para que lo maneje el componente si es necesario
+      });
     },
 
     guardarCotizacion({ commit }, info) {
@@ -2930,6 +2947,20 @@ const store = createStore({
 
     resetArticulosAlternativos: (state) => {
       state.articulos_alternativos = {
+        loading: false,
+        data: [],
+      };
+    },
+
+    /** obtener el stock de cada item para cada cotización */
+    setStockArticuloPorBodegaLoading: (state, value) => {
+      state.stock_por_articulo.loading = value
+    },
+    setStockArticuloPorBodega:(state, data) =>{
+      state.stock_por_articulo = data
+    }, 
+    resetStockArticuloPorBodega: (state) => {
+      state.stock_por_articulo = {
         loading: false,
         data: [],
       };

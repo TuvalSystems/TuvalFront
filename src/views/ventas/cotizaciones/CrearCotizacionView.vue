@@ -261,6 +261,7 @@
               <th>Cantidad</th>
               <th></th>
               <th></th>
+              <th></th>
               <!--   <th class="text-end">Stock</th> -->
               <th>Mod %</th>
               <th class="text-end">Precio</th>
@@ -300,6 +301,8 @@
                     v-model="element.CHECK_ALTERNATIVO" :true-value="1" :false-value="0"
                     @click="updateCheckAlternative($event, element, index)">
                 </td>
+
+                <!-- abrir modal de stock -->
                 <td class="fs-sm">
                   <div v-if="element.ART_TIPO_COMPRA == 'L'">
                     <button class="btn btn-sm" :class="element.proveedoreslistos ? 'btn-success' : 'btn-danger'"
@@ -308,6 +311,7 @@
                     </button>
                   </div>
                 </td>
+                <!-- final del modal de stock  -->
                 <td class="fs-sm">
                   {{ element.ART_CODIGO_TRES_LETRAS }}
                 </td>
@@ -323,7 +327,7 @@
                 <td>
                   <div v-if="element.ART_TIPO_COMPRA != 'L' && element.ART_TIPO_COMPRA != 'SERV'">
                     <button class="btn btn-sm" :class="element.stockListo ? 'btn-success' : 'btn-warning'"
-                      title="Seleccionar stock por bodega" @click="openModalBodegas(index)">
+                      title="Seleccionar stock por bodega" @click="openModalBodegas(index, element)" :disabled="disableOpenModal">
                       <i class="fa fa-boxes-packing"></i>
                     </button>
                   </div>
@@ -388,7 +392,7 @@
               </tr>
             </template>
           </draggable>
-          <tr >
+          <tr>
             <th colspan="15" class="fs-sm text-end">Subtotal sin descuento</th>
             <th class="fs-sm text-end">${{ format(subtotal + descuento) }}</th>
             <th></th>
@@ -606,7 +610,7 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from 'vuex'
 import { Modal } from "bootstrap";
@@ -625,6 +629,7 @@ import ArticulosModal from "../modals/ArticulosModal.vue";
 import ProveedorModal from "../modals/ProveedorModal.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 import ItemAlternativoComponent from "../modals/ItemAlternativoModal.vue";
+
 
 
 const store = useStore();
@@ -895,7 +900,7 @@ async function llenarcotizacion() {
       puntodeventa_id: store.state.puntodeventaselect,
       serial: store.state.cotizacion_serial,
       registro_copia: registro_copia.value,
-      test : currentTest.value,
+      test: currentTest.value,
     })
     store.dispatch('llenarcotizacion', consulta).then(() => {
       calcTotales();
@@ -1218,10 +1223,37 @@ function openModalProveedor(index) {
   proveedorModalObj.show();
 }
 
-function openModalBodegas(index) {
-  verbodegas.value = true;
-  indexbodegas.value = index;
-  bodegasModalObj.show();
+const disableOpenModal = ref(false);
+async function openModalBodegas(index, element) {
+  disableOpenModal.value = true;
+  const data = reactive({
+    articulo: element,
+    bodega: store.state.puntodeventaselect,
+  });
+  try {
+    const res = await store.dispatch('getArticuloStockPorBodega', data);
+    if (res.success == false) {
+      swalError(res.message);
+      return
+    }
+    if (res.success == true) {
+      let stockItem = store.state.stock_por_articulo;
+      let articulo = cotizacion.value.data[index];
+      if (String(articulo.ART_CODIGO).trim().toLowerCase() === String(stockItem.data.ART_CODIGO).trim().toLowerCase()) {
+        cotizacion.value.data[index].stock = stockItem.data.stock;
+      } else {
+        console.warn('ART_CODIGO no coincide:', articulo.ART_CODIGO, stockItem.data.ART_CODIGO);
+      }
+      verbodegas.value = true;
+      indexbodegas.value = index;
+      bodegasModalObj.show();
+      disableOpenModal.value = false;
+
+    }
+
+  } catch (error) {
+    console.log(error, 'error al abrir modal de bodegas');
+  }
 }
 
 function openModalPeso(index, articulo) {
@@ -1513,10 +1545,10 @@ const itemAlternativo = reactive({
 });
 function obtenerListaDescripcionAlternativas(event, articulo, index) {
   store.dispatch('getListaItemsAlternativos', articulo.ART_CODIGO).then((res) => {
-    if(res.success == false) {
+    if (res.success == false) {
       swalError(res.message);
       return;
-    }else {
+    } else {
       itemAlternativo.index = index;
       itemAlternativo.item = articulo.ART_CODIGO;
       verItemAlternativoObj.show();
@@ -1536,7 +1568,7 @@ function onSelectItemAlternativo(descripcion) {
 
 function updateCheckAlternative(event, articulo, index) {
 
-  const value = event.target.checked ? 1 : 0;  
+  const value = event.target.checked ? 1 : 0;
   const itemUpdate = reactive({
     articulo: articulo.id,
     CHECK_ALTERNATIVO: value,
