@@ -250,35 +250,33 @@
         <table v-if="cotizacion.data.length && !cotizacion.loading"
           class="table table-hover table-sm table-vcenter mt-4">
           <thead>
-            <tr>
+            <tr class="text-center">
               <th>#</th>
               <th>Código</th>
-              <th style="width: 250px">Descripción</th>
-              <th>&nbsp;</th>
-              <th>ALT</th>
+              <th style="width:250px">Descripción</th>
+              <th style="width:50px"> <!-- boton para listar descripciones alternativas --> </th>
+              <th style="width:50px;text-align: center">ALT</th>
               <th>CTL</th>
               <th>UDM</th>
+              <th></th>
               <th>Cantidad</th>
               <th></th>
-              <th></th>
-              <th></th>
-              <!--   <th class="text-end">Stock</th> -->
               <th>Mod %</th>
               <th class="text-end">Precio</th>
               <th class="text-end">% Desc.</th>
-              <!--              <th class="text-end">Descuento</th>-->
-              <!--              <th class="text-end">IVA</th>-->
               <th class="text-end">T. con Desc.</th>
-              <th></th>
             </tr>
           </thead>
-          <draggable v-model="cotizacion.data" tag="tbody" item-key="orden" handle=".handle" @end="guardarOrden">
-            <template #item="{ element, index }">
-              <tr>
+          <draggable v-model="cotizacion.data" tag="tbody" item-key="orden" handle=".handle" @end="guardarOrden" >
+            <template #item="{ element, index }" >
+              <tr class="text-center">
+                <!-- id -->
                 <td class="fs-sm">{{ index + 1 }}</td>
+                <!-- codigo -->
                 <td class="fs-sm">
                   {{ element.ART_CODIGO }}
                 </td>
+                <!-- descripcion -->
                 <td class="fs-sm">
                   <a v-if="!element.cambiar_descripcion" @click="cambiarDescripcion(index)" href="javascript:void(0)"
                     title="Cambiar Descripción" :class="{
@@ -289,20 +287,29 @@
                     :class="element.errorDescripcion ? 'is-invalid' : ''" placeholder="Descripción"
                     :value="element.ART_DESCRIPCION" @change="updateDescripcion($event, element, index)"
                     @keyup.enter="updateDescripcion($event, element, index)">
-
-
                 </td>
+
+                <!-- obtener listado de descripciones -->
                 <td>
                   <button type="button" @click="obtenerListaDescripcionAlternativas($event, element, index)"
                     class="btn btn-sm btn-info mx-1"><i class="fa fa-search"></i></button>
                 </td>
+                <!-- check alternativo -->
                 <td style="text-align: center;">
                   <input class="form-check-input" type="checkbox" :id="`checkAlternativo-${element.id}`"
                     v-model="element.CHECK_ALTERNATIVO" :true-value="1" :false-value="0"
                     @click="updateCheckAlternative($event, element, index)">
                 </td>
+                <!-- codigo 3 letras -->
+                <td class="fs-sm">
+                  {{ element.ART_CODIGO_TRES_LETRAS }}
+                </td>
+                <!-- unidad de medida UDM -->
+                <td class="fs-sm">
+                  {{ element.ART_PLAN_UMEDIDA }}
+                </td>
 
-                <!-- abrir modal de stock -->
+                <!-- abrir modal de proveedores -->
                 <td class="fs-sm">
                   <div v-if="element.ART_TIPO_COMPRA == 'L'">
                     <button class="btn btn-sm" :class="element.proveedoreslistos ? 'btn-success' : 'btn-danger'"
@@ -312,22 +319,22 @@
                   </div>
                 </td>
                 <!-- final del modal de stock  -->
-                <td class="fs-sm">
-                  {{ element.ART_CODIGO_TRES_LETRAS }}
-                </td>
-                <td class="fs-sm">
-                  {{ element.ART_PLAN_UMEDIDA }}
-                </td>
+
+
+                <!-- cantidad -->
                 <td class="fs-sm col-1">
                   <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
                     placeholder="Cantidad" style="width: 6.25rem"
                     :class="element.errorCantidad || element.ART_CANTIDAD == 0 ? 'is-invalid' : ''"
                     :value="element.ART_CANTIDAD" @change="updateCantidad($event, element, index)" :tablindex="index">
                 </td>
+
+                <!-- modal para abrir stock de bodega -->
                 <td>
                   <div v-if="element.ART_TIPO_COMPRA != 'L' && element.ART_TIPO_COMPRA != 'SERV'">
                     <button class="btn btn-sm" :class="element.stockListo ? 'btn-success' : 'btn-warning'"
-                      title="Seleccionar stock por bodega" @click="openModalBodegas(index, element)" :disabled="disableOpenModal">
+                      title="Seleccionar stock por bodega" @click="openModalBodegas(index, element)"
+                      :disabled="disableOpenModal">
                       <i class="fa fa-boxes-packing"></i>
                     </button>
                   </div>
@@ -337,17 +344,18 @@
                     </button>
                   </div>
                 </td>
-                <td class="fs-sm text-end">
-                  <span v-if="element.ART_TIPO_COMPRA != 'L' && element.ART_TIPO_COMPRA != 'SERV'">{{ element.ART_STOCK
-                  }}</span>
-                </td>
-                <td class="fs-sm">
 
+
+                
+                <!-- modificador -->
+                <td class="fs-sm">
                   <input type="text" v-if="element.ART_TIPO_COMPRA != 'L'" :id="`modificador-${element.id}`"
                     class="form-control text-end" placeholder="Modificador Precio" :value="element.modificador"
-                    @change="updateModificador($event, element, index)" style="width:75px;">
+                    @change="updateModificador($event, element, index)" style="width:6.25rem;">
 
                 </td>
+
+                <!-- precio -->
                 <td class="fs-sm text-end col-1">
                   <a v-if="!element.cambiar_valor" @click="cambiarValor(index)" href="javascript:void(0)"
                     title="Cambiar Precio"
@@ -359,6 +367,8 @@
                     :value="format4(formatPrice4(element.ART_VALOR))" @change="updateValor($event, element, index)"
                     @keyup.enter="updateValor($event, element, index)">
                 </td>
+
+                <!-- descuento con opcion de cambiar descuento-->
                 <td class="fs-sm text-end col-1">
                   <a v-if="!element.cambiar_descuento" @click="cambiarDescuentoArticulo(index)"
                     href="javascript:void(0)" title="Cambiar Porcentaje de descuento"
@@ -370,13 +380,13 @@
                     :value="element.descuento" @change="updateDescuentoArticulo($event, element, index)"
                     @keyup.enter="updateDescuentoArticulo($event, element, index)">
                 </td>
-                <!--                <td class="fs-sm text-end">${{ element.ART_DESCUENTO  }}</td>-->
-                <!--                <td class="fs-sm text-end">-->
-                <!--                  ${{ format(element.ART_IVA)  }}-->
-                <!--                </td>-->
+
+
+                <!-- total con descuento -->
                 <td class="fs-sm text-end">
                   ${{ (element.subtotal) }}
                 </td>
+                <!-- botones -->
                 <td class="fs-sm nowrap">
                   <button type="button" class="btn btn-danger btn-sm mx-1"
                     @click="confirmeliminarArticulo(element, index)"><i class="fa fa-trash-can"></i></button>
@@ -389,41 +399,42 @@
 
 
                 </td>
-              </tr>
+              </tr >
             </template>
+            
           </draggable>
           <tr>
-            <th colspan="15" class="fs-sm text-end">Subtotal sin descuento</th>
+            <th colspan="14" class="fs-sm text-end">Subtotal sin descuento</th>
             <th class="fs-sm text-end">${{ format(subtotal + descuento) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="15" class="fs-sm text-end">Descuento</th>
+            <th colspan="14" class="fs-sm text-end">Descuento</th>
             <th class="fs-sm text-end">${{ format(descuento) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="15" class="fs-sm text-end">Subtotal - descuento </th>
+            <th colspan="14" class="fs-sm text-end">Subtotal - descuento </th>
             <th class="fs-sm text-end">${{ format(subtotal) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="15" class="fs-sm text-end">IVA</th>
+            <th colspan="14" class="fs-sm text-end">IVA</th>
             <th class="fs-sm text-end">${{ format(iva) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="15" class="fs-sm text-end">Total</th>
+            <th colspan="14" class="fs-sm text-end">Total</th>
             <th class="fs-sm text-end">${{ format(parseFloat(total)) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="15" class="fs-sm text-end">&nbsp;</th>
+            <th colspan="14" class="fs-sm text-end">&nbsp;</th>
             <th class="fs-sm text-end"></th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="15" class="fs-sm text-end">Peso total</th>
+            <th colspan="14" class="fs-sm text-end">Peso total</th>
             <th class="fs-sm text-end">{{ format(peso) }}Kg</th>
             <th></th>
           </tr>
