@@ -1252,6 +1252,7 @@ async function openModalBodegas(index, element) {
       let articulo = cotizacion.value.data[index];
       if (String(articulo.ART_CODIGO).trim().toLowerCase() === String(stockItem.data.ART_CODIGO).trim().toLowerCase()) {
         cotizacion.value.data[index].stock = stockItem.data.stock;
+        verificarStock();
       } else {
         console.warn('ART_CODIGO no coincide:', articulo.ART_CODIGO, stockItem.data.ART_CODIGO);
       }
