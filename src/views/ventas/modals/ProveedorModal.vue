@@ -1,6 +1,6 @@
 <template>
   <template v-if="verproveedor">
-    <BaseBlock
+    <BaseBlock  v-if="cotizacion.data && cotizacion.data[indexproveedor]"
                :title="'Proveedor: '+cotizacion.data[indexproveedor].ART_DESCRIPCION+' $'+cotizacion.data[indexproveedor].ART_VALOR"
                transparent class="mb-0">
       <template #options>

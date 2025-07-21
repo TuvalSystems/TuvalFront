@@ -1229,6 +1229,8 @@ function calcTotales() {
 }
 
 async function openModalProveedor(index, element) {
+  store.commit('setVerProveedor', true);
+  store.commit('setIndexProveedor', index);
   const data = reactive({
     articulo: element,
   });
@@ -1240,15 +1242,12 @@ async function openModalProveedor(index, element) {
       return;
     }
     if (res.success == true) {
-      store.commit('setVerProveedor', true);
-      store.commit('setIndexProveedor', index);
+
       proveedorModalObj.show();
     }
   } catch (error) {
     console.log(error, 'error al abrir modal de bodegas');
   }
-
-
 }
 
 const disableOpenModal = ref(false);
@@ -1611,8 +1610,8 @@ function updateCheckAlternative(event, articulo, index) {
 
 onMounted(() => {
   articuloModalObj = new Modal(articuloModal.value);
-  proveedorModalObj = new Modal(proveedorModal.value);
   bodegasModalObj = new Modal(bodegasModal.value);
+  proveedorModalObj = new Modal(proveedorModal.value);
   pesoModalObj = new Modal(pesoModal.value);
   verItemAlternativoObj = new Modal(verItemAlternativo.value);
   crearDireccionModalObj = new Modal(crearDireccionModal.value);
