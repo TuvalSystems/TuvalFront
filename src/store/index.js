@@ -406,6 +406,10 @@ const store = createStore({
       loading: false,
       data: [],
     },
+    margen_articulo: {
+      loading: false,
+      data: [],
+    },
   },
   getters: {},
   actions: {
@@ -649,18 +653,36 @@ const store = createStore({
     },
 
     /** obtener stock de articulos por cotización */
-    getArticuloStockPorBodega({ commit }, element){
-       commit("resetStockArticuloPorBodega");
+    getArticuloStockPorBodega({ commit }, element) {
+      commit("resetStockArticuloPorBodega");
       commit("setStockArticuloPorBodegaLoading", true);
       return axiosClient
-      .post("/cotizaciones/articulo-stock-por-bodega", element).then((res) => {
+        .post("/cotizaciones/articulo-stock-por-bodega", element)
+        .then((res) => {
           commit("setStockArticuloPorBodegaLoading", false);
           commit("setStockArticuloPorBodega", res.data);
-        return res.data;
-      }).catch((error) => {
-        console.error("Error al obtener stock del Articulo:", error);
-        throw error; // lo relanzas para que lo maneje el componente si es necesario
-      });
+          return res.data;
+        })
+        .catch((error) => {
+          console.error("Error al obtener stock del Articulo:", error);
+          throw error; // lo relanzas para que lo maneje el componente si es necesario
+        });
+    },
+    /** obtener el margen del articulo L  */
+    getMargenFotItemL({ commit }, element) {
+      commit("resetMargenArticuloL");
+      commit("setMargenArticuloLLoading", true);
+      return axiosClient
+        .post("/cotizaciones/obtener-magen-item-l", element)
+        .then((res) => {
+          commit("setMargenArticuloLLoading", false);
+          commit("setMargenArticuloL", res.data);
+          return res.data;
+        })
+        .catch((error) => {
+          console.error("Error al obtener el margen del Item L:", error);
+          throw error; // lo relanzas para que lo maneje el componente si es necesario
+        });
     },
 
     guardarCotizacion({ commit }, info) {
@@ -2954,13 +2976,25 @@ const store = createStore({
 
     /** obtener el stock de cada item para cada cotización */
     setStockArticuloPorBodegaLoading: (state, value) => {
-      state.stock_por_articulo.loading = value
+      state.stock_por_articulo.loading = value;
     },
-    setStockArticuloPorBodega:(state, data) =>{
-      state.stock_por_articulo = data
-    }, 
+    setStockArticuloPorBodega: (state, data) => {
+      state.stock_por_articulo = data;
+    },
     resetStockArticuloPorBodega: (state) => {
       state.stock_por_articulo = {
+        loading: false,
+        data: [],
+      };
+    },
+    setMargenArticuloLLoading: (state, value) => {
+      state.margen_articulo.loading = value;
+    },
+    setMargenArticuloL: (state, data) => {
+      state.margen_articulo = data;
+    },
+    resetMargenArticuloL: (state) => {
+      state.margen_articulo = {
         loading: false,
         data: [],
       };

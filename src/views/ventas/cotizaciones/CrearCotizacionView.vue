@@ -267,8 +267,8 @@
               <th class="text-end">T. con Desc.</th>
             </tr>
           </thead>
-          <draggable v-model="cotizacion.data" tag="tbody" item-key="orden" handle=".handle" @end="guardarOrden" >
-            <template #item="{ element, index }" >
+          <draggable v-model="cotizacion.data" tag="tbody" item-key="orden" handle=".handle" @end="guardarOrden">
+            <template #item="{ element, index }">
               <tr class="text-center">
                 <!-- id -->
                 <td class="fs-sm">{{ index + 1 }}</td>
@@ -313,7 +313,7 @@
                 <td class="fs-sm">
                   <div v-if="element.ART_TIPO_COMPRA == 'L'">
                     <button class="btn btn-sm" :class="element.proveedoreslistos ? 'btn-success' : 'btn-danger'"
-                      title="Seleccionar Proveedor" @click="openModalProveedor(index)">
+                      title="Seleccionar Proveedor" @click="openModalProveedor(index, element)">
                       <i class="fa fa-people-arrows-left-right"></i>
                     </button>
                   </div>
@@ -346,7 +346,7 @@
                 </td>
 
 
-                
+
                 <!-- modificador -->
                 <td class="fs-sm">
                   <input type="text" v-if="element.ART_TIPO_COMPRA != 'L'" :id="`modificador-${element.id}`"
@@ -399,9 +399,9 @@
 
 
                 </td>
-              </tr >
+              </tr>
             </template>
-            
+
           </draggable>
           <tr>
             <th colspan="14" class="fs-sm text-end">Subtotal sin descuento</th>
@@ -1228,10 +1228,27 @@ function calcTotales() {
   verificarStock();
 }
 
-function openModalProveedor(index) {
-  store.commit('setVerProveedor', true);
-  store.commit('setIndexProveedor', index);
-  proveedorModalObj.show();
+async function openModalProveedor(index, element) {
+  const data = reactive({
+    articulo: element,
+  });
+
+  try {
+    const res = await store.dispatch('getMargenFotItemL', data);
+    if (res.success == false) {
+      swalError(res.message);
+      return;
+    }
+    if (res.success == true) {
+      store.commit('setVerProveedor', true);
+      store.commit('setIndexProveedor', index);
+      proveedorModalObj.show();
+    }
+  } catch (error) {
+    console.log(error, 'error al abrir modal de bodegas');
+  }
+
+
 }
 
 const disableOpenModal = ref(false);
@@ -1240,6 +1257,7 @@ async function openModalBodegas(index, element) {
   const data = reactive({
     articulo: element,
     bodega: store.state.puntodeventaselect,
+    test: currentTest.value
   });
   try {
     const res = await store.dispatch('getArticuloStockPorBodega', data);

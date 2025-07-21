@@ -248,7 +248,7 @@ const verproveedor = computed(() => store.state.verproveedor);
 const indexproveedor = computed(() => store.state.indexproveedor);
 const proveedores = ref(store.state.proveedores);
 const cotizacion = computed(() => store.state.cotizacion);
-
+const datoItemL = computed(() => store.state.margen_articulo);
 const flatPickrState = reactive({
   minDate: Date.now(),
   monthSelectorType: "static",
@@ -276,7 +276,7 @@ function addProveedor(index) {
     TOTAL: "",
     TOTALCONIMPUESTO: "",
     NOTA: "",
-    MARGEN: 16,
+    MARGEN: datoItemL.value.data.DATOS_ITEMS_L_MARGEN ? datoItemL.value.data.DATOS_ITEMS_L_MARGEN : 16,
   };
   cotizacion.value.data[index].proveedores.push(newProveedor);
 }
