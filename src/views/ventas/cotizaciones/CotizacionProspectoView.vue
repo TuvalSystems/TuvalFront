@@ -207,7 +207,7 @@
               <th>CTL</th>
               <th>UDM</th>
               <th>Cantidad</th>
-              <th class="text-end"></th>
+              <!-- <th class="text-end"></th> -->
               <th class="text-end">Precio</th>
               <th class="text-end">Descuento</th>
               <th class="text-end">Total</th>
