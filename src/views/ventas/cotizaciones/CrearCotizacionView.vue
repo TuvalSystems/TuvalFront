@@ -240,6 +240,8 @@
       <form class="row row-cols-lg-auto g-3 align-items-center">
         <div>
           <button type="button" @click="buscararticulo" class="btn btn-primary">Buscar Artículo</button>
+          <button type="button" @click="obtenerLoteStock" class="btn btn-success mx-4">Stock <i
+              class="fa fa-refresh"></i></button>
         </div>
       </form>
       <div v-if="cotizacion.loading" class="text-center">
@@ -872,6 +874,13 @@ function buscararticulo() {
   store.commit('resetArticulo');
   store.commit('limpiarBusqueda');
   articuloModalObj.show();
+}
+
+function obtenerLoteStock() {
+  disableOpenModal.value = true;
+  setTimeout(() => {
+    disableOpenModal.value = false;
+  }, 1000);
 }
 
 async function llenarcotizacion() {
@@ -1573,7 +1582,10 @@ const itemAlternativo = reactive({
   item: ''
 });
 function obtenerListaDescripcionAlternativas(event, articulo, index) {
-  store.dispatch('getListaItemsAlternativos', articulo.ART_CODIGO).then((res) => {
+  const item = reactive({
+    item: articulo.ART_CODIGO,
+  });
+  store.dispatch('getListaItemsAlternativos', item).then((res) => {
     if (res.success == false) {
       swalError(res.message);
       return;
