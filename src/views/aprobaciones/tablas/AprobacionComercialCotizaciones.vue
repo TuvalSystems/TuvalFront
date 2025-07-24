@@ -241,8 +241,10 @@ function aprobarCotizacion(cotizacion){
   cotizacion.chao = true;
   vercotizacionModalObj.hide();
   store.dispatch('aprobarCotizacion', cotizacion).then(() => {  
+    swalSuccess('Cotización: '+ cotizacion.cotizacion + ' aprobada');
   }).catch(err => {
     errorMsg.value = err.response.data.error
+    swalError(errorMsg.value);
   });
 }
 
@@ -278,9 +280,11 @@ function confirmRechazarCotizacion(cotizacion){
 function rechazarCotizacion(cotizacion){
   cotizacion.chao = true;
   vercotizacionModalObj.hide();
-  store.dispatch('rechazarCotizacion', cotizacion).then(() => {  
+  store.dispatch('rechazarCotizacion', cotizacion).then(() => {
+    swalError('Cotización: '+ cotizacion.cotizacion + ' rechazada');  
   }).catch(err => {
     errorMsg.value = err.response.data.error
+    swalError(errorMsg.value);
   });
 }
 

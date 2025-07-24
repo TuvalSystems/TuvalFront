@@ -1,7 +1,8 @@
 import { fileURLToPath, URL } from "url";
 
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,10 +14,10 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port:3000,
+    port: 3000,
   },
   build: {
-    outDir: '../vue',
+    outDir: resolve(__dirname, 'vue'),
     emptyOutDir: true,
     chunkSizeWarningLimit: 1600,
     cors: false,

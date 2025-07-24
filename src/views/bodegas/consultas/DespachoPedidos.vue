@@ -1,193 +1,281 @@
 <template>
-
-  <Dataset
-    v-slot="{ ds }"
-    :ds-data="guiasprocesadas.data.guias_despachadas"
-    :ds-sortby="sortBy"
-    :ds-search-in="[
-      'GUI_REM_GUIA_REMISION',
-      'pedido',
-      'GUI_REM_NUME_DOCU_SUSTENTO',
-      'CLI_RAZON_SOCIAL',
-      'GUI_REM_RAZON_SOCIAL_DESTINATARIO',
-      'BOD_BODEGA',
-      'GUI_REM_RAZON_SOCIAL_TRANSPORTISTA',
-      'GUI_REM_PLACA',
-      'GUI_REM_FECHA_INICIO',
-    ]"
-    >
-    <div class="row" :data-page-count="ds.dsPagecount">
-      <div id="datasetLength" class="col-md-8 py-2">
-        <DatasetShow />
+  <div>
+    <div class="col-md-0 py-2 text-end">
+      <button @click="refreshData" class="btn btn-outline-success" aria-placeholder="Actualizar">
+        <i class="fa fa-refresh"></i>
+      </button>
+    </div>
+    <div class="d-flex justify-content-between mb-3">
+      <div class="col-md-3 py-2">
+        <select v-model="perPage" class="form-select w-25">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
       </div>
-      <div class="col-md-4 py-2">
-        <DatasetSearch ds-search-placeholder="Buscar..." />
+      <div class="col-md-1 py-2">
+      <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()" class="btn btn-info btn-sm mx-1"><i
+          class="fa fa-user"></i> Cliente</button>
+    </div>
+    <div class="col-md-4 py-2">
+      <div class="row g-1 align-items-center">
+        <div class="col-auto">
+          <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
+        </div>
+        <div class="col-auto">
+          <flat-pickr style="width:120px;" id="fecha_desde" class="form-control form-control-sm"
+            v-model="fecha_desde" :config="flatPickrState.fecha_desde" />
+        </div>
+        <div class="col-auto">
+          <label for="fecha_hasta" class="col-form-label fs-sm">Hasta</label>
+        </div>
+        <div class="col-auto">
+          <flat-pickr style="width:120px;" id="fecha_hasta" class="form-control form-control-sm"
+            v-model="fecha_hasta" :config="flatPickrState.fecha_hasta" />
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> </button>
+        </div>
       </div>
     </div>
-    <hr />
-    <div class="row" v-if="guiasprocesadas.data.guias_despachadas && !guiasprocesadas.loading">
+      <div class="col-md-4 py-2">
+        <input v-model="searchTerm" placeholder="Buscar..." class="form-control w-60" />
+      </div>
+
+    </div>
+
+
+    <div class="row">
       <div class="col-md-12">
         <div class="table-responsive">
           <table class="table table-sm table-hover table-vcenter mb-0">
             <thead>
-              <tr>
-                <th
-                  v-for="(th, index) in cols"
-                  :key="th.field"
-                  :class="['sort', th.sort]"
-                  @click="onSort($event, index)"
-                  class="nowrap"
-                >
-                  {{ th.name }} <i class="gg-select float-end"></i>
+              <tr >
+                <th @click="sortBy('GUI_REM_GUIA_REMISION')" class="text-left text-nowrap" style="font-size: 12px">#Guia
+                  <i :class="getSortIcon('GUI_REM_GUIA_REMISION')" class="ms-1"></i>
                 </th>
-                <th></th>
+                <th @click="sortBy('pedido')" class="text-left text-nowrap" style="font-size: 12px">#Pedido
+                  <i :class="getSortIcon('pedido')" class="ms-1"></i>
+                </th>
+                <th @click="sortBy('GUI_REM_NUME_DOCU_SUSTENTO')" class="text-left text-nowrap" style="font-size: 12px">#Factura
+                  <i :class="getSortIcon('GUI_REM_NUME_DOCU_SUSTENTO')" class="ms-1"></i>
+                </th>
+                <th @click="sortBy('orden')" class="text-left text-nowrap" style="font-size: 12px">#Orden
+                  <i :class="getSortIcon('orden')" class="ms-1"></i>
+                </th>
+                <th @click="sortBy('GUI_REM_RAZON_SOCIAL_DESTINATARIO')" class="text-left text-nowrap" style="font-size: 12px">Cliente
+                  <i :class="getSortIcon('GUI_REM_RAZON_SOCIAL_DESTINATARIO')" class="ms-1"></i>
+                </th>
+                <th @click="sortBy('GUI_REM_DIRECCION_DESTINATARIO')" class="text-left text-nowrap" style="font-size: 12px">Dirección
+                  <i :class="getSortIcon('GUI_REM_DIRECCION_DESTINATARIO')" class="ms-1"></i>
+                </th>
+                <th @click="sortBy('GUI_REM_FECHA_INICIO')" class="text-left text-nowrap" style="font-size: 12px">Fecha/Hora
+                  <i :class="getSortIcon('GUI_REM_FECHA_INICIO')" class="ms-1"></i>
+                </th>
+                <th @click="sortBy('GUI_REM_RAZON_SOCIAL_TRANSPORTISTA')" class="text-left text-nowrap" style="font-size: 12px">Transportista
+                  <i :class="getSortIcon('GUI_REM_RAZON_SOCIAL_TRANSPORTISTA')" class="ms-1"></i>
+                </th>
+                <th @click="sortBy('GUI_REM_PLACA')" class="text-left text-nowrap" style="font-size: 12px">Vehiculo
+                  <i :class="getSortIcon('GUI_REM_PLACA')" class="ms-1"></i>
+                </th>
+                <th  class="text-center text-nowrap" style="font-size: 12px">Acciones</th>
               </tr>
             </thead>
-            <DatasetItem tag="tbody" class="fs-sm">
-              <template #default="{ row }">
-                <tr>
-                  <td>{{ row.GUI_REM_GUIA_REMISION }}</td>
-                  <td>{{ row.pedido }}</td>
-                  <td>{{ row.GUI_REM_NUME_DOCU_SUSTENTO }}</td>
-                  <td><a href="javascript: void(0)" @click="imprimirOrdendespacho(row.orden_id)">{{ row.orden }}</a></td>
-                  <td>{{ row.GUI_REM_RAZON_SOCIAL_DESTINATARIO }}</td>
-                  <td>{{ row.GUI_REM_DIRECCION_DESTINATARIO }}</td>
-                  <td>{{ row.GUI_REM_FECHA_INICIO }}</td>
-                  <td>{{ row.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
-                  <td>{{ row.GUI_REM_PLACA }}</td>
-                  <td class="text-end">
-                    <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm mx-2"
-                        @click="imprimirGuia(row)"
-                    >
-                      <i class="fa fa-print"></i> Imprimir
-                    </button>
-                  </td>
-                </tr>
-              </template>
-            </DatasetItem>
+            <tbody v-if="loading">
+              <tr>
+                <td colspan="10" class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            <!-- Transition Group -->
+            <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
+              <tr v-for="(row, index) in items" :key="index">
+
+                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_GUIA_REMISION || 'No Data' }}</td>
+                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.pedido }}</td>
+                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row?.GUI_REM_NUME_DOCU_SUSTENTO }}</td>
+                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">
+                  <a href="javascript:void(0)" @click="imprimirOrdendespacho(row.orden_id)">
+                    {{ row.orden }}
+                  </a>
+                </td>
+                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_RAZON_SOCIAL_DESTINATARIO }}</td>
+                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_DIRECCION_DESTINATARIO }}</td>
+                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_FECHA_INICIO }}</td>
+                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
+                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_PLACA }}</td>
+                <td class="text-center text-nowrap" style="width: 150px;">
+                  <button type="button" class="btn btn-outline-primary btn-sm"  @click="imprimirGuia(row)">
+                    <i class="fa fa-print"></i> Imprimir
+                  </button>
+                </td>
+              </tr>
+            </transition-group>
           </table>
         </div>
       </div>
+
+
+      <!-- new -->
+      <div>
+        <!-- Paginación mejorada -->
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+          <div>
+            <p class="mb-0 text-white  " style="font-size: 12px;">
+              Mostrando {{ (currentPage - 1) * perPage + 1 }} a
+              {{ Math.min(currentPage * perPage, totalItems) }} de
+              {{ totalItems }} registros
+            </p>
+          </div>
+          <nav>
+            <ul class="pagination  pagination-sm mb-0">
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                <a class="page-link" href="javascript:void(0)" @click="fetchItems(1)">
+                  <i class="fa fa-angle-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                <a class="page-link" href="javascript:void(0)" @click="fetchItems(currentPage - 1)">
+                  <i class="fa fa-angle-left"></i></a>
+              </li>
+
+              <!-- Páginas numeradas -->
+              <li v-for="page in pages" :key="page" class="page-item" :class="{ active: page === currentPage }">
+                <a class="page-link" href="javascript:void(0)" @click="fetchItems(page)">{{ page }}</a>
+              </li>
+
+              <li class="page-item" :class="{ disabled: currentPage === totalPage }">
+                <a class="page-link" href="javascript:void(0)" @click="fetchItems(currentPage + 1)">
+                  <i class="fa fa-angle-right"></i>
+                </a>
+              </li>
+              <li class="page-item" :class="{ disabled: currentPage === totalPage }">
+                <a class="page-link" href="javascript:void(0)" @click="fetchItems(totalPage)">
+                  <i class="fa fa-angle-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+        </div>
+      </div>
+      <!-- end new -->
     </div>
-    <div v-if="guiasprocesadas.loading" class="text-center">
-      <div class="spinner-border text-primary mt-4" role="status">
-        <span class="visually-hidden">Loading...</span>
+  </div>
+
+  <!-- Modal para filtro de cliente -->
+ <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true" ref="filtrarClienteModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
       </div>
     </div>
-    <div
-      v-if="!guiasprocesadas.loading"
-      class="d-flex flex-md-row flex-column justify-content-between align-items-center"
-      >
-      <DatasetInfo class="py-3 fs-sm" />
-      <DatasetPager class="flex-wrap py-3 fs-sm" />
-    </div>
-  </Dataset>
-  <!-- Large Block Modal -->
-
+  </div>
 
 </template>
+
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
-import { useStore} from 'vuex'
+import { usePagination } from '../../../composables/bodegas/consultas/usePagination';
+import { onMounted, watch, computed, reactive , ref } from 'vue';
+import { useStore } from 'vuex'
+import flatPickr from 'vue-flatpickr-component';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import FiltrarClienteConsulta from "../modals/FiltrarClienteConsulta.vue";
 import { Modal } from "bootstrap";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import Picking from "../modals/Picking.vue";
-import OrdenDespacho from "../modals/OrdenDespacho.vue";
 
 const store = useStore();
-const guiasprocesadas = computed(() => store.state.guiasprocesadas);
-const verpedido = ref({});
-const currentOrden = ref(null);
+const puntoVentaId = store.state.puntodeventaselect; // Pasar dinámicamente este valor
 
+const {
+  items,
+  loading,
+  currentPage,
+  totalPage,
+  totalItems,
+  fetchItems,
+  searchTerm,
+  perPage,
+  initialize,
+  sortField,
+  sortOrder,
+  fecha_desde,
+  fecha_hasta,
+  cliente
+} = usePagination();
 
-// Helper variables
-const cols = reactive([
-  {
-    name: "#Guia",
-    field: "GUI_REM_GUIA_REMISION",
-    sort: "",
+const flatPickrState = reactive({
+  fecha_desde: {
+    maxDate: Date.now(),
+    locale: Spanish,
   },
-  {
-    name: "#Pedido",
-    field: "pedido",
-    sort: "",
+  fecha_hasta: {
+    maxDate: Date.now(),
+    locale: Spanish,
   },
-  {
-    name: "#Factura",
-    field: "GUI_REM_NUME_DOCU_SUSTENTO",
-    sort: "",
-  },
-  {
-    name: "#Orden",
-    field: "orden",
-    sort: "",
-  },
-  {
-    name: "Cliente",
-    field: "GUI_REM_RAZON_SOCIAL_DESTINATARIO",
-    sort: "",
-  },
-  {
-    name: "Dirección",
-    field: "GUI_REM_DIRECCION_DESTINATARIO",
-    sort: "",
-  },
-  {
-    name: "Fecha/Hora",
-    field: "GUI_REM_FECHA_INICIO",
-    sort: "",
-  },
-  {
-    name: "Transportista",
-    field: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA",
-    sort: "",
-  },
-  {
-    name: "Vehiculo",
-    field: "GUI_REM_PLACA",
-    sort: "",
-  },
-]);
-
-// Sort by functionality
-const sortBy = computed(() => {
-  return cols.reduce((acc, o) => {
-    if (o.sort) {
-      o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
-    }
-    return acc;
-  }, []);
 });
 
-// On sort th click
-function onSort(event, i) {
-  let toset;
-  const sortEl = cols[i];
 
-  if (!event.shiftKey) {
-    cols.forEach((o) => {
-      if (o.field !== sortEl.field) {
-        o.sort = "";
-      }
-    });
-  }
-  if (!sortEl.sort) {
-    toset = "asc";
-  }
-  if (sortEl.sort === "desc") {
-    toset = event.shiftKey ? "" : "asc";
-  }
-  if (sortEl.sort === "asc") {
-    toset = "desc";
-  }
-  sortEl.sort = toset;
-}
 
-let errorMsg = ref('');
-const pedidos = computed(() => store.state.pedidos);
+// Ordenamiento
+const sortBy = (field) => {
+  if (sortField.value === field) {
+    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
+  } else {
+    sortField.value = field;
+    sortOrder.value = "asc";
+  }
+  fetchItems(1);
+};
 
+// funcion para determinar el icono de orden
+const getSortIcon = (field) => {
+  if (sortField.value == field) {
+    return sortOrder.value === "asc" ? "fa fa-caret-up" : "fa fa-caret-down";
+  }
+  return "";
+};
+
+
+// 🔄 Función para refrescar datos
+const refreshData = () => {
+  // console.log("🔄 Refrescando datos...");
+  fecha_desde.value = null;
+  fecha_hasta.value = null;
+  searchTerm.value = '';
+  perPage.value = 10; // Reset to default perPage value
+  sortField.value = '';
+  sortOrder.value = 'asc';
+  currentPage.value = 1; // Reset to first page
+  cliente.value = null; // Reset cliente filter
+  fetchItems(currentPage.value);
+};
+
+// Calcular las páginas visibles (máximo 5)
+const pages = computed(() => {
+  const range = [];
+  const maxVisiblePages = 5;
+
+  // Ajuste del inicio y el fin
+  let start = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2));
+  let end = Math.min(totalPage.value, start + maxVisiblePages - 1);
+
+  if (end - start < maxVisiblePages - 1) {
+    start = Math.max(1, end - maxVisiblePages + 1);
+  }
+  for (let i = start; i <= end; i++) {
+    range.push(i);
+  }
+  return range;
+});
+
+
+
+// Funciones de impresión
 async function imprimirGuia(guia) {
   store
     .dispatch("imprimir", "/bodegas/guiasderemision/imprimirguia/" + guia.id)
@@ -203,42 +291,81 @@ async function imprimirGuia(guia) {
     });
 }
 
-async function imprimirOrdendespacho(id){
-  store.dispatch('imprimir', '/despachos/imprimirordendespacho/'+id)
-  .then((response) => {
-    if(response.status == 200){
+async function imprimirOrdendespacho(id) {
+  store.dispatch('imprimir', '/despachos/imprimirordendespacho/' + id)
+    .then((response) => {
+      if (response.status == 200) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'orden-despacho-'+id+'.pdf');
+        link.setAttribute('download', 'orden-despacho-' + id + '.pdf');
         document.body.appendChild(link);
         link.click();
-    }
-  });
+      }
+    });
 }
 
-function verOrdenDespacho(orden){
-  currentOrden.value = orden;
-  verpedido.value = orden.pedido;
-  ordendespachoModalObj.show();
-  store.dispatch("verOrdenDespacho", orden.id);
+// filtro de fecha 
+const limpiarFecha = () => {
+  fecha_desde.value = null;
+  fecha_hasta.value = null;
+  fetchItems(1);
+};
 
+// funcion para modal de filtro de cliente 
+let filtrarClienteModal = ref(null);
+let filtrarClienteModalObj = null;
+function levantarFiltrocliente() {
+  filtrarClienteModalObj.show();
 }
+function filtrarClienteConsulta(clienteRuc) {
+  filtrarClienteModalObj.hide();
+  cliente.value = clienteRuc
+}
+
 
 onMounted(() => {
-  // Remove labels from
-  document.querySelectorAll("#datasetLength label").forEach((el) => {
-    el.remove();
-  });
-
-  // Replace select classes
-  let selectLength = document.querySelector("#datasetLength select");
-
-  selectLength.classList = "";
-  selectLength.classList.add("form-select");
-  selectLength.style.width = "80px";
+  initialize('/despachos/guiasdespachadas/', puntoVentaId); // Llamada inicial para cargar datos
+  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
 
 });
-
-
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.overlay-loading {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+/* icono de ordenamiento */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  color: #0d6efd;
+}
+
+.bi {
+  font-size: 12px;
+}
+</style>

@@ -207,7 +207,7 @@
               <th>CTL</th>
               <th>UDM</th>
               <th>Cantidad</th>
-              <th class="text-end">Stock</th>
+              <!-- <th class="text-end"></th> -->
               <th class="text-end">Precio</th>
               <th class="text-end">Descuento</th>
               <th class="text-end">Total</th>
@@ -252,9 +252,9 @@
                     :tablindex="index"
                   />
                 </td>
-                <td class="fs-sm text-end">
+                <!-- <td class="fs-sm text-end">
                   {{ element.ART_STOCK }}
-                </td>
+                </td> -->
 
                 <td class="fs-sm text-end col-1">
                   ${{ format(parseFloat(element.ART_VALOR)) }}

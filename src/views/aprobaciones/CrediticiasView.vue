@@ -1,8 +1,6 @@
 <template>
   <!-- Hero -->
-  <BasePageHeading
-    title="Aprobaciones Crediticias"
-  >
+  <BasePageHeading title="Aprobaciones Crediticias">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
@@ -16,17 +14,13 @@
   </BasePageHeading>
   <!-- END Hero -->
 
-   <!-- Page Content -->
+  <!-- Page Content -->
   <div class="content">
     <!-- Full Table -->
     <BaseBlock title="Aprobaciones Crediticias">
 
-      <Dataset
-        v-slot="{ ds }"
-        :ds-data="pedidos.data"
-        :ds-sortby="sortBy"
-        :ds-search-in="['pedido', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at']"
-        >
+      <Dataset v-slot="{ ds }" :ds-data="pedidos.data" :ds-sortby="sortBy"
+        :ds-search-in="['pedido', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at']">
         <div class="row" :data-page-count="ds.dsPagecount">
           <div id="datasetLengthPedidosCrediticios" class="col-md-8 py-2">
             <DatasetShow />
@@ -45,12 +39,8 @@
               <table class="table table-hover table-sm table-vcenter mb-0">
                 <thead>
                   <tr>
-                    <th
-                      v-for="(th, index) in cols"
-                      :key="th.field"
-                      :class="['sort', th.sort]"
-                      @click="onSort($event, index)"
-                    >
+                    <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                      @click="onSort($event, index)">
                       {{ th.name }} <i class="gg-select float-end"></i>
                     </th>
                     <th></th>
@@ -58,36 +48,35 @@
                 </thead>
                 <DatasetItem tag="tbody" class="fs-sm">
                   <template #default="{ row, index }">
-                    <tr
-                      :id="'pedido-'+index"
-                      :class="row.chao ? 'hide':''"
-                      >
+                    <tr :id="'pedido-' + index" :class="row.chao ? 'hide' : ''">
                       <td class="fs-sm">
                         <a href="javascript:void(0);" @click="funcionverpedido(row)">{{ row.pedido }}</a>
                       </td>
                       <td class="fs-sm">
-                        <a href="javascript:void(0);" @click="funcionverestadodecuenta(row)">{{  row.CLI_RAZON_SOCIAL }}</a>
+                        <a href="javascript:void(0);" @click="funcionverestadodecuenta(row)">{{ row.CLI_RAZON_SOCIAL
+                          }}</a>
                       </td>
                       <td class="fs-sm">
                         <a href="javascript:void(0);" @click="funcionverestadodecuenta(row)">{{ row.CLI_RUC }}</a>
                       </td>
                       <td class="fs-sm">
-                          {{ row.USERID }}
+                        {{ row.USERID }}
                       </td>
                       <td class="fs-sm">
-                          {{ row.PTO_VTA_DESCRIPCION }}
+                        {{ row.PTO_VTA_DESCRIPCION }}
                       </td>
                       <td class="fs-sm text-danger">
-                         {{ row.motivo_crediticio }}
+                        {{ row.motivo_crediticio }}
                       </td>
                       <td class="fs-sm">
-                          {{ row.created_at }}
+                        {{ row.created_at }}
                       </td>
                       <td class="fs-sm">
-                          {{ row.total }}
+                        {{ row.total }}
                       </td>
                       <td class="fs-sm text-center nowrap">
-                        <button type="button" class="btn btn-primary btn-sm " @click="funcionverestadodecuenta(row)"> <i class="fa fa-gear"></i> Procesar </button>
+                        <button type="button" class="btn btn-primary btn-sm " @click="funcionverestadodecuenta(row)"> <i
+                            class="fa fa-gear"></i> Procesar </button>
                       </td>
                     </tr>
                   </template>
@@ -96,52 +85,27 @@
             </div>
           </div>
         </div>
-        <div
-          class="d-flex flex-md-row flex-column justify-content-between align-items-center"
-        >
+        <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
           <DatasetInfo class="py-3 fs-sm" />
           <DatasetPager class="flex-wrap py-3 fs-sm" />
         </div>
       </Dataset>
-      <div
-        class="modal"
-        id="modal-pedido"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="modal-pedido"
-        aria-hidden="true"
-        ref="verpedidoModal"
-        >
+      <div class="modal" id="modal-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-pedido" aria-hidden="true"
+        ref="verpedidoModal">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
           <div class="modal-content">
-            <VerPedidoAprobarCrediticioModal 
-              :verpedido="verpedido" 
-              :indexPedido="indexPedido"
-              :tipo="tipo"
-              @rechazar="rechazarPedido(verpedido)"
-              @aprobar="aprobarPedido(verpedido, false)"
-              ></VerPedidoAprobarCrediticioModal>
+            <VerPedidoAprobarCrediticioModal :verpedido="verpedido" :indexPedido="indexPedido" :tipo="tipo"
+              @rechazar="rechazarPedido(verpedido)" @aprobar="aprobarPedido(verpedido, false)">
+            </VerPedidoAprobarCrediticioModal>
           </div>
         </div>
       </div>
-      <div
-        class="modal"
-        id="modal-estado-de-cuenta"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="modal-estado-de-cuenta"
-        aria-hidden="true"
-        ref="verestadodecuentaModal"
-        >
+      <div class="modal" id="modal-estado-de-cuenta" tabindex="-1" role="dialog"
+        aria-labelledby="modal-estado-de-cuenta" aria-hidden="true" ref="verestadodecuentaModal">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
           <div class="modal-content">
-            <VerEstadoDeCuentaModal
-              :verpedido="verpedido"
-              :indexPedido="indexPedido"
-              :tipo="tipo"
-              @rechazar="rechazarPedido(verpedido)"
-              @aprobar="aprobarPedido(verpedido, true)"
-              ></VerEstadoDeCuentaModal>
+            <VerEstadoDeCuentaModal :verpedido="verpedido" :indexPedido="indexPedido" :tipo="tipo"
+              @rechazar="rechazarPedido(verpedido)" @aprobar="aprobarPedido(verpedido, true)"></VerEstadoDeCuentaModal>
           </div>
         </div>
       </div>
@@ -152,7 +116,7 @@
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { Modal } from "bootstrap";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 
@@ -187,7 +151,7 @@ const cols = reactive([
     field: "PTO_VTA_DESCRIPCION",
     sort: "",
   },
-  
+
   {
     name: "Motivo",
     field: "motivo_crediticio",
@@ -255,7 +219,7 @@ function confirmAprobar(pedido, estadodecuenta = false) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De aprobar el pedido "+pedido.pedido +"",
+      text: "De aprobar el pedido " + pedido.pedido + "",
       icon: "question",
       showCancelButton: true,
       customClass: {
@@ -280,36 +244,43 @@ function confirmAprobar(pedido, estadodecuenta = false) {
     });
 }
 
-function aprobarPedido(pedido, estadodecuenta){
+function aprobarPedido(pedido, estadodecuenta) {
   pedido.chao = true;
-  if(estadodecuenta){
+  if (estadodecuenta) {
     verestadodecuentaModalObj.hide();
-  }else{
+  } else {
     verpedidoModalObj.hide();
   }
-  store.dispatch('consultaParaAprobarPedido', pedido).then( res => {
-    if(res.success){
+  store.dispatch('consultaParaAprobarPedido', pedido).then(res => {
+    if (res.success == true) {
       store.dispatch('aprobarPedidoCrediticio', pedido).then(() => {
+        swalSuccess(res.message);
       }).catch(err => {
-        errorMsg.value = err.response.data.error
+        swalError(err.response.data.error);
+        return;
       });
-    }else{
+    } else {
       pedido.alert = res.message;
       store.dispatch('rechazarPedidoCrediticioPorStock', pedido).then(() => {
+        swalInfo(res.message);
       }).catch(err => {
         errorMsg.value = err.response.data.error
+        swalError(errorMsg.value);
+        return;
       });
     }
   }).catch(err => {
     errorMsg.value = err.response.data.error
+    swalError(errorMsg.value);
+    return ;
   });
 }
 
-function confirmRechazarPedido(pedido){
+function confirmRechazarPedido(pedido) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De rechazar el pedido "+pedido.pedido +"",
+      text: "De rechazar el pedido " + pedido.pedido + "",
       icon: "warning",
       showCancelButton: true,
       customClass: {
@@ -334,7 +305,7 @@ function confirmRechazarPedido(pedido){
     });
 }
 
-function rechazarPedido(pedido){
+function rechazarPedido(pedido) {
   pedido.chao = true;
   verestadodecuentaModalObj.hide()
   verpedidoModalObj.hide()
@@ -353,7 +324,7 @@ async function funcionverpedido(pedido) {
   verpedidoModalObj.show();
   verpedido.value = pedido;
   tipo.value = 'pedido';
-  
+
   store.dispatch('detallepedido', pedido)
   store.dispatch('detalleestadodecuenta', pedido)
 }
@@ -365,11 +336,11 @@ async function funcionverestadodecuenta(pedido) {
   store.dispatch('detalleestadodecuenta', pedido)
 }
 
-function verdiferenciacondicion(pedido){
-  swalInfo('Cambio condición de pago', 'de <b>'+ pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
+function verdiferenciacondicion(pedido) {
+  swalInfo('Cambio condición de pago', 'de <b>' + pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
 }
 
-let verpedidoModal= ref(null);
+let verpedidoModal = ref(null);
 let verpedidoModalObj = null;
 
 let verestadodecuentaModal = ref(null);
