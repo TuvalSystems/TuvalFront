@@ -240,8 +240,8 @@
       <form class="row row-cols-lg-auto g-3 align-items-center">
         <div>
           <button type="button" @click="buscararticulo" class="btn btn-primary">Buscar Artículo</button>
-          <button type="button" @click="obtenerLoteStock" class="btn btn-success mx-4">Stock <i
-              class="fa fa-refresh"></i></button>
+          <!-- <button type="button" @click="obtenerLoteStock" class="btn btn-success mx-4">Stock <i
+              class="fa fa-refresh"></i></button> -->
         </div>
       </form>
       <div v-if="cotizacion.loading" class="text-center">
@@ -876,12 +876,12 @@ function buscararticulo() {
   articuloModalObj.show();
 }
 
-function obtenerLoteStock() {
-  disableOpenModal.value = true;
-  setTimeout(() => {
-    disableOpenModal.value = false;
-  }, 1000);
-}
+// function obtenerLoteStock() {
+//   disableOpenModal.value = true;
+//   setTimeout(() => {
+//     disableOpenModal.value = false;
+//   }, 1000);
+// }
 
 async function llenarcotizacion() {
   if (currentSucursal.value && currentCliente.value) {
