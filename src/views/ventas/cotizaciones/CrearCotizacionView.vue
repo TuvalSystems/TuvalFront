@@ -546,10 +546,10 @@
             </div>
             <div class="col-md-6 text-end">
               <button type="button" class="btn btn-success mx-4"
-                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores)"
+                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && btnDisabledStore)"
                 @click="guardarCotizacion">Guardar Cotización</button>
               <button type="button" class="btn btn-warning" v-if="store.state.cotizacion_serial"
-                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock)"
+                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock && btnDisabledStore)"
                 @click="confirmGuardarPedido">Guardar Pedido</button>
             </div>
           </div>
@@ -650,6 +650,7 @@ import ProveedorModal from "../modals/ProveedorModal.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 import ItemAlternativoComponent from "../modals/ItemAlternativoModal.vue";
 import Swal from "sweetalert2";
+import { all } from "axios";
 
 
 
@@ -884,6 +885,7 @@ function buscararticulo() {
   articuloModalObj.show();
 }
 
+let btnDisabledStore = ref(false);
 async function actualizarStockPorLote() {
 
   cotizacion.value.data.forEach((item) => {
@@ -897,8 +899,6 @@ async function actualizarStockPorLote() {
       item.stockLoading = false;
       continue;
     }
-    //item.stockLoading = true; // <- indicador de carga para cada artículo
-
     try {
       const consulta = {
         articulo: item,
@@ -922,6 +922,15 @@ async function actualizarStockPorLote() {
     }
     item.stockLoading = false;
   }
+  // 🔍 Esperar a que todos estén actualizados
+  const interval = setInterval(() => {
+    const allUpdated = cotizacion.value.data.every(item => item.stockLoading === false);
+    if (allUpdated) {
+      console.log('Se actualizaron todos los stocks', allUpdated);
+      btnDisabledStore.value = true;
+      clearInterval(interval);
+    }
+  }, 100); // chequea cada 100ms si terminó
 }
 
 async function llenarcotizacion() {
