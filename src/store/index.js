@@ -406,6 +406,10 @@ const store = createStore({
       loading: false,
       data: [],
     },
+    stock_lote: {
+      loading: false,
+      data: [],
+    },
     margen_articulo: {
       loading: false,
       data: [],
@@ -661,6 +665,22 @@ const store = createStore({
         .then((res) => {
           commit("setStockArticuloPorBodegaLoading", false);
           commit("setStockArticuloPorBodega", res.data);
+          return res.data;
+        })
+        .catch((error) => {
+          console.error("Error al obtener stock del Articulo:", error);
+          throw error; // lo relanzas para que lo maneje el componente si es necesario
+        });
+    },
+
+     getArticuloStockPorLote({ commit }, element) {
+      commit("resAtactualizarStockLote");
+      commit("setActualizarStockLoteLoading", true);
+      return axiosClient
+        .post("/cotizaciones/articulo-stock-por-bodega", element)
+        .then((res) => {
+          commit("setActualizarStockLoteLoading", false);
+          commit("setActualizarStockote", res.data);
           return res.data;
         })
         .catch((error) => {
@@ -2999,14 +3019,14 @@ const store = createStore({
     },
 
     /** actualizar el stock de articulos por lotes */
-     setActualizarStockIndividualLoading: (state, value) => {
-      state.stock_por_articulo.loading = value;
+     setActualizarStockLoteLoading: (state, value) => {
+      state.stock_lote.loading = value;
     },
-    setActualizarStockIndividual: (state, data) => {
-      state.actualizar_stock_por_articulo = data;
+    setActualizarStockote: (state, data) => {
+      state.stock_lote = data;
     },
-    resAtactualizarStockIndividual: (state) => {
-      state.stock_por_articulo = {
+    resAtactualizarStockLote: (state) => {
+      state.stock_lote = {
         loading: false,
         data: [],
       };

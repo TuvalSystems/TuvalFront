@@ -338,8 +338,8 @@
                   <div v-if="element.ART_TIPO_COMPRA != 'L' && element.ART_TIPO_COMPRA != 'SERV'">
                     <button class="btn btn-sm" :class="element.stockListo ? 'btn-success' : 'btn-warning'"
                       title="Seleccionar stock por bodega" @click="openModalBodegas(index, element)"
-                      :disabled="disableOpenModal || element.stockLoading">
-                      <i v-if="element.stockLoading || disableOpenModal" class="fa fa-spinner fa-spin"></i>
+                      :disabled="element.disableOpenModal || element.stockLoading">
+                      <i v-if="element.stockLoading || element.disableOpenModal" class="fa fa-spinner fa-spin"></i>
                       <i v-else class="fa fa-boxes-packing"></i>
                     </button>
                   </div>
@@ -413,37 +413,37 @@
 
           </draggable>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Subtotal sin descuento</th>
+            <th colspan="15" class="fs-sm text-end">Subtotal sin descuento</th>
             <th class="fs-sm text-end">${{ format(subtotal + descuento) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Descuento</th>
+            <th colspan="15" class="fs-sm text-end">Descuento</th>
             <th class="fs-sm text-end">${{ format(descuento) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Subtotal - descuento </th>
+            <th colspan="15" class="fs-sm text-end">Subtotal - descuento </th>
             <th class="fs-sm text-end">${{ format(subtotal) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">IVA</th>
+            <th colspan="15" class="fs-sm text-end">IVA</th>
             <th class="fs-sm text-end">${{ format(iva) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Total</th>
+            <th colspan="15" class="fs-sm text-end">Total</th>
             <th class="fs-sm text-end">${{ format(parseFloat(total)) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">&nbsp;</th>
+            <th colspan="15" class="fs-sm text-end">&nbsp;</th>
             <th class="fs-sm text-end"></th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Peso total</th>
+            <th colspan="15" class="fs-sm text-end">Peso total</th>
             <th class="fs-sm text-end">{{ format(peso) }}Kg</th>
             <th></th>
           </tr>
@@ -886,40 +886,42 @@ function buscararticulo() {
 
 async function actualizarStockPorLote() {
 
-  disableOpenModal.value = true;
+  cotizacion.value.data.forEach((item) => {
+    item.stockLoading = true; // todos inician deshabilitados
+  });
 
   for (let i = 0; i < cotizacion.value.data.length; i++) {
 
     const item = cotizacion.value.data[i];
-    item.stockLoading = true; // <- indicador de carga para cada artículo
-
-    console.log(item);
-    //   console.log(item + ' - ' + item.stockLoading + ' -' + cotizacion.value.data[i]);
+    if (item.ART_TIPO_COMPRA === 'L') {
+      item.stockLoading = false;
+      continue;
+    }
+    //item.stockLoading = true; // <- indicador de carga para cada artículo
 
     try {
       const consulta = {
         articulo: item,
         bodega: store.state.puntodeventaselect,
+        'tipo': 'LOTE'
       }
       const res = await store.dispatch('getArticuloStockPorBodega', consulta);
-      console.log(res.success);
 
-      if (res.success == true) {
-        let stockItem = store.state.stock_por_articulo;
+      if (res.success == true && res.data) {
+        let stockItem = res.data;
+        item.stock = stockItem.stock;
+        item.ART_STOCK = stockItem.ART_STOCK;
+        item.stockListo = stockItem.stockListo;
         item.stockLoading = false;
-        item = stockItem;
-        verificarStock();
+        calcTotales();
       } else {
-        item.stockLoading = false;
         item.errorStock = true
       }
     } catch (error) {
-      item.stockLoading = false;
       item.errorStock = true
     }
     item.stockLoading = false;
   }
-  disableOpenModal.value = false;
 }
 
 async function llenarcotizacion() {
@@ -1298,40 +1300,44 @@ async function openModalProveedor(index, element) {
   }
 }
 
-const disableOpenModal = ref(false);
+// const disableOpenModal = ref(false);
 async function openModalBodegas(index, element) {
-  disableOpenModal.value = true;
-  const data = reactive({
-    articulo: element,
-    bodega: store.state.puntodeventaselect,
-  });
-  try {
-    const res = await store.dispatch('getArticuloStockPorBodega', data);
-    if (res.success == false) {
-      swalError(res.message);
-      return
-    }
-    if (res.success == true) {
-      let stockItem = store.state.stock_por_articulo;
-      let articulo = cotizacion.value.data[index];
-      if (String(articulo.ART_CODIGO).trim().toLowerCase() === String(stockItem.data.ART_CODIGO).trim().toLowerCase()) {
-        // cotizacion.value.data[index].stock = stockItem.data.stock;
-        // cotizacion.value.data[index].ART_STOCK = stockItem.data.ART_STOCK;
-        cotizacion.value.data[index] = stockItem.data;
-        verificarStock();
-      } else {
-        console.warn('ART_CODIGO no coincide:', articulo.ART_CODIGO, stockItem.data.ART_CODIGO);
-      }
-      verbodegas.value = true;
-      indexbodegas.value = index;
-      bodegasModalObj.show();
-      disableOpenModal.value = false;
+  // cotizacion.value.data[index].disableOpenModal = true;
+  // const data = reactive({
+  //   articulo: element,
+  //   bodega: store.state.puntodeventaselect,
+  // });
+  // try {
+  //   const res = await store.dispatch('getArticuloStockPorBodega', data);
+  //   if (res.success == false) {
+  //     swalError(res.message);
+  //     return
+  //   }
+  //   if (res.success == true) {
+  //     let stockItem = store.state.stock_por_articulo;
+  //     let articulo = cotizacion.value.data[index];
+  //     if (String(articulo.ART_CODIGO).trim().toLowerCase() === String(stockItem.data.ART_CODIGO).trim().toLowerCase()) {
+  //       // cotizacion.value.data[index].stock = stockItem.data.stock;
+  //       // cotizacion.value.data[index].ART_STOCK = stockItem.data.ART_STOCK;
+  //       cotizacion.value.data[index] = stockItem.data;
+  //       cotizacion.value.data[index].disableOpenModal = false;
+  //       calcTotales();
+  //     } else {
+  //       console.warn('ART_CODIGO no coincide:', articulo.ART_CODIGO, stockItem.data.ART_CODIGO);
+  //     }
+  //     verbodegas.value = true;
+  //     indexbodegas.value = index;
+  //     bodegasModalObj.show();
+  //     disableOpenModal.value = false;
 
-    }
+  //   }
 
-  } catch (error) {
-    console.log(error, 'error al abrir modal de bodegas');
-  }
+  // } catch (error) {
+  //   console.log(error, 'error al abrir modal de bodegas');
+  // }
+  verbodegas.value = true;
+  indexbodegas.value = index;
+  bodegasModalObj.show();
 }
 
 function openModalPeso(index, articulo) {
