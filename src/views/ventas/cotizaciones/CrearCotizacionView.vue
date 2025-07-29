@@ -1300,41 +1300,7 @@ async function openModalProveedor(index, element) {
   }
 }
 
-// const disableOpenModal = ref(false);
 async function openModalBodegas(index, element) {
-  // cotizacion.value.data[index].disableOpenModal = true;
-  // const data = reactive({
-  //   articulo: element,
-  //   bodega: store.state.puntodeventaselect,
-  // });
-  // try {
-  //   const res = await store.dispatch('getArticuloStockPorBodega', data);
-  //   if (res.success == false) {
-  //     swalError(res.message);
-  //     return
-  //   }
-  //   if (res.success == true) {
-  //     let stockItem = store.state.stock_por_articulo;
-  //     let articulo = cotizacion.value.data[index];
-  //     if (String(articulo.ART_CODIGO).trim().toLowerCase() === String(stockItem.data.ART_CODIGO).trim().toLowerCase()) {
-  //       // cotizacion.value.data[index].stock = stockItem.data.stock;
-  //       // cotizacion.value.data[index].ART_STOCK = stockItem.data.ART_STOCK;
-  //       cotizacion.value.data[index] = stockItem.data;
-  //       cotizacion.value.data[index].disableOpenModal = false;
-  //       calcTotales();
-  //     } else {
-  //       console.warn('ART_CODIGO no coincide:', articulo.ART_CODIGO, stockItem.data.ART_CODIGO);
-  //     }
-  //     verbodegas.value = true;
-  //     indexbodegas.value = index;
-  //     bodegasModalObj.show();
-  //     disableOpenModal.value = false;
-
-  //   }
-
-  // } catch (error) {
-  //   console.log(error, 'error al abrir modal de bodegas');
-  // }
   verbodegas.value = true;
   indexbodegas.value = index;
   bodegasModalObj.show();
