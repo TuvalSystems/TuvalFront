@@ -885,11 +885,12 @@ function buscararticulo() {
   articuloModalObj.show();
 }
 
-let btnDisabledStore = ref(false);
+let btnDisabledStore = ref(true);
 async function actualizarStockPorLote() {
 
   cotizacion.value.data.forEach((item) => {
     item.stockLoading = true; // todos inician deshabilitados
+    btnDisabledStore.value = false;
   });
 
   for (let i = 0; i < cotizacion.value.data.length; i++) {
@@ -913,6 +914,7 @@ async function actualizarStockPorLote() {
         item.ART_STOCK = stockItem.ART_STOCK;
         item.stockListo = stockItem.stockListo;
         item.stockLoading = false;
+        btnDisabledStore.value = false;
         calcTotales();
       } else {
         item.errorStock = true
