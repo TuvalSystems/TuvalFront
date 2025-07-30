@@ -329,6 +329,7 @@
                       && verpedido.estado !== 'anulada'
                       && !verpedido.despacho_en_proceso
                       && !verpedido.transferencia_en_proceso
+                      && !verpedido.despachado 
                       && verpedido.imprimir === 'yes'
                     "
                 type="button" class="btn btn-danger btn-sm mx-1 mb-2"
