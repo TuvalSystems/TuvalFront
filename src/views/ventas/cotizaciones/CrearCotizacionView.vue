@@ -928,7 +928,6 @@ async function actualizarStockPorLote() {
   const interval = setInterval(() => {
     const allUpdated = cotizacion.value.data.every(item => item.stockLoading === false);
     if (allUpdated) {
-      console.log('Se actualizaron todos los stocks', allUpdated);
       btnDisabledStore.value = true;
       clearInterval(interval);
     }
