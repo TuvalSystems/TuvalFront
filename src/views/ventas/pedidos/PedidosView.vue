@@ -621,7 +621,7 @@ async function imprimirpedidoxml(pedido) {
       document.body.appendChild(link);
       link.click();
     } else if (response.success === false) {
-      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
+      errorMsg.value = response.error || 'Ocurrió un error al generar el XML.';
       swalError(errorMsg.value);
     }
   } catch (error) {
