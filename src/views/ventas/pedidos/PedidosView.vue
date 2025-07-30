@@ -610,27 +610,35 @@ async function imprimirpedidoride(pedido) {
 }
 
 async function imprimirpedidoxml(pedido) {
-
   try {
     const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoxml/' + pedido.id);
-    if (response.success === true) {
+
+    if (response.status === 200) {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'xml-' + pedido.pedido + '.xml');
       document.body.appendChild(link);
       link.click();
-    } else if (response.success === false) {
-      errorMsg.value = response.error || 'Ocurrió un error al generar el XML.';
+    } else {
+      errorMsg.value = 'Error al generar el XML.';
       swalError(errorMsg.value);
     }
-  } catch (error) {
-    console.log(error);
-    if (error.response && error.response.data && error.response.data.message) {
-      errorMsg.value = error.response.data.message;
+  } catch (err) {
+    const blob = err.response?.data;
+
+    if (blob instanceof Blob) {
+      const text = await blob.text();
+      try {
+        const json = JSON.parse(text);
+        errorMsg.value = json.message || 'Error desconocido al generar el XML.';
+      } catch {
+        errorMsg.value = text || 'Error inesperado al generar el XML.';
+      }
     } else {
-      errorMsg.value = 'No se pudo generar el XML. Inténtalo más tarde.';
+      errorMsg.value = 'No se pudo generar el XML.';
     }
+
     swalError(errorMsg.value);
   }
 }
