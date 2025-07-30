@@ -15,19 +15,13 @@ const store = useTemplateStore();
             <div class="col-sm-6 order-sm-2 py-1 text-center text-sm-end">
               <slot name="content-right">
                 Desarrollado por
-                
                 <a
                   class="fw-semibold"
-                  href="https://targetcode.ec/"
+                  href=""
                   target="_blank"
-                  >Targetcode</a
-                > y 
-                <a
-                  class="fw-semibold"
-                  href="https://masterware.com.ec/"
-                  target="_blank"
-                  >Masterware</a
-                >
+                  >Tuval</a
+                > 
+               
               </slot>
             </div>
             <div class="col-sm-6 order-sm-1 py-1 text-center text-sm-start">

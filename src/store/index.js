@@ -406,6 +406,10 @@ const store = createStore({
       loading: false,
       data: [],
     },
+    stock_lote: {
+      loading: false,
+      data: [],
+    },
     margen_articulo: {
       loading: false,
       data: [],
@@ -668,6 +672,22 @@ const store = createStore({
           throw error; // lo relanzas para que lo maneje el componente si es necesario
         });
     },
+
+     getArticuloStockPorLote({ commit }, element) {
+      commit("resAtactualizarStockLote");
+      commit("setActualizarStockLoteLoading", true);
+      return axiosClient
+        .post("/cotizaciones/articulo-stock-por-bodega", element)
+        .then((res) => {
+          commit("setActualizarStockLoteLoading", false);
+          commit("setActualizarStockote", res.data);
+          return res.data;
+        })
+        .catch((error) => {
+          console.error("Error al obtener stock del Articulo:", error);
+          throw error; // lo relanzas para que lo maneje el componente si es necesario
+        });
+    },
     /** obtener el margen del articulo L  */
     getMargenFotItemL({ commit }, element) {
       commit("resetMargenArticuloL");
@@ -684,6 +704,23 @@ const store = createStore({
           throw error; // lo relanzas para que lo maneje el componente si es necesario
         });
     },
+
+    actualizarStockIndividual ({commit}, element) {
+      commit("resetActualizarStockIndividual");
+      commit("setActualizarStockIndividualLoading", true);
+      return axiosClient
+        .post("/cotizaciones/actualizar-stock-individual", element)
+        .then((res) => {
+          commit("setActualizarStockIndividualLoading", false);
+          commit("setActualizarStockIndividual", res.data);
+          return res.data;
+        })
+        .catch((error) => {
+          console.error("Error al obtener stock del Articulo:", error);
+          throw error; // lo relanzas para que lo maneje el componente si es necesario
+        });
+    },
+
 
     guardarCotizacion({ commit }, info) {
       return axiosClient
@@ -716,13 +753,6 @@ const store = createStore({
     consultaStockCotizacion({ commit }, info) {
       return axiosClient
         .post("/consultas/consultastockcotizacion", info)
-        .then((res) => {
-          return res;
-        });
-    },
-    consultaStockPedido({ commit }, info) {
-      return axiosClient
-        .post("/consultas/consultastockpedido", info)
         .then((res) => {
           return res;
         });
@@ -2983,6 +3013,20 @@ const store = createStore({
     },
     resetStockArticuloPorBodega: (state) => {
       state.stock_por_articulo = {
+        loading: false,
+        data: [],
+      };
+    },
+
+    /** actualizar el stock de articulos por lotes */
+     setActualizarStockLoteLoading: (state, value) => {
+      state.stock_lote.loading = value;
+    },
+    setActualizarStockote: (state, data) => {
+      state.stock_lote = data;
+    },
+    resAtactualizarStockLote: (state) => {
+      state.stock_lote = {
         loading: false,
         data: [],
       };

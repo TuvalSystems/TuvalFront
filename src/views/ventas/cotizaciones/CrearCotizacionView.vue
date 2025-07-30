@@ -240,8 +240,8 @@
       <form class="row row-cols-lg-auto g-3 align-items-center">
         <div>
           <button type="button" @click="buscararticulo" class="btn btn-primary">Buscar Artículo</button>
-          <!-- <button type="button" @click="obtenerLoteStock" class="btn btn-success mx-4">Stock <i
-              class="fa fa-refresh"></i></button> -->
+          <button type="button" @click="actualizarStockPorLote" class="btn btn-success mx-4">Stock <i
+              class="fa fa-refresh"></i></button>
         </div>
       </form>
       <div v-if="cotizacion.loading" class="text-center">
@@ -263,6 +263,7 @@
               <th></th>
               <th>Cantidad</th>
               <th></th>
+              <th>Stock</th>
               <th>Mod %</th>
               <th class="text-end">Precio</th>
               <th class="text-end">% Desc.</th>
@@ -271,6 +272,7 @@
           </thead>
           <draggable v-model="cotizacion.data" tag="tbody" item-key="orden" handle=".handle" @end="guardarOrden">
             <template #item="{ element, index }">
+
               <tr class="text-center">
                 <!-- id -->
                 <td class="fs-sm">{{ index + 1 }}</td>
@@ -336,8 +338,9 @@
                   <div v-if="element.ART_TIPO_COMPRA != 'L' && element.ART_TIPO_COMPRA != 'SERV'">
                     <button class="btn btn-sm" :class="element.stockListo ? 'btn-success' : 'btn-warning'"
                       title="Seleccionar stock por bodega" @click="openModalBodegas(index, element)"
-                      :disabled="disableOpenModal">
-                      <i class="fa fa-boxes-packing"></i>
+                      :disabled="element.disableOpenModal || element.stockLoading">
+                      <i v-if="element.stockLoading || element.disableOpenModal" class="fa fa-spinner fa-spin"></i>
+                      <i v-else class="fa fa-boxes-packing"></i>
                     </button>
                   </div>
                   <div v-else>
@@ -346,7 +349,11 @@
                     </button>
                   </div>
                 </td>
-
+                <!-- stock -->
+                <td class="fs-sm text-end">
+                  <span v-if="element.ART_TIPO_COMPRA != 'L' && element.ART_TIPO_COMPRA != 'SERV'">{{ element.ART_STOCK
+                  }}</span>
+                </td>
 
 
                 <!-- modificador -->
@@ -406,37 +413,37 @@
 
           </draggable>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Subtotal sin descuento</th>
+            <th colspan="15" class="fs-sm text-end">Subtotal sin descuento</th>
             <th class="fs-sm text-end">${{ format(subtotal + descuento) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Descuento</th>
+            <th colspan="15" class="fs-sm text-end">Descuento</th>
             <th class="fs-sm text-end">${{ format(descuento) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Subtotal - descuento </th>
+            <th colspan="15" class="fs-sm text-end">Subtotal - descuento </th>
             <th class="fs-sm text-end">${{ format(subtotal) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">IVA</th>
+            <th colspan="15" class="fs-sm text-end">IVA</th>
             <th class="fs-sm text-end">${{ format(iva) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Total</th>
+            <th colspan="15" class="fs-sm text-end">Total</th>
             <th class="fs-sm text-end">${{ format(parseFloat(total)) }}</th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">&nbsp;</th>
+            <th colspan="15" class="fs-sm text-end">&nbsp;</th>
             <th class="fs-sm text-end"></th>
             <th></th>
           </tr>
           <tr>
-            <th colspan="14" class="fs-sm text-end">Peso total</th>
+            <th colspan="15" class="fs-sm text-end">Peso total</th>
             <th class="fs-sm text-end">{{ format(peso) }}Kg</th>
             <th></th>
           </tr>
@@ -539,10 +546,10 @@
             </div>
             <div class="col-md-6 text-end">
               <button type="button" class="btn btn-success mx-4"
-                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores)"
+                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && btnDisabledStore)"
                 @click="guardarCotizacion">Guardar Cotización</button>
               <button type="button" class="btn btn-warning" v-if="store.state.cotizacion_serial"
-                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock)"
+                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock && btnDisabledStore)"
                 @click="confirmGuardarPedido">Guardar Pedido</button>
             </div>
           </div>
@@ -642,6 +649,8 @@ import ArticulosModal from "../modals/ArticulosModal.vue";
 import ProveedorModal from "../modals/ProveedorModal.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 import ItemAlternativoComponent from "../modals/ItemAlternativoModal.vue";
+import Swal from "sweetalert2";
+import { all } from "axios";
 
 
 
@@ -876,12 +885,55 @@ function buscararticulo() {
   articuloModalObj.show();
 }
 
-// function obtenerLoteStock() {
-//   disableOpenModal.value = true;
-//   setTimeout(() => {
-//     disableOpenModal.value = false;
-//   }, 1000);
-// }
+let btnDisabledStore = ref(true);
+async function actualizarStockPorLote() {
+
+  cotizacion.value.data.forEach((item) => {
+    item.stockLoading = true; // todos inician deshabilitados
+    btnDisabledStore.value = false;
+  });
+
+  for (let i = 0; i < cotizacion.value.data.length; i++) {
+
+    const item = cotizacion.value.data[i];
+    if (item.ART_TIPO_COMPRA === 'L') {
+      item.stockLoading = false;
+      continue;
+    }
+    try {
+      const consulta = {
+        articulo: item,
+        bodega: store.state.puntodeventaselect,
+        'tipo': 'LOTE'
+      }
+      const res = await store.dispatch('getArticuloStockPorBodega', consulta);
+
+      if (res.success == true && res.data) {
+        let stockItem = res.data;
+        item.stock = stockItem.stock;
+        item.ART_STOCK = stockItem.ART_STOCK;
+        item.stockListo = stockItem.stockListo;
+        item.stockLoading = false;
+        btnDisabledStore.value = false;
+        calcTotales();
+      } else {
+        item.errorStock = true
+      }
+    } catch (error) {
+      item.errorStock = true
+    }
+    item.stockLoading = false;
+  }
+  // 🔍 Esperar a que todos estén actualizados
+  const interval = setInterval(() => {
+    const allUpdated = cotizacion.value.data.every(item => item.stockLoading === false);
+    if (allUpdated) {
+      console.log('Se actualizaron todos los stocks', allUpdated);
+      btnDisabledStore.value = true;
+      clearInterval(interval);
+    }
+  }, 100); // chequea cada 100ms si terminó
+}
 
 async function llenarcotizacion() {
   if (currentSucursal.value && currentCliente.value) {
@@ -1259,39 +1311,10 @@ async function openModalProveedor(index, element) {
   }
 }
 
-const disableOpenModal = ref(false);
 async function openModalBodegas(index, element) {
-  disableOpenModal.value = true;
-  const data = reactive({
-    articulo: element,
-    bodega: store.state.puntodeventaselect,
-    test: currentTest.value
-  });
-  try {
-    const res = await store.dispatch('getArticuloStockPorBodega', data);
-    if (res.success == false) {
-      swalError(res.message);
-      return
-    }
-    if (res.success == true) {
-      let stockItem = store.state.stock_por_articulo;
-      let articulo = cotizacion.value.data[index];
-      if (String(articulo.ART_CODIGO).trim().toLowerCase() === String(stockItem.data.ART_CODIGO).trim().toLowerCase()) {
-        cotizacion.value.data[index].stock = stockItem.data.stock;
-        verificarStock();
-      } else {
-        console.warn('ART_CODIGO no coincide:', articulo.ART_CODIGO, stockItem.data.ART_CODIGO);
-      }
-      verbodegas.value = true;
-      indexbodegas.value = index;
-      bodegasModalObj.show();
-      disableOpenModal.value = false;
-
-    }
-
-  } catch (error) {
-    console.log(error, 'error al abrir modal de bodegas');
-  }
+  verbodegas.value = true;
+  indexbodegas.value = index;
+  bodegasModalObj.show();
 }
 
 function openModalPeso(index, articulo) {
@@ -1521,33 +1544,23 @@ function guardarPedido() {
   })
 
   setTimeout(function () {
-    store.dispatch('consultaStockPedido', infopedido).then((res) => {
-      if (res.data.success == false) {
-        templateStore.pageLoader({ mode: "off" });
-        swalError(res.data.message);
-        res.data.cotizacion.map(articulo => {
-          cotizacion.value.data.find(item => item.ART_CODIGO === articulo.ART_CODIGO).stock.find(stock => stock.STO_ART_BODEGA === articulo.stock[0].STO_ART_BODEGA).STO_ART_STOCK_DISPONIBLE = articulo.stock[0].STO_ART_STOCK_DISPONIBLE;
-        })
-        verificarStock();
-        return;
-      }
-      store.dispatch('guardarPedido', infopedido).then((res) => {
-        templateStore.pageLoader({ mode: "off" });
-        swalSuccess(res.data.message);
-        router.push({
-          name: 'ventas-pedidos'
-        })
+    store.dispatch('guardarPedido', infopedido).then((res) => {
+      templateStore.pageLoader({ mode: "off" });
+      swalSuccess(res.data.message);
+      router.push({
+        name: 'ventas-pedidos'
       })
-        .catch(err => {
-          templateStore.pageLoader({ mode: "off" });
-          swalError(err.response.data.error)
-        });
     })
       .catch(err => {
         templateStore.pageLoader({ mode: "off" });
         swalError(err.response.data.error)
       });
-  }, Math.floor(Math.random() * 2000));
+  })
+    .catch(err => {
+      templateStore.pageLoader({ mode: "off" });
+      swalError(err.response.data.error)
+    });
+  // }, Math.floor(Math.random() * 2000));
 }
 
 function crearDireccion() {
