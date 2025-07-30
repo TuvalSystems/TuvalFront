@@ -223,12 +223,18 @@
                           <i class="fa fa-angle-down ms-1"></i>
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropOptions">
-                          <li><button class="dropdown-item"  v-if="row.imprimir === 'yes'"  @click="imprimirpedidoimagenes(row)"><i class="fa-solid fa-file-pdf"></i> Generar Pedido</button></li>
-                          <li><button class="dropdown-item"  v-if="row.imprimir === 'yes'" @click="imprimirpedidoride(row)"><i class="fa-solid fa-file-pdf" ></i> Generar RIDE</button></li>
-                          <li><button class="dropdown-item"  v-if="row.imprimir === 'yes'" @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print" ></i> Generar XML</button></li>
+                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
+                              @click="imprimirpedidoimagenes(row)"><i class="fa-solid fa-file-pdf"></i> Generar
+                              Pedido</button></li>
+                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
+                              @click="imprimirpedidoride(row)"><i class="fa-solid fa-file-pdf"></i> Generar
+                              RIDE</button></li>
+                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
+                              @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print"></i> Generar XML</button>
+                          </li>
                         </ul>
 
-                            <!-- dropdown -->
+                        <!-- dropdown -->
                       </td>
                     </tr>
                   </template>
@@ -578,40 +584,55 @@ async function imprimirpedidoimagenes(pedido) {
     });
 }
 
-async function imprimirpedidoride(pedido) { 
-  store.dispatch('imprimir', '/pedidos/imprimirpedidoride/' + pedido.id)
-    .then((response) => {
-      if (response.status === 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'RIDE-' + pedido.pedido  + '.pdf');
-        document.body.appendChild(link);
-        link.click();
-      } else if (response.status === 500) {
-        errorMsg.value = response.error;
-      }
-  }).catch(err => {
-    errorMsg.value = err.response.error
-  });
+async function imprimirpedidoride(pedido) {
+  try {
+    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoride/' + pedido.id);
+    if (response.status === 200) {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'RIDE-' + pedido.pedido + '.pdf');
+      document.body.appendChild(link);
+      link.click();
+    } else if (response.success === false) {
+      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
+      swalError(errorMsg.value);
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMsg.value = error.response.data.message;
+    } else {
+      errorMsg.value = 'No se pudo generar el RIDE. Inténtalo más tarde.';
+    }
+
+    swalError(errorMsg.value);
+  }
 }
 
 async function imprimirpedidoxml(pedido) {
-  store.dispatch('imprimir', '/pedidos/imprimirpedidoxml/' + pedido.id)
-    .then((response) => {
-      if (response.status === 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'xml-' + pedido.pedido + '.xml');
-        document.body.appendChild(link);
-        link.click();
-      }else if (response.status === 500) {
-        errorMsg.value = response.error;
-      }
-  }).catch(err => {
-    errorMsg.value = err.response.data.error
-  });
+
+  try {
+    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoxml/' + pedido.id);
+    if (response.success === true) {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'xml-' + pedido.pedido + '.xml');
+      document.body.appendChild(link);
+      link.click();
+    } else if (response.success === false) {
+      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
+      swalError(errorMsg.value);
+    }
+  } catch (error) {
+    console.log(error);
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMsg.value = error.response.data.message;
+    } else {
+      errorMsg.value = 'No se pudo generar el XML. Inténtalo más tarde.';
+    }
+    swalError(errorMsg.value);
+  }
 }
 
 function confirmfacturar(pedido) {
