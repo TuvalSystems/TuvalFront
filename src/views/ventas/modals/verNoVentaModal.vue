@@ -1,5 +1,5 @@
 <script setup>
-import { useFormNoVenta } from '@/composables/cotizaciones/useFormNoVenta'
+import { useFormNoVenta } from '@/composables/venta/cotizaciones/useFormNoVenta'
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { watch, onMounted } from 'vue';
 import {
