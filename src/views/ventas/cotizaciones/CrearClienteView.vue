@@ -278,7 +278,10 @@
                 <div class="col-sm-9" v-if="segmentos.length">
                   <select class="form-select" id="select-CLI_SEGMENTO" name="select-CLI_SEGMENTO"
                     v-model="nuevoCliente.CLI_SEGMENTO_ID" @change="fetchSubSegmentos($event.target.value)"
-                    :disabled="loadingSegmentos">
+                    :disabled="loadingSegmentos" 
+                    :class="{
+                      'is-invalid': v$.CLI_SEGMENTO_ID.$errors.length,
+                    }" @blur="v$.CLI_SEGMENTO_ID.$touch">
                     <option v-for="(seg, index) in segmentos" :key="index" :value="seg.cot_artPadre">
                       {{ seg.segmento }}
                     </option>
@@ -291,7 +294,10 @@
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_SUBSEGMENTO">SubSegmento</label>
                 <div class="col-sm-9" v-if="subsegmentos.length">
                   <select class="form-select" id="select-CLI_SUBSEGMENTO" name="select-CLI_SUBSEGMENTO"
-                    v-model="nuevoCliente.CLI_SUBSEGMENTO_ID" :disabled="loadingSubSegmentos">
+                    v-model="nuevoCliente.CLI_SUBSEGMENTO_ID" :disabled="loadingSubSegmentos"
+                      :class="{
+                      'is-invalid': v$.CLI_SUBSEGMENTO_ID.$errors.length,
+                    }" @blur="v$.CLI_SUBSEGMENTO_ID.$touch">
                     <option v-for="(seg, index) in subsegmentos" :key="index" :value="seg.co_atrHijo">
                       {{ seg.subsegmento }}
                     </option>
@@ -421,6 +427,12 @@ const rules = computed(() => {
     CLI_CORREO_ELECT_NOTIFICACION_INTERNA: {
       //email,
       maxLength: maxLength(200),
+    },
+    CLI_SEGMENTO_ID: {
+      required,
+    },
+    CLI_SUBSEGMENTO_ID: {
+      required,
     },
   };
 });
