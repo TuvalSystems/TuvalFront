@@ -33,7 +33,6 @@ export function useUpdateSegmentClient(clientRef) {
   function resetForm() {
     data.segmento = "";
     data.subsegmento = "";
-    clientRef = {};
   }
 
   return {
