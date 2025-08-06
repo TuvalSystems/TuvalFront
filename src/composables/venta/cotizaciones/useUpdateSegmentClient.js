@@ -2,18 +2,18 @@ import axiosClient from "../../../axios";
 import { reactive } from "vue";
 import { swalError, swalSuccess } from "@/functions/swal-alert.js";
 
-export function useUpdateSegmentClient(clientRef) {
+export function useUpdateSegmentClient() {
   const data = reactive({
     segmento: "",
     subsegmento: "",
   });
 
-  async function updateClientWithSegment() {
+  async function updateClientWithSegment(cliente) {
     try {
       const response = await axiosClient.post(
         "/cotizaciones/actualizar-segmento-cliente",
         {
-          cliente: clientRef,
+          cliente: cliente,
           segmento: data.segmento,
           subsegmento: data.subsegmento,
         }

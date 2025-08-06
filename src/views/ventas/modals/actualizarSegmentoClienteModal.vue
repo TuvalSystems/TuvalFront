@@ -29,7 +29,7 @@ async function sendinfo() {
         return
     }
     /** proceso para ejecutar la funcion del componente padre */
-    const ok = await updateClientWithSegment();
+    const ok = await updateClientWithSegment(props.cliente);
     if (ok) {
         emit('updated', props.cliente);
     }
