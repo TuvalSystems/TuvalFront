@@ -1,7 +1,7 @@
 <script setup>
-import { useFormNoVenta } from '@/composables/cotizaciones/useFormNoVenta'
+import { useFormNoVenta } from '@/composables/venta/cotizaciones/useFormNoVenta'
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
-import { watch, onMounted } from 'vue';
+import { watch, onMounted , ref} from 'vue';
 import {
     swalSimple,
     swalInfo,
@@ -31,7 +31,6 @@ watch(
     () => props.vercotizacion?.id,
     (id) => {
         if (!id) return
-
         resetForm()
 
         const row = props.vercotizacion
@@ -53,17 +52,18 @@ async function guardarYEmitir() {
         swalError('Error al guardar la información')
     }
 }
-
+const todayString = ref('')
 onMounted(() => {
     if (motivoStore.motivos.length == 0) {
         motivoStore.fetchMotivos()
     }
+    const today = new Date()
+    const mm = String(today.getMonth() + 1).padStart(2, '0')
+    const dd = String(today.getDate()).padStart(2, '0')
+    todayString.value = `${today.getFullYear()}-${mm}-${dd}`
 });
 
 // limite de fecha para el recordatorio
-const today = new Date();
-const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-
 
 </script>
 <template>
@@ -107,7 +107,8 @@ const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.ge
                 <div class="mb-3">
                     <label for="fecha_recordatorio" class="form-label">Fecha del Recordatorio</label>
                     <input type="date" class="form-control form-control-sm" id="fecha_recordatorio"
-                        v-model="formData.fecha_recordatorio" :min = "date" :class="{ 'is-invalid': errors.fecha_recordatorio }">
+                        v-model="formData.fecha_recordatorio" :min="todayString"
+                        :class="{ 'is-invalid': errors.fecha_recordatorio }">
                     <div class="invalid-feedback">Debe ingresar una fecha</div>
                 </div>
                 <!-- Observaciones -->

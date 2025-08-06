@@ -1,4 +1,4 @@
-import axiosClient from "../../axios";
+import axiosClient from "../../../axios";
 import { reactive, computed, watch } from "vue";
 import {
   swalSuccess,
