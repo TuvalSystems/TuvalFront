@@ -1,6 +1,6 @@
 import axiosClient from "../../../axios";
 import { ref } from "vue";
-import { swalError, swalSuccess } from "@/functions/swal-alert.js";
+import { swalError } from "@/functions/swal-alert.js";
 
 export function useGetSegmentClients() {
   const segmentos = ref([]);
@@ -27,7 +27,6 @@ export function useGetSegmentClients() {
   }
 
   async function fetchSubSegmentos(segmentoTxt) {
-    console.log(segmentoTxt, "segmentoId");
     {
       loadingSubSegmentos.value = true;
       try {
@@ -48,6 +47,10 @@ export function useGetSegmentClients() {
       }
     }
   }
+
+
+  
+
 
   return {
     segmentos,

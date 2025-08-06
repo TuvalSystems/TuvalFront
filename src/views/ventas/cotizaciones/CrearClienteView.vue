@@ -16,15 +16,17 @@
 
   <!-- Page Content -->
   <div class="content">
-
-
     <BaseBlock title="Crear cliente" content-full>
       <form @submit.prevent="onSubmit">
         <div v-if="store.state.cotizacion_serial"
           class="alert alert-warning d-flex align-items-center justify-content-between" role="alert">
           <div class="flex-grow-1 me-3">
-            <p class="mb-0"> Nuevo cliente para cotización <a class="alert-link" href="javascript:void(0)">{{
-              store.state.cotizacion_serial }}</a></p>
+            <p class="mb-0">
+              Nuevo cliente para cotización
+              <a class="alert-link" href="javascript:void(0)">{{
+                store.state.cotizacion_serial
+              }}</a>
+            </p>
           </div>
           <div class="flex-shrink-0">
             <i class="fa fa-fw fa-exclamation-circle"></i>
@@ -38,7 +40,9 @@
                 <div class="col-sm-9">
                   <select class="form-select" id="select-CLI_TIPO_ID" name="select-CLI_TIPO_ID"
                     v-model="nuevoCliente.CLI_TIPO_ID">
-                    <option v-for="(tipo, index) in tipos" :key="index" :value="tipo.tipo">{{ tipo.nombre }}</option>
+                    <option v-for="(tipo, index) in tipos" :key="index" :value="tipo.tipo">
+                      {{ tipo.nombre }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -117,7 +121,8 @@
                     }" @blur="v$.CLI_TERRITORIO.$touch">
                     <option v-for="(territorio, index) in territorios" :key="index"
                       :value="territorio.TERRITORIO_CODIGO">
-                      {{ territorio.TERRITORIO_DESCRIPCION }}</option>
+                      {{ territorio.TERRITORIO_DESCRIPCION }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -133,7 +138,8 @@
                       'is-invalid': v$.CLI_PROVINCIA.$errors.length,
                     }" @blur="v$.CLI_PROVINCIA.$touch">
                     <option v-for="(provincia, index) in provincias_ciudades" :key="index" :value="index">
-                      {{ provincia.provincia }}</option>
+                      {{ provincia.provincia }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -146,8 +152,11 @@
                     v-model="nuevoCliente.CLI_CIUDAD" v-if="nuevoCliente.CLI_PROVINCIA !== ''" :class="{
                       'is-invalid': v$.CLI_CIUDAD.$errors.length,
                     }" @blur="v$.CLI_CIUDAD.$touch">
-                    <option v-for="(ciudad, index) in provincias_ciudades[nuevoCliente.CLI_PROVINCIA].ciudades"
-                      :key="index" :value="ciudad">{{ ciudad }}</option>
+                    <option v-for="(ciudad, index) in provincias_ciudades[
+                      nuevoCliente.CLI_PROVINCIA
+                    ].ciudades" :key="index" :value="ciudad">
+                      {{ ciudad }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -210,7 +219,7 @@
                   <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_SRI"
                     placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_SRI" :class="{
                       'is-invalid': v$.CLI_CORREO_ELECT_SRI.$errors.length,
-                    }" @blur="v$.CLI_CORREO_ELECT_SRI.$touch">
+                    }" @blur="v$.CLI_CORREO_ELECT_SRI.$touch" />
                 </div>
               </div>
             </div>
@@ -224,8 +233,9 @@
                   <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
                     placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
                     :class="{
-                      'is-invalid': v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
-                    }" @blur="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$touch">
+                      'is-invalid':
+                        v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
+                    }" @blur="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$touch" />
                 </div>
               </div>
             </div>
@@ -239,7 +249,8 @@
                   <select class="form-select" id="select-CLI_GRUPO" name="select-CLI_GRUPO"
                     v-model="nuevoCliente.CLI_GRUPO">
                     <option v-for="(grupo, index) in grupos_subgrupos" :key="index" :value="index">
-                      {{ grupo.GRUPO_DESCRIPCION }}</option>
+                      {{ grupo.GRUPO_DESCRIPCION }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -250,8 +261,11 @@
                 <div class="col-sm-9">
                   <select class="form-select" id="select-CLI_SUBGRUPO" name="select-CLI_SUBGRUPO"
                     v-model="nuevoCliente.CLI_SUBGRUPO" v-if="nuevoCliente.CLI_GRUPO !== ''">
-                    <option v-for="(subgrupo, index) in grupos_subgrupos[nuevoCliente.CLI_GRUPO].subgrupos" :key="index"
-                      :value="subgrupo.SUBGRUPO_CODIGO">{{ subgrupo.SUBGRUPO_DESCRIPCION }}</option>
+                    <option v-for="(subgrupo, index) in grupos_subgrupos[
+                      nuevoCliente.CLI_GRUPO
+                    ].subgrupos" :key="index" :value="subgrupo.SUBGRUPO_CODIGO">
+                      {{ subgrupo.SUBGRUPO_DESCRIPCION }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -266,7 +280,8 @@
                     v-model="nuevoCliente.CLI_SEGMENTO_ID" @change="fetchSubSegmentos($event.target.value)"
                     :disabled="loadingSegmentos">
                     <option v-for="(seg, index) in segmentos" :key="index" :value="seg.cot_artPadre">
-                      {{ seg.segmento }}</option>
+                      {{ seg.segmento }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -278,7 +293,8 @@
                   <select class="form-select" id="select-CLI_SUBSEGMENTO" name="select-CLI_SUBSEGMENTO"
                     v-model="nuevoCliente.CLI_SUBSEGMENTO_ID" :disabled="loadingSubSegmentos">
                     <option v-for="(seg, index) in subsegmentos" :key="index" :value="seg.co_atrHijo">
-                      {{ seg.subsegmento }}</option>
+                      {{ seg.subsegmento }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -286,10 +302,13 @@
           </div>
           <div class="row mb-4">
             <div class="col-md-12 text-end">
-              <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"></i> Guardar</button>
+              <button type="submit" class="btn btn-success btn-sm">
+                <i class="fa fa-check"></i> Guardar
+              </button>
               <router-link :to="{ name: 'ventas-crearcotizacion' }">
-                <button type="button" class="btn btn-secondary btn-sm mx-2"><i class="fa fa-times"></i>
-                  Cancelar</button>
+                <button type="button" class="btn btn-secondary btn-sm mx-2">
+                  <i class="fa fa-times"></i> Cancelar
+                </button>
               </router-link>
             </div>
           </div>
@@ -300,18 +319,29 @@
   <!-- END Page Content -->
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount, watch } from "vue";
+import {
+  ref,
+  reactive,
+  computed,
+  onMounted,
+  onUnmounted,
+  onBeforeUnmount,
+  watch,
+} from "vue";
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
-import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import { useGetSegmentClients } from '@/composables/venta/cotizaciones/useGetSegmentClients'
-import useVuelidate from "@vuelidate/core";
+import { useStore } from "vuex";
 import {
-  required,
-  maxLength,
-  email,
-} from "@vuelidate/validators";
+  swalSimple,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+  swalError,
+  toast,
+} from "@/functions/swal-alert.js";
+import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
+import useVuelidate from "@vuelidate/core";
+import { required, maxLength, email } from "@vuelidate/validators";
 
 const store = useStore();
 const templateStore = useTemplateStore();
@@ -328,36 +358,16 @@ const {
   loadingSubSegmentos,
   fetchSegmentos,
   fetchSubSegmentos,
-} = useGetSegmentClients()
+} = useGetSegmentClients();
 
-
-
-// watch(selectedSegmento, (nuevoId) => {
-watch(() => nuevoCliente.value.CLI_SEGMENTO_ID, (id) => {
-  
-  const seg = segmentos.value.find(s => s.cot_artPadre === id);
-  nuevoCliente.CLI_SEGMENTO_TXT = seg.segmento;
-  // console.log(id, seg,  "segmento",  nuevoCliente.CLI_SEGMENTO_TXT);
-});
-
-watch(() => nuevoCliente.value.CLI_SUBSEGMENTO_ID, (id) => {
-  console.log(id, "subsegmentos");
-
-  const seg = subsegmentos.value.find(s => s.co_atrHijo === id);
-  nuevoCliente.CLI_SUBSEGMENTO_TXT = seg.subsegmento;
-})
-
-
-store.dispatch('territorios')
+store.dispatch("territorios");
 
 const tipos = reactive([
   { tipo: "04", nombre: "RUC" },
   { tipo: "05", nombre: "CÉDULA" },
   { tipo: "06", nombre: "PASAPORTE" },
   { tipo: "08", nombre: "IDENTIFICACIÓN DEL EXTERIOR" },
-])
-
-
+]);
 
 const rules = computed(() => {
   return {
@@ -421,13 +431,18 @@ const v$ = useVuelidate(rules, nuevoCliente);
 let noprospecto = ref(true);
 
 function checkRuc() {
-
-  if (nuevoCliente.value.CLI_TIPO_ID === "04" && nuevoCliente.value.CLI_RUC.length !== 13) {
-    swalError('El RUC debe tener 13 dígitos')
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "04" &&
+    nuevoCliente.value.CLI_RUC.length !== 13
+  ) {
+    swalError("El RUC debe tener 13 dígitos");
     return;
   }
-  if (nuevoCliente.value.CLI_TIPO_ID === "05" && nuevoCliente.value.CLI_RUC.length !== 10) {
-    swalError('La CÉDULA debe tener 10 dígitos')
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "05" &&
+    nuevoCliente.value.CLI_RUC.length !== 10
+  ) {
+    swalError("La CÉDULA debe tener 10 dígitos");
     return;
   }
 
@@ -436,7 +451,8 @@ function checkRuc() {
     .then((res) => {
       if (res.prospecto) {
         nuevoCliente.value.CLI_RAZON_SOCIAL = res.prospecto.CLI_RAZON_SOCIAL;
-        nuevoCliente.value.CLI_CORREO_ELECT_SRI = res.prospecto.CLI_CORREO_ELECT_SRI;
+        nuevoCliente.value.CLI_CORREO_ELECT_SRI =
+          res.prospecto.CLI_CORREO_ELECT_SRI;
         nuevoCliente.value.CLI_DIRECCION = res.prospecto.CLI_DIRECCION;
         nuevoCliente.value.CLI_TELEFONO_1 = res.prospecto.CLI_TELEFONO_1;
       } else if (res.cliente) {
@@ -451,28 +467,37 @@ function checkRuc() {
 }
 
 function confirmCliente(cliente) {
-  swalInfo('El cliente ' + cliente.CLI_RAZON_SOCIAL + ' ya existe, se ha cargado la ventana de pedido regular')
+  swalInfo(
+    "El cliente " +
+    cliente.CLI_RAZON_SOCIAL +
+    " ya existe, se ha cargado la ventana de pedido regular"
+  );
   cargarCliente(cliente);
 }
 
 function cargarCliente(cliente) {
   store.commit("setCurrentcliente", cliente);
-  store.commit("setCurrentSucursal", cliente.sucursales[0].id)
+  store.commit("setCurrentSucursal", cliente.sucursales[0].id);
   setTimeout(() => {
     location.href = "/ventas/crearcotizacion";
   }, 1000);
-
 }
 
 async function onSubmit() {
   const result = await v$.value.$validate();
 
-  if (nuevoCliente.value.CLI_TIPO_ID === "04" && nuevoCliente.value.CLI_RUC.length !== 13) {
-    swalError('El RUC debe tener 13 dígitos')
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "04" &&
+    nuevoCliente.value.CLI_RUC.length !== 13
+  ) {
+    swalError("El RUC debe tener 13 dígitos");
     return;
   }
-  if (nuevoCliente.value.CLI_TIPO_ID === "05" && nuevoCliente.value.CLI_RUC.length !== 10) {
-    swalError('La CÉDULA debe tener 10 dígitos')
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "05" &&
+    nuevoCliente.value.CLI_RUC.length !== 10
+  ) {
+    swalError("La CÉDULA debe tener 10 dígitos");
     return;
   }
 
@@ -480,55 +505,63 @@ async function onSubmit() {
     return;
   }
 
-
-
   templateStore.pageLoader({ mode: "on" });
-  nuevoCliente.value.CLI_PROVINCIA_NOMBRE = provincias_ciudades.value[nuevoCliente.value.CLI_PROVINCIA].provincia;
-  nuevoCliente.value.CLI_GRUPO_NOMBRE = '';
-  console.log(nuevoCliente.value);
-  
-  if (nuevoCliente.value.CLI_GRUPO)
-    nuevoCliente.value.CLI_GRUPO_NOMBRE = grupos_subgrupos.value[nuevoCliente.value.CLI_GRUPO].GRUPO_CODIGO;
-  store.dispatch('guardarCliente', nuevoCliente.value).then((res) => {
-    sessionStorage.setItem('CURRENTCLIENTE', JSON.stringify(res.data.cliente));
-    store.commit('setCurrentcliente', res.data.cliente);
+  nuevoCliente.value.CLI_PROVINCIA_NOMBRE =
+    provincias_ciudades.value[nuevoCliente.value.CLI_PROVINCIA].provincia;
+  nuevoCliente.value.CLI_GRUPO_NOMBRE = "";
 
+
+  if (nuevoCliente.value.CLI_GRUPO)
+    nuevoCliente.value.CLI_GRUPO_NOMBRE =
+      grupos_subgrupos.value[nuevoCliente.value.CLI_GRUPO].GRUPO_CODIGO;
+
+  try {
+    // 4. Guarda cliente
+    const res = await store.dispatch('guardarCliente', { ...nuevoCliente.value })
+    // 5. Actualiza sesión y estado
+    const cliente = res.data.cliente
+    sessionStorage.setItem('CURRENTCLIENTE', JSON.stringify(cliente))
+    store.commit('setCurrentcliente', cliente)
+    // 6. llena prospecto si aplica
     if (store.state.cotizacion_serial) {
-      noprospecto = false;
-      const data = reactive({
-        cliente_id: res.data.cliente.id,
+      noprospecto.value = false
+      // Usa un objeto plano; el action debe hacer commit antes de resolverse
+      const payloadProspecto = {
+        cliente_id: cliente.id,
         PTO_VTA_ID: store.state.puntodeventaselect,
         id: store.state.cotizacion_id,
-      })
-      store.dispatch('llenarcotizacionProspecto', data).then(() => {
-        templateStore.pageLoader({ mode: "off" });
-        router.push({
-          name: 'ventas-crearcotizacion'
-        })
-      })
-    } else {
-      templateStore.pageLoader({ mode: "off" });
-      router.push({
-        name: 'ventas-crearcotizacion'
-      })
-    }
-  })
-    .catch(err => {
-      swalError(err.response.data.error)
-    });
+      }
 
+      await store.dispatch('llenarcotizacionProspecto', payloadProspecto)
+    }
+    // 7. Apaga loader y redirige
+    templateStore.pageLoader({ mode: 'off' })
+
+    console.log('Navegando a crear cotización…')
+    await router.push({ name: 'ventas-crearcotizacion' })
+    console.log('¡Redirección completada!')
+
+  } catch (error) {
+    templateStore.pageLoader({ mode: 'off' })
+
+    if (error.name === 'NavigationDuplicated') {
+      console.log('Ya estabas en ventas-crearcotizacion, nada mal.')
+    } else {
+      console.error('Error en onSubmit:', error)
+      swalError(error.response?.data?.error || error.message)
+    }
+  }
 }
 
-let errorMsg = ref('');
+let errorMsg = ref("");
 
 onMounted(() => {
-  fetchSegmentos()
+  fetchSegmentos();
 }),
   onBeforeUnmount(() => {
     if (noprospecto) {
-      store.commit('resetNuevoCliente');
-      store.commit('resetCotizacion');
+      store.commit("resetNuevoCliente");
+      store.commit("resetCotizacion");
     }
   });
-
 </script>
