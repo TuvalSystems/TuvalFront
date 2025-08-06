@@ -10,7 +10,6 @@ export function useUpdateSegmentClient(clientRef) {
 
   async function updateClientWithSegment() {
     try {
-      console.log(data, clientRef, "envio");
       const response = await axiosClient.post(
         "/cotizaciones/actualizar-segmento-cliente",
         {
@@ -34,7 +33,7 @@ export function useUpdateSegmentClient(clientRef) {
   function resetForm() {
     data.segmento = "";
     data.subsegmento = "";
-    clientRef = null;
+    clientRef = {};
   }
 
   return {
