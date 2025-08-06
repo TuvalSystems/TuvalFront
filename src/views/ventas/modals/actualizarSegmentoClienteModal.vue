@@ -21,7 +21,7 @@ const {
     updateClientWithSegment,
     data,
     resetForm
-} = useUpdateSegmentClient(props.cliente);
+} = useUpdateSegmentClient();
 
 async function sendinfo() {
     if (!data.segmento || !data.subsegmento) {
