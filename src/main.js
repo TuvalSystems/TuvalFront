@@ -4,6 +4,7 @@ import store from './store'
 import router from './router'
 import App from './App.vue'
 import Maska from 'maska'
+import { echo } from './resources/echo'
 import {
   Dataset,
   DatasetItem,
@@ -51,4 +52,5 @@ app.use(Maska);
 app.use(router);
 
 // ..and finally mount it!
+app.provide('echo', echo)  
 app.mount("#app");
