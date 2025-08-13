@@ -443,9 +443,10 @@ function refrescarFecha() {
 
 }
 async function funcionverpedido(pedido) {
-  store.dispatch('despachoenproceso', pedido.id).then((res) => {
-    pedido.despacho_en_proceso = res.despacho_en_proceso;
-    pedido.transferencia_en_proceso = res.transferencia_en_proceso;
+  store.dispatch('despachoenproceso', pedido.id).then((res) => {  
+    pedido.despacho_en_proceso = res.data.despacho_en_proceso;
+    pedido.transferencia_en_proceso = res.data.transferencia_en_proceso;
+    pedido.item_l_recibido = res.data.item_l_recibido;
     verpedidoModalObj.show();
     verpedido.value = pedido;
     tipo.value = 'pedido';
