@@ -21,6 +21,7 @@ export const usePaginationCacheStore = defineStore("paginationCache", {
           fecha_desde: null,
           fecha_hasta: null,
           cliente: null,
+          ptovta: null,
         });
       }
     },
