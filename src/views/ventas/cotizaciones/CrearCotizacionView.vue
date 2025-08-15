@@ -187,8 +187,6 @@
             </div>
           </div>
           <div class="row mb-4" v-if="despacho === 'Despacho en ruta'">
-
-
             <label for="fecha_entrega" class="col-sm-2 col-form-label">
               Fecha de entrega: {{ fecha_entrega }}
             </label>
@@ -628,9 +626,22 @@
       </div>
     </div>
   </div>
+
+
+  <!-- modal para actualizacion de segmento -->
+  <div class="modal" id="modal-segmento" tabindex="-1" role="dialog" aria-labelledby="modal-segmento" aria-hidden="true"
+    ref="verModalActualizarSegmento">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <actualizarSegmentoClienteComponent v-if="datosCliente" :cliente="datosCliente"
+        @updated="procesoDeSelectCliente">
+        </actualizarSegmentoClienteComponent>
+      </div>
+    </div>
+  </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from 'vuex'
 import { Modal } from "bootstrap";
@@ -649,9 +660,9 @@ import ArticulosModal from "../modals/ArticulosModal.vue";
 import ProveedorModal from "../modals/ProveedorModal.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 import ItemAlternativoComponent from "../modals/ItemAlternativoModal.vue";
-import Swal from "sweetalert2";
-import { all } from "axios";
-
+import { useCheckClientSegment } from "../../../composables/venta/cotizaciones/useCheckClientSegment";
+import actualizarSegmentoClienteComponent from "../modals/actualizarSegmentoClienteModal.vue";
+const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 
 
 const store = useStore();
@@ -742,6 +753,9 @@ const flatPickrState = reactive({
   locale: Spanish,
 });
 
+
+
+
 if (fecha_entrega.value === '') {
   fecha_entrega.value = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 }
@@ -773,8 +787,30 @@ async function buscarclientes(ev) {
     });
 }
 
-function selectcliente(cliente) {
-  store.dispatch('cupoDisponible', cliente.CLI_RUC).then((cupo) => {
+const verModalActualizarSegmento = ref(null)
+let verModalActualizarSegmentoObj = null
+
+const datosCliente = ref(null)
+async function selectcliente(cliente) {
+  try {
+    const result = await fetchCheckSegmentoClient(cliente);
+    if (result.exists === false) {
+      if (cliente !== null) {   
+        datosCliente.value = cliente;
+        verModalActualizarSegmentoObj.show();
+      }
+    } else {
+      procesoDeSelectCliente(cliente);
+    }
+
+  } catch (error) {
+    console.log(error);
+
+  }
+
+}
+function procesoDeSelectCliente(cliente){
+   store.dispatch('cupoDisponible', cliente.CLI_RUC).then((cupo) => {
     store.commit('resetCotizacion');
     store.commit('resetRegistroCopia');
     store.commit('setDespacho', 'Retiro en bodega');
@@ -928,7 +964,6 @@ async function actualizarStockPorLote() {
   const interval = setInterval(() => {
     const allUpdated = cotizacion.value.data.every(item => item.stockLoading === false);
     if (allUpdated) {
-      console.log('Se actualizaron todos los stocks', allUpdated);
       btnDisabledStore.value = true;
       clearInterval(interval);
     }
@@ -1640,6 +1675,7 @@ onMounted(() => {
   pesoModalObj = new Modal(pesoModal.value);
   verItemAlternativoObj = new Modal(verItemAlternativo.value);
   crearDireccionModalObj = new Modal(crearDireccionModal.value);
+  verModalActualizarSegmentoObj = new Modal(verModalActualizarSegmento.value);
   const elem = document.getElementById('label-sucursal-' + currentSucursal.value);
   if (elem)
     elem.click();
