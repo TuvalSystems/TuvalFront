@@ -1,49 +1,44 @@
 <template>
   <BaseBlock title="Orden de compra" class="mb-0">
     <template #options>
-        <button
-          type="button"
-          class="btn-block-option"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-          >
-          <i class="fa fa-fw fa-times"></i>
-        </button>
-      </template>
+      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+        <i class="fa fa-fw fa-times"></i>
+      </button>
+    </template>
     <template #content>
       <div class="block-content fs-sm ">
         <div class="table-responsive">
           <table class="table table-striped table-sm table-vcenter">
             <tbody>
               <tr>
-                  <th class="fs-sm">Documento</th>
-                  <td class="fs-sm">{{verrecibodecompral.ORDEN_COMPRA_DOCUMENTO}}</td>
-                  <th class="fs-sm">Pedido Origen</th>
-                  <td class="fs-sm">{{verrecibodecompral.ORDEN_COMPRA_DOCU_ORIGEN}}</td>
-                  <th class="fs-sm">Proveedor</th>
-                  <td class="fs-sm">{{verrecibodecompral.PROV_RAZON_SOCIAL}}</td>
+                <th class="fs-sm">Documento</th>
+                <td class="fs-sm">{{ verrecibodecompral.ORDEN_COMPRA_DOCUMENTO }}</td>
+                <th class="fs-sm">Pedido Origen</th>
+                <td class="fs-sm">{{ verrecibodecompral.ORDEN_COMPRA_DOCU_ORIGEN }}</td>
+                <th class="fs-sm">Proveedor</th>
+                <td class="fs-sm">{{ verrecibodecompral.PROV_RAZON_SOCIAL }}</td>
               </tr>
               <tr>
-                  <th class="fs-sm">RUC Proveedor</th>
-                  <td class="fs-sm">
-                    {{verrecibodecompral.ORDEN_COMPRA_ID_PROVEEDOR}}
-                  </td>
-                  
-                  <th class="fs-sm">Fecha de entrega</th>
-                  <td class="fs-sm">
-                    {{verrecibodecompral.ORDEN_COMPRA_FECHA_ENTREGA}}
-                  </td>
-                  <th class="fs-sm">Dirección</th>
-                  <td class="fs-sm">{{verrecibodecompral.ORDEN_COMPRA_DIRECCION}}</td>
-                  
+                <th class="fs-sm">RUC Proveedor</th>
+                <td class="fs-sm">
+                  {{ verrecibodecompral.ORDEN_COMPRA_ID_PROVEEDOR }}
+                </td>
+
+                <th class="fs-sm">Fecha de entrega</th>
+                <td class="fs-sm">
+                  {{ verrecibodecompral.ORDEN_COMPRA_FECHA_ENTREGA }}
+                </td>
+                <th class="fs-sm">Dirección</th>
+                <td class="fs-sm">{{ verrecibodecompral.ORDEN_COMPRA_DIRECCION }}</td>
+
               </tr>
-            <tr>
-              <th class="fs-sm">Vendedor</th>
-              <td class="fs-sm">{{verrecibodecompral.vendedor}}</td>
-              <th class="fs-sm">Usuario</th>
-              <td class="fs-sm">{{verrecibodecompral.USERID}}</td>
-              <td colspan="2"></td>
-            </tr>
+              <tr>
+                <th class="fs-sm">Vendedor</th>
+                <td class="fs-sm">{{ verrecibodecompral.vendedor }}</td>
+                <th class="fs-sm">Usuario</th>
+                <td class="fs-sm">{{ verrecibodecompral.USERID }}</td>
+                <td colspan="2"></td>
+              </tr>
             </tbody>
           </table>
           <div v-if="detallerecibodecompral.data.length && !detallerecibodecompral.loading" class="col-sm-12 text-end">
@@ -52,9 +47,11 @@
             </button>
           </div>
           <div v-if="detallerecibodecompral.loading" class="text-center">
-            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+            </div>
           </div>
-          <table v-if="detallerecibodecompral.data.length && !detallerecibodecompral.loading" class="table table-hover table-sm table-vcenter mt-4 fs-sm">      
+          <table v-if="detallerecibodecompral.data.length && !detallerecibodecompral.loading"
+            class="table table-hover table-sm table-vcenter mt-4 fs-sm">
             <thead>
               <tr>
                 <th>#</th>
@@ -70,41 +67,31 @@
             <tbody>
               <template v-for="(articulo, index) in detallerecibodecompral.data" :key="index">
                 <tr>
-                  <td>{{index+1}}</td>
+                  <td>{{ index + 1 }}</td>
                   <td>
                     {{ articulo.ORDEN_COMPRA_DETALLE_ARTICULO }}
-                    
+
                   </td>
                   <td>
                     {{ articulo.ORDEN_COMPRA_DETALLE_DESCRIPCION_ARTICULO }}
-                    
+
                   </td>
                   <td>
-                      {{ articulo.ORDEN_COMPRA_DETALLE_UMEDIDA }}
+                    {{ articulo.ORDEN_COMPRA_DETALLE_UMEDIDA }}
                   </td>
                   <td class="text-end">
-                      {{ articulo.ORDEN_COMPRA_DETALLE_CANTIDAD }}
+                    {{ articulo.ORDEN_COMPRA_DETALLE_CANTIDAD }}
                   </td>
                   <td class="text-end">
                     {{ articulo.pendiente }}
                   </td>
                   <td style="width: 31px" class="text-center">
-                    <input
-                        v-if="articulo.pendiente > 0"
-                        type="checkbox"
-                        class="form-check-input"
-                        v-model="articulo.aplicar_todo"
-                        @change="aplicatodo(articulo)"
-                    />
+                    <input v-if="articulo.pendiente > 0" type="checkbox" class="form-check-input"
+                      v-model="articulo.aplicar_todo" @change="aplicatodo(articulo)" />
                   </td>
                   <td style="width: 80px">
-                    <input
-                        v-if="articulo.pendiente > 0"
-                        type="text"
-                        class="form-control text-end"
-                        v-model="articulo.seleccionado"
-                        @change="aplicartraslado(articulo)"
-                    />
+                    <input v-if="articulo.pendiente > 0" type="text" class="form-control text-end"
+                      v-model="articulo.seleccionado" @change="aplicartraslado(articulo)" />
                   </td>
                 </tr>
               </template>
@@ -112,14 +99,17 @@
             </tbody>
           </table>
         </div>
-        
+
       </div>
     </template>
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
-    <button :disabled="deshabilitarImprimir" type="button" class="btn btn-warning btn-sm mx-1" @click="imprimirReciboCompraL(verrecibodecompral)"><i class="fa fa-print"></i> Orden de almacenamiento</button>
-    <button type="button" class="btn btn-danger btn-sm mx-1" @click="confirmEliminar(verrecibodecompral)"><i class="fa fa-xmark"></i> Eliminar</button>
-    <button :disabled="!generar" type="button" class="btn btn-success btn-sm mx-1" @click="recibirOrden(verrecibodecompral)"><i class="fa fa-check"></i> Recibir</button>
+    <button :disabled="deshabilitarImprimir" type="button" class="btn btn-warning btn-sm mx-1"
+      @click="imprimirReciboCompraL(verrecibodecompral)"><i class="fa fa-print"></i> Orden de almacenamiento</button>
+    <button type="button" class="btn btn-danger btn-sm mx-1" @click="confirmEliminar(verrecibodecompral)"><i
+        class="fa fa-xmark"></i> Eliminar</button>
+    <button :disabled="!generar" type="button" class="btn btn-success btn-sm mx-1"
+      @click="recibirOrden(verrecibodecompral)"><i class="fa fa-check"></i> Recibir</button>
     <button type="button" class="btn btn-primary btn-sm mx-1" data-bs-dismiss="modal">
       Cerrar
     </button>
@@ -127,10 +117,10 @@
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { formatPrice } from "@/functions";
 import swalAlert, { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import {useTemplateStore} from "@/stores/template";
+import { useTemplateStore } from "@/stores/template";
 
 const { verrecibodecompral } = defineProps({
   verrecibodecompral: Object,
@@ -185,7 +175,7 @@ function isInt(value) {
 
 function aplicartraslado(recibo) {
 
-  if(!isInt(recibo.seleccionado)){
+  if (!isInt(recibo.seleccionado)) {
     recibo.seleccionado = 0;
     recibo.aplicar_todo = false;
     checkgenerarguia();
@@ -219,40 +209,45 @@ function aplicartraslado(recibo) {
   checkgenerarguia();
 }
 
-function recibirOrden(verrecibodecompral){
+function recibirOrden(verrecibodecompral) {
   templateStore.pageLoader({ mode: "on" });
   verrecibodecompral.detalle = detallerecibodecompral.value.data;
-  store.dispatch('recibirOrdendecompraL', verrecibodecompral).then(() => {
+  store.dispatch('recibirOrdendecompraL', verrecibodecompral).then((res) => {
+    console.log(res,'recibirOrdendecompraL');
+    
     templateStore.pageLoader({ mode: "off" });
     emit('recibir');
+    swalSuccess(
+       verrecibodecompral.ORDEN_COMPRA_DOCUMENTO + " ha sido recibida con exito"
+    );
   }).catch(err => {
     templateStore.pageLoader({ mode: "off" });
     swalWarning(err.response.data.error);
   });
 }
 
-function imprimirReciboCompraL(guia){
+function imprimirReciboCompraL(guia) {
   deshabilitarImprimir.value = true;
   guia.detalle = detallerecibodecompral.value.data;
   store.dispatch('imprimirrecibol', guia)
-      .then((response) => {
-        if(response.status == 200){
-          deshabilitarImprimir.value = false;
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'orden-almacenamiento-'+guia.ORDEN_COMPRA_DOCUMENTO+'.pdf');
-          document.body.appendChild(link);
-          link.click();
-        }
-      });
+    .then((response) => {
+      if (response.status == 200) {
+        deshabilitarImprimir.value = false;
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'orden-almacenamiento-' + guia.ORDEN_COMPRA_DOCUMENTO + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
 }
 
 function confirmEliminar(verrecibodecompral) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De eliminar la orden de compra "+verrecibodecompral.ORDEN_COMPRA_DOCUMENTO +"",
+      text: "De eliminar la orden de compra " + verrecibodecompral.ORDEN_COMPRA_DOCUMENTO + "",
       icon: "question",
       showCancelButton: true,
       customClass: {
@@ -277,7 +272,7 @@ function confirmEliminar(verrecibodecompral) {
     });
 }
 
-function eliminarOrden(verrecibodecompral){
+function eliminarOrden(verrecibodecompral) {
   templateStore.pageLoader({ mode: "on" });
   store.dispatch('eliminarOrdendecompraL', verrecibodecompral).then(() => {
     templateStore.pageLoader({ mode: "off" });
