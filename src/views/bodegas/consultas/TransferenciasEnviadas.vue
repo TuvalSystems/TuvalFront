@@ -3,17 +3,18 @@ import BaseTable from "@/components/BaseTable.vue";
 import { useTransferenciasEnviadasPagination } from "../../../composables/bodegas/consultas/useTransferenciasEnviadasPagination";
 import { onMounted, watch, reactive, ref } from "vue";
 import { useStore } from "vuex";
-import flatPickr from 'vue-flatpickr-component';
-import { Spanish } from "flatpickr/dist/l10n/es.js"
+import flatPickr from "vue-flatpickr-component";
+import { Spanish } from "flatpickr/dist/l10n/es.js";
 import FiltrarClienteConsulta from "../modals/FiltrarClienteConsulta.vue";
 import { Modal } from "bootstrap";
 import { usePtoVtaStore } from "../../../stores/bodegas/utils/useListPuntoVentaStore";
 
-const ptoVta = usePtoVtaStore()
+const ptoVta = usePtoVtaStore();
 
 const store = useStore();
 const puntoVentaId = store.state.puntodeventaselect;
-const { table, fetchItems, refresh, onSort, limpiarFecha } = useTransferenciasEnviadasPagination(puntoVentaId);
+const { table, fetchItems, refresh, onSort, limpiarFecha } =
+  useTransferenciasEnviadasPagination(puntoVentaId);
 const flatPickrState = reactive({
   fecha_desde: {
     maxDate: Date.now(),
@@ -27,16 +28,61 @@ const flatPickrState = reactive({
 
 // Columnas de la tabla
 const columns = [
-  { label: "#Guia", key: "GUI_REM_GUIA_REMISION", sortable: true, clickable: true, render: (value) => value, width: "8.625rem" },
-  { label: "#Destino", key: "bodega_destino", sortable: true, clickable: false, width: "3.125rem" },
-  { label: "#Cliente", key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO", sortable: true, clickable: false },
-  { label: "Dirección", key: "GUI_REM_DIRECCION_DESTINATARIO", sortable: true, clickable: false },
-  { label: "Fecha/Hora", key: "GUI_REM_FECHA_INICIO", sortable: true, clickable: false },
-  { label: "Transportista", key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA", sortable: true, clickable: false },
-  { label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false },
+  {
+    label: "#Guia",
+    key: "GUI_REM_GUIA_REMISION",
+    sortable: true,
+    clickable: true,
+    render: (value) => value,
+    width: "8.625rem",
+  },
+  {
+    label: "#Destino",
+    key: "bodega_destino",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "3.125rem",
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "#Cliente",
+    key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Dirección",
+    key: "GUI_REM_DIRECCION_DESTINATARIO",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Fecha/Hora",
+    key: "GUI_REM_FECHA_INICIO",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Transportista",
+    key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false, thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
 ];
-
-
 
 // Función para acciones
 async function imprimirGuia(guia) {
@@ -71,8 +117,7 @@ const functionTest = (guideId) => {
   // Aquí puedes llamar al método de impresión real
 };
 
-
-// funcion para modal de filtro de cliente 
+// funcion para modal de filtro de cliente
 let filtrarClienteModal = ref(null);
 let filtrarClienteModalObj = null;
 function levantarFiltrocliente() {
@@ -80,135 +125,97 @@ function levantarFiltrocliente() {
 }
 function filtrarClienteConsulta(cliente) {
   filtrarClienteModalObj.hide();
-  table.cliente = cliente
+  table.cliente = cliente;
 }
 
 onMounted(async () => {
-  ptoVta.fetchAll()
+  ptoVta.fetchAll();
   filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
   if (!table.items.length && !table.loading) {
     fetchItems(1);
   }
 });
 
-
-
-// pruebas 
-
-const exampleBlock1 = ref(null);
-const exampleBlock2 = ref(null);
-
-// Demo loading functionality for exampleBlock1
-function loadDataForBlock1() {
-  // Set the block to loading state
-  exampleBlock1.value.statusLoading();
-
-  // .. here you could load your data
-
-  // Set a timeout for demo purposes
-  setTimeout(() => {
-    // Set the block back to normal state
-    exampleBlock1.value.statusNormal();
-  }, 2000);
-}
-
-// Demo loading functionality for exampleBlock2
-function loadDataForBlock2() {
-  // Set the block to loading state
-  exampleBlock2.value.statusLoading();
-
-  // .. here you could load your data
-
-  // Set a timeout for demo purposes
-  setTimeout(() => {
-    // Set the block back to normal state
-    exampleBlock2.value.statusNormal();
-  }, 2000);
-}
-
 </script>
 
 <template>
- <div class="content">
-
-
-  <BaseBlock rounded title="Transferencias Enviadas"  themed>
-    <template #options>
-       
-      <div class="space-x-1">
-        <div class="block-options-item">
-          <div class="row g-2 align-items-center">
-            <div class="col-auto">
-              <label for="fecha_desde" class="col-form-label fs-sm">Bodega</label>
-            </div>
-            <div class="col-auto">
-              <select v-if="!ptoVta.loading" v-model="table.ptovta" class=" form-select fs-sm mx-0">
-                <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">{{
-                  p.PTO_VTA_BOD_BODEGA }}</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="block-options-item">
-          <div class="row g-3 align-items-center">
-            <div class="col-auto">
-              <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
-            </div>
-            <div class="col-auto">
-              <flat-pickr style="width:120px;" id="fecha_desde" class="form-control form-control-sm"
-                v-model="table.fecha_desde" :config="flatPickrState.fecha_desde" />
-            </div>
-            <div class="col-auto">
-              <label for="fecha_desde" class="col-form-label fs-sm">hasta</label>
-            </div>
-            <div class="col-auto">
-              <flat-pickr style="width:120px;" id="fecha_hasta" class="form-control form-control-sm"
-                v-model="table.fecha_hasta" :config="flatPickrState.fecha_hasta" />
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> </button>
+  <div class="block-content">
+    <BaseBlock rounded title="Transferencias Enviadas" themed>
+      <template #options>
+        <div class="space-x-1">
+          <div class="block-options-item">
+            <div class="row g-2 align-items-center">
+              <div class="col-auto">
+                <label for="fecha_desde" class="col-form-label fs-sm">Bodega</label>
+              </div>
+              <div class="col-auto">
+                <select v-if="!ptoVta.loading" v-model="table.ptovta" class="form-select fs-sm mx-0">
+                  <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
+                    {{ p.PTO_VTA_BOD_BODEGA }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="block-options-item">
-          <button class="btn btn-outline-success btn-sm " @click="refresh" :disabled="table.loading" title="Refrescar"
-            aria-label="Refrescar">
-            <i v-if="!table.loading" class="fa fa-refresh"></i>
-            <span v-else class="spinner-border spinner-border-sm"></span>
-          </button>
-        </div>
-      </div>
-    </template>
 
-    <div class="row justify-content-between align-items-center mb-3">
-      <div class="col-md-1">
-        <select v-model="table.perPage" class="form-select ">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
-      </div>
-    </div>
-    <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
-      :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
-      :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
-      @onSearch="table.searchTerm" @onClick="handleClick">
-      <template #actions="{ row }">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
-          <i class="fa fa-print"></i> Imprimir
-        </button>
+          <div class="block-options-item">
+            <div class="row g-3 align-items-center">
+              <div class="col-auto">
+                <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
+              </div>
+              <div class="col-auto">
+                <flat-pickr style="width: 120px" id="fecha_desde" class="form-control form-control-sm"
+                  v-model="table.fecha_desde" :config="flatPickrState.fecha_desde" />
+              </div>
+              <div class="col-auto">
+                <label for="fecha_desde" class="col-form-label fs-sm">hasta</label>
+              </div>
+              <div class="col-auto">
+                <flat-pickr style="width: 120px" id="fecha_hasta" class="form-control form-control-sm"
+                  v-model="table.fecha_hasta" :config="flatPickrState.fecha_hasta" />
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-sm btn-primary" @click="limpiarFecha()">
+                  <i class="fa fa-eraser"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="block-options-item">
+            <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
+              aria-label="Refrescar">
+              <i v-if="!table.loading" class="fa fa-refresh"></i>
+              <span v-else class="spinner-border spinner-border-sm"></span>
+            </button>
+          </div>
+        </div>
       </template>
-    </BaseTable>
 
-  </BaseBlock>
-
-
- </div>
+      <div class="row justify-content-between align-items-center mb-3">
+        <div class="col-md-1">
+          <select v-model="table.perPage" class="form-select">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+        </div>
+      </div>
+      <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+        :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
+        :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
+        @onSearch="table.searchTerm" @onClick="handleClick">
+        <template #actions="{ row }">
+          <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
+            <i class="fa fa-print"></i> Imprimir
+          </button>
+        </template>
+      </BaseTable>
+    </BaseBlock>
+  </div>
   <!-- Modal para filtro de cliente -->
   <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
     aria-hidden="true" ref="filtrarClienteModal">
@@ -217,6 +224,5 @@ function loadDataForBlock2() {
         <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
       </div>
     </div>
-
   </div>
 </template>

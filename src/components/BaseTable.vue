@@ -28,8 +28,8 @@ const props = defineProps({
         default: 0,
     },
     perPage: {
-        type: Number,
-        default: 0,
+        type: String,
+        default: 10,
     },
     sortable: {
         type: Boolean,
@@ -85,18 +85,45 @@ const handleRowClick = (event, row, col) => {
     emit('onClick', { row, col });
     // console.log('🟡 Evento emitido desde BaseTable');
 };
+
+
+//** para el manejo de clases definida por el componente padre */
+const normalizeClass = (cls) => {
+    if (!cls) return [];
+    if (Array.isArray(cls)) return cls.filter(Boolean);
+    if (typeof cls === "object") return [cls];
+    return [cls]; //string 
+};
+
+
+const getThClass = (col) => {
+    return [
+        "text-left",
+         "text-nowrap", 
+        col.sortable ? "sortable" : "",
+        ...normalizeClass(col.thClass),
+    ].filter(Boolean);
+};
+
+const getTdClass = (col) => {
+    const extra = typeof col.tdClass === "function" ? col.tdClass(row) : col.tdClass;
+    return [
+        "text-left", ...normalizeClass(extra)].filter(Boolean);
+};
+
+
+
 </script>
 
 <template>
     <div class="row">
         <div class="col-md-12">
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-vcenter mb-0">
+                <table class="table table-sm table-hover table-vcenter">
                     <thead>
                         <tr>
                             <th v-for="col in columns" :key="col.key" @click="col.sortable ? handleSort(col.key) : null"
-                                :class="col.sortable ? 'sortable' : ''" 
-                                class="text-left nowrap"
+                                :class="getThClass(col)"
                                 :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
                                 {{ col.label }}
                                 <i :class="getSortIcon(col.key)" class="ms-0"></i>
@@ -120,7 +147,7 @@ const handleRowClick = (event, row, col) => {
                     <!-- datos de la tabla  y acciones -->
                     <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
                         <tr v-for="row in data" :key="row.id ?? index">
-                            <td v-for="col in columns" :key="col.key" class="text-left"
+                            <td v-for="col in columns" :key="col.key"  :class="getTdClass(col, row)"
                                 style="font-size: 12px; overflow: hidden; text-overflow: ellipsis ">
 
 
@@ -239,7 +266,7 @@ const handleRowClick = (event, row, col) => {
 
 /* table */
 .table-responsive {
-    max-height: 600px;
+    max-height: 700px;
     overflow-y: auto;
 }
 
