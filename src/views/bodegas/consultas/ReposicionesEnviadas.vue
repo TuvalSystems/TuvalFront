@@ -1,7 +1,7 @@
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
 import { onMounted, reactive, ref } from "vue";
-import { useReposicionesEnviadasPagination } from "../../../composables/bodegas/consultas/useReposicionesEnviadasPagiancion";
+import { useReposicionesEnviadasPagination } from "../../../composables/bodegas/consultas/useReposicionesEnviadasPagination";
 import { useStore } from "vuex";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
@@ -95,6 +95,8 @@ onMounted(async () => {
 });
 </script>
 <template>
+ <div class="content">
+
 
   <BaseBlock title="Reposiciones Enviadas" rounded themed>
     <template #options>
@@ -143,8 +145,7 @@ onMounted(async () => {
         </div>
       </div>
     </template>
-  </BaseBlock>
-
+    
     <div class="row justify-content-between align-items-center mb-3">
       <div class="col-md-1">
         <select v-model="table.perPage" class="form-select ">
@@ -168,7 +169,9 @@ onMounted(async () => {
         </button>
       </template>
     </BaseTable>
+  </BaseBlock>
 
+ </div>
 
   <!-- Modal para filtro de cliente -->
   <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"

@@ -97,6 +97,9 @@ onMounted(async () => {
 });
 </script>
 <template>
+  <div class="content">
+
+ 
   <BaseBlock title="Transferencias Recibidas" rounded themed>
     <template #options>
       <div class="space-x-1">
@@ -144,9 +147,8 @@ onMounted(async () => {
         </div>
       </div>
     </template>
-  </BaseBlock>
 
-  <div class="row justify-content-between align-items-center mb-3">
+    <div class="row justify-content-between align-items-center mb-3">
     <div class="col-md-1">
       <select v-model="table.perPage" class="form-select ">
         <option value="5">5</option>
@@ -170,7 +172,10 @@ onMounted(async () => {
       </button>
     </template>
   </BaseTable>
+  </BaseBlock>
 
+  
+ </div>
  <!-- Modal para filtro de cliente -->
   <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
     aria-hidden="true" ref="filtrarClienteModal">

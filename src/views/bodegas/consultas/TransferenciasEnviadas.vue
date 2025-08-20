@@ -27,7 +27,7 @@ const flatPickrState = reactive({
 
 // Columnas de la tabla
 const columns = [
-  { label: "#Guia", key: "GUI_REM_GUIA_REMISION", sortable: true, clickable: false, render: (value) => value, width: "8.625rem" },
+  { label: "#Guia", key: "GUI_REM_GUIA_REMISION", sortable: true, clickable: true, render: (value) => value, width: "8.625rem" },
   { label: "#Destino", key: "bodega_destino", sortable: true, clickable: false, width: "3.125rem" },
   { label: "#Cliente", key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO", sortable: true, clickable: false },
   { label: "Dirección", key: "GUI_REM_DIRECCION_DESTINATARIO", sortable: true, clickable: false },
@@ -84,17 +84,57 @@ function filtrarClienteConsulta(cliente) {
 }
 
 onMounted(async () => {
-   ptoVta.fetchAll()
+  ptoVta.fetchAll()
   filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
   if (!table.items.length && !table.loading) {
     fetchItems(1);
   }
 });
+
+
+
+// pruebas 
+
+const exampleBlock1 = ref(null);
+const exampleBlock2 = ref(null);
+
+// Demo loading functionality for exampleBlock1
+function loadDataForBlock1() {
+  // Set the block to loading state
+  exampleBlock1.value.statusLoading();
+
+  // .. here you could load your data
+
+  // Set a timeout for demo purposes
+  setTimeout(() => {
+    // Set the block back to normal state
+    exampleBlock1.value.statusNormal();
+  }, 2000);
+}
+
+// Demo loading functionality for exampleBlock2
+function loadDataForBlock2() {
+  // Set the block to loading state
+  exampleBlock2.value.statusLoading();
+
+  // .. here you could load your data
+
+  // Set a timeout for demo purposes
+  setTimeout(() => {
+    // Set the block back to normal state
+    exampleBlock2.value.statusNormal();
+  }, 2000);
+}
+
 </script>
 
 <template>
-  <BaseBlock title="Transferencias Enviadas" rounded themed>
+ <div class="content">
+
+
+  <BaseBlock rounded title="Transferencias Enviadas"  themed>
     <template #options>
+       
       <div class="space-x-1">
         <div class="block-options-item">
           <div class="row g-2 align-items-center">
@@ -140,32 +180,35 @@ onMounted(async () => {
         </div>
       </div>
     </template>
+
+    <div class="row justify-content-between align-items-center mb-3">
+      <div class="col-md-1">
+        <select v-model="table.perPage" class="form-select ">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+      </div>
+    </div>
+    <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+      :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
+      :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
+      @onSearch="table.searchTerm" @onClick="handleClick">
+      <template #actions="{ row }">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
+          <i class="fa fa-print"></i> Imprimir
+        </button>
+      </template>
+    </BaseTable>
+
   </BaseBlock>
 
-  <div class="row justify-content-between align-items-center mb-3">
-    <div class="col-md-1">
-      <select v-model="table.perPage" class="form-select ">
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-      </select>
-    </div>
-    <div class="col-md-4">
-      <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
-    </div>
-  </div>
-  <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
-    :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
-    :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
-    @onSearch="table.searchTerm" @onClick="handleClick">
-    <template #actions="{ row }">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
-        <i class="fa fa-print"></i> Imprimir
-      </button>
-    </template>
-  </BaseTable>
 
+ </div>
   <!-- Modal para filtro de cliente -->
   <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
     aria-hidden="true" ref="filtrarClienteModal">
@@ -174,5 +217,6 @@ onMounted(async () => {
         <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
       </div>
     </div>
+
   </div>
 </template>
