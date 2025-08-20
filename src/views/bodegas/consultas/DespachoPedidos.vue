@@ -173,7 +173,7 @@ onMounted(() => {
     </BaseBlock>
 
     <br><br>
-    
+
   </div>
   <!-- Modal para filtro de cliente -->
   <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
@@ -186,41 +186,4 @@ onMounted(() => {
   </div>
 
 </template>
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
 
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.overlay-loading {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-}
-
-/* icono de ordenamiento */
-.sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.sortable:hover {
-  color: #0d6efd;
-}
-
-.bi {
-  font-size: 12px;
-}
-</style>
