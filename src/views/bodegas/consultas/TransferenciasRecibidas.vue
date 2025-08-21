@@ -178,7 +178,7 @@ onMounted(async () => {
 </script>
 <template>
   <div class="block-content">
-    <BaseBlock title="Transferencias Recibidas" rounded themed @click="optionShowTable">
+    <BaseBlock title="Transferencias Recibidas" rounded themed>
       <template #options>
         <div class="space-x-1">
           <div class="block-options-item">
@@ -262,7 +262,7 @@ onMounted(async () => {
 
 
     <!-- secccionde la informacion de la guia -->
-    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3" @click="optionShowDetalleGuia">
+    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
       <template #options>
         <div class="block-options-item">
           <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">
@@ -305,7 +305,8 @@ onMounted(async () => {
           <div class="col-md-6" v-if="detalleItems.transferencias.length > 0">
             <table>
               <tbody>
-                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
+                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span
+                    v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
               </tbody>
             </table>
           </div>

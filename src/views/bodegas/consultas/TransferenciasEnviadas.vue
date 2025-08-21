@@ -183,7 +183,7 @@ onMounted(async () => {
 
 <template>
   <div class="block-content">
-    <BaseBlock rounded title="Transferencias Enviadas" themed @click="optionShowTable">
+    <BaseBlock rounded title="Transferencias Enviadas" themed >
       <template #options>
         <div class="space-x-1">
           <div class="block-options-item">
@@ -267,7 +267,7 @@ onMounted(async () => {
     </BaseBlock>
 
      <!-- secccionde la informacion de la guia -->
-      <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3" @click="optionShowDetalleGuia">
+      <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3" >
        <template #options>
         <div class="block-options-item">
           <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">
