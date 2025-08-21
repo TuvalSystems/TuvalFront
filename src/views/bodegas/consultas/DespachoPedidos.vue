@@ -267,7 +267,7 @@ onMounted(() => {
 
 <template>
   <div class="block-content block-content-full">
-    <BaseBlock title="Despachos Pedidos" rounded themed>
+    <BaseBlock title="Despachos Pedidos" rounded themed @click="optionShowTable">
       <template #options>
         <div class="block-options-item">
           <div class="block-options-item">
@@ -349,7 +349,7 @@ onMounted(() => {
     </BaseBlock>
 
     <!-- seccion del informacion  de la guia -->
-    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
+    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3" @click="optionShowDetalleGuia"> 
       <template #options>
         <div class="block-options-item">
           <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">
