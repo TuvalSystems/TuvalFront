@@ -56,9 +56,9 @@ const handleSort = (field) => {
 //obtener el icono correcto
 const getSortIcon = (field) => {
     if (props.sortField !== field) {
-        return "fa fa-caret-down";
+        return "fa fa-angle-down";
     }
-    return props.sortOrder === "asc" ? "fa fa-caret-up" : "fa fa-caret-down";
+    return props.sortOrder === "asc" ? "fa fa-angle-up" : "fa fa-angle-down";
 };
 
 // Paginación
