@@ -42,7 +42,7 @@ function selectcliente(cliente) {
 
 </script>
 <template>
-    <BaseBlock title="Filtrar cliente cliente" class="mb-0 pb-4">
+    <BaseBlock title="Filtrar cliente" class="mb-0 pb-4">
         <template #options>
             <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
                 <i class="fa fa-fw fa-times"></i>
