@@ -182,7 +182,7 @@ onMounted(async () => {
 </script>
 <template>
   <div class="block-content">
-    <BaseBlock title="Reposiciones Enviadas" rounded themed >
+    <BaseBlock title="Reposiciones Enviadas" rounded themed>
       <template #options>
         <div class="space-x-1">
           <div class="block-options-item">
@@ -259,11 +259,18 @@ onMounted(async () => {
               <i class="fa fa-print"></i> Imprimir
             </button>
           </template>
+          <!-- Slot de vacío -->
+          <template #empty>
+            <div class="text-center py-5">
+              <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+              <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
+            </div>
+          </template>
         </BaseTable>
       </div>
     </BaseBlock>
     <!-- secccionde la informacion de la guia -->
-    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3" >
+    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
       <template #options>
         <div class="block-options-item">
           <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">

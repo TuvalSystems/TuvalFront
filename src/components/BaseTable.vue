@@ -144,7 +144,7 @@ const getTdClass = (col, row) => {
                     </tbody>
                     <tbody v-else-if="!data || !data.length">
                         <tr>
-                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-4">
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-6">
                                 <slot name="empty">Sin registros para mostrar.</slot>
                             </td>
                         </tr>

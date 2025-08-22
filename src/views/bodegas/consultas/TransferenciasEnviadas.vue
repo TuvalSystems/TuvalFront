@@ -1,7 +1,7 @@
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
 import { useTransferenciasEnviadasPagination } from "../../../composables/bodegas/consultas/useTransferenciasEnviadasPagination";
-import { onMounted,  reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -183,7 +183,7 @@ onMounted(async () => {
 
 <template>
   <div class="block-content">
-    <BaseBlock rounded title="Transferencias Enviadas" themed >
+    <BaseBlock rounded title="Transferencias Enviadas" themed>
       <template #options>
         <div class="space-x-1">
           <div class="block-options-item">
@@ -262,20 +262,28 @@ onMounted(async () => {
               <i class="fa fa-print"></i> Imprimir
             </button>
           </template>
+
+          <!-- Slot de vacío -->
+          <template #empty>
+            <div class="text-center py-5">
+              <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+              <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
+            </div>
+          </template>
         </BaseTable>
       </div>
     </BaseBlock>
 
-     <!-- secccionde la informacion de la guia -->
-      <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3" >
-       <template #options>
+    <!-- secccionde la informacion de la guia -->
+    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
+      <template #options>
         <div class="block-options-item">
           <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">
             <i :class="['fa', showDetalleGuia ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
           </button>
         </div>
       </template>
-       <div class="content" v-if="guiaSeleccionada && showDetalleGuia">
+      <div class="content" v-if="guiaSeleccionada && showDetalleGuia">
         <!-- cabecera del detalle de la Guia -->
         <div class="table-responsive">
           <table class="table table-hover table-sm table-vcenter">
@@ -285,7 +293,7 @@ onMounted(async () => {
                 <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_GUIA_REMISION }}</td>
                 <th class="text-uppercase fs-sm text-muted">Pedido</th>
                 <td class="fs-sm">{{ guiaSeleccionada.pedido }}</td>
-                  <th class="text-uppercase fs-sm text-muted">bodega destino</th>
+                <th class="text-uppercase fs-sm text-muted">bodega destino</th>
                 <td class="fs-sm">{{ guiaSeleccionada.bodega_destino }}</td>
               </tr>
               <tr>
@@ -309,7 +317,8 @@ onMounted(async () => {
           <div class="col-md-6" v-if="detalleItems.transferencias.length > 0">
             <table>
               <tbody>
-                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
+                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span
+                    v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
               </tbody>
             </table>
           </div>
@@ -364,6 +373,6 @@ onMounted(async () => {
           </button>
         </div>
       </div>
-      </BaseBlock>
+    </BaseBlock>
   </div>
 </template>
