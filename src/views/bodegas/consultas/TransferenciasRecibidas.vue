@@ -211,11 +211,11 @@ onMounted(async () => {
                 <flat-pickr style="width: 120px" id="fecha_hasta" class="form-control form-control-sm"
                   v-model="table.fecha_hasta" :config="flatPickrState.fecha_hasta" />
               </div>
-              <div class="col-auto">
+              <!-- <div class="col-auto">
                 <button class="btn btn-sm btn-primary" @click="limpiarFecha()">
                   <i class="fa fa-eraser"></i>
                 </button>
-              </div>
+              </div> -->
             </div>
           </div>
           <div class="block-options-item">
