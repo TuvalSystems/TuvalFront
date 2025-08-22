@@ -29,7 +29,7 @@ const props = defineProps({
     },
     perPage: {
         type: String,
-        default: 10,
+        default: "10",
     },
     sortable: {
         type: Boolean,
@@ -99,13 +99,13 @@ const normalizeClass = (cls) => {
 const getThClass = (col) => {
     return [
         "text-left",
-         "text-nowrap", 
+        "text-nowrap",
         col.sortable ? "sortable" : "",
         ...normalizeClass(col.thClass),
     ].filter(Boolean);
 };
 
-const getTdClass = (col) => {
+const getTdClass = (col, row) => {
     const extra = typeof col.tdClass === "function" ? col.tdClass(row) : col.tdClass;
     return [
         "text-left", ...normalizeClass(extra)].filter(Boolean);
@@ -123,8 +123,7 @@ const getTdClass = (col) => {
                     <thead>
                         <tr>
                             <th v-for="col in columns" :key="col.key" @click="col.sortable ? handleSort(col.key) : null"
-                                :class="getThClass(col)"
-                                :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
+                                :class="getThClass(col)" :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
                                 {{ col.label }}
                                 <i :class="getSortIcon(col.key)" class="ms-0"></i>
                             </th>
@@ -147,25 +146,31 @@ const getTdClass = (col) => {
                     <!-- datos de la tabla  y acciones -->
                     <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
                         <tr v-for="row in data" :key="row.id ?? index">
-                            <td v-for="col in columns" :key="col.key"  :class="getTdClass(col, row)"
+                            <td v-for="col in columns" :key="col.key" :class="getTdClass(col, row)"
                                 style="font-size: 12px; overflow: hidden; text-overflow: ellipsis ">
 
+                                <!-- 👇 slot específico por columna -->
+                                <template v-if="$slots[`cell-${col.key}`]">
+                                    <slot :name="`cell-${col.key}`" :row="row" :col="col" :value="row[col.key]" />
+                                </template>
 
                                 <!-- Si es clickable, lo renderizamos como enlace -->
-                                <a v-if="col.clickable" href="javascript:void(0)"
-                                    @click="(event) => handleRowClick(event, row, col)">
-                                    <span v-if="typeof col.render === 'function'">
-                                        {{ col.render(row[col.key]) }}
-                                    </span>
+                                <template v-else>
+                                    <a v-if="col.clickable" href="javascript:void(0)"
+                                        @click="(event) => handleRowClick(event, row, col)">
+                                        <span v-if="typeof col.render === 'function'">
+                                            {{ col.render(row[col.key]) }}
+                                        </span>
+                                        <span v-else>
+                                            {{ row[col.key] }}
+                                        </span>
+                                    </a>
+
+                                    <!-- Caso normal -->
                                     <span v-else>
                                         {{ row[col.key] }}
                                     </span>
-                                </a>
-
-                                <!-- Caso normal -->
-                                <span v-else>
-                                    {{ row[col.key] }}
-                                </span>
+                                </template>
                             </td>
 
                             <!-- Slot para acciones -->

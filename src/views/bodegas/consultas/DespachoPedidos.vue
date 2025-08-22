@@ -55,6 +55,7 @@ const columns = [
     width: "8.600rem",
     thClass: "d-none d-md-table-cell",
     tdClass: "d-none d-md-table-cell",
+    // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
   },
   {
     label: "#Despacho",
@@ -115,6 +116,20 @@ const columns = [
     tdClass: "d-none d-md-table-cell",
   },
 ];
+
+
+//esto queda de prueba para ver si funciona las ejecuciones de funciones para los diferentes estados
+// cuando quiero manejar el badge para los pedidos tengo que hacer una funcion que retorne la clase del badge
+//ya esta configurado en la tabla, solo tengo que definir la funcion que retorna la clase
+// const pedidoClass = (pedido) => {
+//   switch ((pedido || '').toLowerCase()) {
+//     case 'PED00289953': return 'badge bg-warning text-dark';
+//     case 'PED00289937': return 'badge bg-info';
+//     case 'PED00289895': return 'badge bg-success';
+//     case 'PED00289729': return 'badge bg-danger';
+//     default: return 'badge bg-secondary';
+//   }
+// };
 
 // column base de ejemplooooooo
 // const columns = [
@@ -220,7 +235,7 @@ async function buscarDetalleGuia(guia) {
     showDetalleGuia.value = false
     loadindDetalleGuia.value.statusLoading();
     const result = await fetchDetailGuides(guia.id);
-  
+
 
     if (result) {
       showTable.value = false
@@ -254,7 +269,7 @@ const optionShowDetalleGuia = () => {
 
 };
 
-function resetConsult () {
+function resetConsult() {
   guiaSeleccionada.value = null;
   detalleItems.value = [];
   showTable.value = true;
@@ -277,7 +292,7 @@ onMounted(() => {
 
 <template>
   <div class="block-content block-content-full">
-    <BaseBlock title="Despachos Pedidos" rounded themed >
+    <BaseBlock title="Despachos Pedidos" rounded themed>
       <template #options>
         <div class="block-options-item">
           <div class="block-options-item">
@@ -349,6 +364,10 @@ onMounted(() => {
           :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
           :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
           @onSearch="table.searchTerm" @onClick="handleClick">
+          <!-- Slot específico para la columna 'estado' -->
+          <!-- <template #cell-GUI_REM_RAZON_SOCIAL_DESTINATARIO="{ value, row }">
+            <span :class="pedidoClass(value)">{{ row.pedido ?? 'N/A' }}</span>
+          </template> -->
           <template #actions="{ row }">
             <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
               <i class="fa fa-print"></i> Imprimir
@@ -359,7 +378,7 @@ onMounted(() => {
     </BaseBlock>
 
     <!-- seccion del informacion  de la guia -->
-    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3"> 
+    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
       <template #options>
         <div class="block-options-item">
           <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">
@@ -402,11 +421,12 @@ onMounted(() => {
             </tbody>
           </table>
         </div>
-       <div class="row">
+        <div class="row">
           <div class="col-md-6" v-if="detalleItems.transferencias.length > 0">
             <table>
               <tbody>
-                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
+                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span
+                    v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
               </tbody>
             </table>
           </div>
