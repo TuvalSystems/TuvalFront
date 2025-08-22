@@ -26,7 +26,7 @@ const flatPickrState = reactive({
   },
 });
 
-// Columnas de la tabla
+// Columnas de la tabla  
 const columns = [
   {
     label: "#Guia",
@@ -53,6 +53,16 @@ const columns = [
     clickable: false,
     render: (value) => value,
     width: "8.600rem",
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "#Despacho",
+    key: "pedido_despacho",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "6rem",
     thClass: "d-none d-md-table-cell",
     tdClass: "d-none d-md-table-cell",
   },
