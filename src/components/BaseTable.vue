@@ -142,6 +142,13 @@ const getTdClass = (col, row) => {
                             </td>
                         </tr>
                     </tbody>
+                    <tbody v-else-if="!data || !data.length">
+                        <tr>
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-4">
+                                <slot name="empty">Sin registros para mostrar.</slot>
+                            </td>
+                        </tr>
+                    </tbody>
 
                     <!-- datos de la tabla  y acciones -->
                     <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
