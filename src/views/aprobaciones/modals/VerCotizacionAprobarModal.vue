@@ -73,21 +73,21 @@
             <tbody>
               <tr>
                 <td>Cupo Asignado</td>
-                <td class="text-end">${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_ASIGNADO)) }}</td>
+                <td class="text-end">${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoAsignado)) }}</td>
               </tr>
               <tr>
                 <td>Cupo Disponible GP</td>
                 <td class="text-end">
                   <a 
-                    v-if="estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP < vercotizacion.total" 
+                    v-if="estadodecuenta.data.cupoDisponible.cupoDisponibleGp < vercotizacion.total" 
                     class="text-danger"
                     href="javascript:void(0);"
                     @click="swalInfo('El total del pedido supera el cupo disponible')"
                     >
-                    ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP)) }}
+                    ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                   </a>
                   <span v-else>
-                    ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP)) }}
+                    ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                   </span>
                   
                 </td>

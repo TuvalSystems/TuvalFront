@@ -62,7 +62,7 @@
                 <th class="fs-sm text-end">Total</th>
                 <th class="fs-sm text-end">
                   <a 
-                    v-if="estadodecuenta.data && estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP < verpedido.total" 
+                    v-if="estadodecuenta.data && estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total" 
                     class="text-danger"
                     href="javascript:void(0);"
                     @click="swalInfo('El total del pedido supera el cupo disponible')"
@@ -90,21 +90,21 @@
                 <tbody>
                   <tr>
                     <td>Cupo Asignado</td>
-                    <td class="text-end">${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_ASIGNADO)) }}</td>
+                    <td class="text-end">${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoAsignado)) }}</td>
                   </tr>
                   <tr>
                     <td>Cupo Disponible GP</td>
                     <td class="text-end">
                       <a 
-                        v-if="estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP < verpedido.total" 
+                        v-if="estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total" 
                         class="text-danger"
                         href="javascript:void(0);"
                         @click="swalInfo('El total del pedido supera el cupo disponible')"
                         >
-                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP)) }}
+                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                       </a>
                       <span v-else>
-                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP)) }}
+                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                       </span>
                       
                     </td>
