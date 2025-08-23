@@ -21,6 +21,7 @@ export function useGenericPagination({ cacheKey, endpoint }) {
           fecha_desde: table.fecha_desde,
           fecha_hasta: table.fecha_hasta,
           cliente: table.cliente,
+          ptovta: table.ptovta,
         },
       });
 
@@ -44,6 +45,7 @@ export function useGenericPagination({ cacheKey, endpoint }) {
       table.sortField,
       table.sortOrder,
       table.cliente,
+      table.ptovta,
     ],
     () => {
       if (table.searchTerm == "" || table.searchTerm.length >= 4) {
@@ -75,6 +77,7 @@ export function useGenericPagination({ cacheKey, endpoint }) {
     table.sortOrder = "asc";
     table.currentPage = 1; // Reset to first page
     table.cliente = null; // Reset cliente filter
+    table.ptovta = null;
     fetchItems(1); //consulta de nuevo
   };
 

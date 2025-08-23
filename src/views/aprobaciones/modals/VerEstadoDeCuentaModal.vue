@@ -62,7 +62,7 @@
                 <th class="fs-sm text-end">Total</th>
                 <th class="fs-sm text-end">
                   <a 
-                    v-if="estadodecuenta.data && estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP < verpedido.total" 
+                    v-if="estadodecuenta.data && estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total" 
                     class="text-danger"
                     href="javascript:void(0);"
                     @click="swalInfo('El total del pedido supera el cupo disponible')"

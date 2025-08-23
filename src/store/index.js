@@ -542,6 +542,13 @@ const store = createStore({
           return res.data;
         });
     },
+    consultaStockTransito({ commit }, data) {
+      return axiosClient
+        .post("/consultas/consulta-stock-transito", data)
+        .then((res) => {
+          return res.data;
+        });
+    },
     selectarticulo({ commit }, data) {
       commit("setCotizacionLoading", true);
       return axiosClient
@@ -673,7 +680,7 @@ const store = createStore({
         });
     },
 
-     getArticuloStockPorLote({ commit }, element) {
+    getArticuloStockPorLote({ commit }, element) {
       commit("resAtactualizarStockLote");
       commit("setActualizarStockLoteLoading", true);
       return axiosClient
@@ -705,7 +712,7 @@ const store = createStore({
         });
     },
 
-    actualizarStockIndividual ({commit}, element) {
+    actualizarStockIndividual({ commit }, element) {
       commit("resetActualizarStockIndividual");
       commit("setActualizarStockIndividualLoading", true);
       return axiosClient
@@ -720,7 +727,6 @@ const store = createStore({
           throw error; // lo relanzas para que lo maneje el componente si es necesario
         });
     },
-
 
     guardarCotizacion({ commit }, info) {
       return axiosClient
@@ -3019,7 +3025,7 @@ const store = createStore({
     },
 
     /** actualizar el stock de articulos por lotes */
-     setActualizarStockLoteLoading: (state, value) => {
+    setActualizarStockLoteLoading: (state, value) => {
       state.stock_lote.loading = value;
     },
     setActualizarStockote: (state, data) => {

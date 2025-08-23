@@ -53,7 +53,7 @@
               ></VueSelect>
             </div>
             <div class="col-sm-3">
-              <button type="button" @click="buscarDocumento" class="btn btn-primary">Buscar</button>
+              <button type="button" @click="buscarDocumento" class="btn btn-primary" :disabled="loadingDoc">Buscar</button>
             </div>
           </div>
           <div class="row" :data-page-count="ds.dsPagecount">
@@ -258,15 +258,21 @@ let pickingModalObj = null;
 
 let guiaRemisionModal= ref(null);
 let guiaRemisionModalObj = null;
-
+let loadingDoc = ref(false);
 function buscarDocumento(){
+  loadingDoc.value = true;
   if(!buscardocumento.value){
-    refrescar();
+    // refrescar();
+      loadingDoc.value = false;
     return;
   }
   store.dispatch('transferenciasReposicionDocumento', buscardocumento.value).then((res) => {
-
+    console.log(res);
+    
     transferencias_reposicion.value[route.params.id].traslados = res;
+    if (transferencias_reposicion.value[route.params.id].traslados.length > 0) {
+      loadingDoc.value = false;
+    }
     document.querySelectorAll("#datasetLength label").forEach((el) => {
       el.remove();
     });
