@@ -489,7 +489,7 @@
                     diferente</span>
                 </span>
               </label>
-              <select class="form-select" v-model="formadepago_id">
+              <select class="form-select" v-model="formadepago_id"   @change="selectformapago($event)">
                 <option v-for="(pago, index) in formadepago" :key="index" :value="pago.DESC_FORMA_PAGO_CODIGO">{{
                   pago.DESC_FORMA_PAGO_TIPO_CREDITO }}</option>
               </select>
