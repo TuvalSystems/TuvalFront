@@ -123,6 +123,22 @@
                           {{ row.ART_PLAN_UMEDIDA }}
                         </td>
                         <td class="fs-sm fw-medium text-muted mb-0 text-right"
+                          style="width: 7rem;justify-content: center;">
+                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockTransito)">
+                            <!-- <code>{{ row.stockTransito.bodega_destino }} - {{ row.stockTransito.transito }}<br></code> -->
+                            <code v-for="stock in row.stockTransito"
+                              :key="stock.STO_ART_BODEGA">{{ stock.bodega }} - {{ stock.pendiente }}<br></code>
+                          </div>
+                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockTransito & !row.loading2)">
+                            <button class="btn btn-sm btn-warning" @click="consultarStockTransito(row)"><i
+                                class="fa fa-magnifying-glass"></i> Transito</button>
+                          </div>
+                          <div v-if="row.loading2" class="text-center">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span
+                                class="visually-hidden">Loading...</span></div>
+                          </div>
+                        </td>
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
                           style="width: 7rem; justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stock)">
                             <code v-for="stock in row.stock"
@@ -137,6 +153,7 @@
                                 class="visually-hidden">Loading...</span></div>
                           </div>
                         </td>
+
 
                         <td class="fs-sm fw-medium text-muted mb-0 text-right"
                           style="width: 7rem;justify-content: center;">
@@ -153,20 +170,7 @@
                                 class="visually-hidden">Loading...</span></div>
                           </div>
                         </td>
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
-                          style="width: 7rem;justify-content: center;">
-                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockTransito)">
-                            <code>{{ row.stockTransito.bodega_destino }} - {{ row.stockTransito.transito }}<br></code>
-                          </div>
-                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockTransito & !row.loading2)">
-                            <button class="btn btn-sm btn-primary" @click="consultarStockTransito(row)"><i
-                                class="fa fa-magnifying-glass"></i> Transito</button>
-                          </div>
-                          <div v-if="row.loading2" class="text-center">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span
-                                class="visually-hidden">Loading...</span></div>
-                          </div>
-                        </td>
+
 
                         <td class="text-end">
                           ${{ formatPrice(row.ART_VALOR) }}
@@ -325,6 +329,11 @@ const cols = reactive([
     sort: "",
   },
   {
+    name: "Transito",
+    field: "ART_TRANSITO",
+    sort: "",
+  },
+  {
     name: "Stock bodega",
     field: "ART_STOCK",
     sort: "",
@@ -332,11 +341,6 @@ const cols = reactive([
   {
     name: "Otros Stock",
     field: "ART_STOCK_IMPORT",
-    sort: "",
-  },
-  {
-    name: "Transito",
-    field: "ART_TRANSITO",
     sort: "",
   },
   {
@@ -413,7 +417,7 @@ function consultarStockTransito(articulo) {
   })
 
   store.dispatch('consultaStockTransito', consulta).then(res => {
-    articulo.stockTransito = res.data;
+    articulo.stockTransito = res.data.transito;
     articulo.loading2 = false;
   });
 }
