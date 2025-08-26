@@ -709,7 +709,6 @@ function facturarpedido(pedido) {
     errorMsg.value = err.response.data.error
     swalError(errorMsg.value);
   });
-
 }
 
 function motivoEspera(pedido) {
