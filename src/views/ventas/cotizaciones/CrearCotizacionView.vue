@@ -468,10 +468,10 @@
               </div>
             </div>
             <div class="col-12 col-xl-5 order-2 order-xl-1 mb-0">
-           
+
             </div>
             <!-- condicion de pago  -->
-             <div class="col-12 col-xl-5 order-2 order-xl-2 mb-4">
+            <div class="col-12 col-xl-5 order-2 order-xl-2 mb-4">
               <label class="form-label">Condición de pago</label>
               <select class="form-select form-select-alt" id="select-condicion-pago" name="select-condicion-pago"
                 v-model="condiciondepago_id" @change="selectcondicionpago($event)"
@@ -480,7 +480,7 @@
                   condicion.COND_ID }}</option>
               </select>
             </div>
-             <!-- forma de pago -->
+            <!-- forma de pago -->
             <div class="col-12 col-xl-5 order-2 order-xl-3">
               <label class="form-label d-flex justify-content-between">
                 <span><span>Forma de pago </span>
@@ -489,7 +489,7 @@
                     diferente</span>
                 </span>
               </label>
-              <select class="form-select" v-model="formadepago_id"   @change="selectformapago($event)">
+              <select class="form-select" v-model="formadepago_id" @change="selectformapago($event)">
                 <option v-for="(pago, index) in formadepago" :key="index" :value="pago.DESC_FORMA_PAGO_CODIGO">{{
                   pago.DESC_FORMA_PAGO_TIPO_CREDITO }}</option>
               </select>
@@ -503,9 +503,9 @@
               @change="updateDescuento($event)" @keyup.enter="updateDescuento($event)">
           </code>
             </div>
-    
+
           </div>
-    
+
           <div class="row g-1 align-items-end mb-3">
             <!-- Descuento general PVP -->
             <div class="col-12 col-md-6 col-xl-3">
@@ -516,7 +516,7 @@
                   @change="modificadorgeneral()" />
                 <span class="input-group-text input-group-text-alt">%</span>
               </div>
-              
+
             </div>
 
             <!-- Orden de compra con contador -->
@@ -527,9 +527,10 @@
               <div class="input-group">
                 <input id="orden-de-compra" type="text" class="form-control " placeholder="Opcional"
                   v-model="orden_de_compra" :maxlength="max_length" />
-                <span v-if="orden_de_compra" class="input-group-text input-group-text-alt">{{ max_length - orden_de_compra.length
-                }}</span>
-                
+                <span v-if="orden_de_compra" class="input-group-text input-group-text-alt">{{ max_length -
+                  orden_de_compra.length
+                  }}</span>
+
               </div>
             </div>
           </div>
@@ -541,15 +542,15 @@
 
                 <textarea id="nota-cliente" class="form-control" rows="3" :maxlength="max_length_nota"
                   v-model.trim="nota_cliente"></textarea>
-                <span v-if="nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota - nota_cliente.length
-                }}</span>
+                <span v-if="nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota -
+                  nota_cliente.length
+                  }}</span>
               </div>
             </div>
             <!-- Nota interna -->
             <div class="col-12 col-lg-6">
               <label for="nota-interna" class="form-label">Nota interna</label>
-              <textarea id="nota-interna" class="form-control " rows="3"
-                v-model.trim="nota_interna"></textarea>
+              <textarea id="nota-interna" class="form-control " rows="3" v-model.trim="nota_interna"></textarea>
             </div>
           </div>
 
@@ -567,7 +568,7 @@
               </button>
 
               <button type="button" class="btn btn-warning" v-if="store.state.cotizacion_serial"
-                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock && btnDisabledStore)"
+                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock && btnDisabledStore && btnStoreOrder)"
                 @click="confirmGuardarPedido">
                 Guardar Pedido
               </button>
@@ -1541,7 +1542,9 @@ function limpiarCotizacion() {
 
 }
 
+const btnStoreOrder = ref(true);
 function confirmGuardarPedido() {
+  btnStoreOrder.value = false;
   toast
     .fire({
       title: "Estás seguro?",
@@ -1608,6 +1611,7 @@ function guardarPedido() {
     store.dispatch('guardarPedido', infopedido).then((res) => {
       templateStore.pageLoader({ mode: "off" });
       swalSuccess(res.data.message);
+      btnStoreOrder.value = true;
       router.push({
         name: 'ventas-pedidos'
       })
