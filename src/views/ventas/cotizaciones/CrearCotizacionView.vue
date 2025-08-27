@@ -529,7 +529,7 @@
                   v-model="orden_de_compra" :maxlength="max_length" />
                 <span v-if="orden_de_compra" class="input-group-text input-group-text-alt">{{ max_length -
                   orden_de_compra.length
-                  }}</span>
+                }}</span>
 
               </div>
             </div>
@@ -544,7 +544,7 @@
                   v-model.trim="nota_cliente"></textarea>
                 <span v-if="nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota -
                   nota_cliente.length
-                  }}</span>
+                }}</span>
               </div>
             </div>
             <!-- Nota interna -->
@@ -1618,11 +1618,13 @@ function guardarPedido() {
     })
       .catch(err => {
         templateStore.pageLoader({ mode: "off" });
+        btnStoreOrder.value = true;
         swalError(err.response.data.error)
       });
   })
     .catch(err => {
       templateStore.pageLoader({ mode: "off" });
+      btnStoreOrder.value = true;
       swalError(err.response.data.error)
     });
   // }, Math.floor(Math.random() * 2000));
