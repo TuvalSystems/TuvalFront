@@ -1568,6 +1568,8 @@ function confirmGuardarPedido() {
     .then((result) => {
       if (result.value) {
         guardarPedido()
+      }else{
+        btnStoreOrder.value = true;
       }
     });
 }
