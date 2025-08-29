@@ -125,9 +125,9 @@
                         <td class="fs-sm fw-medium text-muted mb-0 text-right"
                           style="width: 7rem;justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockTransito)">
-                            <!-- <code>{{ row.stockTransito.bodega_destino }} - {{ row.stockTransito.transito }}<br></code> -->
-                            <code v-for="stock in row.stockTransito"
-                              :key="stock.STO_ART_BODEGA">{{ stock.bodega }} - {{ stock.pendiente }}<br></code>
+                            <code>{{ row.stockTransito.bodega }} - {{ row.stockTransito.pendiente }}<br></code>
+                            <!-- <code v-for="stock in row.stockTransito"
+                              :key="stock.STO_ART_BODEGA">{{ stock.bodega }} - {{ stock.pendiente }}<br></code> -->
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockTransito & !row.loading2)">
                             <button class="btn btn-sm btn-warning" @click="consultarStockTransito(row)"><i
@@ -417,7 +417,7 @@ function consultarStockTransito(articulo) {
   })
 
   store.dispatch('consultaStockTransito', consulta).then(res => {
-    articulo.stockTransito = res.data.transito;
+    articulo.stockTransito = res.data;
     articulo.loading2 = false;
   });
 }
