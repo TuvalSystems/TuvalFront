@@ -29,7 +29,7 @@ const flatPickrState = reactive({
 // Columnas de la tabla  
 const columns = [
   {
-    label: "#Guia",
+    label: "Guia",
     key: "GUI_REM_GUIA_REMISION",
     sortable: true,
     clickable: true,
@@ -37,7 +37,7 @@ const columns = [
     width: "8.600rem",
   },
   {
-    label: "#Pedido",
+    label: "Pedido",
     key: "pedido",
     sortable: true,
     clickable: false,
@@ -47,7 +47,7 @@ const columns = [
     tdClass: "d-none d-md-table-cell",
   },
   {
-    label: "#Factura",
+    label: "Factura",
     key: "GUI_REM_NUME_DOCU_SUSTENTO",
     sortable: true,
     clickable: false,
@@ -58,7 +58,18 @@ const columns = [
     // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
   },
   {
-    label: "#Despacho",
+    label: "AUTORIZADO POR.",
+    key: "USERID",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "1.600rem",
+    thClass: "d-none d-md-table-cell text-center",
+    tdClass: "d-none d-md-table-cell text-center",
+    // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
+  },
+  {
+    label: "Despacho",
     key: "pedido_despacho",
     sortable: true,
     clickable: false,
@@ -68,7 +79,7 @@ const columns = [
     tdClass: "d-none d-md-table-cell",
   },
   {
-    label: "#Orden",
+    label: "Orden",
     key: "orden",
     sortable: true,
     clickable: true,
