@@ -57,17 +57,7 @@ const columns = [
     tdClass: "d-none d-md-table-cell",
     // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
   },
-  {
-    label: "AUTORIZADO POR.",
-    key: "USERID",
-    sortable: true,
-    clickable: false,
-    render: (value) => value,
-    width: "1.600rem",
-    thClass: "d-none d-md-table-cell text-center",
-    tdClass: "d-none d-md-table-cell text-center",
-    // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
-  },
+
   {
     label: "Despacho",
     key: "pedido_despacho",
@@ -125,6 +115,17 @@ const columns = [
     width: "4rem",
     thClass: "d-none d-md-table-cell",
     tdClass: "d-none d-md-table-cell",
+  },
+    {
+    label: "generado por",
+    key: "USERID",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "1.600rem",
+    thClass: "d-none d-md-table-cell text-center",
+    tdClass: "d-none d-md-table-cell text-center",
+    // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
   },
 ];
 

@@ -37,6 +37,7 @@ const columns = [
     render: (value) => value,
     width: "8.625rem",
   },
+    
   {
     label: "#Destino",
     key: "bodega_destino",
@@ -82,6 +83,17 @@ const columns = [
   {
     label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false, thClass: "d-none d-md-table-cell",
     tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "generado por",
+    key: "USERID",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "1.600rem",
+    thClass: "d-none d-md-table-cell text-center",
+    tdClass: "d-none d-md-table-cell text-center",
+    // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
   },
 ];
 
