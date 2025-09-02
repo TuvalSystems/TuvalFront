@@ -266,9 +266,7 @@ function buscarDocumento(){
       loadingDoc.value = false;
     return;
   }
-  store.dispatch('transferenciasReposicionDocumento', buscardocumento.value).then((res) => {
-    console.log(res);
-    
+  store.dispatch('transferenciasReposicionDocumento', buscardocumento.value).then((res) => {    
     transferencias_reposicion.value[route.params.id].traslados = res;
     if (transferencias_reposicion.value[route.params.id].traslados.length > 0) {
       loadingDoc.value = false;

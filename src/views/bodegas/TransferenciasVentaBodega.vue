@@ -276,7 +276,6 @@ const currentBodega = ref(null);
 
 
 
-console.log(route.params.id);
 
 store.dispatch('getTransportistas');
 

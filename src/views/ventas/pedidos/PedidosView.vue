@@ -707,8 +707,8 @@ function facturarpedido(pedido) {
     llenarpedidos('todos');
   }).catch(err => {
     errorMsg.value = err.response.data.error
+    swalError(errorMsg.value);
   });
-
 }
 
 function motivoEspera(pedido) {
