@@ -164,15 +164,17 @@
                           {{ row.estado }}
                         </a>
                         <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill" :class="row.aprobado_comercial_mensaje ? 'pointer bg-danger-light text-danger' : '' || row.estado == 'aprobado' ? 'bg-success-light text-success'
-                              : '' || row.estado == 'rechazado'? 'bg-danger-light text-danger' : '' || row.estado == 'caducado'? 'bg-danger-light text-danger'
-                                  : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''" @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : '' ">{{ row.estado }}
+                          : '' || row.estado == 'rechazado' ? 'bg-danger-light text-danger' : '' || row.estado == 'caducado' ? 'bg-danger-light text-danger'
+                            : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''"
+                          @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : ''">{{
+                          row.estado }}
                         </span>
                       </td>
                       <td>
-                      
-                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1" 
-                           :class="getReminderClass(row)"
-                           @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''" >
+
+                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1"
+                          :class="getReminderClass(row)"
+                          @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''">
                           {{ row.recordatorioventa == 1 ? "Si" : "No" }}
                         </span>
                       </td>
@@ -219,11 +221,10 @@
                           @click="imprimircotizacionimagenes(row)">
                           <i class="fa fa-print"></i>
                         </button>
-                        <!-- <button
-                        v-if="row.facturar == 'yes' && row.estado != 'procesado'"
-                        type="button" class="btn btn-danger btn-sm mx-1" title="Procesar cotización" @click="confirmfacturar(row)">
-                        <i class="fa fa-file-invoice-dollar"></i>
-                      </button> -->
+                        <button type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
+                          @click="vistaSolicitudReserva(row)">
+                          <i class="fa fa fa-box-archive"></i>
+                        </button>
                       </td>
                     </tr>
                   </template>
@@ -267,7 +268,8 @@
     ref="verNoVentaModal">
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta" @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
+        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta"
+          @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
       </div>
     </div>
   </div>
@@ -520,6 +522,14 @@ function volverapedir(cotizacion) {
     });
 }
 
+function vistaSolicitudReserva(cotizacion) {
+   templateStore.pageLoader({ mode: "on" });
+   router.push({
+     name: "ventas-solicitudreserva",
+     params: { id: cotizacion.id },
+   });
+}
+
 function levantarcliente(pedido) {
   store.commit("resetCotizacion");
   levantarClienteModalObj.show();
@@ -604,9 +614,9 @@ function showModalNoVenta(row) {
     datosModalNoVenta.value = {
       id: row.id,
       motivo_id: row.cotizacion_venta_motivo_id,
-      recordar : row.recordar,
-      observacion : row.observacion,
-      fecha_recordatorio : row.fecha_recordatorio,
+      recordar: row.recordar,
+      observacion: row.observacion,
+      fecha_recordatorio: row.fecha_recordatorio,
       cotizacion: row.cotizacion
     }
     nextTick(() => {
@@ -615,19 +625,19 @@ function showModalNoVenta(row) {
   });
 }
 
-function getReminderClass(row){  
+function getReminderClass(row) {
   if (row.recordatorioventa == 0) {
     if (row.cotizacion_venta_motivo_id != null || row.recordar == 1) {
       return 'bg-success-light text-success'
     } else {
       return 'bg-warning-light text-warning'
     }
-    
-  }else if(row.recordatorioventa == 1){
-      return 'bg-info-light text-info'
+
+  } else if (row.recordatorioventa == 1) {
+    return 'bg-info-light text-info'
   }
-  
-  
+
+
   return 'bg-danger-light text-danger';
 }
 
@@ -648,8 +658,8 @@ onMounted(() => {
   selectLength.classList = "";
   selectLength.classList.add("form-select");
   selectLength.style.width = "80px";
-   if (motivoStore.motivos.length == 0) {
-        motivoStore.fetchMotivos()
-    }
+  if (motivoStore.motivos.length == 0) {
+    motivoStore.fetchMotivos()
+  }
 });
 </script>

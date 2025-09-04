@@ -26,6 +26,7 @@ const VentasCotizaciones = () =>
   import("@/views/ventas/cotizaciones/CotizacionesView.vue");
 const VentasPedidos = () => import("@/views/ventas/pedidos/PedidosView.vue");
 const VentasConsultas = () => import("@/views/ventas/ConsultasView.vue");
+const SolicitarReserva = () => import("@/views/ventas/cotizaciones/reservas/SolicitudReservaInventario.vue");
 const VentasCrearCliente = () =>
   import("@/views/ventas/cotizaciones/CrearClienteView.vue");
 
@@ -195,6 +196,12 @@ const routes = [
           title: "Ventas - Consultas",
         },
       },
+      {
+        path: "/reservas/:id",
+        name: "ventas-solicitudreserva",
+        component: SolicitarReserva,
+        props: true,
+      }
     ],
   },
   {
