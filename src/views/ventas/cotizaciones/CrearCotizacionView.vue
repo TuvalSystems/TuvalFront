@@ -109,6 +109,18 @@
                   <td class="fs-sm" :class="parseFloat(currentCliente.cupo_disponible) < 0 ? 'text-danger' : ''">
                     ${{ currentCliente.cupo_disponible }}</td>
                 </tr>
+                <tr v-if="segmentocliente && segmentocliente.data &&
+                  Object.keys(segmentocliente.data).length">
+                  <th>Segmento</th>
+                  <td>{{ segmentocliente.data.segmento }}</td>
+                  <th>Subsegmento</th>
+                  <td colspan="3">{{ segmentocliente.data.subsegmento }}</td>
+                </tr>
+                <tr v-else>
+                  <td colspan="6" class="text-muted">
+                    Sin segmento para este cliente
+                  </td>
+                </tr>
 
               </tbody>
             </table>
@@ -779,6 +791,8 @@ const flatPickrState = reactive({
   monthSelectorType: "static",
   locale: Spanish,
 });
+
+const segmentocliente = computed(() => store.state.segmentocliente);
 
 
 
@@ -1568,7 +1582,7 @@ function confirmGuardarPedido() {
     .then((result) => {
       if (result.value) {
         guardarPedido()
-      }else{
+      } else {
         btnStoreOrder.value = true;
       }
     });
