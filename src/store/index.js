@@ -171,6 +171,10 @@ const store = createStore({
       loading: false,
       data: {},
     },
+    segmentocliente: {
+      loading: false,
+      data: {},
+    },
     detallecotizacion: {
       loading: false,
       data: {},
@@ -986,6 +990,8 @@ const store = createStore({
         commit("setDetallePedido", res.data);
         commit("setEstadoDeCuentaLoading", false);
         commit("setEstadoDeCuenta", res.data.estadodecuenta);
+        commit("setSegmentoClienteLoading", false);
+        commit("setSegmentoCliente", res.data.segmento);
         return res;
       });
     },
@@ -1044,6 +1050,8 @@ const store = createStore({
           commit("setDetalleCotizacion", res.data.detalle);
           commit("setEstadoDeCuentaLoading", false);
           commit("setEstadoDeCuenta", res.data.estadodecuenta);
+          commit("setSegmentoClienteLoading", false);
+          commit("setSegmentoCliente", res.data.segmento);
           return res;
         });
     },
@@ -1872,6 +1880,8 @@ const store = createStore({
         .then((res) => {
           commit("setDetalleDevolucionLoading", false);
           commit("setDetalleDevolucion", res.data);
+          commit("setSegmentoClienteLoading", false);
+          commit("setSegmentoCliente", res.data.segmento);
           return res;
         });
     },
@@ -2329,6 +2339,12 @@ const store = createStore({
     },
     setEstadoDeCuenta: (state, detalle) => {
       state.estadodecuenta.data = detalle;
+    },
+    setSegmentoCliente: (state, data) => {
+      state.segmentocliente.data = data;
+    },
+    setSegmentoClienteLoading: (state, loading) => {
+      state.segmentocliente.loading = loading;
     },
     setFacturasLoading: (state, loading) => {
       state.facturas.loading = loading;

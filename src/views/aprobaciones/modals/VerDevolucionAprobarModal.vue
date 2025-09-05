@@ -12,7 +12,7 @@
     </template>
     <template #content>
       <div class="block-content fs-sm ">
-        <CabeceraDevolucion :verdevolucion="verdevolucion"></CabeceraDevolucion>
+        <CabeceraDevolucion :verdevolucion="verdevolucion" :segmentocliente="segmentocliente"></CabeceraDevolucion>
         <DetalleDevolucion></DetalleDevolucion>
       </div>
     </template>
@@ -35,11 +35,15 @@
   </div>
 </template>
 <script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 import CabeceraDevolucion from "@/components/CabeceraDevolucion.vue";
 import DetalleDevolucion from "@/components/DetalleDevolucion.vue";
 const { verdevolucion } = defineProps({
   verdevolucion: Object,
 })
 const emit = defineEmits(["aprobar", "rechazar"]);
+const store = useStore();
+const segmentocliente = computed(() => store.state.segmentocliente);
 
 </script>

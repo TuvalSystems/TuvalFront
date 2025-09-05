@@ -57,6 +57,18 @@
                   {{ verpedido.created_at }}
                 </td>
               </tr>
+                <tr v-if="segmentocliente &&  segmentocliente.data &&
+                Object.keys(segmentocliente.data).length">
+                <th>Segmento</th>
+                <td>{{ segmentocliente.data.segmento }}</td>
+                <th>Subsegmento</th>
+                <td colspan="3">{{ segmentocliente.data.subsegmento }}</td>
+              </tr>
+              <tr v-else>
+                <td colspan="6" class="text-muted">
+                  Sin segmento para este cliente
+                </td>
+              </tr>
             </tbody>
           </table>
       
@@ -246,6 +258,7 @@ const { verpedido, indexPedido, tipo } = defineProps({
 const store = useStore();
 const detallepedido = computed(() => store.state.detallepedido);
 const estadodecuenta = computed(() => store.state.estadodecuenta);
+const segmentocliente = computed(() => store.state.segmentocliente);
 
 
 function guardarMensaje(pedido){
