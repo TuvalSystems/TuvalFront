@@ -167,7 +167,7 @@
                           : '' || row.estado == 'rechazado' ? 'bg-danger-light text-danger' : '' || row.estado == 'caducado' ? 'bg-danger-light text-danger'
                             : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''"
                           @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : ''">{{
-                          row.estado }}
+                            row.estado }}
                         </span>
                       </td>
                       <td>
@@ -222,7 +222,7 @@
                           <i class="fa fa-print"></i>
                         </button>
                         <button type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
-                          @click="vistaSolicitudReserva(row)">
+                          @click="verModalReserva(row)">
                           <i class="fa fa fa-box-archive"></i>
                         </button>
                       </td>
@@ -273,6 +273,20 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de reserva -->
+  <div class="modal" id="modal-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-reserva" aria-hidden="true"
+    ref="verReservaModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <VerReservaModalComponent v-if="datosModalReserva && datosModalReserva.id" :datosReserva="datosModalReserva"
+          @actualizarEstado="llenarcotizaciones('pendientes')"></VerReservaModalComponent>
+      </div>
+    </div>
+  </div>
+
+
+
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from "vue";
@@ -295,7 +309,10 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { formatPrice, format } from "@/functions";
 import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
+import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
+import VerReservaModalComponent from "../modals/verReservaModal.vue";
 const motivoStore = useMotivosStore()
+const tipoReservasStore = useTipoReservasStore()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -422,6 +439,36 @@ async function funcionvercotizacion(cotizacion, index) {
   store.dispatch("detallecotizacion", cotizacion);
 }
 
+
+
+let verReservaModal = ref(null);
+let verReservaModalObj = null;
+let datosModalReserva = ref({});
+async function verModalReserva(row) {
+  datosModalReserva.value = null
+  nextTick(() => {
+    datosModalReserva.value = {
+      id: row.id,
+      cotizacion: row.cotizacion,
+      pto_venta: row.BOD_BODEGA,
+      razon_social: row.CLI_RAZON_SOCIAL,
+      fecha: row.created_at,
+      total: row.total,
+      co_tipSolResInv: row.co_tipSolResInv,
+      co_tipTrasResInv: row.co_tipTrasResInv,
+      fe_solResInv: row.fe_solResInv,
+      st_solResInv: row.st_solResInv,
+      tx_obsSolResInv: row.tx_obsSolResInv,
+    }
+     nextTick(() => {
+       verReservaModalObj.show();
+    })
+  })
+
+
+
+}
+
 function motivoEspera(cotizacion) {
   let msg = "La cotización requiere ";
   if (cotizacion.requiere_aprobacion_comercial === "yes") {
@@ -523,11 +570,11 @@ function volverapedir(cotizacion) {
 }
 
 function vistaSolicitudReserva(cotizacion) {
-   templateStore.pageLoader({ mode: "on" });
-   router.push({
-     name: "ventas-solicitudreserva",
-     params: { id: cotizacion.id },
-   });
+  templateStore.pageLoader({ mode: "on" });
+  router.push({
+    name: "ventas-solicitudreserva",
+    params: { id: cotizacion.id },
+  });
 }
 
 function levantarcliente(pedido) {
@@ -645,6 +692,7 @@ function getReminderClass(row) {
 
 onMounted(() => {
   vercotizacionModalObj = new Modal(vercotizacionModal.value);
+  verReservaModalObj = new Modal(verReservaModal.value);
   levantarClienteModalObj = new Modal(levantarClienteModal.value);
   verNoVentaModalObj = new Modal(verNoVentaModal.value);
   // Remove labels from
@@ -661,5 +709,9 @@ onMounted(() => {
   if (motivoStore.motivos.length == 0) {
     motivoStore.fetchMotivos()
   }
+  if (tipoReservasStore.tipoReservas.length == 0) {
+    tipoReservasStore.fetchListTypeReserved()
+  }
+
 });
 </script>
