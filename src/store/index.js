@@ -1141,6 +1141,7 @@ const store = createStore({
           commit("resetRegistroCopia");
           commit("setCondicionPago", cotizacion);
           commit("setCurrentTest", res.data.test);
+          commit("setSegmentoCliente", res.data.segmento);
         });
     },
     recuperarCotizacionProspecto({ commit }, cotizacion) {
@@ -1238,6 +1239,7 @@ const store = createStore({
           commit("setRegistroCopia", res.data.registro_copia);
           commit("setCondicionPago", cotizacion);
           commit("setCurrentTest", res.data.test);
+          commit("setSegmentoCliente", res.data.segmento);
         });
     },
     llenarcotizacionProspecto({ commit }, cotizacion) {
@@ -1275,6 +1277,7 @@ const store = createStore({
           commit("setCurrentSucursal", res.data.currentSucursal);
           commit("setCondicionPagoSinPrint", pedido);
           commit("setCurrentTest", res.data.test);
+          commit("setSegmentoCliente", res.data.segmento);
         });
     },
     copiarPedido({ commit }, data) {
@@ -1284,6 +1287,7 @@ const store = createStore({
         commit("setRegistroCopia", res.data.registro_copia);
         commit("setCurrentSucursal", res.data.currentSucursal);
         commit("setCurrentTest", res.data.test);
+        commit("setSegmentoCliente", res.data.segmento);
       });
     },
     cancelarPedido({ commit }, pedido) {
