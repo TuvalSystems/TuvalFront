@@ -311,6 +311,7 @@ import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
 import VerReservaModalComponent from "../modals/verReservaModal.vue";
+import { daysSince, daysBetweenRaw } from '@/composables/venta/cotizaciones/reservas/useDaysBetween'
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
 
@@ -569,13 +570,13 @@ function volverapedir(cotizacion) {
     });
 }
 
-function vistaSolicitudReserva(cotizacion) {
-  templateStore.pageLoader({ mode: "on" });
-  router.push({
-    name: "ventas-solicitudreserva",
-    params: { id: cotizacion.id },
-  });
-}
+// function vistaSolicitudReserva(cotizacion) {
+//   templateStore.pageLoader({ mode: "on" });
+//   router.push({
+//     name: "ventas-solicitudreserva",
+//     params: { id: cotizacion.id },
+//   });
+// }
 
 function levantarcliente(pedido) {
   store.commit("resetCotizacion");

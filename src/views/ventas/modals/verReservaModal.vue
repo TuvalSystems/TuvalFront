@@ -3,8 +3,12 @@ import { watch, reactive, onMounted } from 'vue';
 import { formatPrice, formatPrice4 } from "@/functions";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { useReservedQuotation } from '@/composables/venta/cotizaciones/reservas/useReservedQuotation';
+import { storeToRefs } from 'pinia'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore';
+import { useReservedQuotation } from '@/composables/venta/cotizaciones/reservas/useReservedQuotation';
+
+const tipoReservasStore = useTipoReservasStore()
+const { tipoReservas, loading, error } = storeToRefs(tipoReservasStore)
 
 const emit = defineEmits(['actualizarEstado']);
 const props = defineProps({
@@ -16,9 +20,9 @@ const flatPickrState = reactive({
         locale: Spanish,
     },
 });
+console.log(useTipoReservasStore.tipoReservas);
 
-const {   reserva, solicitarReserva } = useReservedQuotation(props.datosReserva, useTipoReservasStore.tipoReservas)
-const tipoReservasStore = useTipoReservasStore()
+const {   reserva, solicitarReserva, reservedValidation } = useReservedQuotation(props.datosReserva, tipoReservas)
 
 
 
@@ -149,7 +153,7 @@ onMounted(() => {
     <div class="block-content block-content-full bg-body">
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary btn-sm" @click="solicitarReserva">Reservar</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="solicitarReserva" :disabled="reservedValidation" >Reservar</button>
         </div>
     </div>
 </template>
