@@ -280,7 +280,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">
         <VerReservaModalComponent v-if="datosModalReserva && datosModalReserva.id" :datosReserva="datosModalReserva"
-          @actualizarEstado="llenarcotizaciones('pendientes')"></VerReservaModalComponent>
+          @modalReservaHide="modalReservaHide()"></VerReservaModalComponent>
       </div>
     </div>
   </div>
@@ -311,7 +311,6 @@ import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
 import VerReservaModalComponent from "../modals/verReservaModal.vue";
-import { daysSince, daysBetweenRaw } from '@/composables/venta/cotizaciones/reservas/useDaysBetween'
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
 
@@ -444,30 +443,37 @@ async function funcionvercotizacion(cotizacion, index) {
 
 let verReservaModal = ref(null);
 let verReservaModalObj = null;
-let datosModalReserva = ref({});
+let datosModalReserva = ref(null);
 async function verModalReserva(row) {
+  if (row.st_solResInv == 'P') {
+      swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
+      return
+  }
+  const payload = {
+    id: row.id,
+    cotizacion: row.cotizacion,
+    pto_venta: row.BOD_BODEGA,
+    razon_social: row.CLI_RAZON_SOCIAL,
+    fecha: row.created_at,
+    total: row.total,
+    co_TipSolResInv: row.co_TipSolResInv ?? null,
+    co_tipTrasResInv: row.co_tipTrasResInv ?? null,
+    fe_solResInv: row.fe_solResInv ?? null,
+    st_solResInv: row.st_solResInv ?? null,
+    tx_obsSolResInv: row.tx_obsSolResInv ?? null,
+  };
+  datosModalReserva.value = null;
+  await nextTick();
+  datosModalReserva.value = payload;
+  await nextTick();
+  verReservaModalObj?.show();
+
+}
+
+async function modalReservaHide() {
+  verReservaModalObj?.hide();
+  llenarcotizaciones('pendientes');
   datosModalReserva.value = null
-  nextTick(() => {
-    datosModalReserva.value = {
-      id: row.id,
-      cotizacion: row.cotizacion,
-      pto_venta: row.BOD_BODEGA,
-      razon_social: row.CLI_RAZON_SOCIAL,
-      fecha: row.created_at,
-      total: row.total,
-      co_tipSolResInv: row.co_tipSolResInv,
-      co_tipTrasResInv: row.co_tipTrasResInv,
-      fe_solResInv: row.fe_solResInv,
-      st_solResInv: row.st_solResInv,
-      tx_obsSolResInv: row.tx_obsSolResInv,
-    }
-     nextTick(() => {
-       verReservaModalObj.show();
-    })
-  })
-
-
-
 }
 
 function motivoEspera(cotizacion) {
@@ -570,13 +576,6 @@ function volverapedir(cotizacion) {
     });
 }
 
-// function vistaSolicitudReserva(cotizacion) {
-//   templateStore.pageLoader({ mode: "on" });
-//   router.push({
-//     name: "ventas-solicitudreserva",
-//     params: { id: cotizacion.id },
-//   });
-// }
 
 function levantarcliente(pedido) {
   store.commit("resetCotizacion");

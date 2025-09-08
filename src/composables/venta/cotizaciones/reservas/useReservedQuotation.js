@@ -1,66 +1,85 @@
 import axiosClient from "@/axios";
-import axios from "axios";
 import { ref, onUnmounted, reactive, computed, watch } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
-import {
-  daysSince,
-  daysBetweenRaw,
-} from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
+import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
 export function useReservedQuotation(cotizacion, tipoReservas = []) {
   const reservedValidation = ref(false);
   const reserva = reactive({
     id: null,
-    co_tipSolResInv: null,
+    co_TipSolResInv: null,
     co_tipTrasResInv: null,
     fe_solResInv: null,
     tx_obsSolResInv: null,
   });
 
-  const selectTypeReserva = computed(() => {
-    tipoReservas.find((tipo) => tipo.id == reserva.co_tipSolResInv);
-  });
-  // console.log(selectTypeReserva);
-
-  // const isValidDate = computed(() => {
-  //   const numDay = daysSince(reserva.fe_solResInv);
-  //   if (numDay >= selectTypeReserva.dias_max_reserva) {
-  //     swalError(
-  //       `La reserva no puede ser mayor a ${selectTypeReserva.dias_max_reserva} dias`
-  //     );
-  //     return false;
-  //   } else {
-  //     return true;
-  //   }
-  // });
+  function resetForm() {
+    reserva.id = null;
+    reserva.co_TipSolResInv = null;
+    reserva.co_tipTrasResInv = null;
+    reserva.fe_solResInv = null;
+    reserva.tx_obsSolResInv = null;
+  }
 
   watch(
-    () => reserva.co_tipSolResInv,
-    (typeR) => {
-      if (!typeR)return
-   
+    [() => reserva.co_TipSolResInv, () => reserva.fe_solResInv],
+    ([typeR, fecha], [oldTypeR, oldFecha]) => {
+      if (!typeR || !fecha) {
+        reservedValidation.value = false;
+        return;
+      }
       const newTypeReserved = tipoReservas.value.find((m) => m.id == typeR);
-      
-      const numDay = daysSince(reserva.fe_solResInv);
-      console.log(numDay,'numDay', newTypeReserved.dias_max_reserva,'dias_max_reserva');
+      if (!newTypeReserved) return;
+      const numDay = Math.max(0, daysUntil(reserva.fe_solResInv)); // para que no sea numero negativo aunque se puede quitar es opcional ya que desde el inicio la fecha minima es la fecha del dia de hoy
+
+      const limit = newTypeReserved.dias_max_reserva;
+      const d = limit === 1 ? "dia" : "dias";
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() + limit);
+      const maxStr = maxDate.toLocaleDateString("es-EC");
+
       if (numDay >= newTypeReserved.dias_max_reserva) {
         swalError(
-          `La reserva no puede ser mayor a ${newTypeReserved.dias_max_reserva} dias`
+          `La fecha seleccionada excede el límite de ${limit} ${d} permitido para el tipo de reserva seleccionado. ` +
+            `Elija una fecha hasta antes de ${maxStr}.`
         );
-        reserva.co_tipSolResInv = null;
         reservedValidation.value = true;
+        return;
+      } else {
+        reservedValidation.value = false;
       }
-      reservedValidation.value = false;
-    }
+    },
+    { immediate: false } // pon true si quieres validar también al cargar si ya hay valores
   );
 
-  async function solicitarReserva() {
-    reserva.id = cotizacion.id;
-    console.log(reserva, cotizacion);
-  }
+  const solicitarReserva = async () => {
+    reservedValidation.value = true;
+    try {
+      const response = await axiosClient.post(
+        "/cotizaciones/reserva/guardar-solicitud-reserva",
+        {
+          reserva: reserva,
+        }
+      );
+      reservedValidation.value = true;
+      if (response.status === 200) {
+        resetForm();
+        swalSuccess("Reserva solicitada correctamente");
+        reservedValidation.value = false;
+        return true;
+      }
+    } catch (error) {
+      reservedValidation.value = false;
+      swalError(error.response?.data?.error || error.message);
+      return false;
+    }
+    reservedValidation.value = false;
+    return false;
+  };
 
   return {
     reserva,
     solicitarReserva,
     reservedValidation,
+    resetForm,
   };
 }

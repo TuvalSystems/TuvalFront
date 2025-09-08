@@ -86,6 +86,11 @@ export function daysSince(fechaStr, inclusivo = false) {
   return inclusivo ? base + 1 : base
 }
 
+export function daysUntil(fechaStr, inclusivo = false) {
+  const base = diffDays(new Date(), parseYmdOrLaravel(fechaStr))
+  return inclusivo ? base + 1 : base
+}
+
 export function daysBetweenRaw(desdeStr, hastaStr, inclusivo = false) {
   const base = diffDays(parseYmdOrLaravel(desdeStr), parseYmdOrLaravel(hastaStr))
   return inclusivo ? base + 1 : base
