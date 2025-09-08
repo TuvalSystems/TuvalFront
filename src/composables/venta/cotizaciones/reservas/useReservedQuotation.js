@@ -6,7 +6,7 @@ export function useReservedQuotation(cotizacion, tipoReservas = []) {
   const reservedValidation = ref(false);
   const reserva = reactive({
     id: null,
-    co_TipSolResInv: null,
+    co_tipSolResInv: null,
     co_tipTrasResInv: null,
     fe_solResInv: null,
     tx_obsSolResInv: null,
@@ -14,14 +14,14 @@ export function useReservedQuotation(cotizacion, tipoReservas = []) {
 
   function resetForm() {
     reserva.id = null;
-    reserva.co_TipSolResInv = null;
+    reserva.co_tipSolResInv = null;
     reserva.co_tipTrasResInv = null;
     reserva.fe_solResInv = null;
     reserva.tx_obsSolResInv = null;
   }
 
   watch(
-    [() => reserva.co_TipSolResInv, () => reserva.fe_solResInv],
+    [() => reserva.co_tipSolResInv, () => reserva.fe_solResInv],
     ([typeR, fecha], [oldTypeR, oldFecha]) => {
       if (!typeR || !fecha) {
         reservedValidation.value = false;

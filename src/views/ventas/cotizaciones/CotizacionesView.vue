@@ -445,7 +445,7 @@ let verReservaModal = ref(null);
 let verReservaModalObj = null;
 let datosModalReserva = ref(null);
 async function verModalReserva(row) {
-  if (row.st_solResInv == 'P') {
+  if (row.st_solResInv == 'pendiente') {
       swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
       return
   }
@@ -456,7 +456,7 @@ async function verModalReserva(row) {
     razon_social: row.CLI_RAZON_SOCIAL,
     fecha: row.created_at,
     total: row.total,
-    co_TipSolResInv: row.co_TipSolResInv ?? null,
+    co_tipSolResInv: row.co_tipSolResInv ?? null,
     co_tipTrasResInv: row.co_tipTrasResInv ?? null,
     fe_solResInv: row.fe_solResInv ?? null,
     st_solResInv: row.st_solResInv ?? null,

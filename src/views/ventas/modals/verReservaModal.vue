@@ -50,7 +50,7 @@ function hydrateReservaForm(row) {
     const fecha = row.value.fe_solResInv ?? null;
     Object.assign(reserva, {
         id: row.value.id ?? null,
-        co_TipSolResInv: row.value.co_TipSolResInv ?? row.value.co_tipSolResInv ?? null,
+        co_tipSolResInv: row.value.co_tipSolResInv ?? row.value.co_tipSolResInv ?? null,
         co_tipTrasResInv: row.value.co_tipTrasResInv ?? null,
         fe_solResInv: fecha ?? null,
         tx_obsSolResInv: row.value.tx_obsSolResInv ?? null,
@@ -144,7 +144,7 @@ onMounted(() => {
                                 <label for="tipoReserva" class="form-label text-muted fs-sm">Tipo de Reserva</label>
                                 <div v-if="tipoReservasStore.loading"> Cargando motivos...</div>
                                 <select v-else id="tipoReserva" class="form-select form-select-sm"
-                                    v-model="reserva.co_TipSolResInv">
+                                    v-model="reserva.co_tipSolResInv">
                                     <option disabled value="">Seleccione…</option>
                                     <option v-for="(tipo, index) in tipoReservasStore.tipoReservas" :key="index"
                                         :value="tipo.id">
