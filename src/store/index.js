@@ -521,6 +521,8 @@ const store = createStore({
     },
     cupoDisponible({ commit }, ruc) {
       return axiosClient.get("/consultas/cupodisponible/" + ruc).then((res) => {
+        commit("setSegmentoClienteLoading", false);
+        commit("setSegmentoCliente", res.data.segmento);
         return res.data.cliente;
       });
     },
