@@ -311,8 +311,10 @@ import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
 import VerReservaModalComponent from "../modals/verReservaModal.vue";
+import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
+const { fetchResponseHaveItemL, fetchResponseHaveStatusQuotation } = useValidatesReserved()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -445,9 +447,21 @@ let verReservaModal = ref(null);
 let verReservaModalObj = null;
 let datosModalReserva = ref(null);
 async function verModalReserva(row) {
+  let resp;
+  try {
+    resp = await fetchResponseHaveItemL(row.id);
+  } catch {
+    return; // si la validación falló, no abras el modal
+  }
+
+  if (resp?.exists) {
+    swalError(resp?.message || 'No puede realizar la reserva: la cotización tiene un ítem tipo L');
+    return;
+  }
+
   if (row.st_solResInv == 'pendiente') {
-      swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
-      return
+    swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
+    return
   }
   const payload = {
     id: row.id,
@@ -521,7 +535,18 @@ async function llenarcotizaciones(estado) {
     });
 }
 
-function recuperarcotizacion(cotizacion) {
+async function recuperarcotizacion(cotizacion) {
+  let respRes;
+  try {
+    respRes = await fetchResponseHaveStatusQuotation(cotizacion.id);
+  } catch {
+    return;
+  }
+  if (respRes?.exists) {
+    swalError('No puede recuperar la cotización: la cotización cuenta con una reserva  ');
+    return;
+  }
+
   templateStore.pageLoader({ mode: "on" });
   store
     .dispatch("recuperarCotizacion", cotizacion)
@@ -561,7 +586,17 @@ function recuperarcotizacionprospecto(cotizacion) {
   });
 }
 
-function volverapedir(cotizacion) {
+async function volverapedir(cotizacion) {
+  let respRes;
+  try {
+    respRes = await fetchResponseHaveStatusQuotation(cotizacion.id);
+  } catch {
+    return;
+  }
+  if (respRes?.exists) {
+    swalError('No puede volver a pedir la cotización ya que cuenta con una reserva');
+    return;
+  }
   templateStore.pageLoader({ mode: "on" });
   store
     .dispatch("volverapedirCotizacion", cotizacion)
@@ -577,7 +612,18 @@ function volverapedir(cotizacion) {
 }
 
 
-function levantarcliente(pedido) {
+async function levantarcliente(pedido) {
+  let respRes;
+  try {
+    respRes = await fetchResponseHaveStatusQuotation(pedido.id);
+  } catch {
+    return;
+  }
+  if (respRes?.exists) {
+    swalError('No puede copiar la cotización ya que cuenta con una reserva');
+    return;
+  }
+
   store.commit("resetCotizacion");
   levantarClienteModalObj.show();
   vercotizacion.value = pedido;

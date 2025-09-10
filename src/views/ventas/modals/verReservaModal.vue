@@ -55,8 +55,6 @@ function hydrateReservaForm(row) {
         fe_solResInv: fecha ?? null,
         tx_obsSolResInv: row.value.tx_obsSolResInv ?? null,
     });
-    console.log(reserva, 'hydrateReservaForm');
-
 }
 
 watch(
@@ -163,7 +161,7 @@ onMounted(() => {
                                 <label for="obs" class="form-label text-muted fs-sm">Observación</label>
                                 <textarea id="obs" rows="3" class="form-control form-control-sm"
                                     v-model="reserva.tx_obsSolResInv" maxlength="400"
-                                    placeholder="Detalles adicionales (opcional)"></textarea>
+                                    placeholder="Agrega una observación..."></textarea>
                             </div>
                             <div class="text-end text-muted fs-xs">{{ (reserva.tx_obsSolResInv || '').length }}/400
                             </div>

@@ -205,7 +205,6 @@ async function imprimirOrdendespacho(id) {
 
 //funcion de prueba para ver que si funciona la ejecucion de funciones
 const handleClick = ({ row, col }) => {
-  // console.log(row, col, "test si esta llegado sino la falla");
 
   if (col.key === "orden") {
     imprimirOrdendespacho(row.orden_id);
@@ -213,7 +212,6 @@ const handleClick = ({ row, col }) => {
   if (col.key === "GUI_REM_GUIA_REMISION") {
     resetConsult();
     buscarDetalleGuia(row);
-    // alert(row.GUI_REM_GUIA_REMISION);
   }
 };
 

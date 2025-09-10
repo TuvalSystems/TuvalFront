@@ -56,6 +56,8 @@ const AprobacionesCrediticias = () =>
 const AprobacionesDevoluciones = () =>
   import("@/views/aprobaciones/DevolucionesView.vue");
 
+const AprobacionesReservas = () =>
+  import("@/views/aprobaciones/ReservasView.vue");
 // Devoluciones
 
 const DevolucionesPedidos = () =>
@@ -296,6 +298,16 @@ const routes = [
           title: "Aprobaciones - Devoluciones",
         },
       },
+      {
+        path: "reservas",
+        name: "aprobaciones-reservas",
+        component: AprobacionesReservas,
+        meta: {
+          title: "Aprobaciones - Reservas",
+        },
+      },
+
+      
     ],
   },
   {
