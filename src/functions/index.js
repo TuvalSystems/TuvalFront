@@ -98,4 +98,16 @@ export const addDays = (d, qty) =>{
   return someDate;
 }
 
-export default {removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4}
+// new functions
+const toNumber = (v) => {
+  if (v == null || v === '') return null
+  const n = typeof v === 'string' ? Number(v.replace(/[^\d.-]/g, '')) : Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+export const formatPriceJm = (v , locale = 'en-US') => {
+  const n = toNumber(v)
+  return n == null ? null : n.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+export default {removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm}

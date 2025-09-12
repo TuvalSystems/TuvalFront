@@ -57,8 +57,10 @@ export function useFetchQuotationWitDetail() {
   async function fetchDenyApplicationReservedQuotationById(id) {
     loadingDeny.value = true;
     try {
-      const response = await axiosClient.get(
-        `/cotizaciones/reserva/rechazar-solicitud-reserva/${id}`
+      const response = await axiosClient.post(
+        `/cotizaciones/reserva/rechazar-solicitud-reserva`,{ 
+          data : dataSendApproval
+        }
       );
       const res = response.data;
       loadingDeny.value = false;
@@ -83,7 +85,7 @@ export function useFetchQuotationWitDetail() {
       const response = await axiosClient.post(
         `/cotizaciones/reserva/aprobar-solicitud-reserva`,
         {
-          data: dataSendApproval,
+          data :dataSendApproval,
         }
       );
       const res = response.data;

@@ -21,6 +21,7 @@ import { useFetchReservaCotizacion } from "@/composables/aprobaciones/reservas/u
 import { useFetchQuotationWitDetail } from "@/composables/aprobaciones/reservas/useFetchQuotationWitDetail";
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
+import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
 const { table, refresh, fetchItemsAproval, onSort } =
   useFetchReservaCotizacion();
 
@@ -28,8 +29,8 @@ const {
   fetchQuotationWithDetial,
   fetchQuotationWithDetialAndStock,
   loadingDeny,
-  fetchDenyApplicationReservedQuotationById,
 } = useFetchQuotationWitDetail();
+
 const columns = [
   {
     label: "Pto. Venta",
@@ -119,11 +120,11 @@ const estadoClass = (st) => {
   switch (st || "") {
     case "pendiente":
       return "badge bg-dark text-light fw-semibold";
-    case "autorizado":
+    case "aprobado":
       return "badge bg-success  fw-semibold";
-    case "cancelado":
+    case "rechazada":
       return "badge bg-danger  fw-semibold";
-    case "denegado":
+    case "cancelada":
       return "badge bg-warning  fw-semibold";
     case "facturado":
       return "badge bg-success  fw-semibold";
@@ -188,33 +189,43 @@ async function verModalAprobacionReserva(row) {
       datosModalCotizacionAprobacion.value = response.value;
       verDetalleCotizacionAprobacionModalObj.show();
     }
-  } catch (error) {}
-  verDetalleCotizacionAprobacionModalObj.show();
+  } catch (error) {
+    swalError(error.response.data.error);
+  }
+}
+
+async function closeModalAprobacionReserva() {
+  verDetalleCotizacionAprobacionModalObj.hide();
+  datosModalCotizacionAprobacion.value = null;
+  refresh();
 }
 
 /** rechazo de reservca */
-async function rechazarSolicitudReserva(row) {
-  try {
-    const res = await fetchDenyApplicationReservedQuotationById(row.id);
+let verModalRechazarReservaModal = ref(null);
+let verModalRechazarReservaModalObj = null;
 
-    const ok =
-      res?.success === true || res?.status === 200 || res?.status === 204;
-    if (!ok) {
-      throw new Error(res?.message || "No se pudo rechazar la solicitud");
+async function verModalRechazar(row) {
+  try {
+    const response = await fetchQuotationWithDetialAndStock(row.id);
+    if (response) {
+      datosModalCotizacionAprobacion.value = response.value;
+      verModalRechazarReservaModalObj.show();
     }
-    await swalSuccess(res?.message || "Solicitud rechazada");
-    await refresh();
   } catch (error) {
-    const msg =
-      error?.response?.data?.message ??
-      error?.response?.data?.error ??
-      error?.message ??
-      (await swalError(msg));
+    console.log(error);
+    swalError(error.response.data.error);
   }
+}
+
+async function closeModalRechazarReserva() {
+  verModalRechazarReservaModalObj.hide();
+  datosModalCotizacionAprobacion.value = null;
+  refresh();
 }
 
 function ensureModals() {
   verCotizacionDetalleModalObj = new Modal(verCotizacionDetalleModal.value);
+  verModalRechazarReservaModalObj = new Modal(verModalRechazarReservaModal.value);
   verDetalleCotizacionAprobacionModalObj = new Modal(
     verDetalleCotizacionAprobacionModal.value
   );
@@ -244,13 +255,8 @@ onMounted(async () => {
     <BaseBlock title="Aprobaciones Reservas" rounded themed>
       <template #options>
         <div class="block-options-item">
-          <button
-            class="btn btn-outline-success btn-sm"
-            @click="refresh"
-            :disabled="table.loading"
-            title="Refrescar"
-            aria-label="Refrescar"
-          >
+          <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
+            aria-label="Refrescar">
             <i v-if="!table.loading" class="fa fa-refresh"></i>
             <span v-else class="spinner-border spinner-border-sm"></span>
           </button>
@@ -266,29 +272,13 @@ onMounted(async () => {
           </select>
         </div>
         <div class="col-md-4">
-          <input
-            v-model="table.searchTerm"
-            placeholder="Buscar..."
-            class="form-control"
-          />
+          <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
         </div>
       </div>
-      <BaseTable
-        :columns="columns"
-        :data="table.items"
-        :loading="table.loading"
-        :perPage="table.perPage"
-        :totalItems="table.totalItems"
-        :currentPage="table.currentPage"
-        :totalPage="table.totalPage"
-        :sortField="table.sortField"
-        :sortOrder="table.sortOrder"
-        @onSort="onSort"
-        @onPageChange="fetchItemsAproval"
-        @onSearch="table.searchTerm"
-        @onClick="handleClick"
-        :is-row-disabled="isRowDisabled"
-      >
+      <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+        :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
+        :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItemsAproval"
+        @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
         <!-- Slot específico para la columna 'estado' -->
         <template #cell-st_solResInv="{ value, row }">
           <span :class="estadoClass(value)">{{
@@ -299,19 +289,10 @@ onMounted(async () => {
           <span :class="totalClass(value)"> ${{ row.total ?? "N/A" }}</span>
         </template>
         <template #actions="{ row }">
-          <button
-            type="button"
-            class="btn btn-primary btn-sm mx-1"
-            @click="verModalAprobacionReserva(row)"
-          >
+          <button type="button" class="btn btn-primary btn-sm mx-1" @click="verModalAprobacionReserva(row)">
             <i class="fa-solid fa-circle-check me-1"></i> Aprobar
           </button>
-          <button
-            type="button"
-            class="btn btn-danger btn-sm"
-            @click="rechazarSolicitudReserva(row)"
-            :disabled="loadingDeny"
-          >
+          <button type="button" class="btn btn-danger btn-sm" @click="verModalRechazar(row)" :disabled="loadingDeny">
             <i class="fa-regular fa-circle-xmark me-11"></i> Rechazar
           </button>
         </template>
@@ -330,48 +311,40 @@ onMounted(async () => {
 
   <!-- Modales para visualizar el detalle de la cotización -->
   <!-- Modal de reserva -->
-  <div
-    class="modal"
-    id="modal-cotizacion-detalle"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-cotizacion-detalle"
-    aria-hidden="true"
-    ref="verCotizacionDetalleModal"
-  >
+  <div class="modal" id="modal-cotizacion-detalle" tabindex="-1" role="dialog"
+    aria-labelledby="modal-cotizacion-detalle" aria-hidden="true" ref="verCotizacionDetalleModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerCotizacionDetalleReservaComponent
-          v-if="
-            datosModalCotizacionDetalle &&
-            datosModalCotizacionSegmento &&
-            datosModalCotizacionDetalle.id
-          "
-          :infoCotizacion="datosModalCotizacionDetalle"
-          :segmento="datosModalCotizacionSegmento"
-        >
+        <VerCotizacionDetalleReservaComponent v-if="datosModalCotizacionDetalle &&
+          datosModalCotizacionSegmento &&
+          datosModalCotizacionDetalle.id" :infoCotizacion="datosModalCotizacionDetalle"
+          :segmento="datosModalCotizacionSegmento">
         </VerCotizacionDetalleReservaComponent>
       </div>
     </div>
   </div>
 
   <!-- Modal de aprobación de reservas -->
-  <div
-    class="modal"
-    id="modal-cotizacion-reserva"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-cotizacion-reserva"
-    aria-hidden="true"
-    ref="verDetalleCotizacionAprobacionModal"
-  >
+  <div class="modal" id="modal-cotizacion-reserva" tabindex="-1" role="dialog"
+    aria-labelledby="modal-cotizacion-reserva" aria-hidden="true" ref="verDetalleCotizacionAprobacionModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <verCotizacionAprobacionReservaComponent
-          v-if="datosModalCotizacionAprobacion"
-          :infoCotizacion="datosModalCotizacionAprobacion"
-        >
+        <verCotizacionAprobacionReservaComponent v-if="datosModalCotizacionAprobacion"
+          :infoCotizacion="datosModalCotizacionAprobacion" @closeModalAprobacionReserva="closeModalAprobacionReserva()">
         </verCotizacionAprobacionReservaComponent>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Moda de rechazo de reservas -->
+  <div class="modal" id="modal-rechazo-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-rechazo-reserva"
+    aria-hidden="true" ref="verModalRechazarReservaModal">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verCotizacionReservaRechazarModal v-if="datosModalCotizacionAprobacion"
+          :infoCotizacion="datosModalCotizacionAprobacion" @closeModalRechazarReserva="closeModalRechazarReserva()">
+        </verCotizacionReservaRechazarModal>
       </div>
     </div>
   </div>

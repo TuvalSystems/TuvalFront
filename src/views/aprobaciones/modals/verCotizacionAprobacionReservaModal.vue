@@ -11,8 +11,9 @@ const props = defineProps({
     'infoCotizacion': Object
 
 });
+const emit = defineEmits(['closeModalAprobacionReserva']);
 
-const { dataSendApproval,loadingApproval, fetchApprovalApplicationReservedQuotationById } = useFetchQuotationWitDetail();
+const { dataSendApproval, loadingApproval, fetchApprovalApplicationReservedQuotationById,  loadingDeny, fetchDenyApplicationReservedQuotationById } = useFetchQuotationWitDetail();
 const infoCotizacion = computed(() => props.infoCotizacion.cotizacion);
 const infoSegmento = computed(() => props.infoCotizacion.segmento);
 
@@ -30,12 +31,27 @@ const num2 = (n) => nf2.format(n ?? 0);
 const num4 = (n) => nf4.format(n ?? 0);
 
 
-function aprobarReserva() {
+async function aprobarReserva() {
     try {
         dataSendApproval.id = infoCotizacion.value.id;
-        const response = fetchApprovalApplicationReservedQuotationById();
+        const response = await fetchApprovalApplicationReservedQuotationById();
         if (response) {
-            swalSuccess("Cotización aprobada");
+            emit('closeModalAprobacionReserva', true);
+            await swalSuccess("Cotización aprobada");
+        }
+    } catch (error) {
+        swalError(error.response.data.error);
+    }
+
+}
+
+async function rechazarReserva() {
+    try {
+        dataSendApproval.id = infoCotizacion.value.id;
+        const response = await fetchDenyApplicationReservedQuotationById();
+        if (response) {
+            emit('closeModalAprobacionReserva', true);
+            await swalSuccess("Cotización rechazada");
         }
     } catch (error) {
         swalError(error.response.data.error);
@@ -49,7 +65,7 @@ function aprobarReserva() {
 
 <template>
 
-    <BaseBlock title="Cotización" class="mb-0" transparent themed>
+    <BaseBlock title="Aprobar Reserva deCotización" class="mb-0" transparent themed>
         <template #options>
             <div class="block-options-item">
                 <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
@@ -80,7 +96,7 @@ function aprobarReserva() {
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoCotizacion.CLI_RAZON_SOCIAL">{{
                                 infoCotizacion.CLI_RAZON_SOCIAL
-                                }}</div>
+                            }}</div>
                         </div>
                     </div>
 
@@ -128,12 +144,20 @@ function aprobarReserva() {
                             </div>
                         </div>
                     </div>
+                    <div class="col-6 col-lg-4">
+                        <div class="kv">
+                            <small class="text-muted">Traslado</small>
+                            <div class="fw-semibold">
+                                <div class="fw-semibold">{{ infoCotizacion.reserva_traslado.descripcion }}</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-12" v-if="infoSegmento.segmento || infoSegmento.subsegmento">
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
                             <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -184,7 +208,7 @@ function aprobarReserva() {
                             placeholder="Detalles adicionales (opcional)"></textarea>
                     </div>
                     <div class="text-end text-muted fs-xs">{{ (dataSendApproval.tx_obsAutSolResInv || '').length
-                    }}/400
+                        }}/400
                     </div>
                 </div>
             </div>
@@ -192,16 +216,16 @@ function aprobarReserva() {
 
     </div>
     <div class="content text-end mb-4 space-x-2">
-        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal" :disabled="actionLoading">
+        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">
             Cerrar
         </button>
-        <button type="button" class="btn btn-sm btn-danger">
-            <span v-if="loadingApproval" class="spinner-border spinner-border-sm me-2" role="status"
+        <button type="button" class="btn btn-sm btn-danger" @click="rechazarReserva" :disabled="loadingDeny">
+            <span v-if="loadingDeny" class="spinner-border spinner-border-sm me-2" role="status"
                 aria-hidden="true"></span>
             <i v-else class="fa fa-times me-1"></i>
             Rechazar
         </button>
-        <button type="button" class="btn btn-sm btn-primary"  @click="aprobarReserva">
+        <button type="button" class="btn btn-sm btn-primary" @click="aprobarReserva" :disabled="loadingApproval">
             <span v-if="loadingApproval" class="spinner-border spinner-border-sm me-2" role="status"
                 aria-hidden="true"></span>
             <i v-else class="fa fa-check me-1"></i>
