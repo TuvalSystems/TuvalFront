@@ -5,7 +5,7 @@ import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { storeToRefs } from 'pinia'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore';
-import { useReservedQuotation } from '@/composables/venta/cotizaciones/reservas/useReservedQuotation';
+import { useQuotationReserveRequest } from '@/composables/venta/cotizaciones/reservas/useQuotationReserveRequest';
 import {
     swalSuccess,
     swalError,
@@ -15,9 +15,9 @@ const props = defineProps({
     datosReserva: Object,
 });
 const { datosReserva } = toRefs(props);
-const tipoReservasStore = useTipoReservasStore()
-const { tipoReservas } = storeToRefs(tipoReservasStore)
-const { reserva, solicitarReserva, reservedValidation, resetForm } = useReservedQuotation(datosReserva, tipoReservas);
+const tipoReservasStore = useTipoReservasStore();
+const { tipoReservas } = storeToRefs(tipoReservasStore);
+const { reserva, solicitarReserva,  isInvalid, resetForm } = useQuotationReserveRequest(datosReserva, tipoReservas);
 
 const flatPickrState = reactive({
     fecha: {
@@ -176,8 +176,8 @@ onMounted(() => {
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cancelar</button>
-            <button type="button" class="btn btn-sm" :class="reservedValidation ? 'btn-warning' : 'btn-primary'"
-                @click="guardarYEmitir" :disabled="reservedValidation">Reservar</button>
+            <button type="button" class="btn btn-sm btn-primary" 
+                @click="guardarYEmitir" :disabled="isInvalid">Reservar</button>
         </div>
     </div>
 </template>

@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { watch, reactive, onMounted } from 'vue';
-import { formatPrice, format, format4 } from "@/functions";
+import { formatPriceJm, formatJm } from "@/functions";
 
 const props = defineProps({
     infoCotizacion: {
@@ -115,11 +115,10 @@ const segmento = computed(() => props.segmento);
                     </div>
                 </div>
 
-                <div class="table-responsive mb-0">
-                    <table class="table table-striped table-sm table-vcenter align-middle">
-
-                        <thead>
-                            <tr>
+                <div class="table-responsive mb-2">
+                    <table class="table table-sm table-borderless align-middle mb-0">
+                        <thead style="position: sticky; top: 0; z-index: 1;">
+                            <tr >
                                 <th class="fs-sm">Código</th>
                                 <th class="fs-sm">Descripción</th>
                                 <th class="fs-sm">CTL</th>
@@ -133,15 +132,25 @@ const segmento = computed(() => props.segmento);
                         </thead>
                         <tbody>
                             <tr v-for="item in infoCotizacion.detallecotizacion" :key="item.id">
-                                <td>{{ item.ART_CODIGO }}</td>
-                                <td>{{ item.ART_DESCRIPCION }}</td>
-                                <td>{{ item.ART_CODIGO_TRES_LETRAS }}</td>
-                                <td>{{ item.ART_PLAN_UMEDIDA }}</td>
-                                <td class="fs-sm text-end">{{ item.ART_CANTIDAD }}</td>
-                                <td class="fs-sm text-end">{{ item.ART_PESO }}</td>
-                                <td class="fs-sm text-end">{{ item.ART_DESCUENTO }}</td>
-                                <td class="fs-sm text-end">${{ format(parseFloat(item.ART_VALOR)) }}</td>
-                                <td class="fs-sm text-end"> ${{ format(parseFloat((item.ART_VALOR - item.ART_DESCUENTO)
+                                <td class="code">{{ item.ART_CODIGO }}</td>
+                                <td>
+                                    <div class="text-truncate" :title="item.ART_DESCRIPCION" style="max-width: 420px;">
+                                        {{ item.ART_DESCRIPCION }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ item.ART_CODIGO_TRES_LETRAS }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark">{{ item.ART_PLAN_UMEDIDA }}</span>
+                                </td>
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_CANTIDAD }}</td>
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_PESO }}</td>
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_DESCUENTO }}</td>
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap">${{ formatJm(parseFloat(item.ART_VALOR)) }}
+                                </td>
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap"> ${{ formatPriceJm(parseFloat((item.ART_VALOR -
+                                    item.ART_DESCUENTO)
                                     *
                                     item.ART_CANTIDAD)) }}</td>
                             </tr>
@@ -149,30 +158,40 @@ const segmento = computed(() => props.segmento);
                         <tfoot>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Subtotal</td>
-                                <td class="fw-semibold text-end">${{ format(parseFloat(infoCotizacion.subtotal)) }}</td>
+                                <td class="fw-semibold text-end nums">${{ formatPriceJm(parseFloat(infoCotizacion.subtotal)) }}
+                                </td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Descuento</td>
-                                <td class="fw-semibold text-end">${{ format(parseFloat(infoCotizacion.descuento)) }}
+                                <td class="fw-semibold text-end nums">${{ formatPriceJm(parseFloat(infoCotizacion.descuento))
+                                }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Total</td>
-                                <td class="fw-semibold text-end">${{ format(parseFloat(infoCotizacion.total)) }}</td>
+                                <td class="fw-semibold text-end nums">${{ formatPriceJm(parseFloat(infoCotizacion.total)) }}
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
             <div class="content text-end mb-4">
-                 <button
-                  type="button"
-                  class="btn btn-sm btn-alt-secondary me-1"
-                  data-bs-dismiss="modal"
-                >
-                  Close
+                <button type="button" class="btn btn-sm btn-alt-secondary me-1" data-bs-dismiss="modal">
+                    Close
                 </button>
             </div>
         </template>
     </BaseBlock>
 </template>
+
+<style scoped>
+.nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* columnas numéricas alineadas */
+.code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+</style>

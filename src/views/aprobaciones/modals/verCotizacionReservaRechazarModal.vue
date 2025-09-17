@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from 'vue';
-import { useFetchQuotationWitDetail } from '@/composables/aprobaciones/reservas/useFetchQuotationWitDetail';
+import { useQuotationReserveApproval } from '@/composables/aprobaciones/reservas/useQuotationReserveApproval';
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import {
@@ -13,7 +13,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['closeModalRechazarReserva']);
 const infoCoti= computed(() => props.infoCotizacion.cotizacion);
-const { dataSendApproval, loadingDeny, fetchDenyApplicationReservedQuotationById } = useFetchQuotationWitDetail();
+const { dataSendApproval, loadingDeny, fetchDenyApplicationReservedQuotationById } = useQuotationReserveApproval();
 const flatPickrState = reactive({
     fecha: {
         minDate: Date.now(),

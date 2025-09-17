@@ -1,14 +1,19 @@
 import axiosClient from "@/axios";
 import Swal from "sweetalert2";
 import { watch, reactive, ref } from "vue";
-export function useFetchQuotationWitDetail() {
+export function useQuotationReserveApproval() {
   const data = ref(null);
+  const dataQutationDetailStock = ref(null);
   const loadingQ = ref(false);
   const loadingQ1 = ref(false);
   const loadingDeny = ref(false);
   const loadingApproval = ref(false);
-  /** datos para enviar a aprobar y rechazar */
 
+  /** para listar los detalles de la cotizacion y el stock activo */
+  const dataQuotationDetailAndStockActive = ref(null);
+  const loadingQ2 = ref(false);
+  
+  /** datos para enviar a aprobar y rechazar */
   const dataSendApproval = reactive({
     id: null,
     fe_autSolResInv: null,
@@ -24,7 +29,7 @@ export function useFetchQuotationWitDetail() {
       const res = response.data;
       loadingQ.value = false;
       data.value = res.data;
-      return data;
+      return data.value;
     } catch (error) {
       console.log("Error al obtener la cotizacion", error);
       swalError(error.response.data.error);
@@ -42,8 +47,8 @@ export function useFetchQuotationWitDetail() {
       );
       const res = response.data;
       loadingQ1.value = false;
-      data.value = res.data;
-      return data;
+      dataQutationDetailStock.value = res.data;
+      return dataQutationDetailStock.value;
     } catch (error) {
       console.log("Error al obtener la cotizacion", error);
       swalError(error.response.data.error);
@@ -53,8 +58,27 @@ export function useFetchQuotationWitDetail() {
     }
   }
 
+  async function fetchQuotationWithDetialAndStockActive(id) {
+    loadingQ2.value = true;
+    try {
+      const response = await axiosClient.get(
+        `/cotizaciones/reserva/cotizacion-detalle-stock-activo/${id}`
+      );
+      const res = response.data;
+      loadingQ2.value = false;
+      dataQuotationDetailAndStockActive.value = res.data;
+      return dataQuotationDetailAndStockActive.value;
+    } catch (error) {
+      console.log("Error al obtener la reserva", error);
+      swalError(error.response.data.error);
+      return;
+    } finally {
+      loadingQ2.value = false;
+    }
+  }
+
   /** denegar solicitud */
-  async function fetchDenyApplicationReservedQuotationById(id) {
+  async function fetchDenyApplicationReservedQuotationById() {
     loadingDeny.value = true;
     try {
       const response = await axiosClient.post(
@@ -98,11 +122,13 @@ export function useFetchQuotationWitDetail() {
 
   return {
     fetchQuotationWithDetial,
+    dataQutationDetailStock,
     fetchQuotationWithDetialAndStock,
     loadingDeny,
     fetchDenyApplicationReservedQuotationById,
     dataSendApproval,
     loadingApproval,
     fetchApprovalApplicationReservedQuotationById,
+    fetchQuotationWithDetialAndStockActive,
   };
 }

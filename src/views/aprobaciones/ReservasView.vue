@@ -17,19 +17,20 @@ import {
   swalWarning,
   swalError,
 } from "@/functions/swal-alert.js";
-import { useFetchReservaCotizacion } from "@/composables/aprobaciones/reservas/useFetchReservaCotizacion";
-import { useFetchQuotationWitDetail } from "@/composables/aprobaciones/reservas/useFetchQuotationWitDetail";
+import { useQuotationReserveRequests } from "@/composables/aprobaciones/reservas/useQuotationReserveRequests";
+import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas/useQuotationReserveApproval";
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
 import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
-const { table, refresh, fetchItemsAproval, onSort } =
-  useFetchReservaCotizacion();
+import { formatPriceJm, formatJm } from "@/functions";
+const { table, refresh, fetchReservationRequests, onSort } =
+  useQuotationReserveRequests();
 
 const {
   fetchQuotationWithDetial,
   fetchQuotationWithDetialAndStock,
   loadingDeny,
-} = useFetchQuotationWitDetail();
+} = useQuotationReserveApproval();
 
 const columns = [
   {
@@ -166,8 +167,8 @@ async function visualizarDetalleCotización(id) {
     const response = await fetchQuotationWithDetial(id);
     if (response) {
       verCotizacionDetalleModalObj.show();
-      datosModalCotizacionDetalle.value = response.value.cotizacion;
-      datosModalCotizacionSegmento.value = response.value.segmento;
+      datosModalCotizacionDetalle.value = response.cotizacion;
+      datosModalCotizacionSegmento.value = response.segmento;
     }
   } catch (error) {
     return;
@@ -186,7 +187,7 @@ async function verModalAprobacionReserva(row) {
   try {
     const response = await fetchQuotationWithDetialAndStock(row.id);
     if (response) {
-      datosModalCotizacionAprobacion.value = response.value;
+      datosModalCotizacionAprobacion.value = response;
       verDetalleCotizacionAprobacionModalObj.show();
     }
   } catch (error) {
@@ -208,7 +209,7 @@ async function verModalRechazar(row) {
   try {
     const response = await fetchQuotationWithDetialAndStock(row.id);
     if (response) {
-      datosModalCotizacionAprobacion.value = response.value;
+      datosModalCotizacionAprobacion.value = response;
       verModalRechazarReservaModalObj.show();
     }
   } catch (error) {
@@ -234,7 +235,7 @@ function ensureModals() {
 onMounted(async () => {
   ensureModals();
   if (!table.items.length && !table.loading) {
-    fetchItemsAproval(1);
+    fetchReservationRequests(1);
   }
 });
 </script>
@@ -277,7 +278,7 @@ onMounted(async () => {
       </div>
       <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
-        :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItemsAproval"
+        :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchReservationRequests"
         @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
         <!-- Slot específico para la columna 'estado' -->
         <template #cell-st_solResInv="{ value, row }">
@@ -286,14 +287,18 @@ onMounted(async () => {
           }}</span>
         </template>
         <template #cell-total="{ value, row }">
-          <span :class="totalClass(value)"> ${{ row.total ?? "N/A" }}</span>
+          <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
         </template>
         <template #actions="{ row }">
-          <button type="button" class="btn btn-primary btn-sm mx-1" @click="verModalAprobacionReserva(row)">
-            <i class="fa-solid fa-circle-check me-1"></i> Aprobar
+          <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="Aprobar"
+            @click="verModalAprobacionReserva(row)">
+            <i class="fa-solid fa-circle-check me-1"></i>
+            <!-- Aprobar -->
           </button>
-          <button type="button" class="btn btn-danger btn-sm" @click="verModalRechazar(row)" :disabled="loadingDeny">
-            <i class="fa-regular fa-circle-xmark me-11"></i> Rechazar
+          <button type="button" class="btn btn-danger btn-sm" aria-placeholder="Rechazar" @click="verModalRechazar(row)"
+            :disabled="loadingDeny">
+            <i class="fa-regular fa-circle-xmark me-11"></i>
+            <!-- Rechazar -->
           </button>
         </template>
         <!-- Slot de vacío -->

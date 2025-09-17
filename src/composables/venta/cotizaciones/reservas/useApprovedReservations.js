@@ -1,5 +1,5 @@
 import axiosClient from "@/axios";
-import { ref, onUnmounted, reactive, computed, watch } from "vue";
+import { ref, reactive, watch } from "vue";
 
 export function useApprovedReservations() {
   let controller = null;
@@ -127,12 +127,16 @@ export function useApprovedReservations() {
     { label: "Aprobadas", value: "aprobado" },
     { label: "Rechazadas", value: "rechazada" },
     { label: "Canceladas", value: "cancelado" },
-    { label: "Facturadas", value: "facturado" },
+    { label: "Procesadas", value: "procesado" },
   ]);
 
+  const ctrl = ref(null); // AbortController actual
+  let debounceId;
+
   async function fetchList(page = 1) {
-    if (controller) controller.abort();
-    controller = new AbortController();
+
+     if (ctrl.value) ctrl.value.abort();
+      ctrl.value = new AbortController();
 
     table.loading = true;
     table.currentPage = page;
@@ -148,8 +152,9 @@ export function useApprovedReservations() {
           fecha_hasta: table.fecha_hasta,
           status: table.status,
           ptovta: table.ptovta,
-          // cliente: table.cliente,
+          cliente: table.cliente,
         },
+        signal: ctrl.value.signal,
       });
       const data = response.data.data;
       if (data) {
@@ -157,9 +162,13 @@ export function useApprovedReservations() {
         table.totalPage = data.last_page;
         table.totalItems = data.total;
       }
-    } catch (error) {
+    } catch (e) {
       table.loading = false;
-      console.error("Error fetching items:", error);
+    //   console.error("Error fetching items:", error);
+       if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
+        error = e?.response?.data?.error || "Error obteniendo cotizaciones";
+        console.error(error, e);
+      }
     } finally {
       table.loading = false;
     }
@@ -175,7 +184,7 @@ export function useApprovedReservations() {
     table.currentPage = 1; // Reset to first page
     table.status = "";
     table.ptovta = null;
-    // table.cliente = null; // Reset cliente filter
+    table.cliente = null; // Reset cliente filter
     fetchList(1); //consulta de nuevo
   };
 
@@ -188,20 +197,24 @@ export function useApprovedReservations() {
     () => [
       table.searchTerm,
       table.perPage,
-      table.sortField,
-      table.sortOrder,
       table.status,
       table.ptovta,
-      //   table.cliente,
+      table.cliente,
     ],
     () => {
-      if (table.searchTerm == "" || table.searchTerm.length >= 4) {
-        fetchList(1);
-      }
-    },
-    { deep: true }
+      clearTimeout(debounceId);
+      debounceId = setTimeout(() => {
+        if (table.searchTerm === "" || table.searchTerm.length >= 4) {
+          fetchList(1);
+        }
+      }, 250);
+    }
   );
 
+  watch(
+    () => [table.sortField, table.sortOrder],
+    () => fetchList(1)
+  );
   return {
     columns,
     listPerpage,

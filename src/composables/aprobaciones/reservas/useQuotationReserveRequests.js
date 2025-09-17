@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
-import { watch, reactive } from "vue";
+import { watch, reactive , ref} from "vue";
 
-export function useFetchReservaCotizacion() {
+export function useQuotationReserveRequests() {
   const endpoint = "/cotizaciones/reserva/lista-solicitudes-reserva";
   const table = reactive({
     items: [],
@@ -14,9 +14,16 @@ export function useFetchReservaCotizacion() {
     sortOrder: "asc",
   }); // todas las refs viven aqui
 
-  const fetchItemsAproval = async (page = 1) => {
+  const ctrl = ref(null); // AbortController actual
+  let debounceId;
+
+  const fetchReservationRequests = async (page = 1) => {
     table.loading = true;
     table.currentPage = page;
+
+    if (ctrl.value) ctrl.value.abort();
+    ctrl.value = new AbortController();
+
     try {
       const response = await axiosClient.get(endpoint, {
         params: {
@@ -26,16 +33,21 @@ export function useFetchReservaCotizacion() {
           sortBy: table.sortField,
           sortOrder: table.sortOrder,
         },
+        signal: ctrl.value.signal,
       });
       const data = response.data.data;
-      
+
       if (data) {
         table.items = data.data;
         table.totalPage = data.last_page;
         table.totalItems = data.total;
       }
-    } catch (error) {
-      console.error("Error obteniendo cotizaciones:", error);
+    } catch (e) {
+      table.loading = false;
+      if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
+        error = e?.response?.data?.error || "Error obteniendo cotizaciones";
+        console.error(error, e);
+      }
     } finally {
       table.loading = false;
     }
@@ -47,7 +59,7 @@ export function useFetchReservaCotizacion() {
     table.sortField = "";
     table.sortOrder = "asc";
     table.currentPage = 1;
-    fetchItemsAproval(1);
+    fetchReservationRequests(1);
   };
 
   const onSort = ({ field, order }) => {
@@ -56,19 +68,27 @@ export function useFetchReservaCotizacion() {
   };
 
   watch(
-    () => [table.searchTerm, table.perPage, table.sortField, table.sortOrder],
+    () => [table.searchTerm, table.perPage],
     () => {
-      if (table.searchTerm == "" || table.searchTerm.length >= 4) {
-        fetchItemsAproval(1);
-      }
-    },
-    { deep: true }
+      clearTimeout(debounceId);
+      debounceId = setTimeout(() => {
+        if (table.searchTerm === "" || table.searchTerm.length >= 4) {
+          fetchReservationRequests(1);
+        }
+      }, 250);
+    }
+  );
+
+  watch(
+    () => [table.sortField, table.sortOrder],
+    () => fetchReservationRequests(1)
   );
 
   return {
     table,
     refresh,
-    fetchItemsAproval,
+    // fetchItemsAproval,
+    fetchReservationRequests,
     onSort,
   };
 }

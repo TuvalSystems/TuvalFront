@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from 'vue';
-import { useFetchQuotationWitDetail } from '@/composables/aprobaciones/reservas/useFetchQuotationWitDetail';
+import { useQuotationReserveApproval } from '@/composables/aprobaciones/reservas/useQuotationReserveApproval';
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import {
@@ -13,7 +13,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['closeModalAprobacionReserva']);
 
-const { dataSendApproval, loadingApproval, fetchApprovalApplicationReservedQuotationById,  loadingDeny, fetchDenyApplicationReservedQuotationById } = useFetchQuotationWitDetail();
+const { dataSendApproval, loadingApproval, fetchApprovalApplicationReservedQuotationById, loadingDeny, fetchDenyApplicationReservedQuotationById } = useQuotationReserveApproval();
 const infoCotizacion = computed(() => props.infoCotizacion.cotizacion);
 const infoSegmento = computed(() => props.infoCotizacion.segmento);
 
@@ -23,12 +23,6 @@ const flatPickrState = reactive({
         locale: Spanish,
     },
 });
-// Formateadores (USD y cantidades)
-const nf2 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const nf4 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-const money = (n) => `$${nf2.format(n ?? 0)}`;
-const num2 = (n) => nf2.format(n ?? 0);
-const num4 = (n) => nf4.format(n ?? 0);
 
 
 async function aprobarReserva() {
@@ -96,7 +90,7 @@ async function rechazarReserva() {
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoCotizacion.CLI_RAZON_SOCIAL">{{
                                 infoCotizacion.CLI_RAZON_SOCIAL
-                            }}</div>
+                                }}</div>
                         </div>
                     </div>
 
@@ -157,14 +151,14 @@ async function rechazarReserva() {
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
                             <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="table-responsive mb-0">
-                    <table class="table table-striped table-sm table-vcenter align-middle">
-                        <thead>
+                <div class="table-responsive mb-2">
+                    <table class="table table-sm table-borderless align-middle mb-0">
+                        <thead style="position: sticky; top: 0; z-index: 1;">
                             <tr>
                                 <th class="fs-sm" style="font-size: 10px">Código</th>
                                 <th class="fs-sm" style="font-size: 10px">descripcion</th>
@@ -175,9 +169,15 @@ async function rechazarReserva() {
                         </thead>
                         <tbody v-for="item in infoCotizacion.detallecotizacion" :key="item.id">
                             <tr v-for="item2 in item.stock" :key="item2.id">
-                                <td class="fs-sm text-sm">{{ item.ART_CODIGO }}</td>
-                                <td class="fs-sm text-sm">{{ item.ART_DESCRIPCION }}</td>
-                                <td class="fs-sm text-sm">{{ item.ART_CODIGO_TRES_LETRAS }}</td>
+                                <td class="code">{{ item.ART_CODIGO }}</td>
+                                <td>
+                                    <div class="text-truncate" :title="item.ART_DESCRIPCION" style="max-width: 420px;">
+                                        {{ item.ART_DESCRIPCION }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ item.ART_CODIGO_TRES_LETRAS }}</span>
+                                </td>
                                 <td class="fs-sm text-sm">{{ item2.STO_ART_BODEGA }}</td>
                                 <td class="fs-sm text-sm">{{ item2.seleccionado }}</td>
                             </tr>
@@ -208,7 +208,7 @@ async function rechazarReserva() {
                             placeholder="Detalles adicionales (opcional)"></textarea>
                     </div>
                     <div class="text-end text-muted fs-xs">{{ (dataSendApproval.tx_obsAutSolResInv || '').length
-                        }}/400
+                    }}/400
                     </div>
                 </div>
             </div>
@@ -222,13 +222,13 @@ async function rechazarReserva() {
         <button type="button" class="btn btn-sm btn-danger" @click="rechazarReserva" :disabled="loadingDeny">
             <span v-if="loadingDeny" class="spinner-border spinner-border-sm me-2" role="status"
                 aria-hidden="true"></span>
-            <i v-else class="fa fa-times me-1"></i>
+            <!-- <i v-else class="fa fa-times me-1"></i> -->
             Rechazar
         </button>
         <button type="button" class="btn btn-sm btn-primary" @click="aprobarReserva" :disabled="loadingApproval">
             <span v-if="loadingApproval" class="spinner-border spinner-border-sm me-2" role="status"
                 aria-hidden="true"></span>
-            <i v-else class="fa fa-check me-1"></i>
+            <!-- <i v-else class="fa fa-check me-1"></i> -->
             Aprobar
         </button>
     </div>
@@ -255,5 +255,14 @@ async function rechazarReserva() {
         padding-top: .35rem;
         padding-bottom: .35rem;
     }
+}
+
+.nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* columnas numéricas alineadas */
+.code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 }
 </style>

@@ -1,9 +1,10 @@
 import axiosClient from "@/axios";
-import { ref, onUnmounted, reactive, computed, watch } from "vue";
+import { ref, reactive, watch, unref } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
 import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
-export function useReservedQuotation(cotizacion, tipoReservas = []) {
+export function useQuotationReserveRequest(cotizacion, tipoReservas = []) {
   const reservedValidation = ref(false);
+  const isInvalid = ref(false);
   const reserva = reactive({
     id: null,
     co_tipSolResInv: null,
@@ -20,39 +21,46 @@ export function useReservedQuotation(cotizacion, tipoReservas = []) {
     reserva.tx_obsSolResInv = null;
   }
 
+  function validateSolicitudReserveDate() {
+    const tipos = unref(tipoReservas) ?? [];
+    const newTypeReserved = tipos.find((m) => m.id == reserva.co_tipSolResInv);
+    if (!newTypeReserved) return;
+    const limit = newTypeReserved.dias_max_reserva ?? 0;
+    const numDay = Math.max(0, daysUntil(reserva.fe_solResInv));
+
+    const d = limit === 1 ? "dia" : "dias";
+    const limitStr = `${limit} ${d}`;
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + limit);
+    const maxStr = maxDate.toLocaleDateString("es-EC");
+    const invalid = numDay > limit;
+    return {
+      invalid,
+      message: `La fecha excede el límite de ${limitStr}. Elija hasta ${maxStr}.`,
+    };
+  }
+
   watch(
     [() => reserva.co_tipSolResInv, () => reserva.fe_solResInv],
-    ([typeR, fecha], [oldTypeR, oldFecha]) => {
+    ([typeR, fecha]) => {
       if (!typeR || !fecha) {
-        reservedValidation.value = false;
+        isInvalid.value = false;
         return;
       }
-      const newTypeReserved = tipoReservas.value.find((m) => m.id == typeR);
-      if (!newTypeReserved) return;
-      const numDay = Math.max(0, daysUntil(reserva.fe_solResInv)); // para que no sea numero negativo aunque se puede quitar es opcional ya que desde el inicio la fecha minima es la fecha del dia de hoy
-
-      const limit = newTypeReserved.dias_max_reserva;
-      const d = limit === 1 ? "dia" : "dias";
-      const maxDate = new Date();
-      maxDate.setDate(maxDate.getDate() + limit);
-      const maxStr = maxDate.toLocaleDateString("es-EC");
-
-      if (numDay >= newTypeReserved.dias_max_reserva) {
-        swalError(
-          `La fecha seleccionada excede el límite de ${limit} ${d} permitido para el tipo de reserva seleccionado. ` +
-            `Elija una fecha hasta antes de ${maxStr}.`
-        );
-        reservedValidation.value = true;
-        return;
+      const { invalid, message } = validateSolicitudReserveDate();
+      if (invalid) {
+        isInvalid.value = true;
+        swalError(message);
       } else {
-        reservedValidation.value = false;
+        isInvalid.value = false;
       }
     },
     { immediate: false } // pon true si quieres validar también al cargar si ya hay valores
   );
 
   const solicitarReserva = async () => {
-    reservedValidation.value = true;
+    if (isInvalid.value) return false;
+    // reservedValidation.value = true;
     try {
       const response = await axiosClient.post(
         "/cotizaciones/reserva/guardar-solicitud-reserva",
@@ -60,19 +68,19 @@ export function useReservedQuotation(cotizacion, tipoReservas = []) {
           reserva: reserva,
         }
       );
-      reservedValidation.value = true;
+      // reservedValidation.value = true;
       if (response.status === 200) {
         resetForm();
         swalSuccess("Reserva solicitada correctamente");
-        reservedValidation.value = false;
+        // reservedValidation.value = false;
         return true;
       }
     } catch (error) {
-      reservedValidation.value = false;
+      // reservedValidation.value = false;
       swalError(error.response?.data?.error || error.message);
       return false;
     }
-    reservedValidation.value = false;
+    // reservedValidation.value = false;
     return false;
   };
 
@@ -80,6 +88,7 @@ export function useReservedQuotation(cotizacion, tipoReservas = []) {
     reserva,
     solicitarReserva,
     reservedValidation,
+    isInvalid,
     resetForm,
   };
 }

@@ -279,8 +279,8 @@
     ref="verReservaModal">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerReservaModalComponent v-if="datosModalReserva && datosModalReserva.id" :datosReserva="datosModalReserva"
-          @modalReservaHide="modalReservaHide()"></VerReservaModalComponent>
+        <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.id" :datosReserva="datosModalReserva"
+          @modalReservaHide="modalReservaHide()"></VerSolicitudReservaModalComponent>
       </div>
     </div>
   </div>
@@ -310,11 +310,11 @@ import { formatPrice, format } from "@/functions";
 import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
-import VerReservaModalComponent from "../modals/verReservaModal.vue";
+import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitudReservaModal.vue";
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
-const { fetchResponseHaveItemL, fetchResponseHaveStatusQuotation } = useValidatesReserved()
+const {  fetchResponseHaveStatusQuotation } = useValidatesReserved()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -447,19 +447,19 @@ let verReservaModal = ref(null);
 let verReservaModalObj = null;
 let datosModalReserva = ref(null);
 async function verModalReserva(row) {
-  let resp;
-  try {
-    resp = await fetchResponseHaveItemL(row.id);
-  } catch {
-    return; // si la validación falló, no abras el modal
-  }
+  // let resp;
+  // try {
+  //   resp = await fetchResponseHaveItemL(row.id);
+  // } catch {
+  //   return; // si la validación falló, no abras el modal
+  // }
 
-  if (resp?.exists) {
-    swalError(resp?.message || 'No puede realizar la reserva: la cotización tiene un ítem tipo L');
-    return;
-  }
+  // if (resp?.exists) {
+  //   swalError(resp?.message || 'No puede realizar la reserva: la cotización tiene un ítem tipo L');
+  //   return;
+  // }
 
-  if (row.st_solResInv == 'pendiente') {
+  if (row.st_solResInv != "" && row.st_solResInv != null) {
     swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
     return
   }
@@ -486,8 +486,8 @@ async function verModalReserva(row) {
 
 async function modalReservaHide() {
   verReservaModalObj?.hide();
-  llenarcotizaciones('pendientes');
   datosModalReserva.value = null
+  llenarcotizaciones('pendientes');
 }
 
 function motivoEspera(cotizacion) {
