@@ -17,7 +17,7 @@ const props = defineProps({
 const { datosReserva } = toRefs(props);
 const tipoReservasStore = useTipoReservasStore();
 const { tipoReservas } = storeToRefs(tipoReservasStore);
-const { reserva, solicitarReserva,  isInvalid, resetForm } = useQuotationReserveRequest(datosReserva, tipoReservas);
+const { reserva, solicitarReserva, isInvalid, resetForm, isInvalidType } = useQuotationReserveRequest(datosReserva, tipoReservas);
 
 const flatPickrState = reactive({
     fecha: {
@@ -35,14 +35,15 @@ async function guardarYEmitir() {
     try {
         await solicitarReserva();
         emit('modalReservaHide', true);
-        swalSuccess('Solicitud Guardada Exitosamente');
+        await swalSuccess('Solicitud Guardada Exitosamente');
     } catch (error) {
-        swalError('Error al guardar la información');
+        const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "Error al guardar la solicitud";
+        swalError(msg);
     }
 }
 
 function hydrateReservaForm(row) {
-    
+
     if (!row) {
         resetForm();
         return;
@@ -176,8 +177,8 @@ onMounted(() => {
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cancelar</button>
-            <button type="button" class="btn btn-sm btn-primary" 
-                @click="guardarYEmitir" :disabled="isInvalid">Reservar</button>
+            <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir"
+                :disabled="isInvalid || isInvalidType">Solicitar</button>
         </div>
     </div>
 </template>

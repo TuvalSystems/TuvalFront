@@ -314,7 +314,7 @@ import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitu
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
-const {  fetchResponseHaveStatusQuotation } = useValidatesReserved()
+const {  checkExistingReserve } = useValidatesReserved()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -475,6 +475,8 @@ async function verModalReserva(row) {
     fe_solResInv: row.fe_solResInv ?? null,
     st_solResInv: row.st_solResInv ?? null,
     tx_obsSolResInv: row.tx_obsSolResInv ?? null,
+    has_l_items: row.has_l_items ?? null,
+    has_service_items: row.has_service_items ?? null
   };
   datosModalReserva.value = null;
   await nextTick();
@@ -538,7 +540,7 @@ async function llenarcotizaciones(estado) {
 async function recuperarcotizacion(cotizacion) {
   let respRes;
   try {
-    respRes = await fetchResponseHaveStatusQuotation(cotizacion.id);
+    respRes = await checkExistingReserve(cotizacion.id);
   } catch {
     return;
   }
@@ -589,7 +591,7 @@ function recuperarcotizacionprospecto(cotizacion) {
 async function volverapedir(cotizacion) {
   let respRes;
   try {
-    respRes = await fetchResponseHaveStatusQuotation(cotizacion.id);
+    respRes = await checkExistingReserve(cotizacion.id);
   } catch {
     return;
   }
@@ -615,7 +617,7 @@ async function volverapedir(cotizacion) {
 async function levantarcliente(pedido) {
   let respRes;
   try {
-    respRes = await fetchResponseHaveStatusQuotation(pedido.id);
+    respRes = await checkExistingReserve(pedido.id);
   } catch {
     return;
   }

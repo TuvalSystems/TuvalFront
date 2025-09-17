@@ -2,9 +2,10 @@ import axiosClient from "@/axios";
 import { ref, reactive, watch, unref } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
 import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
-export function useQuotationReserveRequest(cotizacion, tipoReservas = []) {
+export function useQuotationReserveRequest(datoReserva, tipoReservas = []) {
   const reservedValidation = ref(false);
   const isInvalid = ref(false);
+  const isInvalidType = ref(false);
   const reserva = reactive({
     id: null,
     co_tipSolResInv: null,
@@ -40,6 +41,38 @@ export function useQuotationReserveRequest(cotizacion, tipoReservas = []) {
     };
   }
 
+  function validateTypeReserveHasItemLOrService() {
+    const dataCot = unref(datoReserva) ?? {};
+    const isType1 = Number(reserva.co_tipSolResInv) === 1;
+    const hasL = !!dataCot.has_l_items;
+    const hasServ = !!dataCot.has_service_items;
+
+    const invalid = isType1 && (hasL || hasServ);
+    return {
+      invalid,
+      message:
+        "No puede generar una solicitud de Reserva si la cotización tiene un item L o servicio",
+    };
+  }
+
+  watch(
+    [
+      () => Number(reserva.co_tipSolResInv),
+      () => !!unref(datoReserva)?.has_l_items,
+      () => !!unref(datoReserva)?.has_service_items,
+    ],
+    () => {
+      const { invalid, message } = validateTypeReserveHasItemLOrService();
+      isInvalidType.value = invalid;
+
+      if (invalid) {
+        reserva.co_tipSolResInv = null;
+        swalError(message);
+      }
+    },
+    { immediate: true }
+  );
+
   watch(
     [() => reserva.co_tipSolResInv, () => reserva.fe_solResInv],
     ([typeR, fecha]) => {
@@ -48,39 +81,58 @@ export function useQuotationReserveRequest(cotizacion, tipoReservas = []) {
         return;
       }
       const { invalid, message } = validateSolicitudReserveDate();
-      if (invalid) {
-        isInvalid.value = true;
-        swalError(message);
-      } else {
-        isInvalid.value = false;
-      }
+      isInvalid.value = invalid;
+      if (invalid) swalError(message);
     },
     { immediate: false } // pon true si quieres validar también al cargar si ya hay valores
   );
 
   const solicitarReserva = async () => {
-    if (isInvalid.value) return false;
-    // reservedValidation.value = true;
+    if (isInvalid.value) {
+      return false;
+    }
+    if (isInvalidType.value) {
+      return false;
+    }
+    if (reserva.co_tipSolResInv === null) {
+      throw new Error("Seleccione un tipo de reserva");
+    }
+    if (reserva.co_tipSolResInv === null) {
+      throw new Error("Seleccione un tipo de reserva");
+    }
+    if (reserva.co_tipSolResInv === null) {
+      throw new Error("Seleccione un tipo de reserva");
+    }
+    if (reserva.fe_solResInv === null) {
+      throw new Error("Seleccione una fecha");
+    }
+    if (reserva.tx_obsSolResInv === null) {
+      throw new Error("Debe ingresar una observación");
+    }
+
     try {
+      isInvalid.value = true;
+      isInvalidType.value = true;
       const response = await axiosClient.post(
         "/cotizaciones/reserva/guardar-solicitud-reserva",
         {
           reserva: reserva,
         }
       );
-      // reservedValidation.value = true;
       if (response.status === 200) {
         resetForm();
         swalSuccess("Reserva solicitada correctamente");
-        // reservedValidation.value = false;
+        isInvalid.value = false;
+        isInvalidType.value = false;
         return true;
       }
     } catch (error) {
-      // reservedValidation.value = false;
       swalError(error.response?.data?.error || error.message);
+      isInvalid.value = false;
+      isInvalidType.value = false;
+
       return false;
     }
-    // reservedValidation.value = false;
     return false;
   };
 
@@ -90,5 +142,6 @@ export function useQuotationReserveRequest(cotizacion, tipoReservas = []) {
     reservedValidation,
     isInvalid,
     resetForm,
+    isInvalidType,
   };
 }
