@@ -13,8 +13,9 @@ const props = defineProps({
 });
 const emit = defineEmits(['closeModalAprobacionReserva']);
 
-const { dataSendApproval, loadingApproval, fetchApprovalApplicationReservedQuotationById, loadingDeny, fetchDenyApplicationReservedQuotationById } = useQuotationReserveApproval();
+const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation } = useQuotationReserveApproval();
 const infoCotizacion = computed(() => props.infoCotizacion.cotizacion);
+const rows = computed(() => props.infoCotizacion.rows);
 const infoSegmento = computed(() => props.infoCotizacion.segmento);
 
 const flatPickrState = reactive({
@@ -28,7 +29,7 @@ const flatPickrState = reactive({
 async function aprobarReserva() {
     try {
         dataSendApproval.id = infoCotizacion.value.id;
-        const response = await fetchApprovalApplicationReservedQuotationById();
+        const response = await approveReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
             await swalSuccess("Cotización aprobada");
@@ -42,7 +43,7 @@ async function aprobarReserva() {
 async function rechazarReserva() {
     try {
         dataSendApproval.id = infoCotizacion.value.id;
-        const response = await fetchDenyApplicationReservedQuotationById();
+        const response = await denyReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
             await swalSuccess("Cotización rechazada");
@@ -155,7 +156,6 @@ async function rechazarReserva() {
                         </div>
                     </div>
                 </div>
-
                 <div class="table-responsive mb-2">
                     <table class="table table-sm table-borderless align-middle mb-0">
                         <thead style="position: sticky; top: 0; z-index: 1;">
@@ -167,8 +167,8 @@ async function rechazarReserva() {
                                 <th class="fs-sm" style="font-size: 10px">Cantidad</th>
                             </tr>
                         </thead>
-                        <tbody v-for="item in infoCotizacion.detallecotizacion" :key="item.id">
-                            <tr v-for="item2 in item.stock" :key="item2.id">
+                        <tbody >
+                            <tr v-for="(item, index) in rows" :key="index">
                                 <td class="code">{{ item.ART_CODIGO }}</td>
                                 <td>
                                     <div class="text-truncate" :title="item.ART_DESCRIPCION" style="max-width: 420px;">
@@ -178,8 +178,8 @@ async function rechazarReserva() {
                                 <td>
                                     <span class="badge bg-secondary">{{ item.ART_CODIGO_TRES_LETRAS }}</span>
                                 </td>
-                                <td class="fs-sm text-sm">{{ item2.STO_ART_BODEGA }}</td>
-                                <td class="fs-sm text-sm">{{ item2.seleccionado }}</td>
+                                <td class="fs-sm text-sm">{{ item.STO_ART_BODEGA }}</td>
+                                <td class="fs-sm text-sm">{{ item.ART_CANTIDAD }}</td>
                             </tr>
                         </tbody>
                     </table>

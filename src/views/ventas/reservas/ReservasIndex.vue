@@ -15,7 +15,8 @@ import {
 //modales
 import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
-import verUsoReservaModal from "./modal/verUsoReservaModal.vue";
+import verUsoReservaModal from "@/views/ventas/reservas/modal/verUsoReservaModal.vue";
+import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
 
 
 const flatPickrState = reactive({
@@ -29,7 +30,7 @@ const flatPickrState = reactive({
     },
 });
 
-const { columns, listPerpage, listStatus, table, fetchList, onSort, refresh } = useApprovedReservations();
+const { columns, listPerpage, listStatus, table, fetchList, onSort, refresh, estadoClass, totalClass } = useApprovedReservations();
 const ptoVta = usePtoVtaStore();
 const {
     fetchQuotationWithDetial,
@@ -87,11 +88,26 @@ function unlockTest(id) {
 const dataModal = ref(null);
 let verCrearEditarReservaModal = ref(null);
 let verCrearEditarReservaModalObj = null;
+let verUsoFacturaDemandaModalObj = null;
+let verUsoFacturaDemandaModal = ref(null);
 async function crearReserva(row) {
+
     if (row.st_solResInv == 'pendiente') {
         swalWarning("La reserva aun no ha sido aprobada, no puede visualizar el detalle");
         return;
     }
+    if (row.tipo_reserva_id == 1) {
+        openModalUsoReserva(row);
+
+    } else if (row.tipo_reserva_id == 2) {
+        openModalUsoFacturaDemanda(row);
+    }
+
+
+}
+
+async function openModalUsoReserva(row) {
+
     if (!row || row.id == null) return
     const id = row.id
     if (isTestLocked(id)) return
@@ -111,36 +127,39 @@ async function crearReserva(row) {
     }
 }
 
+async function openModalUsoFacturaDemanda(row) {
+    if (!row || row.id == null) return
+    const id = row.id
+    if (isTestLocked(id)) return
+    try {
+        lockTest(id)
+        const response = await fetchQuotationWithDetialAndStockActive(row.id);
+        if (response) {
+            dataModal.value = response;
+            verUsoFacturaDemandaModalObj.show();
+        }
+        unlockTest(id);
+    } catch (e) {
+        swalError(e?.response?.data?.error || e?.message || 'Error')
+    } finally {
+        unlockTest(id)
+    }
+}
+
 async function closeModalUsoReserva() {
     verCrearEditarReservaModalObj.hide();
     dataModal.value = null;
     refresh();
 }
 
+async function closeModalUsoFacturaDemanda() {
+    verUsoFacturaDemandaModalObj.hide();
+    dataModal.value = null;
+    refresh();
+}
 
-const estadoClass = (st) => {
-    switch (st || "") {
-        case "pendiente":
-            return "badge bg-dark text-light fw-semibold";
-        case "aprobado":
-            return "badge bg-success  fw-semibold";
-        case "rechazada":
-            return "badge bg-danger  fw-semibold";
-        case "cancelada":
-            return "badge bg-warning  fw-semibold";
-        case "procesado":
-            return "badge bg-primary  fw-semibold";
-        default:
-            return "badge bg-secondary";
-    }
-};
 
-const totalClass = (total) => {
-    if (total > 0) {
-        return "text-end fw-semibold";
-    }
-    return "text-end fw-semibold";
-};
+
 
 
 
@@ -187,6 +206,7 @@ function modalesComponent() {
     filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
     verCotizacionDetalleModalObj = new Modal(verCotizacionDetalleModal.value);
     verCrearEditarReservaModalObj = new Modal(verCrearEditarReservaModal.value);
+    verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
 }
 
 onMounted(() => {
@@ -338,12 +358,25 @@ onMounted(() => {
     </div>
 
     <!-- Modal de generacion de reservas -->
-    <div class="modal" id="modal-uso-reserva" tabindex="-1" role="dialog"
-        aria-labelledby="modal-uso-reserva" aria-hidden="false" ref="verCrearEditarReservaModal">
+    <div class="modal" id="modal-uso-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-uso-reserva"
+        aria-hidden="false" ref="verCrearEditarReservaModal">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
-                <verUsoReservaModal v-if="dataModal" :reserva="dataModal" @closeModalUsoReserva="closeModalUsoReserva()" >
+                <verUsoReservaModal v-if="dataModal" :reserva="dataModal"
+                    @closeModalUsoReserva="closeModalUsoReserva()">
                 </verUsoReservaModal>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para generar facturas a demanda -->
+    <div class="modal" id="modal-uso-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-uso-reserva"
+        aria-hidden="false" ref="verUsoFacturaDemandaModal">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <verUsoFacturaDemandaComponent v-if="dataModal" :reserva="dataModal"
+                    @closeModalUsoFacturaDemanda="closeModalUsoFacturaDemanda()">
+                </verUsoFacturaDemandaComponent>
             </div>
         </div>
     </div>

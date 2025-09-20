@@ -5,7 +5,10 @@ import { swalSuccess, swalError } from "@/functions/swal-alert.js";
 
 export function useReservationProcessor(infoCotizacion) {
   const urlProcess = "/cotizaciones/reserva/procesar-reserva";
+  const urlFacturaDemanda =
+    "/cotizaciones/reserva/procesar-reserva-factura-demanda";
   const loadingReservedProcess = ref(false);
+  const loadingFacturaDemanda = ref(false);
 
   const selectAllRelease = ref(false);
   const selectAllInvoice = ref(false);
@@ -98,24 +101,54 @@ export function useReservationProcessor(infoCotizacion) {
       });
 
       const ok = status >= 200 && status < 300 && (data?.success ?? true);
+
       if (!ok) {
-        const msg = data?.message || "No se pudo procesar la reserva.";
+        const msg = data?.error || "No se pudo procesar la reserva.";
         throw new Error(msg);
       }
       const msg = data?.message || "Reserva procesada correctamente.";
-      swalSuccess(msg);
+      // swalSuccess(msg);
       return { ok: true, data, message: msg };
     } catch (error) {
       const msg =
         error?.response?.data?.error ||
         error?.response?.data?.message ||
-        error?.message ||
+        error?.error ||
         "Error al procesar la reserva.";
-      console.error("[processReservation] ", error);
-      swalError(msg);
+      // console.error("[processReservation] ", error);
+      // swalError(msg);
       return { ok: false, error, message: msg };
     } finally {
       loadingReservedProcess.value = false;
+    }
+  }
+
+  async function procesarReservaFacturaDemanda(quotation) {
+    loadingFacturaDemanda.value = true;
+    try {
+      const { data, status } = await axiosClient.post(urlFacturaDemanda, {
+        data: quotation,
+      });
+      const ok = status >= 200 && status < 300 && (data?.success ?? true);
+
+      if (!ok) {
+        const msg = data?.error || "No se pudo procesar la reserva.";
+        throw new Error(msg);
+      }
+      const msg = data?.message || "Reserva procesada correctamente.";
+      // swalSuccess(msg);
+      return { ok: true, data, message: msg };
+    } catch (error) {
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.error ||
+        "Error al procesar la reserva.";
+      // console.error("[procesarReservaFacturaDemanda2] ", error);
+      // swalError(msg);
+      return { ok: false, error, message: msg };
+    } finally {
+      loadingFacturaDemanda.value = false;
     }
   }
 
@@ -125,6 +158,7 @@ export function useReservationProcessor(infoCotizacion) {
     updateInvoiceReserved,
     getAuthorized,
     loadingReservedProcess,
+    loadingFacturaDemanda,
     processReservation,
 
     /** seleccion lote */
@@ -134,5 +168,6 @@ export function useReservationProcessor(infoCotizacion) {
     /** acciones */
     applySelectAllRelease,
     applySelectAllInvoice,
+    procesarReservaFacturaDemanda,
   };
 }

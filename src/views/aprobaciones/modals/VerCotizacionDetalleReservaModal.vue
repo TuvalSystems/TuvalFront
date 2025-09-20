@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { watch, reactive, onMounted } from 'vue';
-import { formatPriceJm, formatJm } from "@/functions";
+import { formatPriceJm, formatJm, toInt } from "@/functions";
 
 const props = defineProps({
     infoCotizacion: {
@@ -105,6 +105,14 @@ const segmento = computed(() => props.segmento);
                             </div>
                         </div>
                     </div>
+                    <div class="col-6 col-lg-4">
+                        <div class="kv">
+                            <small class="text-muted">Tipo Reserva</small>
+                            <div class="fw-semibold">
+                                <div class="fw-semibold">{{ infoCotizacion.tiporeserva.descripcion }}</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-12" v-if="segmento.segmento || segmento.subsegmento">
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             <span class="text-muted me-1">Segmentación:</span>
@@ -118,7 +126,7 @@ const segmento = computed(() => props.segmento);
                 <div class="table-responsive mb-2">
                     <table class="table table-sm table-borderless align-middle mb-0">
                         <thead style="position: sticky; top: 0; z-index: 1;">
-                            <tr >
+                            <tr>
                                 <th class="fs-sm">Código</th>
                                 <th class="fs-sm">Descripción</th>
                                 <th class="fs-sm">CTL</th>
@@ -144,32 +152,38 @@ const segmento = computed(() => props.segmento);
                                 <td>
                                     <span class="badge bg-info text-dark">{{ item.ART_PLAN_UMEDIDA }}</span>
                                 </td>
-                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_CANTIDAD }}</td>
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ toInt(item.ART_CANTIDAD) }}
+                                </td>
                                 <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_PESO }}</td>
                                 <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_DESCUENTO }}</td>
-                                <td class="fs-sm text-end nums fw-semibold text-nowrap">${{ formatJm(parseFloat(item.ART_VALOR)) }}
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap">${{
+                                    formatJm(parseFloat(item.ART_VALOR)) }}
                                 </td>
-                                <td class="fs-sm text-end nums fw-semibold text-nowrap"> ${{ formatPriceJm(parseFloat((item.ART_VALOR -
-                                    item.ART_DESCUENTO)
-                                    *
-                                    item.ART_CANTIDAD)) }}</td>
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap"> ${{
+                                    formatPriceJm(parseFloat((item.ART_VALOR -
+                                        item.ART_DESCUENTO)
+                                        *
+                                        item.ART_CANTIDAD)) }}</td>
                             </tr>
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Subtotal</td>
-                                <td class="fw-semibold text-end nums">${{ formatPriceJm(parseFloat(infoCotizacion.subtotal)) }}
+                                <td class="fw-semibold text-end nums">${{
+                                    formatPriceJm(parseFloat(infoCotizacion.subtotal)) }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Descuento</td>
-                                <td class="fw-semibold text-end nums">${{ formatPriceJm(parseFloat(infoCotizacion.descuento))
+                                <td class="fw-semibold text-end nums">${{
+                                    formatPriceJm(parseFloat(infoCotizacion.descuento))
                                 }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Total</td>
-                                <td class="fw-semibold text-end nums">${{ formatPriceJm(parseFloat(infoCotizacion.total)) }}
+                                <td class="fw-semibold text-end nums">${{
+                                    formatPriceJm(parseFloat(infoCotizacion.total)) }}
                                 </td>
                             </tr>
                         </tfoot>

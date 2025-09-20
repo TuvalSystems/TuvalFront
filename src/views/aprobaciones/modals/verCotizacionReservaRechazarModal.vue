@@ -13,7 +13,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['closeModalRechazarReserva']);
 const infoCoti= computed(() => props.infoCotizacion.cotizacion);
-const { dataSendApproval, loadingDeny, fetchDenyApplicationReservedQuotationById } = useQuotationReserveApproval();
+const { dataSendApproval, loadingDeny, denyReservation } = useQuotationReserveApproval();
 const flatPickrState = reactive({
     fecha: {
         minDate: Date.now(),
@@ -24,7 +24,7 @@ const flatPickrState = reactive({
 function rechazarReserva() {
     try {
         dataSendApproval.id = infoCoti.value.id;
-        const response = fetchDenyApplicationReservedQuotationById();
+        const response = denyReservation();
         if (response) {
              emit('closeModalRechazarReserva', true);
             swalSuccess("Cotización rechazada");

@@ -1,5 +1,5 @@
 import axiosClient from "@/axios";
-import Swal from "sweetalert2";
+import { swalError } from "@/functions/swal-alert.js";
 import { watch, reactive, ref } from "vue";
 export function useQuotationReserveApproval() {
   const data = ref(null);
@@ -12,7 +12,7 @@ export function useQuotationReserveApproval() {
   /** para listar los detalles de la cotizacion y el stock activo */
   const dataQuotationDetailAndStockActive = ref(null);
   const loadingQ2 = ref(false);
-  
+
   /** datos para enviar a aprobar y rechazar */
   const dataSendApproval = reactive({
     id: null,
@@ -78,12 +78,13 @@ export function useQuotationReserveApproval() {
   }
 
   /** denegar solicitud */
-  async function fetchDenyApplicationReservedQuotationById() {
+  async function denyReservation() {
     loadingDeny.value = true;
     try {
       const response = await axiosClient.post(
-        `/cotizaciones/reserva/rechazar-solicitud-reserva`,{ 
-          data : dataSendApproval
+        `/cotizaciones/reserva/rechazar-solicitud-reserva`,
+        {
+          data: dataSendApproval,
         }
       );
       const res = response.data;
@@ -99,7 +100,7 @@ export function useQuotationReserveApproval() {
   }
 
   /** aprobar solicitud */
-  async function fetchApprovalApplicationReservedQuotationById() {
+  async function approveReservation() {
     loadingApproval.value = true;
     try {
       if (!dataSendApproval.fe_autSolResInv) {
@@ -109,7 +110,7 @@ export function useQuotationReserveApproval() {
       const response = await axiosClient.post(
         `/cotizaciones/reserva/aprobar-solicitud-reserva`,
         {
-          data :dataSendApproval,
+          data: dataSendApproval,
         }
       );
       const res = response.data;
@@ -125,10 +126,10 @@ export function useQuotationReserveApproval() {
     dataQutationDetailStock,
     fetchQuotationWithDetialAndStock,
     loadingDeny,
-    fetchDenyApplicationReservedQuotationById,
+    denyReservation,
     dataSendApproval,
     loadingApproval,
-    fetchApprovalApplicationReservedQuotationById,
+    approveReservation,
     fetchQuotationWithDetialAndStockActive,
   };
 }

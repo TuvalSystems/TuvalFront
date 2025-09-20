@@ -16,7 +16,7 @@ export function useApprovedReservations() {
     loading: false,
     fecha_desde: null,
     fecha_hasta: null,
-    status: null,
+    status: 'aprobado',
     // cliente: null,
     // ptovta: null,
   });
@@ -96,14 +96,14 @@ export function useApprovedReservations() {
       thClass: "d-none d-md-table-cell",
       tdClass: "d-none d-md-table-cell",
     },
-    {
-      label: "Observacion",
-      key: "tx_obsSolResInv",
-      clickable: false,
-      sortable: true,
-      thClass: "d-none d-md-table-cell",
-      tdClass: "d-none d-md-table-cell",
-    },
+    // {
+    //   label: "Observacion",
+    //   key: "tx_obsSolResInv",
+    //   clickable: false,
+    //   sortable: true,
+    //   thClass: "d-none d-md-table-cell",
+    //   tdClass: "d-none d-md-table-cell",
+    // },
     {
       label: "F. Aprobacion",
       key: "fe_autSolResInv",
@@ -129,6 +129,30 @@ export function useApprovedReservations() {
     { label: "Canceladas", value: "cancelado" },
     { label: "Procesadas", value: "procesado" },
   ]);
+
+  const estadoClass = (st) => {
+    switch (st || "") {
+        case "pendiente":
+            return "badge bg-dark text-light fw-semibold";
+        case "aprobado":
+            return "badge bg-success  fw-semibold";
+        case "rechazada":
+            return "badge bg-danger  fw-semibold";
+        case "cancelada":
+            return "badge bg-warning  fw-semibold";
+        case "procesado":
+            return "badge bg-primary  fw-semibold";
+        default:
+            return "badge bg-secondary";
+    }
+};
+
+const totalClass = (total) => {
+    if (total > 0) {
+        return "text-end fw-semibold";
+    }
+    return "text-end fw-semibold";
+};
 
   const ctrl = ref(null); // AbortController actual
   let debounceId;
@@ -182,7 +206,7 @@ export function useApprovedReservations() {
     table.sortField = "";
     table.sortOrder = "asc";
     table.currentPage = 1; // Reset to first page
-    table.status = "";
+    table.status = "aprobado";
     table.ptovta = null;
     table.cliente = null; // Reset cliente filter
     fetchList(1); //consulta de nuevo
@@ -223,5 +247,9 @@ export function useApprovedReservations() {
     fetchList,
     onSort,
     refresh,
+
+    //actions
+    estadoClass,
+    totalClass
   };
 }

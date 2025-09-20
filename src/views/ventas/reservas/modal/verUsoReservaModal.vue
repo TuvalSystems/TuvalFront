@@ -1,9 +1,10 @@
 <script setup>
-import { onMounted, computed} from "vue";
+import { computed } from "vue";
 import { toInt } from "@/functions";
 import {
   swalWarning,
   swalError,
+  swalSuccess
 } from "@/functions/swal-alert.js";
 import { useReservationProcessor } from "@/composables/venta/cotizaciones/reservas/useReservationProcessor";
 const props = defineProps({
@@ -64,21 +65,18 @@ async function procesar() {
       return;
     }
     if (!validateToProcess()) return;
-    await processReservation(infoCotizacion.value);
-    emit('closeModalUsoReserva', true);
+    const { ok, data, message } = await processReservation(infoCotizacion.value);
+    if (ok) {
+      swalSuccess(message);
+      emit('closeModalUsoReserva', true);
+      return data;
+    }
+    swalError(message);
   } catch (error) {
-    const msg =
-      error?.response?.data?.error ||
-      error?.response?.data?.message ||
-      error?.message ||
-      "Error al procesar la reserva.";
-    swalError(msg);
+    swalError(error?.message || "Error al procesar la reserva.");
   }
 }
 
-onMounted(() => {
-
-});
 </script>
 <template>
   <BaseBlock title="Uso de la Reserva" transparent>
@@ -167,6 +165,15 @@ onMounted(() => {
               </div>
             </div>
           </div>
+          <div class="col-6 col-lg-4">
+            <div class="kv">
+              <small class="text-muted">Tipo Reserva</small>
+              <div class="fw-semibold">
+                <div class="fw-semibold">{{ infoCotizacion.tiporeserva.descripcion }}</div>
+              </div>
+            </div>
+          </div>
+
           <div class="col-12" v-if="infoSegmento.segmento || infoSegmento.subsegmento">
             <div class="d-flex flex-wrap gap-2 align-items-center">
               <span class="text-muted me-1">Segmentación:</span>
@@ -176,7 +183,6 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
         <!-- detale de la cotizacion -->
         <div class="table-responsive mb-0">
           <table class="table table-sm table-borderless align-middle mb-0">
