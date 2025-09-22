@@ -885,12 +885,12 @@ const store = createStore({
     },
 
     llenarpedidosporaprobarcrediticiosInterval({ commit, dispatch }) {
-      commit(
+       commit(
         "setIntervalPedidosporAprobarCrediticios",
-        setInterval(() => {
+         setInterval(() => {
           dispatch("llenarpedidosporaprobarcrediticios");
         }, 10000)
-      );
+       );
     },
     llenarpedidosporaprobarcrediticiosStop({ commit }) {
       commit("llenarpedidosporaprobarcrediticiosStop");
@@ -1037,7 +1037,7 @@ const store = createStore({
         .post("/aprobaciones/estadodecuenta", pedido)
         .then((res) => {
           commit("setEstadoDeCuentaLoading", false);
-          commit("setEstadoDeCuenta", res.data.detalle);
+          commit("setEstadoDeCuenta", res.data.data);
           return res;
         });
     },

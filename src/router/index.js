@@ -187,6 +187,14 @@ const routes = [
           title: "Ventas - Pedidos",
         },
       },
+     {
+        path: "reservas",
+        name: "ventas-reservas",
+        component: "",
+        meta: {
+          title: "Ventas - Reservas",
+        },
+      },
       {
         path: "consultas",
         name: "ventas-consultas",
@@ -287,6 +295,14 @@ const routes = [
         component: AprobacionesDevoluciones,
         meta: {
           title: "Aprobaciones - Devoluciones",
+        },
+      },
+      {
+        path: "reservas",
+        name: "aprobaciones-reservas",
+        component: "",
+        meta: {
+          title: "Aprobaciones - Reservas",
         },
       },
     ],
