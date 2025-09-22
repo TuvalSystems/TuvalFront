@@ -190,6 +190,7 @@ const routes = [
           title: "Ventas - Pedidos",
         },
       },
+
        {
         path: "reservas",
         name: "ventas-reservas",
@@ -309,7 +310,6 @@ const routes = [
         },
       },
 
-      
     ],
   },
   {
