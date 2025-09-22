@@ -25,6 +25,7 @@ const VentasCotizacionProspecto = () =>
 const VentasCotizaciones = () =>
   import("@/views/ventas/cotizaciones/CotizacionesView.vue");
 const VentasPedidos = () => import("@/views/ventas/pedidos/PedidosView.vue");
+const VentasReservas = () => import("@/views/ventas/reservas/ReservasIndex.vue");
 const VentasConsultas = () => import("@/views/ventas/ConsultasView.vue");
 const VentasCrearCliente = () =>
   import("@/views/ventas/cotizaciones/CrearClienteView.vue");
@@ -55,6 +56,8 @@ const AprobacionesCrediticias = () =>
 const AprobacionesDevoluciones = () =>
   import("@/views/aprobaciones/DevolucionesView.vue");
 
+const AprobacionesReservas = () =>
+  import("@/views/aprobaciones/ReservasView.vue");
 // Devoluciones
 
 const DevolucionesPedidos = () =>
@@ -187,10 +190,11 @@ const routes = [
           title: "Ventas - Pedidos",
         },
       },
-     {
+
+       {
         path: "reservas",
         name: "ventas-reservas",
-        component: "",
+        component: VentasReservas,
         meta: {
           title: "Ventas - Reservas",
         },
@@ -300,11 +304,12 @@ const routes = [
       {
         path: "reservas",
         name: "aprobaciones-reservas",
-        component: "",
+        component: AprobacionesReservas,
         meta: {
           title: "Aprobaciones - Reservas",
         },
       },
+
     ],
   },
   {
