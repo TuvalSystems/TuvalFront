@@ -164,17 +164,15 @@
                           {{ row.estado }}
                         </a>
                         <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill" :class="row.aprobado_comercial_mensaje ? 'pointer bg-danger-light text-danger' : '' || row.estado == 'aprobado' ? 'bg-success-light text-success'
-                          : '' || row.estado == 'rechazado' ? 'bg-danger-light text-danger' : '' || row.estado == 'caducado' ? 'bg-danger-light text-danger'
-                            : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''"
-                          @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : ''">{{
-                            row.estado }}
+                              : '' || row.estado == 'rechazado'? 'bg-danger-light text-danger' : '' || row.estado == 'caducado'? 'bg-danger-light text-danger'
+                                  : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''" @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : '' ">{{ row.estado }}
                         </span>
                       </td>
                       <td>
-
-                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1"
-                          :class="getReminderClass(row)"
-                          @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''">
+                      
+                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1" 
+                           :class="getReminderClass(row)"
+                           @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''" >
                           {{ row.recordatorioventa == 1 ? "Si" : "No" }}
                         </span>
                       </td>
@@ -221,10 +219,11 @@
                           @click="imprimircotizacionimagenes(row)">
                           <i class="fa fa-print"></i>
                         </button>
-                        <button type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
-                          @click="verModalReserva(row)">
-                          <i class="fa fa fa-box-archive"></i>
-                        </button>
+                        <!-- <button
+                        v-if="row.facturar == 'yes' && row.estado != 'procesado'"
+                        type="button" class="btn btn-danger btn-sm mx-1" title="Procesar cotización" @click="confirmfacturar(row)">
+                        <i class="fa fa-file-invoice-dollar"></i>
+                      </button> -->
                       </td>
                     </tr>
                   </template>
@@ -268,25 +267,10 @@
     ref="verNoVentaModal">
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta"
-          @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
+        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta" @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
       </div>
     </div>
   </div>
-
-  <!-- Modal de reserva -->
-  <div class="modal" id="modal-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-reserva" aria-hidden="true"
-    ref="verReservaModal">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.id" :datosReserva="datosModalReserva"
-          @modalReservaHide="modalReservaHide()"></VerSolicitudReservaModalComponent>
-      </div>
-    </div>
-  </div>
-
-
-
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from "vue";
@@ -309,12 +293,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { formatPrice, format } from "@/functions";
 import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
-import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
-import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitudReservaModal.vue";
-import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 const motivoStore = useMotivosStore()
-const tipoReservasStore = useTipoReservasStore()
-const {  checkExistingReserve } = useValidatesReserved()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -441,57 +420,6 @@ async function funcionvercotizacion(cotizacion, index) {
   store.dispatch("detallecotizacion", cotizacion);
 }
 
-
-
-let verReservaModal = ref(null);
-let verReservaModalObj = null;
-let datosModalReserva = ref(null);
-async function verModalReserva(row) {
-  // let resp;
-  // try {
-  //   resp = await fetchResponseHaveItemL(row.id);
-  // } catch {
-  //   return; // si la validación falló, no abras el modal
-  // }
-
-  // if (resp?.exists) {
-  //   swalError(resp?.message || 'No puede realizar la reserva: la cotización tiene un ítem tipo L');
-  //   return;
-  // }
-
-  if (row.st_solResInv != "" && row.st_solResInv != null) {
-    swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
-    return
-  }
-  const payload = {
-    id: row.id,
-    cotizacion: row.cotizacion,
-    pto_venta: row.BOD_BODEGA,
-    razon_social: row.CLI_RAZON_SOCIAL,
-    fecha: row.created_at,
-    total: row.total,
-    co_tipSolResInv: row.co_tipSolResInv ?? null,
-    co_tipTrasResInv: row.co_tipTrasResInv ?? null,
-    fe_solResInv: row.fe_solResInv ?? null,
-    st_solResInv: row.st_solResInv ?? null,
-    tx_obsSolResInv: row.tx_obsSolResInv ?? null,
-    has_l_items: row.has_l_items ?? null,
-    has_service_items: row.has_service_items ?? null
-  };
-  datosModalReserva.value = null;
-  await nextTick();
-  datosModalReserva.value = payload;
-  await nextTick();
-  verReservaModalObj?.show();
-
-}
-
-async function modalReservaHide() {
-  verReservaModalObj?.hide();
-  datosModalReserva.value = null
-  llenarcotizaciones('pendientes');
-}
-
 function motivoEspera(cotizacion) {
   let msg = "La cotización requiere ";
   if (cotizacion.requiere_aprobacion_comercial === "yes") {
@@ -537,18 +465,7 @@ async function llenarcotizaciones(estado) {
     });
 }
 
-async function recuperarcotizacion(cotizacion) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(cotizacion.id);
-  } catch {
-    return;
-  }
-  if (respRes?.exists) {
-    swalError('No puede recuperar la cotización: la cotización cuenta con una reserva  ');
-    return;
-  }
-
+function recuperarcotizacion(cotizacion) {
   templateStore.pageLoader({ mode: "on" });
   store
     .dispatch("recuperarCotizacion", cotizacion)
@@ -588,17 +505,7 @@ function recuperarcotizacionprospecto(cotizacion) {
   });
 }
 
-async function volverapedir(cotizacion) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(cotizacion.id);
-  } catch {
-    return;
-  }
-  if (respRes?.exists) {
-    swalError('No puede volver a pedir la cotización ya que cuenta con una reserva');
-    return;
-  }
+function volverapedir(cotizacion) {
   templateStore.pageLoader({ mode: "on" });
   store
     .dispatch("volverapedirCotizacion", cotizacion)
@@ -613,19 +520,7 @@ async function volverapedir(cotizacion) {
     });
 }
 
-
-async function levantarcliente(pedido) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(pedido.id);
-  } catch {
-    return;
-  }
-  if (respRes?.exists) {
-    swalError('No puede copiar la cotización ya que cuenta con una reserva');
-    return;
-  }
-
+function levantarcliente(pedido) {
   store.commit("resetCotizacion");
   levantarClienteModalObj.show();
   vercotizacion.value = pedido;
@@ -709,9 +604,9 @@ function showModalNoVenta(row) {
     datosModalNoVenta.value = {
       id: row.id,
       motivo_id: row.cotizacion_venta_motivo_id,
-      recordar: row.recordar,
-      observacion: row.observacion,
-      fecha_recordatorio: row.fecha_recordatorio,
+      recordar : row.recordar,
+      observacion : row.observacion,
+      fecha_recordatorio : row.fecha_recordatorio,
       cotizacion: row.cotizacion
     }
     nextTick(() => {
@@ -720,19 +615,19 @@ function showModalNoVenta(row) {
   });
 }
 
-function getReminderClass(row) {
+function getReminderClass(row){  
   if (row.recordatorioventa == 0) {
     if (row.cotizacion_venta_motivo_id != null || row.recordar == 1) {
       return 'bg-success-light text-success'
     } else {
       return 'bg-warning-light text-warning'
     }
-
-  } else if (row.recordatorioventa == 1) {
-    return 'bg-info-light text-info'
+    
+  }else if(row.recordatorioventa == 1){
+      return 'bg-info-light text-info'
   }
-
-
+  
+  
   return 'bg-danger-light text-danger';
 }
 
@@ -740,7 +635,6 @@ function getReminderClass(row) {
 
 onMounted(() => {
   vercotizacionModalObj = new Modal(vercotizacionModal.value);
-  verReservaModalObj = new Modal(verReservaModal.value);
   levantarClienteModalObj = new Modal(levantarClienteModal.value);
   verNoVentaModalObj = new Modal(verNoVentaModal.value);
   // Remove labels from
@@ -754,12 +648,8 @@ onMounted(() => {
   selectLength.classList = "";
   selectLength.classList.add("form-select");
   selectLength.style.width = "80px";
-  if (motivoStore.motivos.length == 0) {
-    motivoStore.fetchMotivos()
-  }
-  if (tipoReservasStore.tipoReservas.length == 0) {
-    tipoReservasStore.fetchListTypeReserved()
-  }
-
+   if (motivoStore.motivos.length == 0) {
+        motivoStore.fetchMotivos()
+    }
 });
 </script>

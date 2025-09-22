@@ -1394,7 +1394,7 @@ function guardarPedido(){
   store.dispatch('guardarPedido', infopedido).then((res) => {
       swalSuccess(res.data.message);     
       router.push({
-        name: 'ventas-pedidos',
+        name: 'ventas-pedidos'
       }) 
   })
   .catch(err => {

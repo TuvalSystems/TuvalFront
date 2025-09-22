@@ -549,9 +549,9 @@ async function onSubmit() {
     // 7. Apaga loader y redirige
     templateStore.pageLoader({ mode: 'off' })
 
-    // console.log('Navegando a crear cotización…')
+    console.log('Navegando a crear cotización…')
     await router.push({ name: 'ventas-crearcotizacion' })
-    // console.log('¡Redirección completada!')
+    console.log('¡Redirección completada!')
 
   } catch (error) {
     templateStore.pageLoader({ mode: 'off' })
@@ -559,7 +559,7 @@ async function onSubmit() {
     if (error.name === 'NavigationDuplicated') {
       console.log('Ya estabas en ventas-crearcotizacion, nada mal.')
     } else {
-      // console.error('Error en onSubmit:', error)
+      console.error('Error en onSubmit:', error)
       swalError(error.response?.data?.error || error.message)
     }
   }
