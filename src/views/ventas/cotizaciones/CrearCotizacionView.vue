@@ -109,6 +109,18 @@
                   <td class="fs-sm" :class="parseFloat(currentCliente.cupo_disponible) < 0 ? 'text-danger' : ''">
                     ${{ currentCliente.cupo_disponible }}</td>
                 </tr>
+                <tr v-if="segmentocliente && segmentocliente.data &&
+                  Object.keys(segmentocliente.data).length">
+                  <th>Segmento</th>
+                  <td>{{ segmentocliente.data.segmento }}</td>
+                  <th>Subsegmento</th>
+                  <td colspan="3">{{ segmentocliente.data.subsegmento }}</td>
+                </tr>
+                <tr v-else>
+                  <td colspan="6" class="text-muted">
+                    Sin segmento para este cliente
+                  </td>
+                </tr>
 
               </tbody>
             </table>
@@ -449,46 +461,12 @@
       </div>
       <div class="row" v-if="cotizacion.data.length > 0">
         <div class="col-md-12">
-          <div class="row">
-            <div class="col-md-4">
-              <label for="select-condicion-pago" class="col-auto col-form-label text-right">Condición de pago:</label>
-              <div class="col-auto">
-                <select class="form-select" id="select-condicion-pago" name="select-condicion-pago"
-                  v-model="condiciondepago_id" @change="selectcondicionpago($event)"
-                  :disabled="currentCliente.suspendido == 1">
-                  <option v-for="(condicion, index) in condiciondepago" :key="index" :value="condicion.COND_ID">{{
-                    condicion.COND_ID }}</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <!--              {{registro_copia}}-->
-              <label for="select-forma-pago" class="col-auto col-form-label text-right">Forma de pago:
-                <span v-if="condiciondepago_id !== currentCliente.CLI_CONDICION_PAGO"
-                  class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-danger">Condición
-                  diferente</span>
-              </label>
-              <div class="col-auto">
-                <select class="form-select" id="select-forma-pago" name="select-forma-pago" v-model="formadepago_id"
-                  @change="selectformapago($event)">
-                  <option v-for="(pago, index) in formadepago" :key="index" :value="pago.DESC_FORMA_PAGO_CODIGO">{{
-                    pago.DESC_FORMA_PAGO_TIPO_CREDITO }}</option>
-                </select>
-                <code>Descuento:
-              <span v-if="!cambiardescuento">
-                <a href="javascript:void(0)" @click="cambiarDescuento()"
-                  :class="descuentooriginal != descuentoarticulo ? 'text-danger' : ''">{{ descuentoarticulo }}%</a>
-              </span>
-              <input v-else type="text" id="updateDescuento" class="form-control"
-                :class="errorDescuento ? 'is-invalid' : ''" placeholder="Descuento" :value="descuentoarticulo"
-                @change="updateDescuento($event)" @keyup.enter="updateDescuento($event)">
-            </code>
-              </div>
-            </div>
-            <div class="col-md-4">
+          <!-- Dia de facutación -->
+          <div class="row g-3 align-items-end mt-2">
+            <div class="col-12 col-xl-3 order-1 order-xl-2 ms-xl-auto">
               <div v-if="alerta_facturar && alerta_facturar != '' && alerta_facturar != 'null'"
-                class="alert alert-warning mt-4">
-                <p class="mb-0">{{ alerta_facturar }}</p>
+                class="alert alert-warning py-0 px-0 mb-0 w-auto d-inline-flex align-items-center">
+                <span class="fw-semibold">{{ alerta_facturar }}</span>
               </div>
               <div v-if="pregunta_facturar == 1">
                 <p class="alert alert-warning">Último día de facturación: {{
@@ -501,56 +479,115 @@
                 </div>
               </div>
             </div>
+            <div class="col-12 col-xl-5 order-2 order-xl-1 mb-0">
+
+            </div>
+            <!-- condicion de pago  -->
+            <div class="col-12 col-xl-5 order-2 order-xl-2 mb-4">
+              <label class="form-label">Condición de pago</label>
+              <select class="form-select form-select-alt" id="select-condicion-pago" name="select-condicion-pago"
+                v-model="condiciondepago_id" @change="selectcondicionpago($event)"
+                :disabled="currentCliente.suspendido == 1">
+                <option v-for="(condicion, index) in condiciondepago" :key="index" :value="condicion.COND_ID">{{
+                  condicion.COND_ID }}</option>
+              </select>
+            </div>
+            <!-- forma de pago -->
+            <div class="col-12 col-xl-5 order-2 order-xl-3">
+              <label class="form-label d-flex justify-content-between">
+                <span><span>Forma de pago </span>
+                  <span v-if="condiciondepago_id !== currentCliente.CLI_CONDICION_PAGO"
+                    class="fs-xs fw-semibold d-inline-block py-1 px-2 rounded-pill bg-danger-light text-danger">Condición
+                    diferente</span>
+                </span>
+              </label>
+              <select class="form-select" v-model="formadepago_id" @change="selectformapago($event)">
+                <option v-for="(pago, index) in formadepago" :key="index" :value="pago.DESC_FORMA_PAGO_CODIGO">{{
+                  pago.DESC_FORMA_PAGO_TIPO_CREDITO }}</option>
+              </select>
+              <code>Descuento:
+            <span v-if="!cambiardescuento">
+              <a href="javascript:void(0)" @click="cambiarDescuento()"
+                :class="descuentooriginal != descuentoarticulo ? 'text-danger' : ''">{{ descuentoarticulo }}%</a>
+            </span>
+            <input v-else type="text" id="updateDescuento" class="form-control text-end"
+              :class="errorDescuento ? 'is-invalid' : ''" placeholder="Descuento" :value="descuentoarticulo"
+              @change="updateDescuento($event)" @keyup.enter="updateDescuento($event)">
+          </code>
+            </div>
+
           </div>
-          <div class="row mb-4">
-            <div class="col-md-4">
-              <div class="row">
-                <div class="col-sm-5">
-                  <label for="modificador-general" class="col-auto col-form-label text-right">Descuento general
-                    PVP:</label>
-                  <div class="input-group">
-                    <input v-model="modificador_general" type="text" id="modificador-general"
-                      class="form-control text-end" placeholder="Modificador Precio" @change="modificadorgeneral()" />
-                    <span class="input-group-text">%</span>
-                  </div>
-                </div>
-                <div class="col-sm-7">
-                  <label for="orden-de-compra" class="col-auto col-form-label text-right">Orden de compra:</label>
-                  <div class="input-group">
-                    <input v-model="orden_de_compra" type="text" id="orden-de-compra" class="form-control"
-                      placeholder="Orden de compra" :maxlength="max_length" />
-                    <span v-if="orden_de_compra" class="input-group-text">{{ max_length - orden_de_compra.length
-                    }}</span>
-                  </div>
-                </div>
+
+          <div class="row g-1 align-items-end mb-3">
+            <!-- Descuento general PVP -->
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="modificador-general" class="form-label">Descuento general PVP</label>
+              <div class="input-group ">
+                <input id="modificador-general" type="number" min="0" max="100" step="0.01"
+                  class="form-control text-end" placeholder="0.00" v-model.number="modificador_general"
+                  @change="modificadorgeneral()" />
+                <span class="input-group-text input-group-text-alt">%</span>
               </div>
+
             </div>
-            <div class="col-md-4">
-              <label for="nota-cliente" class="col-auto col-form-label text-right">Nota cliente:</label>
-              <div class="col-auto">
-                <textarea class="form-control" v-model="nota_cliente"></textarea>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <label for="nota-interna" class="col-auto col-form-label text-right">Nota interna:</label>
-              <div class="col-auto">
-                <textarea class="form-control" v-model="nota_interna"></textarea>
+
+            <!-- Orden de compra con contador -->
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="orden-de-compra" class="form-label d-flex justify-content-between">
+                <span>Orden de compra</span>
+              </label>
+              <div class="input-group">
+                <input id="orden-de-compra" type="text" class="form-control " placeholder="Opcional"
+                  v-model="orden_de_compra" :maxlength="max_length" />
+                <span v-if="orden_de_compra" class="input-group-text input-group-text-alt">{{ max_length -
+                  orden_de_compra.length
+                }}</span>
+
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col-md-6 text-left">
-              <button type="button" class="btn btn-danger" @click="limpiarCotizacion">Limpiar cotización</button>
+          <div class="row g-2 align-items-end mb-3">
+            <!-- Nota cliente -->
+            <div class="col-12 col-lg-6">
+              <label for="nota-cliente" class="form-label">Nota cliente</label>
+              <div class="input-group">
+
+                <textarea id="nota-cliente" class="form-control" rows="3" :maxlength="max_length_nota"
+                  v-model.trim="nota_cliente"></textarea>
+                <span v-if="nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota -
+                  nota_cliente.length
+                }}</span>
+              </div>
             </div>
-            <div class="col-md-6 text-end">
-              <button type="button" class="btn btn-success mx-4"
+            <!-- Nota interna -->
+            <div class="col-12 col-lg-6">
+              <label for="nota-interna" class="form-label">Nota interna</label>
+              <textarea id="nota-interna" class="form-control " rows="3" v-model.trim="nota_interna"></textarea>
+            </div>
+          </div>
+
+          <!-- BOTONERA -->
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button type="button" class="btn btn-danger" @click="limpiarCotizacion">
+              Limpiar cotización
+            </button>
+
+            <div class="ms-auto">
+              <button type="button" class="btn btn-success me-2"
                 :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && btnDisabledStore)"
-                @click="guardarCotizacion">Guardar Cotización</button>
+                @click="guardarCotizacion">
+                Guardar Cotización
+              </button>
+
               <button type="button" class="btn btn-warning" v-if="store.state.cotizacion_serial"
-                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock && btnDisabledStore)"
-                @click="confirmGuardarPedido">Guardar Pedido</button>
+                :disabled="!(validaCantidad && validaPrecio && validaDescripcion && validaProveedores && validaStock && btnDisabledStore && btnStoreOrder)"
+                @click="confirmGuardarPedido">
+                Guardar Pedido
+              </button>
             </div>
           </div>
+
+          <!-- fin de pruebas -->
         </div>
       </div>
     </BaseBlock>
@@ -634,7 +671,7 @@
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
         <actualizarSegmentoClienteComponent v-if="datosCliente" :cliente="datosCliente"
-        @updated="procesoDeSelectCliente">
+          @updated="procesoDeSelectCliente">
         </actualizarSegmentoClienteComponent>
       </div>
     </div>
@@ -731,6 +768,8 @@ const coordenadasdeentrega = ref(null);
 const nota_cliente = ref(store.state.nota_cliente);
 const orden_de_compra = ref(store.state.orden_de_compra);
 const max_length = ref(20);
+const max_length_nota = ref(300);
+
 const modificador_general = ref(0);
 const cotizacion = computed(() => store.state.cotizacion);
 
@@ -752,6 +791,8 @@ const flatPickrState = reactive({
   monthSelectorType: "static",
   locale: Spanish,
 });
+
+const segmentocliente = computed(() => store.state.segmentocliente);
 
 
 
@@ -795,7 +836,7 @@ async function selectcliente(cliente) {
   try {
     const result = await fetchCheckSegmentoClient(cliente);
     if (result.exists === false) {
-      if (cliente !== null) {   
+      if (cliente !== null) {
         datosCliente.value = cliente;
         verModalActualizarSegmentoObj.show();
       }
@@ -809,8 +850,8 @@ async function selectcliente(cliente) {
   }
 
 }
-function procesoDeSelectCliente(cliente){
-   store.dispatch('cupoDisponible', cliente.CLI_RUC).then((cupo) => {
+function procesoDeSelectCliente(cliente) {
+  store.dispatch('cupoDisponible', cliente.CLI_RUC).then((cupo) => {
     store.commit('resetCotizacion');
     store.commit('resetRegistroCopia');
     store.commit('setDespacho', 'Retiro en bodega');
@@ -1515,7 +1556,9 @@ function limpiarCotizacion() {
 
 }
 
+const btnStoreOrder = ref(true);
 function confirmGuardarPedido() {
+  btnStoreOrder.value = false;
   toast
     .fire({
       title: "Estás seguro?",
@@ -1539,6 +1582,8 @@ function confirmGuardarPedido() {
     .then((result) => {
       if (result.value) {
         guardarPedido()
+      } else {
+        btnStoreOrder.value = true;
       }
     });
 }
@@ -1582,17 +1627,20 @@ function guardarPedido() {
     store.dispatch('guardarPedido', infopedido).then((res) => {
       templateStore.pageLoader({ mode: "off" });
       swalSuccess(res.data.message);
+      btnStoreOrder.value = true;
       router.push({
         name: 'ventas-pedidos'
       })
     })
       .catch(err => {
         templateStore.pageLoader({ mode: "off" });
+        btnStoreOrder.value = true;
         swalError(err.response.data.error)
       });
   })
     .catch(err => {
       templateStore.pageLoader({ mode: "off" });
+      btnStoreOrder.value = true;
       swalError(err.response.data.error)
     });
   // }, Math.floor(Math.random() * 2000));
@@ -1682,3 +1730,12 @@ onMounted(() => {
 });
 
 </script>
+
+<style scoped>
+@media (min-width: 1200px) {
+  .billing-sticky {
+    position: sticky;
+    top: .75rem;
+  }
+}
+</style>

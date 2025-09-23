@@ -107,12 +107,12 @@
                           <span v-else>{{ row.ART_CODIGO }}</span>
                         </td>
                         <td class="fs-sm">
-                          <a v-if="(row.ART_TIPO_COMPRA === 'L' ) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
+                          <a v-if="(row.ART_TIPO_COMPRA === 'L') || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO }}</a>
                           <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
                         </td>
                         <td class="fs-sm">
-                          <a v-if="(row.ART_TIPO_COMPRA === 'L' ) || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
+                          <a v-if="(row.ART_TIPO_COMPRA === 'L') || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_DESCRIPCION }}</a>
                           <span v-else>{{ row.ART_DESCRIPCION }}</span>
                         </td>
@@ -122,7 +122,24 @@
                         <td class="fs-sm">
                           {{ row.ART_PLAN_UMEDIDA }}
                         </td>
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem; justify-content: center;">
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
+                          style="width: 7rem;justify-content: center;">
+                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockTransito)">
+                            <code>{{ row.stockTransito.bodega }} - {{ row.stockTransito.pendiente }}<br></code>
+                            <!-- <code v-for="stock in row.stockTransito"
+                              :key="stock.STO_ART_BODEGA">{{ stock.bodega }} - {{ stock.pendiente }}<br></code> -->
+                          </div>
+                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockTransito & !row.loading2)">
+                            <button class="btn btn-sm btn-warning" @click="consultarStockTransito(row)"><i
+                                class="fa fa-magnifying-glass"></i> Transito</button>
+                          </div>
+                          <div v-if="row.loading2" class="text-center">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span
+                                class="visually-hidden">Loading...</span></div>
+                          </div>
+                        </td>
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
+                          style="width: 7rem; justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stock)">
                             <code v-for="stock in row.stock"
                               :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
@@ -137,7 +154,9 @@
                           </div>
                         </td>
 
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right" style="width: 7rem;justify-content: center;">
+
+                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
+                          style="width: 7rem;justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockImport)">
                             <code v-for="stock in row.stockImport"
                               :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
@@ -151,6 +170,7 @@
                                 class="visually-hidden">Loading...</span></div>
                           </div>
                         </td>
+
 
                         <td class="text-end">
                           ${{ formatPrice(row.ART_VALOR) }}
@@ -309,6 +329,11 @@ const cols = reactive([
     sort: "",
   },
   {
+    name: "Transito",
+    field: "ART_TRANSITO",
+    sort: "",
+  },
+  {
     name: "Stock bodega",
     field: "ART_STOCK",
     sort: "",
@@ -374,6 +399,26 @@ function consultOtherStocksImports(articulo) {
     articulo.stockImport = res.stock;
     articulo.ART_STOCK_IMPORT = res.ART_STOCK;
     articulo.loading1 = false;
+  });
+}
+
+function consultarStockTransito(articulo) {
+  articulo.loading2 = true;
+  let cliente_id = null;
+  if (currentCliente.value) {
+    cliente_id = currentCliente.value.id;
+  }
+
+  const consulta = reactive({
+    articulo: articulo,
+    sucursal_id: currentSucursal.value,
+    cliente_id: cliente_id,
+    puntodeventa_id: store.state.puntodeventaselect,
+  })
+
+  store.dispatch('consultaStockTransito', consulta).then(res => {
+    articulo.stockTransito = res.data;
+    articulo.loading2 = false;
   });
 }
 

@@ -171,6 +171,10 @@ const store = createStore({
       loading: false,
       data: {},
     },
+    segmentocliente: {
+      loading: false,
+      data: {},
+    },
     detallecotizacion: {
       loading: false,
       data: {},
@@ -517,6 +521,8 @@ const store = createStore({
     },
     cupoDisponible({ commit }, ruc) {
       return axiosClient.get("/consultas/cupodisponible/" + ruc).then((res) => {
+        commit("setSegmentoClienteLoading", false);
+        commit("setSegmentoCliente", res.data.segmento);
         return res.data.cliente;
       });
     },
@@ -538,6 +544,13 @@ const store = createStore({
     consultaStockOthers({ commit }, data) {
       return axiosClient
         .post("/consultas/consultastockothers", data)
+        .then((res) => {
+          return res.data;
+        });
+    },
+    consultaStockTransito({ commit }, data) {
+      return axiosClient
+        .post("/consultas/consulta-stock-transito", data)
         .then((res) => {
           return res.data;
         });
@@ -673,7 +686,7 @@ const store = createStore({
         });
     },
 
-     getArticuloStockPorLote({ commit }, element) {
+    getArticuloStockPorLote({ commit }, element) {
       commit("resAtactualizarStockLote");
       commit("setActualizarStockLoteLoading", true);
       return axiosClient
@@ -705,7 +718,7 @@ const store = createStore({
         });
     },
 
-    actualizarStockIndividual ({commit}, element) {
+    actualizarStockIndividual({ commit }, element) {
       commit("resetActualizarStockIndividual");
       commit("setActualizarStockIndividualLoading", true);
       return axiosClient
@@ -720,7 +733,6 @@ const store = createStore({
           throw error; // lo relanzas para que lo maneje el componente si es necesario
         });
     },
-
 
     guardarCotizacion({ commit }, info) {
       return axiosClient
@@ -873,12 +885,12 @@ const store = createStore({
     },
 
     llenarpedidosporaprobarcrediticiosInterval({ commit, dispatch }) {
-      commit(
+       commit(
         "setIntervalPedidosporAprobarCrediticios",
-        setInterval(() => {
+         setInterval(() => {
           dispatch("llenarpedidosporaprobarcrediticios");
         }, 10000)
-      );
+       );
     },
     llenarpedidosporaprobarcrediticiosStop({ commit }) {
       commit("llenarpedidosporaprobarcrediticiosStop");
@@ -980,6 +992,8 @@ const store = createStore({
         commit("setDetallePedido", res.data);
         commit("setEstadoDeCuentaLoading", false);
         commit("setEstadoDeCuenta", res.data.estadodecuenta);
+        commit("setSegmentoClienteLoading", false);
+        commit("setSegmentoCliente", res.data.segmento);
         return res;
       });
     },
@@ -1023,7 +1037,7 @@ const store = createStore({
         .post("/aprobaciones/estadodecuenta", pedido)
         .then((res) => {
           commit("setEstadoDeCuentaLoading", false);
-          commit("setEstadoDeCuenta", res.data.detalle);
+          commit("setEstadoDeCuenta", res.data.data);
           return res;
         });
     },
@@ -1038,6 +1052,8 @@ const store = createStore({
           commit("setDetalleCotizacion", res.data.detalle);
           commit("setEstadoDeCuentaLoading", false);
           commit("setEstadoDeCuenta", res.data.estadodecuenta);
+          commit("setSegmentoClienteLoading", false);
+          commit("setSegmentoCliente", res.data.segmento);
           return res;
         });
     },
@@ -1127,6 +1143,7 @@ const store = createStore({
           commit("resetRegistroCopia");
           commit("setCondicionPago", cotizacion);
           commit("setCurrentTest", res.data.test);
+          commit("setSegmentoCliente", res.data.segmento);
         });
     },
     recuperarCotizacionProspecto({ commit }, cotizacion) {
@@ -1224,6 +1241,7 @@ const store = createStore({
           commit("setRegistroCopia", res.data.registro_copia);
           commit("setCondicionPago", cotizacion);
           commit("setCurrentTest", res.data.test);
+          commit("setSegmentoCliente", res.data.segmento);
         });
     },
     llenarcotizacionProspecto({ commit }, cotizacion) {
@@ -1261,6 +1279,7 @@ const store = createStore({
           commit("setCurrentSucursal", res.data.currentSucursal);
           commit("setCondicionPagoSinPrint", pedido);
           commit("setCurrentTest", res.data.test);
+          commit("setSegmentoCliente", res.data.segmento);
         });
     },
     copiarPedido({ commit }, data) {
@@ -1270,6 +1289,7 @@ const store = createStore({
         commit("setRegistroCopia", res.data.registro_copia);
         commit("setCurrentSucursal", res.data.currentSucursal);
         commit("setCurrentTest", res.data.test);
+        commit("setSegmentoCliente", res.data.segmento);
       });
     },
     cancelarPedido({ commit }, pedido) {
@@ -1866,6 +1886,8 @@ const store = createStore({
         .then((res) => {
           commit("setDetalleDevolucionLoading", false);
           commit("setDetalleDevolucion", res.data);
+          commit("setSegmentoClienteLoading", false);
+          commit("setSegmentoCliente", res.data.segmento);
           return res;
         });
     },
@@ -2323,6 +2345,12 @@ const store = createStore({
     },
     setEstadoDeCuenta: (state, detalle) => {
       state.estadodecuenta.data = detalle;
+    },
+    setSegmentoCliente: (state, data) => {
+      state.segmentocliente.data = data;
+    },
+    setSegmentoClienteLoading: (state, loading) => {
+      state.segmentocliente.loading = loading;
     },
     setFacturasLoading: (state, loading) => {
       state.facturas.loading = loading;
@@ -3019,7 +3047,7 @@ const store = createStore({
     },
 
     /** actualizar el stock de articulos por lotes */
-     setActualizarStockLoteLoading: (state, value) => {
+    setActualizarStockLoteLoading: (state, value) => {
       state.stock_lote.loading = value;
     },
     setActualizarStockote: (state, data) => {

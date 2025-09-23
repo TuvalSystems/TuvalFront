@@ -99,7 +99,7 @@
           role="tabpanel"
           aria-labelledby="btabs-alt-static-detalle-tab"
           >
-          <CabeceraPedido :verpedido="verpedido"></CabeceraPedido>
+          <CabeceraPedido :verpedido="verpedido" :segmento="segmentocliente"></CabeceraPedido>
           <div class="table-responsive">
             <div v-if="detallepedido.loading" class="text-center">
               <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
@@ -331,6 +331,7 @@
                       && !verpedido.transferencia_en_proceso
                       && !verpedido.despachado 
                       && verpedido.imprimir === 'yes'
+                      && !verpedido.item_l_recibido
                     "
                 type="button" class="btn btn-danger btn-sm mx-1 mb-2"
                 @click="confirmcancelarPedido(verpedido)"><i class="fa fa-xmark"></i> Cancelar Pedido</button>
@@ -367,6 +368,7 @@ const guias_remision = computed(() => store.state.guias_remision);
 const devoluciones = computed(() => store.state.devoluciones_pedido);
 const pendientes = computed(() => store.state.pendientes);
 const existentes = computed(() => store.state.existentes);
+const segmentocliente = computed(() => store.state.segmentocliente);
 const max_length = ref(20);
 const emit = defineEmits(["consultarExistente", "cancelarPedido", "consultarDespachado"]);
 

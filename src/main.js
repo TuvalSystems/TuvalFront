@@ -23,6 +23,8 @@ import BasePageHeading from "@/components/BasePageHeading.vue";
 // Template directives
 import clickRipple from "@/directives/clickRipple";
 
+// directiva para manejar decimales
+import zeroDecimals from "@/directives/zeroDecimals";
 // Bootstrap framework
 import * as bootstrap from "bootstrap";
 window.bootstrap = bootstrap;
@@ -44,7 +46,7 @@ app.component("BasePageHeading", BasePageHeading);
 
 // Register global directives
 app.directive("click-ripple", clickRipple);
-
+app.directive("zero-decimals", zeroDecimals);
 // Use Pinia and Vue Router
 app.use(createPinia());
 app.use(store);

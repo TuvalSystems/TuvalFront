@@ -1,11 +1,8 @@
 <template>
   <!-- Hero -->
   <template v-if="transferencias_reposicion[route.params.id].bodega">
-    <BasePageHeading
-      v-if="transferencias_reposicion"
-      title="Transferencias por Reposición"
-      :subtitle="transferencias_reposicion[route.params.id].bodega"
-      >
+    <BasePageHeading v-if="transferencias_reposicion" title="Transferencias por Reposición"
+      :subtitle="transferencias_reposicion[route.params.id].bodega">
       <template #extra>
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb breadcrumb-alt">
@@ -22,38 +19,35 @@
         </nav>
       </template>
     </BasePageHeading>
-  <!-- END Hero -->
+    <!-- END Hero -->
 
-   <!-- Page Content -->
+    <!-- Page Content -->
     <div class="content" v-if="transferencias_reposicion">
       <!-- Full Table -->
-      <BaseBlock  :title="'Destino: '+transferencias_reposicion[route.params.id].bodega" >
+      <BaseBlock :title="'Destino: ' + transferencias_reposicion[route.params.id].bodega">
         <template #options>
-          <div class="block-options-item"><span class="badge bg-warning">Peso total: {{ formatPrice(transferencias_reposicion[route.params.id].peso_total / 1000) }} Tn</span></div>
+          <div class="block-options-item"><span class="badge bg-warning">Peso total: {{
+            formatPrice(transferencias_reposicion[route.params.id].peso_total / 1000) }} Tn</span></div>
           <div class="block-options-item">
-            <button type="button" class="btn btn-sm btn-primary" @click="seleccionartodos(transferencias_reposicion[route.params.id].traslados)"><i class="fa fa-hand-pointer"></i> Seleccionar todos</button>
+            <button type="button" class="btn btn-sm btn-primary"
+              @click="seleccionartodos(transferencias_reposicion[route.params.id].traslados)"><i
+                class="fa fa-hand-pointer"></i> Seleccionar todos</button>
           </div>
           <div class="block-options-item">
-            <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i class="si si-refresh"></i></button>
+            <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i
+                class="si si-refresh"></i></button>
           </div>
         </template>
-        <Dataset
-          v-slot="{ ds }"
-          :ds-data="transferencias_reposicion[route.params.id].traslados"
-          :ds-sortby="sortBy"
-          :ds-search-in="['compartimiento', 'ART_CODIGO', 'ART_DESCRIPCION', 'Documento', 'Codigo_Motivo', 'Fecha_Documento']"
-          >
+        <Dataset v-slot="{ ds }" :ds-data="transferencias_reposicion[route.params.id].traslados" :ds-sortby="sortBy"
+          :ds-search-in="['compartimiento', 'ART_CODIGO', 'ART_DESCRIPCION', 'Documento', 'Codigo_Motivo', 'Fecha_Documento']">
           <div class="row">
             <div class="col-sm-3">
-              <VueSelect
-                  v-model="buscardocumento"
-                  :options="transferencias_reposicion[route.params.id].documentos"
-                  placeholder="Buscar por documento..."
-                  @keyup.enter="buscarDocumento"
-              ></VueSelect>
+              <VueSelect v-model="buscardocumento" :options="transferencias_reposicion[route.params.id].documentos"
+                placeholder="Buscar por documento..." @keyup.enter="buscarDocumento"></VueSelect>
             </div>
             <div class="col-sm-3">
-              <button type="button" @click="buscarDocumento" class="btn btn-primary">Buscar</button>
+              <button type="button" @click="buscarDocumento" class="btn btn-primary"
+                :disabled="loadingDoc">Buscar</button>
             </div>
           </div>
           <div class="row" :data-page-count="ds.dsPagecount">
@@ -71,13 +65,8 @@
                 <table class="table table-sm fs-sm table-hover table-vcenter mb-0">
                   <thead>
                     <tr>
-                      <th
-                        v-for="(th, index) in cols"
-                        :key="th.field"
-                        :class="['sort', th.sort]"
-                        @click="onSort($event, index)"
-                        class="nowrap"
-                      >
+                      <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                        @click="onSort($event, index)" class="nowrap">
                         {{ th.name }} <i class="gg-select float-end"></i>
                       </th>
                       <th></th>
@@ -86,14 +75,11 @@
                   </thead>
                   <DatasetItem tag="tbody" class="fs-sm">
                     <template #default="{ row }">
-                      <tr
-                        :class=" 
-                        (row.reservado > 0 && row.reservado == row.cantidad ? 'table-success': '') || 
-                        (row.reservado > 0 && row.pendiente == 0 ? 'table-success': '') || 
-                        (row.reservado > 0 && row.pendiente > 0 ? 'table-warning': '') ||
-                        (row.picking ? 'table-info': '')
-                        "
-                        >
+                      <tr :class="(row.reservado > 0 && row.reservado == row.cantidad ? 'table-success' : '') ||
+                        (row.reservado > 0 && row.pendiente == 0 ? 'table-success' : '') ||
+                        (row.reservado > 0 && row.pendiente > 0 ? 'table-warning' : '') ||
+                        (row.picking ? 'table-info' : '')
+                        ">
                         <td>{{ row.ART_CODIGO_TRES_LETRAS }}</td>
                         <td>
                           {{ row.ART_CODIGO }}
@@ -110,7 +96,7 @@
                         <td>
                           {{ row.Fecha_Documento }}
                         </td>
-                      
+
                         <td class="text-end">
                           {{ row.cantidad }}
                         </td>
@@ -124,17 +110,12 @@
                           {{ row.pendiente }}
                         </td>
                         <td style="width: 31px;" class="text-center">
-                            <input v-if="(row.pendiente > 0)" type="checkbox" class="form-check-input" v-model="row.aplicar_todo" @change="aplicatodo(row)"/>
+                          <input v-if="(row.pendiente > 0)" type="checkbox" class="form-check-input"
+                            v-model="row.aplicar_todo" @change="aplicatodo(row)" />
                         </td>
                         <td style="width: 80px;">
-                          <input 
-                            v-if="(row.pendiente > 0)"
-                            type="text" 
-                            class="form-control text-end"
-                            v-model="row.seleccionado"
-                            @change="aplicartraslado(row)"
-                            
-                          />
+                          <input v-if="(row.pendiente > 0)" type="text" class="form-control text-end"
+                            v-model="row.seleccionado" @change="aplicartraslado(row)" />
                         </td>
                       </tr>
                     </template>
@@ -150,10 +131,13 @@
         </Dataset>
         <div class="row">
           <div class="col-md-12 text-end mb-2">
-            <button :disabled="!transferencias_reposicion[route.params.id].generar" type="button" class="btn btn-sm btn-warning mx-2" @click="verPicking(transferencias_reposicion[route.params.id])">
+            <button :disabled="!transferencias_reposicion[route.params.id].generar" type="button"
+              class="btn btn-sm btn-warning mx-2" @click="verPicking(transferencias_reposicion[route.params.id])">
               <i class="fa fa-people-carry-box"></i> Picking
             </button>
-            <button :disabled="!transferencias_reposicion[route.params.id].generar" type="button" class="btn btn-sm btn-success mx-2" @click="guiaRemision(transferencias_reposicion[route.params.id])"><i class="fa fa-file-lines"></i> Generar guía de remisión</button>
+            <button :disabled="!transferencias_reposicion[route.params.id].generar" type="button"
+              class="btn btn-sm btn-success mx-2" @click="guiaRemision(transferencias_reposicion[route.params.id])"><i
+                class="fa fa-file-lines"></i> Generar guía de remisión</button>
           </div>
         </div>
         <div class="table-responsive">
@@ -168,14 +152,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(guia, index) in transferencias_reposicion[route.params.id].guias" :key="index" >
+              <tr v-for="(guia, index) in transferencias_reposicion[route.params.id].guias" :key="index">
                 <td>{{ guia.GUI_REM_GUIA_REMISION }}</td>
                 <td>{{ guia.GUI_REM_FECHA_INICIO }}</td>
                 <td>{{ guia.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
                 <td>{{ guia.GUI_REM_PLACA }}</td>
                 <td class="text-end">
-                  <button  type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guia)"><i class="fa fa-print"></i> Imprimir</button>
-                  <button  type="button" class="btn btn-outline-success btn-sm mx-2" @click="confirmDespacharGuia(guia)"><i class="fa fa-print"></i> Despachar</button>
+                  <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guia)"><i
+                      class="fa fa-print"></i> Imprimir</button>
+                  <button type="button" class="btn btn-outline-success btn-sm mx-2"
+                    @click="confirmDespacharGuia(guia)"><i class="fa fa-print"></i> Despachar</button>
                   <!-- <button  type="button" class="btn btn-outline-danger btn-sm mx-2" @click="confirmEliminarguiaGuia(guia)"><i class="fa fa-trash"></i> Eliminar</button> -->
                 </td>
               </tr>
@@ -186,40 +172,20 @@
       <!-- END Full Table -->
     </div>
     <!-- END Page Content -->
-    <div
-      class="modal"
-      id="modal-pedido"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="modal-pedido"
-      aria-hidden="true"
-      ref="guiaRemisionModal"
-      >
+    <div class="modal" id="modal-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-pedido" aria-hidden="true"
+      ref="guiaRemisionModal">
       <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content"  v-if="currentBodega">
-          <GuiaRemisionTransferencia 
-          :currentBodega="currentBodega" 
-          @generarGuia="generarGuia()" 
-            ></GuiaRemisionTransferencia>
+        <div class="modal-content" v-if="currentBodega">
+          <GuiaRemisionTransferencia :currentBodega="currentBodega" @generarGuia="generarGuia()">
+          </GuiaRemisionTransferencia>
         </div>
       </div>
     </div>
-    <div
-    
-      class="modal"
-      id="modal-liberar"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="modal-liberar"
-      aria-hidden="true"
-      ref="pickingModal"
-      >
-      <div  class="modal-dialog modal-xl modal-md modal-dialog-centered" role="document">
+    <div class="modal" id="modal-liberar" tabindex="-1" role="dialog" aria-labelledby="modal-liberar" aria-hidden="true"
+      ref="pickingModal">
+      <div class="modal-dialog modal-xl modal-md modal-dialog-centered" role="document">
         <div class="modal-content" v-if="currentBodega">
-          <PickingTransferencias 
-            :currentBodega="currentBodega"
-            @regrescarLista="refrescar()"
-            ></PickingTransferencias>
+          <PickingTransferencias :currentBodega="currentBodega" @regrescarLista="refrescar()"></PickingTransferencias>
         </div>
       </div>
     </div>
@@ -227,8 +193,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted  } from "vue";
-import { useStore} from 'vuex'
+import { ref, reactive, computed, onMounted } from "vue";
+import { useStore } from 'vuex'
 import { useTemplateStore } from "@/stores/template";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
@@ -236,7 +202,7 @@ import { useRouter, useRoute } from "vue-router";
 import PickingTransferencias from "./modals/PickingTransferencias.vue"
 import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
 import VueSelect from "vue-select"
-import {formatPrice} from "../../functions";
+import { formatPrice } from "../../functions";
 
 const store = useStore();
 const templateStore = useTemplateStore();
@@ -250,23 +216,27 @@ const buscardocumento = ref(null);
 
 store.dispatch('getTransportistas');
 
-let verpedidoModal= ref(null);
+let verpedidoModal = ref(null);
 let verpedidoModalObj = null;
 
-let pickingModal= ref(null);
+let pickingModal = ref(null);
 let pickingModalObj = null;
 
-let guiaRemisionModal= ref(null);
+let guiaRemisionModal = ref(null);
 let guiaRemisionModalObj = null;
-
-function buscarDocumento(){
-  if(!buscardocumento.value){
-    refrescar();
+let loadingDoc = ref(false);
+function buscarDocumento() {
+  loadingDoc.value = true;
+  if (!buscardocumento.value) {
+    // refrescar();
+    loadingDoc.value = false;
     return;
   }
   store.dispatch('transferenciasReposicionDocumento', buscardocumento.value).then((res) => {
-
     transferencias_reposicion.value[route.params.id].traslados = res;
+    if (transferencias_reposicion.value[route.params.id].traslados.length > 0) {
+      loadingDoc.value = false;
+    }
     document.querySelectorAll("#datasetLength label").forEach((el) => {
       el.remove();
     });
@@ -278,25 +248,25 @@ function buscarDocumento(){
     selectLength.style.width = "80px";
   })
 }
-async function imprimirGuia(guia){
-  store.dispatch('imprimir', '/bodegas/guiasderemision/imprimirguia/'+guia.id)
-  .then((response) => {
-    if(response.status == 200){
+async function imprimirGuia(guia) {
+  store.dispatch('imprimir', '/bodegas/guiasderemision/imprimirguia/' + guia.id)
+    .then((response) => {
+      if (response.status == 200) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'guia-'+guia.GUI_REM_GUIA_REMISION+'.pdf');
+        link.setAttribute('download', 'guia-' + guia.GUI_REM_GUIA_REMISION + '.pdf');
         document.body.appendChild(link);
         link.click();
-    }
-  });
+      }
+    });
 }
 
 function confirmEliminarguiaGuia(guia) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De eliminar la guía de remisión "+guia.GUI_REM_GUIA_REMISION,
+      text: "De eliminar la guía de remisión " + guia.GUI_REM_GUIA_REMISION,
       icon: "question",
       showCancelButton: true,
       customClass: {
@@ -321,8 +291,8 @@ function confirmEliminarguiaGuia(guia) {
     });
 }
 
-function eliminarguiaGuia(guia){
-  store.dispatch('eliminarGuiaRemision', guia).then( (res) => {
+function eliminarguiaGuia(guia) {
+  store.dispatch('eliminarGuiaRemision', guia).then((res) => {
     refrescar();
   })
 }
@@ -331,7 +301,7 @@ function confirmDespacharGuia(guia) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De despachar la guía de remisión "+guia.GUI_REM_GUIA_REMISION,
+      text: "De despachar la guía de remisión " + guia.GUI_REM_GUIA_REMISION,
       icon: "question",
       showCancelButton: true,
       customClass: {
@@ -356,14 +326,18 @@ function confirmDespacharGuia(guia) {
     });
 }
 
-function despacharguiaGuia(guia){
+function despacharguiaGuia(guia) {
   templateStore.pageLoader({ mode: "on" });
-  store.dispatch('despacharGuiaRemision', guia).then( (res) => {
-    if(!res.success){
+  store.dispatch('despacharGuiaRemision', guia).then((res) => {
+    if (res.success == false) {
       swalError(res.message);
-    }else{
+    } else {
+      swalSuccess(res.message);
       refrescar();
     }
+    templateStore.pageLoader({ mode: "off" });
+  }).catch(err => {
+    swalError(err.response.data.message);
     templateStore.pageLoader({ mode: "off" });
   })
 }
@@ -371,7 +345,7 @@ function despacharguiaGuia(guia){
 
 //refrescar();
 
-function refrescar(imprimir = false){
+function refrescar(imprimir = false) {
   store.dispatch('transferenciasReposicion').then(() => {
     document.querySelectorAll("#datasetLength label").forEach((el) => {
       el.remove();
@@ -383,7 +357,7 @@ function refrescar(imprimir = false){
     selectLength.classList.add("form-select");
     selectLength.style.width = "80px";
 
-    if(imprimir){
+    if (imprimir) {
       imprimirGuia(transferencias_reposicion.value[route.params.id].ultimaguia);
       despacharguiaGuia(transferencias_reposicion.value[route.params.id].ultimaguia)
     }
@@ -392,18 +366,18 @@ function refrescar(imprimir = false){
 
 
 
-function generarGuia(){
+function generarGuia() {
   guiaRemisionModalObj.hide();
   templateStore.pageLoader({ mode: "off" });
   refrescar(true)
 }
 
-function aplicatodo(traslado){
-  
-  if(traslado.aplicar_todo == false){
+function aplicatodo(traslado) {
+
+  if (traslado.aplicar_todo == false) {
     traslado.seleccionado = '';
     checkgenerarguia();
-    return; 
+    return;
   }
   traslado.seleccionado = traslado.pendiente;
   checkgenerarguia();
@@ -413,9 +387,9 @@ function isInt(value) {
   const x = parseFloat(value);
   return !isNaN(value) && (x | 0) === x;
 }
-function aplicartraslado(traslado){
+function aplicartraslado(traslado) {
 
-  if(!isInt(traslado.seleccionado) && traslado.ART_DECIMAL_CANTIDAD === 0){
+  if (!isInt(traslado.seleccionado) && traslado.ART_DECIMAL_CANTIDAD === 0) {
     swalError('Ingresar un número entero');
     traslado.seleccionado = 0;
     traslado.aplicar_todo = false;
@@ -423,8 +397,8 @@ function aplicartraslado(traslado){
     return false;
   }
 
-  if(isNaN(traslado.seleccionado)){
-    
+  if (isNaN(traslado.seleccionado)) {
+
     swalError('Ingresar un número');
     traslado.seleccionado = 0;
     traslado.aplicar_todo = false;
@@ -432,48 +406,48 @@ function aplicartraslado(traslado){
     return false;
   }
 
-  if(parseFloat(traslado.seleccionado) === 0){
+  if (parseFloat(traslado.seleccionado) === 0) {
     traslado.aplicar_todo = false;
-  }else if(parseFloat(traslado.seleccionado) < 0){
+  } else if (parseFloat(traslado.seleccionado) < 0) {
     swalError('No ingresar números negativos');
     traslado.seleccionado = null;
     traslado.aplicar_todo = false;
-  }else if (parseFloat(traslado.seleccionado) < 0) {
+  } else if (parseFloat(traslado.seleccionado) < 0) {
     traslado.aplicar_todo = false;
     swalError("No se puede ingresar números negativos");
     traslado.seleccionado = null;
-  }else if(parseFloat(traslado.seleccionado) <= parseFloat(traslado.pendiente)){
+  } else if (parseFloat(traslado.seleccionado) <= parseFloat(traslado.pendiente)) {
     traslado.aplicar_todo = true;
-  }else if(parseFloat(traslado.seleccionado) > parseFloat(traslado.pendiente)){
+  } else if (parseFloat(traslado.seleccionado) > parseFloat(traslado.pendiente)) {
     swalError('El número ingresado es mayor a la cantidad pendiente');
     traslado.seleccionado = traslado.pendiente;
     traslado.aplicar_todo = true;
-  }else{
+  } else {
     traslado.aplicar_todo = true;
   }
   checkgenerarguia();
 }
 
-function seleccionartodos(traslados){
-  traslados.map(traslado=>{
+function seleccionartodos(traslados) {
+  traslados.map(traslado => {
     traslado.seleccionado = traslado.pendiente;
     traslado.aplicar_todo = true;
   });
   checkgenerarguia();
 }
 
-function checkgenerarguia(){
-  transferencias_reposicion.value.map(bodega=>{
+function checkgenerarguia() {
+  transferencias_reposicion.value.map(bodega => {
     var check = false;
-    bodega.traslados.map( traslado => {
-     
-      if(traslado.seleccionado > 0){
+    bodega.traslados.map(traslado => {
+
+      if (traslado.seleccionado > 0) {
         check = true;
       }
     })
-    if(check){
+    if (check) {
       bodega.generar = true;
-    }else{
+    } else {
       bodega.generar = false;
     }
   });
@@ -484,8 +458,8 @@ function verPicking(bodega) {
   pickingModalObj.show();
 
   let arreglo = [];
-  bodega.traslados.map( item => {
-    if(item.aplicar_todo){
+  bodega.traslados.map(item => {
+    if (item.aplicar_todo) {
       arreglo.push(item);
     }
   })
@@ -493,7 +467,7 @@ function verPicking(bodega) {
   store.dispatch('detallePickingTransferencia', arreglo)
 }
 
-function guiaRemision(bodega){
+function guiaRemision(bodega) {
   currentBodega.value = bodega;
   store.commit("resetFlatPickrState");
   store.commit("resetVehiculo");
@@ -535,7 +509,7 @@ const cols = reactive([
     field: "fecha",
     sort: "",
   },
-  
+
   {
     name: "Cant.",
     field: "cantidad",

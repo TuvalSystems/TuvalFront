@@ -229,6 +229,10 @@
                           <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
                               @click="imprimirpedidoride(row)"><i class="fa-solid fa-file-pdf"></i> Generar
                               RIDE</button></li>
+                              <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
+                              @click="imprimirpedidoridesinimagen(row)"><i class="fa-solid fa-file-pdf"></i> Generar
+                              RIDE(sin imagen)</button></li>
+                              
                           <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
                               @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print"></i> Generar XML</button>
                           </li>
@@ -439,9 +443,10 @@ function refrescarFecha() {
 
 }
 async function funcionverpedido(pedido) {
-  store.dispatch('despachoenproceso', pedido.id).then((res) => {
-    pedido.despacho_en_proceso = res.despacho_en_proceso;
-    pedido.transferencia_en_proceso = res.transferencia_en_proceso;
+  store.dispatch('despachoenproceso', pedido.id).then((res) => {  
+    pedido.despacho_en_proceso = res.data.despacho_en_proceso;
+    pedido.transferencia_en_proceso = res.data.transferencia_en_proceso;
+    pedido.item_l_recibido = res.data.item_l_recibido;
     verpedidoModalObj.show();
     verpedido.value = pedido;
     tipo.value = 'pedido';
@@ -609,6 +614,31 @@ async function imprimirpedidoride(pedido) {
   }
 }
 
+async function imprimirpedidoridesinimagen(pedido) {
+  try {
+    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoride-sin-imagen/' + pedido.id);
+    if (response.status === 200) {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'RIDE-' + pedido.pedido + '.pdf');
+      document.body.appendChild(link);
+      link.click();
+    } else if (response.success === false) {
+      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
+      swalError(errorMsg.value);
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMsg.value = error.response.data.message;
+    } else {
+      errorMsg.value = 'No se pudo generar el RIDE. Inténtalo más tarde.';
+    }
+
+    swalError(errorMsg.value);
+  }
+}
+
 async function imprimirpedidoxml(pedido) {
   try {
     const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoxml/' + pedido.id);
@@ -677,8 +707,8 @@ function facturarpedido(pedido) {
     llenarpedidos('todos');
   }).catch(err => {
     errorMsg.value = err.response.data.error
+    swalError(errorMsg.value);
   });
-
 }
 
 function motivoEspera(pedido) {

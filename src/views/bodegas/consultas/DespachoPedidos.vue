@@ -1,213 +1,20 @@
-<template>
-  <div>
-    <div class="col-md-0 py-2 text-end">
-      <button @click="refreshData" class="btn btn-outline-success" aria-placeholder="Actualizar">
-        <i class="fa fa-refresh"></i>
-      </button>
-    </div>
-    <div class="d-flex justify-content-between mb-3">
-      <div class="col-md-3 py-2">
-        <select v-model="perPage" class="form-select w-25">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-      <div class="col-md-1 py-2">
-      <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()" class="btn btn-info btn-sm mx-1"><i
-          class="fa fa-user"></i> Cliente</button>
-    </div>
-    <div class="col-md-4 py-2">
-      <div class="row g-1 align-items-center">
-        <div class="col-auto">
-          <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
-        </div>
-        <div class="col-auto">
-          <flat-pickr style="width:120px;" id="fecha_desde" class="form-control form-control-sm"
-            v-model="fecha_desde" :config="flatPickrState.fecha_desde" />
-        </div>
-        <div class="col-auto">
-          <label for="fecha_hasta" class="col-form-label fs-sm">Hasta</label>
-        </div>
-        <div class="col-auto">
-          <flat-pickr style="width:120px;" id="fecha_hasta" class="form-control form-control-sm"
-            v-model="fecha_hasta" :config="flatPickrState.fecha_hasta" />
-        </div>
-        <div class="col-auto">
-          <button class="btn btn-sm btn-primary" @click="limpiarFecha()"><i class="fa fa-eraser"></i> </button>
-        </div>
-      </div>
-    </div>
-      <div class="col-md-4 py-2">
-        <input v-model="searchTerm" placeholder="Buscar..." class="form-control w-60" />
-      </div>
-
-    </div>
-
-
-    <div class="row">
-      <div class="col-md-12">
-        <div class="table-responsive">
-          <table class="table table-sm table-hover table-vcenter mb-0">
-            <thead>
-              <tr >
-                <th @click="sortBy('GUI_REM_GUIA_REMISION')" class="text-left text-nowrap" style="font-size: 12px">#Guia
-                  <i :class="getSortIcon('GUI_REM_GUIA_REMISION')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('pedido')" class="text-left text-nowrap" style="font-size: 12px">#Pedido
-                  <i :class="getSortIcon('pedido')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('GUI_REM_NUME_DOCU_SUSTENTO')" class="text-left text-nowrap" style="font-size: 12px">#Factura
-                  <i :class="getSortIcon('GUI_REM_NUME_DOCU_SUSTENTO')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('orden')" class="text-left text-nowrap" style="font-size: 12px">#Orden
-                  <i :class="getSortIcon('orden')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('GUI_REM_RAZON_SOCIAL_DESTINATARIO')" class="text-left text-nowrap" style="font-size: 12px">Cliente
-                  <i :class="getSortIcon('GUI_REM_RAZON_SOCIAL_DESTINATARIO')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('GUI_REM_DIRECCION_DESTINATARIO')" class="text-left text-nowrap" style="font-size: 12px">Dirección
-                  <i :class="getSortIcon('GUI_REM_DIRECCION_DESTINATARIO')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('GUI_REM_FECHA_INICIO')" class="text-left text-nowrap" style="font-size: 12px">Fecha/Hora
-                  <i :class="getSortIcon('GUI_REM_FECHA_INICIO')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('GUI_REM_RAZON_SOCIAL_TRANSPORTISTA')" class="text-left text-nowrap" style="font-size: 12px">Transportista
-                  <i :class="getSortIcon('GUI_REM_RAZON_SOCIAL_TRANSPORTISTA')" class="ms-1"></i>
-                </th>
-                <th @click="sortBy('GUI_REM_PLACA')" class="text-left text-nowrap" style="font-size: 12px">Vehiculo
-                  <i :class="getSortIcon('GUI_REM_PLACA')" class="ms-1"></i>
-                </th>
-                <th  class="text-center text-nowrap" style="font-size: 12px">Acciones</th>
-              </tr>
-            </thead>
-            <tbody v-if="loading">
-              <tr>
-                <td colspan="10" class="text-center py-4">
-                  <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-            <!-- Transition Group -->
-            <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
-              <tr v-for="(row, index) in items" :key="index">
-
-                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_GUIA_REMISION || 'No Data' }}</td>
-                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.pedido }}</td>
-                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row?.GUI_REM_NUME_DOCU_SUSTENTO }}</td>
-                <td class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">
-                  <a href="javascript:void(0)" @click="imprimirOrdendespacho(row.orden_id)">
-                    {{ row.orden }}
-                  </a>
-                </td>
-                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_RAZON_SOCIAL_DESTINATARIO }}</td>
-                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_DIRECCION_DESTINATARIO }}</td>
-                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_FECHA_INICIO }}</td>
-                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
-                <td  class="text-left" style="font-size: 12px;  overflow: hidden; text-overflow: ellipsis;">{{ row.GUI_REM_PLACA }}</td>
-                <td class="text-center text-nowrap" style="width: 150px;">
-                  <button type="button" class="btn btn-outline-primary btn-sm"  @click="imprimirGuia(row)">
-                    <i class="fa fa-print"></i> Imprimir
-                  </button>
-                </td>
-              </tr>
-            </transition-group>
-          </table>
-        </div>
-      </div>
-
-
-      <!-- new -->
-      <div>
-        <!-- Paginación mejorada -->
-        <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-          <div>
-            <p class="mb-0 text-white  " style="font-size: 12px;">
-              Mostrando {{ (currentPage - 1) * perPage + 1 }} a
-              {{ Math.min(currentPage * perPage, totalItems) }} de
-              {{ totalItems }} registros
-            </p>
-          </div>
-          <nav>
-            <ul class="pagination  pagination-sm mb-0">
-              <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                <a class="page-link" href="javascript:void(0)" @click="fetchItems(1)">
-                  <i class="fa fa-angle-double-left"></i>
-                </a>
-              </li>
-              <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                <a class="page-link" href="javascript:void(0)" @click="fetchItems(currentPage - 1)">
-                  <i class="fa fa-angle-left"></i></a>
-              </li>
-
-              <!-- Páginas numeradas -->
-              <li v-for="page in pages" :key="page" class="page-item" :class="{ active: page === currentPage }">
-                <a class="page-link" href="javascript:void(0)" @click="fetchItems(page)">{{ page }}</a>
-              </li>
-
-              <li class="page-item" :class="{ disabled: currentPage === totalPage }">
-                <a class="page-link" href="javascript:void(0)" @click="fetchItems(currentPage + 1)">
-                  <i class="fa fa-angle-right"></i>
-                </a>
-              </li>
-              <li class="page-item" :class="{ disabled: currentPage === totalPage }">
-                <a class="page-link" href="javascript:void(0)" @click="fetchItems(totalPage)">
-                  <i class="fa fa-angle-double-right"></i>
-                </a>
-              </li>
-            </ul>
-          </nav>
-
-        </div>
-      </div>
-      <!-- end new -->
-    </div>
-  </div>
-
-  <!-- Modal para filtro de cliente -->
- <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
-    aria-hidden="true" ref="filtrarClienteModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
-      </div>
-    </div>
-  </div>
-
-</template>
-
 <script setup>
-import { usePagination } from '../../../composables/bodegas/consultas/usePagination';
-import { onMounted, watch, computed, reactive , ref } from 'vue';
-import { useStore } from 'vuex'
-import flatPickr from 'vue-flatpickr-component';
-import { Spanish } from "flatpickr/dist/l10n/es.js"
-import FiltrarClienteConsulta from "../modals/FiltrarClienteConsulta.vue";
+import BaseTable from "@/components/BaseTable.vue";
+import { useDespachoPedidosPagination } from "@/composables/bodegas/consultas/useDespachoPedidosPagination";
+import { onMounted, watch, computed, reactive, ref } from "vue";
+import { useStore } from "vuex";
+import flatPickr from "vue-flatpickr-component";
+import { Spanish } from "flatpickr/dist/l10n/es.js";
+import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
 import { Modal } from "bootstrap";
-
+import { useDetalleDespachoPedidos } from "@/composables/bodegas/consultas/detallesconsulta/useDetalleDespachoPedidos";
+import { swalError } from "@/functions/swal-alert.js";
+import { formatPrice } from "@/functions";
 const store = useStore();
 const puntoVentaId = store.state.puntodeventaselect; // Pasar dinámicamente este valor
-
-const {
-  items,
-  loading,
-  currentPage,
-  totalPage,
-  totalItems,
-  fetchItems,
-  searchTerm,
-  perPage,
-  initialize,
-  sortField,
-  sortOrder,
-  fecha_desde,
-  fecha_hasta,
-  cliente
-} = usePagination();
-
+const { table, fetchItems, refresh, onSort, limpiarFecha } =
+  useDespachoPedidosPagination(puntoVentaId);
+const { fetchDetailGuides } = useDetalleDespachoPedidos();
 const flatPickrState = reactive({
   fecha_desde: {
     maxDate: Date.now(),
@@ -219,61 +26,148 @@ const flatPickrState = reactive({
   },
 });
 
+// Columnas de la tabla  
+const columns = [
+  {
+    label: "Guia",
+    key: "GUI_REM_GUIA_REMISION",
+    sortable: true,
+    clickable: true,
+    render: (value) => value,
+    width: "8.600rem",
+  },
+  {
+    label: "Pedido",
+    key: "pedido",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "2rem",
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Factura",
+    key: "GUI_REM_NUME_DOCU_SUSTENTO",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "8.600rem",
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+    // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
+  },
+
+  {
+    label: "Despacho",
+    key: "pedido_despacho",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "6rem",
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Orden",
+    key: "orden",
+    sortable: true,
+    clickable: true,
+  },
+  {
+    label: "Cliente",
+    key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Dirección",
+    key: "GUI_REM_DIRECCION_DESTINATARIO",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Fecha/Hora",
+    key: "GUI_REM_FECHA_INICIO",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Transportista",
+    key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+  {
+    label: "Vehiculo",
+    key: "GUI_REM_PLACA",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "4rem",
+    thClass: "d-none d-md-table-cell",
+    tdClass: "d-none d-md-table-cell",
+  },
+    {
+    label: "generado por",
+    key: "USERID",
+    sortable: true,
+    clickable: false,
+    render: (value) => value,
+    width: "1.600rem",
+    thClass: "d-none d-md-table-cell text-center",
+    tdClass: "d-none d-md-table-cell text-center",
+    // tdClass: (row) => ["text-center", row.pedido === "PED00289838" ? "text-warning fw-bold" : null],
+  },
+];
 
 
-// Ordenamiento
-const sortBy = (field) => {
-  if (sortField.value === field) {
-    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
-  } else {
-    sortField.value = field;
-    sortOrder.value = "asc";
-  }
-  fetchItems(1);
-};
+//esto queda de prueba para ver si funciona las ejecuciones de funciones para los diferentes estados
+// cuando quiero manejar el badge para los pedidos tengo que hacer una funcion que retorne la clase del badge
+//ya esta configurado en la tabla, solo tengo que definir la funcion que retorna la clase
+// const pedidoClass = (pedido) => {
+//   switch ((pedido || '').toLowerCase()) {
+//     case 'PED00289953': return 'badge bg-warning text-dark';
+//     case 'PED00289937': return 'badge bg-info';
+//     case 'PED00289895': return 'badge bg-success';
+//     case 'PED00289729': return 'badge bg-danger';
+//     default: return 'badge bg-secondary';
+//   }
+// };
 
-// funcion para determinar el icono de orden
-const getSortIcon = (field) => {
-  if (sortField.value == field) {
-    return sortOrder.value === "asc" ? "fa fa-caret-up" : "fa fa-caret-down";
-  }
-  return "";
-};
-
-
-// 🔄 Función para refrescar datos
-const refreshData = () => {
-  // console.log("🔄 Refrescando datos...");
-  fecha_desde.value = null;
-  fecha_hasta.value = null;
-  searchTerm.value = '';
-  perPage.value = 10; // Reset to default perPage value
-  sortField.value = '';
-  sortOrder.value = 'asc';
-  currentPage.value = 1; // Reset to first page
-  cliente.value = null; // Reset cliente filter
-  fetchItems(currentPage.value);
-};
-
-// Calcular las páginas visibles (máximo 5)
-const pages = computed(() => {
-  const range = [];
-  const maxVisiblePages = 5;
-
-  // Ajuste del inicio y el fin
-  let start = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2));
-  let end = Math.min(totalPage.value, start + maxVisiblePages - 1);
-
-  if (end - start < maxVisiblePages - 1) {
-    start = Math.max(1, end - maxVisiblePages + 1);
-  }
-  for (let i = start; i <= end; i++) {
-    range.push(i);
-  }
-  return range;
-});
-
-
+// column base de ejemplooooooo
+// const columns = [
+//   {
+//     label: "#Guia",
+//     key: "GUI_REM_GUIA_REMISION",
+//     sortable: true,
+//     clickable: false,
+//     width: "8.460rem",
+//     thClass: ["text-center", "text-uppercase"],
+//     tdClass: (row) => ["text-center", row.estado === "pendiente" ? "text-warning fw-bold" : null],
+//   },
+//   { label: "#Pedido", key: "pedido", sortable: true, clickable: false, width: "3rem",
+//     thClass: "text-center", tdClass: "text-center" },
+//   { label: "#Factura", key: "GUI_REM_NUME_DOCU_SUSTENTO", sortable: true, clickable: false },
+//   { label: "#Orden", key: "orden", sortable: true, clickable: true, tdClass: "text-primary" },
+//   { label: "Cliente", key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO", sortable: true, clickable: false,
+//     tdClass: "text-truncate" },
+//   { label: "Dirección", key: "GUI_REM_DIRECCION_DESTINATARIO", sortable: true, clickable: false,
+//     tdClass: "text-truncate" },
+//   { label: "Fecha/Hora", key: "GUI_REM_FECHA_INICIO", sortable: true, clickable: false,
+//     thClass: "text-center", tdClass: "text-center" },
+//   { label: "Transportista", key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA", sortable: true, clickable: false },
+//   { label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false, width: "4rem",
+//     tdClass: "text-uppercase text-center" },
+// ];
 
 // Funciones de impresión
 async function imprimirGuia(guia) {
@@ -284,7 +178,10 @@ async function imprimirGuia(guia) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "guia-" + guia.GUI_REM_GUIA_REMISION + ".pdf");
+        link.setAttribute(
+          "download",
+          "guia-" + guia.GUI_REM_GUIA_REMISION + ".pdf"
+        );
         document.body.appendChild(link);
         link.click();
       }
@@ -292,27 +189,35 @@ async function imprimirGuia(guia) {
 }
 
 async function imprimirOrdendespacho(id) {
-  store.dispatch('imprimir', '/despachos/imprimirordendespacho/' + id)
+  store
+    .dispatch("imprimir", "/despachos/imprimirordendespacho/" + id)
     .then((response) => {
       if (response.status == 200) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
-        link.setAttribute('download', 'orden-despacho-' + id + '.pdf');
+        link.setAttribute("download", "orden-despacho-" + id + ".pdf");
         document.body.appendChild(link);
         link.click();
       }
     });
 }
 
-// filtro de fecha 
-const limpiarFecha = () => {
-  fecha_desde.value = null;
-  fecha_hasta.value = null;
-  fetchItems(1);
+//funcion de prueba para ver que si funciona la ejecucion de funciones
+const handleClick = ({ row, col }) => {
+
+  if (col.key === "orden") {
+    imprimirOrdendespacho(row.orden_id);
+  }
+  if (col.key === "GUI_REM_GUIA_REMISION") {
+    resetConsult();
+    buscarDetalleGuia(row);
+  }
 };
 
-// funcion para modal de filtro de cliente 
+
+
+// funcion para modal de filtro de cliente
 let filtrarClienteModal = ref(null);
 let filtrarClienteModalObj = null;
 function levantarFiltrocliente() {
@@ -320,52 +225,289 @@ function levantarFiltrocliente() {
 }
 function filtrarClienteConsulta(clienteRuc) {
   filtrarClienteModalObj.hide();
-  cliente.value = clienteRuc
+  table.cliente = clienteRuc;
 }
 
+
+
+// function para la visualizacion del detalle 
+
+const loadindDetalleGuia = ref(null);
+const showTable = ref(true);
+const showDetalleGuia = ref(false);
+const guiaSeleccionada = ref(null)   // cabecera
+const detalleItems = ref([]);
+
+async function buscarDetalleGuia(guia) {
+  try {
+    guiaSeleccionada.value = guia
+    showTable.value = true
+    showDetalleGuia.value = false
+    loadindDetalleGuia.value.statusLoading();
+    const result = await fetchDetailGuides(guia.id);
+
+
+    if (result) {
+      showTable.value = false
+      showDetalleGuia.value = true
+      detalleItems.value = result
+      loadindDetalleGuia.value.statusNormal();
+    }
+  } catch (error) {
+
+    showTable.value = true
+    showDetalleGuia.value = false
+    swalError(error);
+  }
+
+}
+
+
+const optionShowTable = () => {
+  showTable.value = !showTable.value
+}
+
+const optionShowDetalleGuia = () => {
+
+  showDetalleGuia.value = !showDetalleGuia.value
+  if (showDetalleGuia.value === true) {
+    loadindDetalleGuia.value.statusLoading();
+    setTimeout(() => {
+      loadindDetalleGuia.value.statusNormal();
+    }, 2000);
+  }
+
+};
+
+function resetConsult() {
+  guiaSeleccionada.value = null;
+  detalleItems.value = [];
+  showTable.value = true;
+  showDetalleGuia.value = false;
+  loadindDetalleGuia.value.statusNormal();
+};
 
 onMounted(() => {
-  initialize('/despachos/guiasdespachadas/', puntoVentaId); // Llamada inicial para cargar datos
+  // initialize('/despachos/guiasdespachadas/', puntoVentaId); // Llamada inicial para cargar datos
   filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
-
+  if (!table.items.length && !table.loading) {
+    fetchItems(1);
+  }
 });
+
+//pruebas
+
+
 </script>
 
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
+<template>
+  <div class="block-content block-content-full">
+    <BaseBlock title="Despachos Pedidos" rounded themed>
+      <template #options>
+        <div class="block-options-item">
+          <div class="block-options-item">
+            <div class="row g-2 align-items-center">
+              <div class="col-auto">
+                <label for="fecha_desde" class="col-form-label fs-sm">Cliente</label>
+              </div>
+              <div class="col-auto">
+                <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()"
+                  class="btn btn-info btn-sm mx-1">
+                  <i class="fa fa-user"></i> Cliente
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="block-options-item">
+            <div class="row g-3 align-items-center">
+              <div class="col-auto">
+                <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
+              </div>
+              <div class="col-auto">
+                <flat-pickr style="width: 120px" id="fecha_desde" class="form-control form-control-sm"
+                  v-model="table.fecha_desde" :config="flatPickrState.fecha_desde" />
+              </div>
+              <div class="col-auto">
+                <label for="fecha_desde" class="col-form-label fs-sm">hasta</label>
+              </div>
+              <div class="col-auto">
+                <flat-pickr style="width: 120px" id="fecha_hasta" class="form-control form-control-sm"
+                  v-model="table.fecha_hasta" :config="flatPickrState.fecha_hasta" />
+              </div>
+              <!-- <div class="col-auto">
+                <button class="btn btn-sm btn-primary" @click="limpiarFecha()">
+                  <i class="fa fa-eraser"></i>
+                </button>
+              </div> -->
+            </div>
+          </div>
+          <div class="block-options-item">
+            <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
+              aria-label="Refrescar">
+              <i v-if="!table.loading" class="fa fa-refresh"></i>
+              <span v-else class="spinner-border spinner-border-sm"></span>
+            </button>
+          </div>
+          <div class="block-options-item">
+            <button type="button" class="btn-block-option" @click="optionShowTable">
+              <i :class="['fa', showTable ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
+            </button>
+          </div>
+        </div>
+      </template>
 
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
+      <div v-show="showTable">
+        <div class="row justify-content-between align-items-center mb-3">
+          <div class="col-md-1">
+            <select v-model="table.perPage" class="form-select">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+          </div>
+        </div>
+        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+          :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
+          :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
+          @onSearch="table.searchTerm" @onClick="handleClick">
+          <!-- Slot específico para la columna 'estado' -->
+          <!-- <template #cell-GUI_REM_RAZON_SOCIAL_DESTINATARIO="{ value, row }">
+            <span :class="pedidoClass(value)">{{ row.pedido ?? 'N/A' }}</span>
+          </template> -->
+          <template #actions="{ row }">
+            <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
+              <i class="fa fa-print"></i> Imprimir
+            </button>
+          </template>
+          <!-- Slot de vacío -->
+          <template #empty>
+            <div class="text-center py-5">
+              <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+              <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
+            </div>
+          </template>
+        </BaseTable>
+      </div>
+    </BaseBlock>
 
-.overlay-loading {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-}
+    <!-- seccion del informacion  de la guia -->
+    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
+      <template #options>
+        <div class="block-options-item">
+          <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">
+            <i :class="['fa', showDetalleGuia ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
+          </button>
+        </div>
+      </template>
 
-/* icono de ordenamiento */
-.sortable {
-  cursor: pointer;
-  user-select: none;
-}
+      <div class="content" v-if="guiaSeleccionada && showDetalleGuia">
+        <!-- cabecera del detalle de la Guia -->
+        <div class="table-responsive">
+          <table class="table table-hover table-sm table-vcenter">
+            <tbody>
+              <tr>
+                <th class="text-uppercase fs-sm text-muted">Guia</th>
+                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_GUIA_REMISION }}</td>
+                <th class="text-uppercase fs-sm text-muted">Pedido</th>
+                <td class="fs-sm">{{ guiaSeleccionada.pedido }}</td>
+              </tr>
+              <tr>
+                <th class="text-uppercase fs-sm text-muted">Orden</th>
+                <td class="fs-sm">{{ guiaSeleccionada.orden }}</td>
+                <th class="text-uppercase fs-sm text-muted">factura</th>
+                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_NUME_DOCU_SUSTENTO || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th class="text-uppercase fs-sm text-muted">cliente</th>
+                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_RAZON_SOCIAL_DESTINATARIO }}</td>
+                <th class="text-uppercase fs-sm text-muted">Ruc</th>
+                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_IDENTIFICACION_DESTINATARIO || 'N/A' }}</td>
+                <th class="text-uppercase fs-sm text-muted">Dirección</th>
+                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_DIRECCION_DESTINATARIO || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th class="text-uppercase fs-sm text-muted">Transporte</th>
+                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
+                <th class="text-uppercase fs-sm text-muted">Placa</th>
+                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_PLACA || 'N/A' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row">
+          <div class="col-md-6" v-if="detalleItems.transferencias.length > 0">
+            <table>
+              <tbody>
+                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span
+                    v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
+              </tbody>
+            </table>
+          </div>
+          <div v-else>
+            <p class="fs-sm">Pedido: {{ guiaSeleccionada.pedido }}</p>
+          </div>
+        </div>
+        <!-- detalle de la guia -->
+        <div style="text-align: right;">
+          <p class="fs-sm text-muted text-uppercase">Peso total: {{ formatPrice(detalleItems.peso_total, 2) }} Kg</p>
+        </div>
+        <div class="card-body p-4">
 
-.sortable:hover {
-  color: #0d6efd;
-}
+          <div class="table-responsive">
+            <table class="table table-striped table-sm table-vcenter">
+              <thead>
+                <tr>
+                  <th class="fs-sm text-uppercase text-muted text-center">codigo</th>
+                  <th class="fs-sm text-uppercase text-muted text-center">cod. let. itm</th>
+                  <th class="fs-sm text-uppercase text-muted text-end">Cantidad</th>
+                  <th class="fs-sm text-uppercase text-muted text-end">unidad</th>
+                  <th class="fs-sm text-uppercase text-muted text-center">descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(articulo, index) in detalleItems.detalle" :key="index">
+                  <td class="fs-sm text-center">
+                    {{ articulo.GUI_REM_CODI_INTERNO }}
+                  </td>
+                  <td class="fs-sm text-center">
+                    {{ articulo.GUI_REM_CODI_ADICIONAL }}
+                  </td>
+                  <td class="fs-sm text-end">
+                    {{ articulo.GUI_REM_CANTIDAD }}
+                  </td>
+                  <td class="fs-sm text-end">
+                    {{ articulo.GUI_REM_UNIDAD_MEDIDA }}
+                  </td>
+                  <td class="fs-sm text-center">
+                    {{ articulo.GUI_REM_DESCRIPCION }}
+                    <span v-if="articulo.CHECK_ALTERNATIVO == 1" class="text-danger">(Alternativa)</span>
+                    <span v-else></span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guiaSeleccionada)">
+            <i class="fa fa-print"></i> Imprimir
+          </button>
+        </div>
+      </div>
+    </BaseBlock>
 
-.bi {
-  font-size: 12px;
-}
-</style>
+  </div>
+  <!-- Modal para filtro de cliente -->
+  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true" ref="filtrarClienteModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
+      </div>
+    </div>
+  </div>
+</template>

@@ -15,12 +15,13 @@ export const usePaginationCacheStore = defineStore("paginationCache", {
           totalPage: 0,
           totalItems: 0,
           searchTerm: "",
-          perPage: 10,
+          perPage: "10",
           sortField: "",
           sortOrder: "asc",
           fecha_desde: null,
           fecha_hasta: null,
           cliente: null,
+          ptovta: null,
         });
       }
     },

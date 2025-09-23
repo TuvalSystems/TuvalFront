@@ -28,8 +28,8 @@ const props = defineProps({
         default: 0,
     },
     perPage: {
-        type: Number,
-        default: 0,
+        type: String,
+        default: "10",
     },
     sortable: {
         type: Boolean,
@@ -43,6 +43,9 @@ const props = defineProps({
         type: String,
         default: "asc",
     },
+    processing: { type: Boolean, default: false },          // 🔒 lock global (toda la tabla)
+    isRowDisabled: { type: Function, default: null },              // 🔒 lock por fila (opcional)
+
 });
 
 const emit = defineEmits(["onSort", "onPageChange", "onClick"]);
@@ -56,9 +59,9 @@ const handleSort = (field) => {
 //obtener el icono correcto
 const getSortIcon = (field) => {
     if (props.sortField !== field) {
-        return "fa fa-caret-down";
+        return "fa fa-angle-down";
     }
-    return props.sortOrder === "asc" ? "fa fa-caret-up" : "fa fa-caret-down";
+    return props.sortOrder === "asc" ? "fa fa-angle-up" : "fa fa-angle-down";
 };
 
 // Paginación
@@ -79,25 +82,53 @@ const pages = computed(() => {
 });
 
 
+const isDisabledRow = (row) => (props.isRowDisabled ? !!props.isRowDisabled(row) : false);
+const isCellClickable = (row, col) => col.clickable && !props.processing && !isDisabledRow(row);
+
 const handleRowClick = (event, row, col) => {
-    event.preventDefault();
-    // console.log('🟢 CLICK detectado en BaseTable:', row, col.key);
-    emit('onClick', { row, col });
-    // console.log('🟡 Evento emitido desde BaseTable');
+   event.preventDefault();
+  if (!isCellClickable(row, col)) return; // ⛔ bloquea si está en procesamiento o fila deshabilitada
+  emit('onClick', { row, col });
 };
+
+
+//** para el manejo de clases definida por el componente padre */
+const normalizeClass = (cls) => {
+    if (!cls) return [];
+    if (Array.isArray(cls)) return cls.filter(Boolean);
+    if (typeof cls === "object") return [cls];
+    return [cls]; //string 
+};
+
+
+const getThClass = (col) => {
+    return [
+        "text-left",
+        "text-nowrap",
+        col.sortable ? "sortable" : "",
+        ...normalizeClass(col.thClass),
+    ].filter(Boolean);
+};
+
+const getTdClass = (col, row) => {
+    const extra = typeof col.tdClass === "function" ? col.tdClass(row) : col.tdClass;
+    return [
+        "text-left", ...normalizeClass(extra)].filter(Boolean);
+};
+
+
+
 </script>
 
 <template>
     <div class="row">
         <div class="col-md-12">
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-vcenter mb-0">
+                <table class="table table-sm table-hover table-vcenter">
                     <thead>
                         <tr>
                             <th v-for="col in columns" :key="col.key" @click="col.sortable ? handleSort(col.key) : null"
-                                :class="col.sortable ? 'sortable' : ''" 
-                                class="text-left nowrap"
-                                :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
+                                :class="getThClass(col)" :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
                                 {{ col.label }}
                                 <i :class="getSortIcon(col.key)" class="ms-0"></i>
                             </th>
@@ -116,29 +147,45 @@ const handleRowClick = (event, row, col) => {
                             </td>
                         </tr>
                     </tbody>
+                    <tbody v-else-if="!data || !data.length">
+                        <tr>
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-6">
+                                <slot name="empty">Sin registros para mostrar.</slot>
+                            </td>
+                        </tr>
+                    </tbody>
 
                     <!-- datos de la tabla  y acciones -->
                     <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
-                        <tr v-for="row in data" :key="row.id ?? index">
-                            <td v-for="col in columns" :key="col.key" class="text-left"
+                        <tr v-for="(row, index) in data" :key="row.id ?? index">
+                            <td v-for="col in columns" :key="col.key" :class="getTdClass(col, row)"
                                 style="font-size: 12px; overflow: hidden; text-overflow: ellipsis ">
 
+                                <!-- 👇 slot específico por columna -->
+                                <template v-if="$slots[`cell-${col.key}`]">
+                                    <slot :name="`cell-${col.key}`" :row="row" :col="col" :value="row[col.key]" />
+                                </template>
 
                                 <!-- Si es clickable, lo renderizamos como enlace -->
-                                <a v-if="col.clickable" href="javascript:void(0)"
-                                    @click="(event) => handleRowClick(event, row, col)">
-                                    <span v-if="typeof col.render === 'function'">
-                                        {{ col.render(row[col.key]) }}
-                                    </span>
+                                <template v-else>
+                                    <a v-if="col.clickable" href="javascript:void(0)"
+                                        :class="['clickable', (processing || isDisabledRow(row)) ? 'is-disabled' : '']"
+                                        :aria-disabled="processing || isDisabledRow(row)"
+                                        :tabindex="(processing || isDisabledRow(row)) ? -1 : 0"
+                                        @click="(event) => handleRowClick(event, row, col)">
+                                        <span v-if="typeof col.render === 'function'">
+                                            {{ col.render(row[col.key]) }}
+                                        </span>
+                                        <span v-else>
+                                            {{ row[col.key] }}
+                                        </span>
+                                    </a>
+
+                                    <!-- Caso normal -->
                                     <span v-else>
                                         {{ row[col.key] }}
                                     </span>
-                                </a>
-
-                                <!-- Caso normal -->
-                                <span v-else>
-                                    {{ row[col.key] }}
-                                </span>
+                                </template>
                             </td>
 
                             <!-- Slot para acciones -->
@@ -237,9 +284,15 @@ const handleRowClick = (event, row, col) => {
     color: #0d6efd;
 }
 
+.clickable.is-disabled {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* table */
 .table-responsive {
-    max-height: 600px;
+    max-height: 700px;
     overflow-y: auto;
 }
 
