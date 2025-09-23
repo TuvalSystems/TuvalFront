@@ -180,18 +180,47 @@ async function visualizarDetalleCotización(id) {
 
 /** manejo del modal para la aprobación */
 
+const modalLocks = ref(new Map());
+const isModalLocked = (modalRow) => {
+  const id = typeof modalRow === "object" ? modalRow?.id : modalRow;
+  return modalLocks.value.get(String(id)) === true;
+}
+
+function lockModal(id) {
+  const m = new Map(modalLocks.value)
+  m.set(String(id), true)
+  modalLocks.value = m;
+}
+
+function unLockedModal(id) {
+  const m = new Map(modalLocks.value)
+  m.delete(String(id))
+  modalLocks.value = m
+}
+
 let verDetalleCotizacionAprobacionModal = ref(null);
 let verDetalleCotizacionAprobacionModalObj = null;
 let datosModalCotizacionAprobacion = ref(null);
 async function verModalAprobacionReserva(row) {
+  console.log(row);
+
+  if (!row || row.id === null) return
+  const id = row.id
+  if (isModalLocked(id)) return
+
   try {
+    lockModal(id);
     const response = await fetchQuotationWithDetialAndStock(row.id);
     if (response) {
       datosModalCotizacionAprobacion.value = response;
       verDetalleCotizacionAprobacionModalObj.show();
+      unLockedModal(id);
     }
   } catch (error) {
     swalError(error.response.data.error);
+  }
+  finally {
+    unLockedModal(id);
   }
 }
 
@@ -278,8 +307,9 @@ onMounted(async () => {
       </div>
       <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
-        :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchReservationRequests"
-        @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
+        :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
+        @onPageChange="fetchReservationRequests" @onSearch="table.searchTerm" @onClick="handleClick"
+        :is-row-disabled="isRowDisabled">
         <!-- Slot específico para la columna 'estado' -->
         <template #cell-st_solResInv="{ value, row }">
           <span :class="estadoClass(value)">{{
@@ -291,8 +321,10 @@ onMounted(async () => {
         </template>
         <template #actions="{ row }">
           <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="Aprobar"
-            @click="verModalAprobacionReserva(row)">
-            <i class="fa-solid fa-circle-check me-1"></i>
+            @click="verModalAprobacionReserva(row)" :disabled="isModalLocked(row)">
+            <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" role="status"
+              aria-hidden="true"></span>
+            <i v-else class="fa-solid fa-circle-check me-1"></i>
             <!-- Aprobar -->
           </button>
           <button type="button" class="btn btn-danger btn-sm" aria-placeholder="Rechazar" @click="verModalRechazar(row)"

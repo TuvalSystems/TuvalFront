@@ -16,9 +16,9 @@ export function useApprovedReservations() {
     loading: false,
     fecha_desde: null,
     fecha_hasta: null,
-    status: 'aprobado',
-    // cliente: null,
-    // ptovta: null,
+    status: "aprobado",
+    cliente: null,
+    ptovta: null,
   });
 
   const columns = [
@@ -132,35 +132,34 @@ export function useApprovedReservations() {
 
   const estadoClass = (st) => {
     switch (st || "") {
-        case "pendiente":
-            return "badge bg-dark text-light fw-semibold";
-        case "aprobado":
-            return "badge bg-success  fw-semibold";
-        case "rechazada":
-            return "badge bg-danger  fw-semibold";
-        case "cancelada":
-            return "badge bg-warning  fw-semibold";
-        case "procesado":
-            return "badge bg-primary  fw-semibold";
-        default:
-            return "badge bg-secondary";
+      case "pendiente":
+        return "badge bg-dark text-light fw-semibold";
+      case "aprobado":
+        return "badge bg-success  fw-semibold";
+      case "rechazada":
+        return "badge bg-danger  fw-semibold";
+      case "cancelada":
+        return "badge bg-warning  fw-semibold";
+      case "procesado":
+        return "badge bg-primary  fw-semibold";
+      default:
+        return "badge bg-secondary";
     }
-};
+  };
 
-const totalClass = (total) => {
+  const totalClass = (total) => {
     if (total > 0) {
-        return "text-end fw-semibold";
+      return "text-end fw-semibold";
     }
     return "text-end fw-semibold";
-};
+  };
 
   const ctrl = ref(null); // AbortController actual
   let debounceId;
 
   async function fetchList(page = 1) {
-
-     if (ctrl.value) ctrl.value.abort();
-      ctrl.value = new AbortController();
+    if (ctrl.value) ctrl.value.abort();
+    ctrl.value = new AbortController();
 
     table.loading = true;
     table.currentPage = page;
@@ -188,8 +187,8 @@ const totalClass = (total) => {
       }
     } catch (e) {
       table.loading = false;
-    //   console.error("Error fetching items:", error);
-       if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
+      //   console.error("Error fetching items:", error);
+      if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
         error = e?.response?.data?.error || "Error obteniendo cotizaciones";
         console.error(error, e);
       }
@@ -250,6 +249,6 @@ const totalClass = (total) => {
 
     //actions
     estadoClass,
-    totalClass
+    totalClass,
   };
 }

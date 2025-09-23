@@ -1,5 +1,5 @@
 import axiosClient from "@/axios";
-import { watch, reactive , ref} from "vue";
+import { watch, reactive, ref } from "vue";
 
 export function useQuotationReserveRequests() {
   const endpoint = "/cotizaciones/reserva/lista-solicitudes-reserva";
@@ -18,11 +18,11 @@ export function useQuotationReserveRequests() {
   let debounceId;
 
   const fetchReservationRequests = async (page = 1) => {
-    table.loading = true;
-    table.currentPage = page;
-
     if (ctrl.value) ctrl.value.abort();
     ctrl.value = new AbortController();
+    
+     table.loading = true;
+    table.currentPage = page;
 
     try {
       const response = await axiosClient.get(endpoint, {

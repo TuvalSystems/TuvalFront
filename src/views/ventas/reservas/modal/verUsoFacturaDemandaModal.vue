@@ -31,10 +31,11 @@ async function procesar() {
     try {
         const { ok, data, message } = await procesarReservaFacturaDemanda(infoCotizacion.value);
         if (ok) {
-            swalSuccess(message);
             emit('closeModalUsoFacturaDemanda', true);
+            swalSuccess(message);
             return data;
         }
+        emit('closeModalUsoFacturaDemanda', true);
         swalError(message);
     } catch (error) {
         swalError(error?.message || "Error al procesar la reserva.");
@@ -74,7 +75,7 @@ async function procesar() {
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoCotizacion.CLI_RAZON_SOCIAL">{{
                                 infoCotizacion.CLI_RAZON_SOCIAL
-                                }}</div>
+                            }}</div>
                         </div>
                     </div>
 
@@ -120,7 +121,7 @@ async function procesar() {
                             <small class="text-muted">% Descuento</small>
                             <div class="fw-semibold">
                                 <span class="badge bg-warning text-dark">{{ num2(infoCotizacion.porcentage_descuento)
-                                    }}%</span>
+                                }}%</span>
                             </div>
                         </div>
                     </div>
@@ -137,7 +138,7 @@ async function procesar() {
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="segmento.segmento" class="badge bg-info">{{ segmento.segmento }}</span>
                             <span v-if="segmento.subsegmento" class="badge bg-primary">{{ segmento.subsegmento
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -196,7 +197,7 @@ async function procesar() {
                                 <td colspan="8" class="fw-semibold text-end">Descuento</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoCotizacion.descuento))
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr>
