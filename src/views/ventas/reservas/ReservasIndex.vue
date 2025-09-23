@@ -1,6 +1,6 @@
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, onBeforeUnmount } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useApprovedReservations } from "@/composables/venta/cotizaciones/reservas/useApprovedReservations";
@@ -17,6 +17,8 @@ import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsult
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verUsoReservaModal from "@/views/ventas/reservas/modal/verUsoReservaModal.vue";
 import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
+
+import { echo } from '@/resources/echo'
 
 
 const flatPickrState = reactive({
@@ -215,7 +217,23 @@ onMounted(() => {
     if (!table.items.length && !table.loading) {
         fetchList(1);
     }
+
+    try {
+        echo.connector.pusher.connection.bind('connected', () => console.log('🔌 WS conectado'))
+        echo.connector.pusher.connection.bind('error', (err) =>
+            console.warn('⚠️ WS error', err)
+        )
+
+    } catch {
+    }
+    const chan = echo.channel('test')
+        .subscribed(() => console.log('📡 Suscrito a canal: test'))
+        .listen('.DemoMessage', (e) => console.log('✅ DemoMessage recibido:', e))
+
+    // Opcional: dejar accesible para inspección en consola
+    window.__chan = chan
 });
+onBeforeUnmount(() => { try { echo.leave('test') } catch {} });
 </script>
 <template>
     <BasePageHeading title="Reservas">
@@ -304,7 +322,7 @@ onMounted(() => {
                 <template #cell-st_solResInv="{ value, row }">
                     <span :class="estadoClass(value)">{{
                         row.st_solResInv ?? "N/A"
-                        }}</span>
+                    }}</span>
                 </template>
                 <template #cell-total="{ value, row }">
                     <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
