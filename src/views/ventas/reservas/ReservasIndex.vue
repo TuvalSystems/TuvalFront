@@ -18,7 +18,7 @@ import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/Ve
 import verUsoReservaModal from "@/views/ventas/reservas/modal/verUsoReservaModal.vue";
 import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
 
-import { echo } from '@/resources/echo'
+// import { echo } from '@/resources/echo'
 
 
 const flatPickrState = reactive({
@@ -218,22 +218,22 @@ onMounted(() => {
         fetchList(1);
     }
 
-    try {
-        echo.connector.pusher.connection.bind('connected', () => console.log('🔌 WS conectado'))
-        echo.connector.pusher.connection.bind('error', (err) =>
-            console.warn('⚠️ WS error', err)
-        )
+    // try {
+    //     echo.connector.pusher.connection.bind('connected', () => console.log('🔌 WS conectado'))
+    //     echo.connector.pusher.connection.bind('error', (err) =>
+    //         console.warn('⚠️ WS error', err)
+    //     )
 
-    } catch {
-    }
-    const chan = echo.channel('test')
-        .subscribed(() => console.log('📡 Suscrito a canal: test'))
-        .listen('.DemoMessage', (e) => console.log('✅ DemoMessage recibido:', e))
+    // } catch {
+    // }
+    // const chan = echo.channel('test')
+    //     .subscribed(() => console.log('📡 Suscrito a canal: test'))
+    //     .listen('.DemoMessage', (e) => console.log('✅ DemoMessage recibido:', e))
 
-    // Opcional: dejar accesible para inspección en consola
-    window.__chan = chan
+    // // Opcional: dejar accesible para inspección en consola
+    // window.__chan = chan
 });
-onBeforeUnmount(() => { try { echo.leave('test') } catch {} });
+// onBeforeUnmount(() => { try { echo.leave('test') } catch {} });
 </script>
 <template>
     <BasePageHeading title="Reservas">

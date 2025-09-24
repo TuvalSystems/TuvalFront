@@ -23,7 +23,9 @@ import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/Ve
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
 import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
 import { formatPriceJm, formatJm } from "@/functions";
-const { table, refresh, fetchReservationRequests, onSort } =
+import { echo } from '@/resources/echo'
+const { columns, table, refresh, fetchReservationRequests, onSort, estadoClass,
+  totalClass } =
   useQuotationReserveRequests();
 
 const {
@@ -32,114 +34,9 @@ const {
   loadingDeny,
 } = useQuotationReserveApproval();
 
-const columns = [
-  {
-    label: "Pto. Venta",
-    key: "PTO_VTA_DESCRIPCION",
-    clickable: false,
-    sortable: true,
-    render: (value) => value,
-    thClass: " text-center",
-    tdClass: " text-center",
-  },
-  {
-    label: "Cotizacion",
-    key: "cotizacion",
-    clickable: true,
-    sortable: true,
-    thClass: " text-center",
-    tdClass: " text-center",
-  },
-  {
-    label: "Fecha",
-    key: "created_at",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell text-center",
-    tdClass: "d-none d-md-table-cell text-center",
-  },
-  {
-    label: "Cliente",
-    key: "CLI_RAZON_SOCIAL",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell  text-start",
-    tdClass: "d-none d-md-table-cell  text-start",
-  },
-  {
-    label: "Total",
-    key: "total",
-    clickable: false,
-    sortable: false,
-    render: (value) => value,
-    thClass: "text-end",
-    tdClass: "text-end",
-  },
-  {
-    label: "Tipo Reserva",
-    key: "tipo_reserva",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell text-center",
-    tdClass: "d-none d-md-table-cell text-center",
-  },
-  {
-    label: "F. Solicitud",
-    key: "fe_solResInv",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-  {
-    label: "Estado",
-    key: "st_solResInv",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-  {
-    label: "Mult.Bod.",
-    key: "tipo_traslado",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-  {
-    label: "Observacion",
-    key: "tx_obsSolResInv",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-];
 
-const estadoClass = (st) => {
-  switch (st || "") {
-    case "pendiente":
-      return "badge bg-dark text-light fw-semibold";
-    case "aprobado":
-      return "badge bg-success  fw-semibold";
-    case "rechazada":
-      return "badge bg-danger  fw-semibold";
-    case "cancelada":
-      return "badge bg-warning  fw-semibold";
-    case "facturado":
-      return "badge bg-success  fw-semibold";
-    default:
-      return "badge bg-secondary";
-  }
-};
 
-const totalClass = (total) => {
-  if (total > 0) {
-    return "text-end fw-semibold";
-  }
-  return "text-end fw-semibold";
-};
+
 
 /** para bloquear fila de la tabla cuando
  * se esta visualizando la informacion de la cotizacion
@@ -202,8 +99,6 @@ let verDetalleCotizacionAprobacionModal = ref(null);
 let verDetalleCotizacionAprobacionModalObj = null;
 let datosModalCotizacionAprobacion = ref(null);
 async function verModalAprobacionReserva(row) {
-  console.log(row);
-
   if (!row || row.id === null) return
   const id = row.id
   if (isModalLocked(id)) return
@@ -242,7 +137,6 @@ async function verModalRechazar(row) {
       verModalRechazarReservaModalObj.show();
     }
   } catch (error) {
-    console.log(error);
     swalError(error.response.data.error);
   }
 }
@@ -261,11 +155,47 @@ function ensureModals() {
   );
 }
 
+
+/* ---- SOCKET: approvals ---- */
+let debounceTimer = null;
+function softRefresh() {
+  fetchReservationRequests(1);
+}
+
+function scheduleRefresh() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(softRefresh, 350);
+}
+
+function onVisibility() {
+  if (document.visibilityState === 'visible') {
+    softRefresh();
+  }
+}
+
+
 onMounted(async () => {
+  
+  // canal privado para actualizar tabla de reservas por aprobar
+  echo.private('approvals-reservations')
+    .subscribed(() => console.log('Suscrito al canal private:approvals-reservations'))
+    .listen('.ReservationApprovalsChanged', (e) => {
+      console.log('Evento ReservationApprovalsChanged recibido en private:approvals-reservations', e);
+      scheduleRefresh();
+    })
+  document.addEventListener('visibilitychange', onVisibility);
+
   ensureModals();
   if (!table.items.length && !table.loading) {
     fetchReservationRequests(1);
   }
+
+
+});
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', onVisibility)
+  clearTimeout(debounceTimer)
+  try { echo.leave('approvals-reservations') } catch { }
 });
 </script>
 <template>

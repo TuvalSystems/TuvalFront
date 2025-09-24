@@ -1,13 +1,14 @@
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
-import axiosClient from "axios";
+import axiosClient from "@/axios";
 import store from "@/store";
 
 window.Pusher = Pusher;
 
 /**configuracion nueva */
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const scheme = import.meta.env.VITE_PUSHER_SCHEME || window.location.protocol.replace(":", "");
+const scheme =
+  import.meta.env.VITE_PUSHER_SCHEME ||
+  window.location.protocol.replace(":", "");
 const isTLS = scheme === "https";
 const port = Number(import.meta.env.VITE_PUSHER_PORT) || (isTLS ? 443 : 6001);
 const getToken = () => store?.state?.user?.token || "";
@@ -15,7 +16,7 @@ const getToken = () => store?.state?.user?.token || "";
 export const echo = new Echo({
   broadcaster: "pusher",
   key: import.meta.env.VITE_PUSHER_APP_KEY,
-  cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'mt1', 
+  cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || "mt1",
   wsHost: import.meta.env.VITE_PUSHER_HOST || window.location.hostname,
   wsPort: port,
   wssPort: port,
@@ -28,27 +29,21 @@ export const echo = new Echo({
 
   authorizer: (channel) => ({
     authorize: (socketId, cb) => {
-      axiosClient.post(`${API_BASE}/broadcasting/auth`, {
-        socket_id: socketId,
-        channel_name: channel.name,
-      }, {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        withCredentials: false,
-      })
-      .then(res => cb(null, res.data))
-      .catch(err => cb(err))
+      axiosClient
+        .post("/broadcasting/auth", {
+          socket_id: socketId,
+          channel_name: channel.name,
+        })
+        .then((res) => cb(null, res.data))
+        .catch((err) => cb(err));
     },
   }),
-})
+});
 // Cierre limpio al navegar/cerrar (opcional)
 window.addEventListener("beforeunload", () => {
   try {
     echo.disconnect();
-  } catch { }
+  } catch {}
 });
 
 /** configuracion vieja  */
