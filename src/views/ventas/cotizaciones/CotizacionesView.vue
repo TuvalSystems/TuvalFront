@@ -279,8 +279,8 @@
     ref="verReservaModal">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.id" :datosReserva="datosModalReserva"
-          @modalReservaHide="modalReservaHide()"></VerSolicitudReservaModalComponent>
+        <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.id"
+          :datosReserva="datosModalReserva" @modalReservaHide="modalReservaHide()"></VerSolicitudReservaModalComponent>
       </div>
     </div>
   </div>
@@ -310,11 +310,13 @@ import { formatPrice, format } from "@/functions";
 import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
+import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits'
 import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitudReservaModal.vue";
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
-const {  checkExistingReserve } = useValidatesReserved()
+const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits()
+const { checkExistingReserve } = useValidatesReserved()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -467,6 +469,7 @@ async function verModalReserva(row) {
     id: row.id,
     cotizacion: row.cotizacion,
     pto_venta: row.BOD_BODEGA,
+    PTO_VTA_ID: row.PTO_VTA_ID,
     razon_social: row.CLI_RAZON_SOCIAL,
     fecha: row.created_at,
     total: row.total,
@@ -759,6 +762,10 @@ onMounted(() => {
   }
   if (tipoReservasStore.tipoReservas.length == 0) {
     tipoReservasStore.fetchListTypeReserved()
+  }
+
+  if (puntosVentaReservaLimitsStore.puntosVentaReservaLimits.length == 0) {
+    puntosVentaReservaLimitsStore.fetchPuntosVentaReservaLimits()
   }
 
 });

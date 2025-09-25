@@ -29,6 +29,9 @@ import zeroDecimals from "@/directives/zeroDecimals";
 import * as bootstrap from "bootstrap";
 window.bootstrap = bootstrap;
 
+
+// import echo-subscriptions para notificaciones
+import initNotifications from '@/plugins/initNotifications'
 // Craft new application
 const app = createApp(App);
 
@@ -52,6 +55,7 @@ app.use(createPinia());
 app.use(store);
 app.use(Maska);
 app.use(router);
+app.use(initNotifications)
 
 // ..and finally mount it!
 app.provide('echo', echo)  

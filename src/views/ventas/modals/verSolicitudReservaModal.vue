@@ -17,7 +17,7 @@ const props = defineProps({
 const { datosReserva } = toRefs(props);
 const tipoReservasStore = useTipoReservasStore();
 const { tipoReservas } = storeToRefs(tipoReservasStore);
-const { reserva, solicitarReserva, isInvalid, resetForm, isInvalidType } = useQuotationReserveRequest(datosReserva, tipoReservas);
+const { reserva, solicitarReserva, isInvalid, resetForm, isInvalidType } = useQuotationReserveRequest(datosReserva);
 
 const flatPickrState = reactive({
     fecha: {
@@ -66,11 +66,11 @@ watch(
     { immediate: true, deep: true }
 );
 
-onMounted(() => {
-    if (tipoReservasStore.tipoReservas.length === 0) {
-        tipoReservasStore.fetchListTypeReserved()
-    }
-});
+// onMounted(() => {
+//     if (tipoReservasStore.tipoReservas.length === 0) {
+//         tipoReservasStore.fetchListTypeReserved()
+//     }
+// });
 
 </script>
 <template>
@@ -178,7 +178,11 @@ onMounted(() => {
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cancelar</button>
             <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir"
-                :disabled="isInvalid || isInvalidType">Solicitar</button>
+                :disabled="isInvalid || isInvalidType">
+                <span v-if="isInvalidType || isInvalid" class="spinner-border spinner-border-sm me-2" role="status"
+                    aria-hidden="true"></span>
+                Solicitar
+            </button>
         </div>
     </div>
 </template>

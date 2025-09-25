@@ -18,12 +18,12 @@ import {
   swalError,
 } from "@/functions/swal-alert.js";
 import { useQuotationReserveRequests } from "@/composables/aprobaciones/reservas/useQuotationReserveRequests";
+import { useApprovalsGridRefresh } from "@/composables/aprobaciones/reservas/useApprovalsGridRefresh";
 import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas/useQuotationReserveApproval";
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
 import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
 import { formatPriceJm, formatJm } from "@/functions";
-import { echo } from '@/resources/echo'
 const { columns, table, refresh, fetchReservationRequests, onSort, estadoClass,
   totalClass } =
   useQuotationReserveRequests();
@@ -157,45 +157,26 @@ function ensureModals() {
 
 
 /* ---- SOCKET: approvals ---- */
-let debounceTimer = null;
-function softRefresh() {
-  fetchReservationRequests(1);
-}
-
-function scheduleRefresh() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(softRefresh, 350);
-}
-
-function onVisibility() {
-  if (document.visibilityState === 'visible') {
-    softRefresh();
-  }
-}
-
+let stopGridSocket
 
 onMounted(async () => {
-  
-  // canal privado para actualizar tabla de reservas por aprobar
-  echo.private('approvals-reservations')
-    .subscribed(() => console.log('Suscrito al canal private:approvals-reservations'))
-    .listen('.ReservationApprovalsChanged', (e) => {
-      console.log('Evento ReservationApprovalsChanged recibido en private:approvals-reservations', e);
-      scheduleRefresh();
-    })
-  document.addEventListener('visibilitychange', onVisibility);
 
   ensureModals();
   if (!table.items.length && !table.loading) {
     fetchReservationRequests(1);
   }
 
+  stopGridSocket = useApprovalsGridRefresh({
+    refreshFn: () => fetchReservationRequests(table.currentPage),
+    debounceMs: 350,
+    onEvent: (e) => console.log('🔔 ReservationApprovalsChanged:', e)
+    // si quieres un toast local:
+    // onEvent: (e) => swalInfo?.(`Reserva ${e.action} (#${e.reservationId})`)
+  })
 
 });
 onBeforeUnmount(() => {
-  document.removeEventListener('visibilitychange', onVisibility)
-  clearTimeout(debounceTimer)
-  try { echo.leave('approvals-reservations') } catch { }
+  stopGridSocket?.()
 });
 </script>
 <template>
