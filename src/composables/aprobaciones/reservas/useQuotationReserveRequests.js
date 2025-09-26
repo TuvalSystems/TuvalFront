@@ -89,13 +89,13 @@ export function useQuotationReserveRequests() {
     thClass: "d-none d-md-table-cell",
     tdClass: "d-none d-md-table-cell",
   },
-  {
-    label: "Observacion",
-    key: "tx_obsSolResInv",
+   {
+    label: "Usuario",
+    key: "usuario_solicita",
     clickable: false,
     sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
+    thClass: "text-center",
+    tdClass: "text-center",
   },
 ];
 

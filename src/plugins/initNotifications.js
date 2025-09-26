@@ -1,25 +1,15 @@
 import { echo } from "@/resources/echo";
 import { getCurrentUserId } from "@/utils/auth";
 import store from "@/store";
-import { bsToast } from '@/utils/bsToast'
-import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
-  swalError,
-  toast,
-} from "@/functions/swal-alert.js";
+import { bsToast } from "@/utils/bsToast";
 
+// ⬇️ Estado persistente a nivel de módulo (NO dentro de la función)
 let initialized = false;
 let unwatch = null;
 let currentUid = null;
 
 export function initNotifications() {
   const uid = getCurrentUserId();
-
-  // if (!uid) return;
-  // inited = true;
 
   if (!uid) {
     if (currentUid) {
@@ -38,8 +28,10 @@ export function initNotifications() {
     return;
   }
 
+  // Ya inicializado para este uid
   if (initialized && uid === currentUid) return;
 
+  // Cambió de usuario: salir del canal anterior
   if (currentUid && currentUid !== uid) {
     try {
       echo.leave(`App.Models.GpUsuario.${currentUid}`);
@@ -49,16 +41,27 @@ export function initNotifications() {
   currentUid = uid;
   initialized = true;
 
-  echo
-    .private(`App.Models.GpUsuario.${uid}`)
-    .subscribed(() => console.log(`📡 Suscrito: App.Models.GpUsuario.${uid}`))
-    .notification((n) => {
-      console.log("🔔 Notificación recibida:", n);
-      const title = n.titulo ?? "Notificación";
-      const msg = n.message ?? '';
-      bsToast({ title, text: msg, iconClass: 'fa fa-bell text-info', delay: 60000 });
-    });
+  const chan = echo.private(`App.Models.GpUsuario.${uid}`);
+  chan.subscribed(() => {
+    //  console.log(`📡 Subscribed App.Models.GpUsuario.${uid}`);
+  });
 
+  // (Opcional) log de errores del canal
+  chan.error?.((err) => {
+    // console.warn("Canal notificaciones error:", err);
+  });
+  chan.notification((n) => {
+    const title = n.titulo ?? "Notificación";
+    const msg = n.message ?? "";
+    bsToast({
+      title,
+      text: msg,
+      iconClass: "fa fa-bell text-info",
+      delay: 60000,
+    });
+  });
+
+  // Watch para cambios de sesión/token
   if (!unwatch) {
     unwatch = store.watch(
       (s) => [s.user?.data, s.user?.token],
@@ -66,5 +69,5 @@ export function initNotifications() {
     );
   }
 }
-
+// Llamado como plugin
 export default { install: () => initNotifications() };

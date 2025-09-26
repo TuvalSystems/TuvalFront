@@ -169,9 +169,9 @@ onMounted(async () => {
   stopGridSocket = useApprovalsGridRefresh({
     refreshFn: () => fetchReservationRequests(table.currentPage),
     debounceMs: 350,
-    onEvent: (e) => console.log('🔔 ReservationApprovalsChanged:', e)
-    // si quieres un toast local:
-    // onEvent: (e) => swalInfo?.(`Reserva ${e.action} (#${e.reservationId})`)
+   // Si quieres log de suscripción:
+    // onSubscribed: () => console.log("📡 Suscrito: refresh-authorized-reservations"),
+    // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
   })
 
 });

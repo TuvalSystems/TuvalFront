@@ -449,21 +449,13 @@ let verReservaModal = ref(null);
 let verReservaModalObj = null;
 let datosModalReserva = ref(null);
 async function verModalReserva(row) {
-  // let resp;
-  // try {
-  //   resp = await fetchResponseHaveItemL(row.id);
-  // } catch {
-  //   return; // si la validación falló, no abras el modal
-  // }
-
-  // if (resp?.exists) {
-  //   swalError(resp?.message || 'No puede realizar la reserva: la cotización tiene un ítem tipo L');
-  //   return;
-  // }
-
   if (row.st_solResInv != "" && row.st_solResInv != null) {
     swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
-    return
+    return;
+  }
+  if (row.reserva_disabled === true) {
+    swalWarning('No puede realizar la reserva: la cotización no tiene cantidades seleccionadas.')
+    return;
   }
   const payload = {
     id: row.id,

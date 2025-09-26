@@ -17,7 +17,7 @@ import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsult
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verUsoReservaModal from "@/views/ventas/reservas/modal/verUsoReservaModal.vue";
 import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
-
+import { useAuthorizedReservationsRefresh } from "@/composables/venta/cotizaciones/reservas/useAuthorizedReservationsRefresh";
 // import { echo } from '@/resources/echo'
 
 
@@ -211,29 +211,26 @@ function modalesComponent() {
     verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
 }
 
+/** socket */
+let stopRefresh
 onMounted(() => {
     modalesComponent();
     ptoVta.fetchAll();
     if (!table.items.length && !table.loading) {
         fetchList(1);
     }
+    stopRefresh = useAuthorizedReservationsRefresh({
+        refreshFn: () => fetchList(table.currentPage),
+        debounceMs: 350,
+        // Si quieres log de suscripción:
+        // onSubscribed: () => console.log("📡 Suscrito: refresh-authorized-reservations"),
+        // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
+    })
 
-    // try {
-    //     echo.connector.pusher.connection.bind('connected', () => console.log('🔌 WS conectado'))
-    //     echo.connector.pusher.connection.bind('error', (err) =>
-    //         console.warn('⚠️ WS error', err)
-    //     )
-
-    // } catch {
-    // }
-    // const chan = echo.channel('test')
-    //     .subscribed(() => console.log('📡 Suscrito a canal: test'))
-    //     .listen('.DemoMessage', (e) => console.log('✅ DemoMessage recibido:', e))
-
-    // // Opcional: dejar accesible para inspección en consola
-    // window.__chan = chan
 });
-// onBeforeUnmount(() => { try { echo.leave('test') } catch {} });
+onBeforeUnmount(() => {
+    stopRefresh?.()
+});
 </script>
 <template>
     <BasePageHeading title="Reservas">
