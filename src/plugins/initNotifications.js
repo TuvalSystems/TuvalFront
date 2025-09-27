@@ -42,9 +42,9 @@ export function initNotifications() {
   initialized = true;
 
   const chan = echo.private(`App.Models.GpUsuario.${uid}`);
-  chan.subscribed(() => {
-    //  console.log(`📡 Subscribed App.Models.GpUsuario.${uid}`);
-  });
+  // chan.subscribed(() => {
+  //    console.log(`📡 Subscribed App.Models.GpUsuario.${uid}`);
+  // });
 
   // (Opcional) log de errores del canal
   chan.error?.((err) => {

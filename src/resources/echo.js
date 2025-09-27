@@ -39,28 +39,20 @@ export const echo = new Echo({
     },
   }),
 });
+
+// debug/ diagnostico de conexion
+if (echo?.connector?.pusher && !window.__ECHO_CONN_BOUND__) {
+  window.__ECHO_CONN_BOUND__ = true; // evita binds dupplicados en hot-reload
+  const conn = echo.connector.pusher.connection;
+  conn.bind("connected", () => console.log("🔄 Echo connected / reconnected"));
+  conn.bind("state_change", (states) => console.log("⚡ Pusher state", states));
+  conn.bind("error", (err) => console.error("❌ Pusher error", err));
+  conn.bind("disconnected", () => console.warn("⚠️ Echo disconnected"));
+}
+
 // Cierre limpio al navegar/cerrar (opcional)
 window.addEventListener("beforeunload", () => {
   try {
     echo.disconnect();
   } catch {}
 });
-
-/** configuracion vieja  */
-// const host = window.location.hostname;
-
-// window.Echo = new Echo({
-//   broadcaster: "pusher",
-//   key: import.meta.env.VITE_PUSHER_APP_KEY  ,
-//   cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || "mt1",
-//   wsHost: host,
-//   wsPort: Number(import.meta.env.VITE_PUSHER_PORT) || 6001,
-//   wssPort: Number(import.meta.env.VITE_PUSHER_PORT) || 6001,
-//   forceTLS: false, // importante en local
-//   enabledTransports: ["ws"],
-//   //   forceTLS: import.meta.env.VITE_PUSHER_FORCE_TLS === "true",
-//   //   enabledTransports: ["ws", "wss"],
-//   disableStats: true,
-// });
-
-// export const echo = window.Echo;
