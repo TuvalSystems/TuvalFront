@@ -23,6 +23,8 @@ import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
 import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
+import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
+
 import { formatPriceJm, formatJm } from "@/functions";
 const { columns, table, refresh, fetchReservationRequests, onSort, estadoClass,
   totalClass } =
@@ -32,6 +34,7 @@ const {
   fetchQuotationWithDetial,
   fetchQuotationWithDetialAndStock,
   loadingDeny,
+  fetchQuotationWithDetialAndStockActive
 } = useQuotationReserveApproval();
 
 
@@ -98,7 +101,27 @@ function unLockedModal(id) {
 let verDetalleCotizacionAprobacionModal = ref(null);
 let verDetalleCotizacionAprobacionModalObj = null;
 let datosModalCotizacionAprobacion = ref(null);
+let verUsoFacturaDemandaModalObj = null;
+let verUsoFacturaDemandaModal = ref(null);
+const dataModal = ref(null);
 async function verModalAprobacionReserva(row) {
+  if (row.tipo_reserva_id === 1) {
+    openModalAprobacionReserva(row);
+  } else if (row.tipo_reserva_id === 2) {
+    openModalAprobacionFacturaDemanda(row);
+  }
+
+
+}
+
+async function closeModalAprobacionReserva() {
+  verDetalleCotizacionAprobacionModalObj.hide();
+  datosModalCotizacionAprobacion.value = null;
+  refresh();
+}
+
+// modal aprobacion  reserva
+async function openModalAprobacionReserva(row) {
   if (!row || row.id === null) return
   const id = row.id
   if (isModalLocked(id)) return
@@ -109,8 +132,8 @@ async function verModalAprobacionReserva(row) {
     if (response) {
       datosModalCotizacionAprobacion.value = response;
       verDetalleCotizacionAprobacionModalObj.show();
-      unLockedModal(id);
     }
+    unLockedModal(id);
   } catch (error) {
     swalError(error.response.data.error);
   }
@@ -119,11 +142,33 @@ async function verModalAprobacionReserva(row) {
   }
 }
 
-async function closeModalAprobacionReserva() {
-  verDetalleCotizacionAprobacionModalObj.hide();
-  datosModalCotizacionAprobacion.value = null;
+// modal de aprobacion a factura demanda
+async function openModalAprobacionFacturaDemanda(row) {
+  if (!row || row.id === null) return
+  const id = row.id
+  if (isModalLocked(id)) return
+  try {
+    lockModal(id);
+    const response = await fetchQuotationWithDetialAndStockActive(row.id);
+    if (response) {
+      dataModal.value = response;
+      verUsoFacturaDemandaModalObj.show();
+    }
+    unLockedModal(id);
+  } catch (e) {
+    swalError(e?.response?.data?.error || e?.message || 'Error')
+  }
+  finally {
+    unLockedModal(id);
+  }
+}
+
+async function closeModalUsoFacturaDemanda() {
+  verUsoFacturaDemandaModalObj.hide();
+  dataModal.value = null;
   refresh();
 }
+
 
 /** rechazo de reservca */
 let verModalRechazarReservaModal = ref(null);
@@ -153,6 +198,8 @@ function ensureModals() {
   verDetalleCotizacionAprobacionModalObj = new Modal(
     verDetalleCotizacionAprobacionModal.value
   );
+  verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
+
 }
 
 
@@ -169,7 +216,7 @@ onMounted(async () => {
   stopGridSocket = useApprovalsGridRefresh({
     refreshFn: () => fetchReservationRequests(table.currentPage),
     debounceMs: 350,
-   // Si quieres log de suscripción:
+    // Si quieres log de suscripción:
     // onSubscribed: () => console.log("📡 Suscrito: refresh-authorized-reservations"),
     // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
   })
@@ -296,4 +343,18 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </div>
+
+
+  <!-- Modal para generar facturas a demanda -->
+  <div class="modal" id="modal-uso-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-uso-reserva"
+    aria-hidden="false" ref="verUsoFacturaDemandaModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verUsoFacturaDemandaComponent v-if="dataModal" :reserva="dataModal"
+          @closeModalUsoFacturaDemanda="closeModalUsoFacturaDemanda()">
+        </verUsoFacturaDemandaComponent>
+      </div>
+    </div>
+  </div>
+
 </template>

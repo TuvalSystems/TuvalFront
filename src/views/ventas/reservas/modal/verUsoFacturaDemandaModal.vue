@@ -3,15 +3,22 @@ import { computed, ref, watch, reactive, onMounted } from 'vue';
 import { formatPriceJm, formatJm, toInt } from "@/functions";
 import { swalSuccess, swalError } from "@/functions/swal-alert.js";
 import { useReservationProcessor } from "@/composables/venta/cotizaciones/reservas/useReservationProcessor";
+import flatPickr from "vue-flatpickr-component";
+import { Spanish } from "flatpickr/dist/l10n/es.js";
 const props = defineProps({
     reserva: {
         type: Object,
         required: true
     },
-
 });
 const { loadingFacturaDemanda, procesarReservaFacturaDemanda } = useReservationProcessor();
 const emit = defineEmits(['closeModalUsoFacturaDemanda']);
+const flatPickrState = reactive({
+    fecha: {
+        minDate: Date.now(),
+        locale: Spanish,
+    },
+});
 
 
 // Formateadores (USD y cantidades)
@@ -75,7 +82,7 @@ async function procesar() {
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoCotizacion.CLI_RAZON_SOCIAL">{{
                                 infoCotizacion.CLI_RAZON_SOCIAL
-                            }}</div>
+                                }}</div>
                         </div>
                     </div>
 
@@ -121,7 +128,7 @@ async function procesar() {
                             <small class="text-muted">% Descuento</small>
                             <div class="fw-semibold">
                                 <span class="badge bg-warning text-dark">{{ num2(infoCotizacion.porcentage_descuento)
-                                }}%</span>
+                                    }}%</span>
                             </div>
                         </div>
                     </div>
@@ -138,7 +145,7 @@ async function procesar() {
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="segmento.segmento" class="badge bg-info">{{ segmento.segmento }}</span>
                             <span v-if="segmento.subsegmento" class="badge bg-primary">{{ segmento.subsegmento
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                 </div>
@@ -197,7 +204,7 @@ async function procesar() {
                                 <td colspan="8" class="fw-semibold text-end">Descuento</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoCotizacion.descuento))
-                                    }}
+                                }}
                                 </td>
                             </tr>
                             <tr>
@@ -210,49 +217,41 @@ async function procesar() {
                     </table>
                 </div>
             </div>
-
-            <div>
+            <div v-if="infoCotizacion.st_solResInv === 'procesado'">
+                <div class="content text-end mb-4">
+                    <button type="button" class="btn btn-sm btn-alt-secondary me-1" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+            <div v-else>
                 <div class="block-content">
                     <div class="row g-1 align-items-start">
-                        <div class="col-6 col-md-6">
-                            <div class="kv">
-                                <label for="fechaReserva" class="form-label text-muted fs-sm">Orden de Compra</label>
-                                <div class="input-group input-group">
-                                    <span class="input-group-text">OC</span>
-                                    <input type="text" v-model.trim="infoCotizacion.orden_de_compra"
-                                        class="form-control" placeholder="Orden de compra" :maxlength="maxlengthOc" />
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <small class="text-muted">
-                                        Solo letras, números y guiones. Máx. 20 caracteres.
-                                    </small>
-                                    <small class="text-muted">
-                                        {{ (infoCotizacion.orden_de_compra || '').length }}/{{ maxlengthOc }}
-                                    </small>
-
+                        <div class="col-6 col-md-5">
+                            <div class="kv ">
+                                <label for="fechaReserva" class="form-label text-muted fs-sm">Fecha Aprobación</label>
+                                <div class="fw-semibold">
+                                    <flat-pickr id="fechaReserva" class="form-control form-control-sm"
+                                        v-model="infoCotizacion.fe_autSolResInv" :config="flatPickrState.fecha" />
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-6 col-md-7">
                             <div class="kv">
-                                <label for="fechaReserva" class="form-label text-muted fs-sm">Nota Cliente</label>
-                                <div class="input-group input-group">
-                                    <textarea id="obs" rows="3" class="form-control form-control-sm"
-                                        :maxlength="maxlengthNc" v-model.trim="infoCotizacion.nota_cliente"
-                                        placeholder="Nota Cliente"></textarea>
+                                <label for="fechaReserva" class="form-label text-muted fs-sm">Observación</label>
+                                <div class="fw-semibold">
+                                    <textarea id="obs" rows="3" class="form-control form-control-sm" maxlength="400"
+                                        v-model="infoCotizacion.tx_obsAutSolResInv"
+                                        placeholder="Detalles adicionales (opcional)"></textarea>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <small class="text-muted">
-                                        Solo letras, números y guiones. Máx. 300 caracteres.
-                                    </small>
-                                    <small class="text-muted">
-                                        {{ (infoCotizacion.nota_cliente || '').length }}/{{ maxlengthNc }}
-                                    </small>
-
+                                <div class="text-end text-muted fs-xs">{{ (infoCotizacion.tx_obsAutSolResInv ||
+                                    '').length
+                                    }}/400
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
                 <div class="content text-end mb-4">
                     <button type="button" class="btn btn-sm btn-alt-secondary me-1" data-bs-dismiss="modal">
