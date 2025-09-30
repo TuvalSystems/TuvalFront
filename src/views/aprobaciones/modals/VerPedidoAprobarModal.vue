@@ -133,7 +133,7 @@
                     
                   </td>
                   <td class="fs-sm">
-                    <a class="text-danger" v-if="articulo.ART_DESCRIPCION !== articulo.ART_DESCRIPCION_ORIGINAL && articulo.ART_TIPO_COMPRA !== 'L'" @click="verdiferenciadescripcion(articulo)" href="javascript:void(0);">{{ articulo.ART_DESCRIPCION }}</a>
+                    <a class="text-danger" v-if="articulo.approval_descripcion === true && articulo.ART_TIPO_COMPRA !== 'L'" @click="verdiferenciadescripcion(articulo)" href="javascript:void(0);">{{ articulo.ART_DESCRIPCION }}</a>
                     <span v-else>{{ articulo.ART_DESCRIPCION }}</span>
                   </td>
                   <td class="fs-sm">
@@ -147,18 +147,18 @@
                   </td>
                 
                   <td class="fs-sm text-end">
-                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.ART_VALOR != articulo.ART_VALOR_ORIGINAL" @click="verdiferenciavalor(articulo)" href="javascript:void(0);">
+                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.approval_valor === true" @click="verdiferenciavalor(articulo)" href="javascript:void(0);">
                       ${{ articulo.ART_VALOR }}
                     </a>
                     <span v-else>${{ articulo.ART_VALOR }}</span>
                   </td>
-                  <td class="fs-sm text-end" :class="articulo.modificador > 0 ? 'text-danger':''">
+                  <td class="fs-sm text-end" :class="articulo.approval_modificador === true ? 'text-danger':''">
                     <span v-if="articulo.ART_TIPO_COMPRA != 'L'">
                       {{ format(parseFloat(articulo.modificador)) }}%
                     </span>
                   </td>
                   <td class="fs-sm text-end">
-                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.descuento != articulo.descuento_original" @click="verdiferenciadescuento(articulo)" href="javascript:void(0);">
+                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.approval_descuento === true" @click="verdiferenciadescuento(articulo)" href="javascript:void(0);">
                       {{ articulo.descuento }}%
                     </a>
                     <span v-else>{{ articulo.descuento }}%</span>
