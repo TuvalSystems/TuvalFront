@@ -310,11 +310,21 @@ function guardarProveedor(){
         proveedor.COSTO_UNITARIO === '' || proveedor.COSTO_UNITARIO === null ||
         proveedor.FECHA_ENTREGA === null || proveedor.FECHA_ENTREGA === '' ||
         proveedor.ID_PROVEEDOR === '' || proveedor.ID_PROVEEDOR === null ||
-        proveedor.MARGEN === '' || proveedor.MARGEN === null){
+        proveedor.MARGEN === '' || proveedor.MARGEN === null  ){
       error = true;
     }
   })
-
+ let error2 = false;
+  cotizacion.value.data[indexproveedor.value].proveedores.map(proveedor=>{
+    if( proveedor.DESCRIPCION_ARTICULO === '' || proveedor.DESCRIPCION_ARTICULO === null ||proveedor.DESCRIPCION_ARTICULO == "Item L descripción por completar"){
+      error2 = true;
+    }
+  })
+  if (error2) {
+    swalError('Actualice la descripción del item L');
+    return;
+    
+  }
   if(error){
     swalError('Todos los campos deben ser llenados');
     return;
