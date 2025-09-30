@@ -275,6 +275,7 @@ onBeforeUnmount(() => {
                 <div class="col-12 col-sm-6 col-lg-2">
                     <small class="text-muted d-block mb-1">Sucursal</small>
                     <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
+                     <option value="">Todos</option>
                         <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA"
                             :value="p.PTO_VTA_BOD_PUNTO_VENTA">
                             {{ p.PTO_VTA_BOD_BODEGA }}
@@ -300,7 +301,6 @@ onBeforeUnmount(() => {
                 </div>
             </div>
             <div class="row justify-content-between align-items-center mb-3">
-
                 <div class="col-md-1">
                     <select v-model="table.perPage" class="form-select">
                         <option v-for="item in listPerpage" :key="item.value" :value="item.value"> {{ item.label }}

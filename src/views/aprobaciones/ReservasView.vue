@@ -11,10 +11,6 @@ import {
 import { Modal } from "bootstrap";
 import BaseTable from "@/components/BaseTable.vue";
 import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
   swalError,
 } from "@/functions/swal-alert.js";
 import { useQuotationReserveRequests } from "@/composables/aprobaciones/reservas/useQuotationReserveRequests";
@@ -24,11 +20,15 @@ import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/Ve
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
 import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
 import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
-
+import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
+import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
+import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
 import { formatPriceJm, formatJm } from "@/functions";
-const { columns, table, refresh, fetchReservationRequests, onSort, estadoClass,
+const { columns, listPerpage, table, refresh, fetchReservationRequests, onSort, estadoClass,
   totalClass } =
   useQuotationReserveRequests();
+const ptoVta = usePtoVtaStore();
+const tipoReservasStore = useTipoReservasStore()
 
 const {
   fetchQuotationWithDetial,
@@ -36,7 +36,6 @@ const {
   loadingDeny,
   fetchQuotationWithDetialAndStockActive
 } = useQuotationReserveApproval();
-
 
 
 
@@ -199,15 +198,31 @@ function ensureModals() {
     verDetalleCotizacionAprobacionModal.value
   );
   verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
+  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
 
 }
+
+
+let filtrarClienteModal = ref(null);
+let filtrarClienteModalObj = null;
+function levantarFiltrocliente() {
+  filtrarClienteModalObj.show();
+}
+function filtrarClienteConsulta(clienteRuc) {
+  filtrarClienteModalObj.hide();
+  table.cliente = clienteRuc;
+}
+
 
 
 /* ---- SOCKET: approvals ---- */
 let stopGridSocket
 
 onMounted(async () => {
-
+  ptoVta.fetchAll();
+  if (tipoReservasStore.tipoReservas.length == 0) {
+    tipoReservasStore.fetchListTypeReserved()
+  }
   ensureModals();
   if (!table.items.length && !table.loading) {
     fetchReservationRequests(1);
@@ -240,7 +255,7 @@ onBeforeUnmount(() => {
     </template>
   </BasePageHeading>
   <div class="content">
-    <BaseBlock title="Aprobaciones Reservas" rounded themed>
+    <BaseBlock title="Aprobaciones Reservas" content-full rounded themed>
       <template #options>
         <div class="block-options-item">
           <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
@@ -250,13 +265,43 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </template>
+      <div class="row g-3 align-items-center px-2 pt-2 pb-1 mb-4">
+        <!-- sucursal -->
+        <div class="col-12 col-sm-6 col-lg-2">
+          <small class="text-muted d-block mb-1">Sucursal</small>
+          <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
+            <option value="">Todos</option>
+            <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
+              {{ p.PTO_VTA_BOD_BODEGA }}
+            </option>
+          </select>
+        </div>
+        <!-- sucursal -->
+        <div class="col-12 col-sm-6 col-lg-2">
+          <small class="text-muted d-block mb-1">Cliente</small>
+          <button type="button" title="Seleccionar cliente" @click="levantarFiltrocliente()"
+            class="btn btn-outline-info btn-sm w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-2">
+            <i class="fa fa-user"></i>
+            <span>Cliente</span>
+          </button>
+        </div>
+        <!-- sucursal -->
+        <div class="col-12 col-sm-6 col-lg-2">
+          <small class="text-muted d-block mb-1">Tipo Reserva</small>
+          <select class="form-select form-select-sm" v-model="table.tipoReserva">
+            <option value="">Todos</option>
+            <option v-for="item in tipoReservasStore.tipoReservas" :key="item.value" :value="item.id"> {{
+              item.descripcion
+            }}
+            </option>
+          </select>
+        </div>
+      </div>
       <div class="row justify-content-between align-items-center mb-3">
         <div class="col-md-1">
           <select v-model="table.perPage" class="form-select">
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
+            <option v-for="item in listPerpage" :key="item.value" :value="item.value"> {{ item.label }}
+            </option>
           </select>
         </div>
         <div class="col-md-4">
@@ -356,5 +401,16 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </div>
+
+  <!-- Modal para filtro de cliente -->
+  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true" ref="filtrarClienteModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
+      </div>
+    </div>
+  </div>
+
 
 </template>

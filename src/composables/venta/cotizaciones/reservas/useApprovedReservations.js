@@ -12,7 +12,7 @@ export function useApprovedReservations() {
     searchTerm: "",
     perPage: "10",
     sortField: "",
-    sortOrder: "asc",
+    sortOrder: "desc",
     loading: false,
     fecha_desde: null,
     fecha_hasta: null,
@@ -203,7 +203,7 @@ export function useApprovedReservations() {
     table.searchTerm = "";
     table.perPage = "10"; // Reset to default perPage value
     table.sortField = "";
-    table.sortOrder = "asc";
+    table.sortOrder = "desc";
     table.currentPage = 1; // Reset to first page
     table.status = "aprobado";
     table.ptovta = null;
