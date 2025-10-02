@@ -17,7 +17,7 @@ export const usePaginationCacheStore = defineStore("paginationCache", {
           searchTerm: "",
           perPage: "10",
           sortField: "",
-          sortOrder: "asc",
+          sortOrder: "desc",
           fecha_desde: null,
           fecha_hasta: null,
           cliente: null,

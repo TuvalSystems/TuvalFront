@@ -30,7 +30,7 @@ const toast1 = ref(null);
 const titulo = ref(null);
 const mensaje = ref(null);
 
-setInterval(() => {
+// setInterval(() => {
 
   store.dispatch('notificaciones').then((res) => {
     if(res.notificacion === true){
@@ -39,7 +39,7 @@ setInterval(() => {
       toast1.value.show();
     }
   });
-}, "10000")
+// }, "10000")
 onMounted(() => {
   toast1.value = new window.bootstrap.Toast(
     document.getElementById("toast-example-1")

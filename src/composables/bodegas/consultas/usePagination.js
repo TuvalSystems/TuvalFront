@@ -10,7 +10,7 @@ export function usePagination() {
   const searchTerm = ref("");
   const perPage = ref(10);
   const sortField = ref("");
-  const sortOrder = ref("asc");
+  const sortOrder = ref("desc");
   const fecha_desde = ref(null);
   const fecha_hasta = ref(null);
   const cliente = ref(null);
@@ -29,7 +29,7 @@ export function usePagination() {
     searchTerm.value = "";
     perPage.value = 10;
     sortField.value = "";
-    sortOrder.value = "asc";
+    sortOrder.value = "desc";
     fecha_desde.value = null;
     fecha_hasta.value = null;
     cliente.value = null;

@@ -11,135 +11,34 @@ import {
 import { Modal } from "bootstrap";
 import BaseTable from "@/components/BaseTable.vue";
 import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
   swalError,
 } from "@/functions/swal-alert.js";
 import { useQuotationReserveRequests } from "@/composables/aprobaciones/reservas/useQuotationReserveRequests";
+import { useApprovalsGridRefresh } from "@/composables/aprobaciones/reservas/useApprovalsGridRefresh";
 import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas/useQuotationReserveApproval";
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
 import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
+import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
+import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
+import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
+import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
 import { formatPriceJm, formatJm } from "@/functions";
-const { table, refresh, fetchReservationRequests, onSort } =
+const { columns, listPerpage, table, refresh, fetchReservationRequests, onSort, estadoClass,
+  totalClass } =
   useQuotationReserveRequests();
+const ptoVta = usePtoVtaStore();
+const tipoReservasStore = useTipoReservasStore()
 
 const {
   fetchQuotationWithDetial,
   fetchQuotationWithDetialAndStock,
   loadingDeny,
+  fetchQuotationWithDetialAndStockActive
 } = useQuotationReserveApproval();
 
-const columns = [
-  {
-    label: "Pto. Venta",
-    key: "PTO_VTA_DESCRIPCION",
-    clickable: false,
-    sortable: true,
-    render: (value) => value,
-    thClass: " text-center",
-    tdClass: " text-center",
-  },
-  {
-    label: "Cotizacion",
-    key: "cotizacion",
-    clickable: true,
-    sortable: true,
-    thClass: " text-center",
-    tdClass: " text-center",
-  },
-  {
-    label: "Fecha",
-    key: "created_at",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell text-center",
-    tdClass: "d-none d-md-table-cell text-center",
-  },
-  {
-    label: "Cliente",
-    key: "CLI_RAZON_SOCIAL",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell  text-start",
-    tdClass: "d-none d-md-table-cell  text-start",
-  },
-  {
-    label: "Total",
-    key: "total",
-    clickable: false,
-    sortable: false,
-    render: (value) => value,
-    thClass: "text-end",
-    tdClass: "text-end",
-  },
-  {
-    label: "Tipo Reserva",
-    key: "tipo_reserva",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell text-center",
-    tdClass: "d-none d-md-table-cell text-center",
-  },
-  {
-    label: "F. Solicitud",
-    key: "fe_solResInv",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-  {
-    label: "Estado",
-    key: "st_solResInv",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-  {
-    label: "Mult.Bod.",
-    key: "tipo_traslado",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-  {
-    label: "Observacion",
-    key: "tx_obsSolResInv",
-    clickable: false,
-    sortable: true,
-    thClass: "d-none d-md-table-cell",
-    tdClass: "d-none d-md-table-cell",
-  },
-];
 
-const estadoClass = (st) => {
-  switch (st || "") {
-    case "pendiente":
-      return "badge bg-dark text-light fw-semibold";
-    case "aprobado":
-      return "badge bg-success  fw-semibold";
-    case "rechazada":
-      return "badge bg-danger  fw-semibold";
-    case "cancelada":
-      return "badge bg-warning  fw-semibold";
-    case "facturado":
-      return "badge bg-success  fw-semibold";
-    default:
-      return "badge bg-secondary";
-  }
-};
 
-const totalClass = (total) => {
-  if (total > 0) {
-    return "text-end fw-semibold";
-  }
-  return "text-end fw-semibold";
-};
 
 /** para bloquear fila de la tabla cuando
  * se esta visualizando la informacion de la cotizacion
@@ -201,9 +100,27 @@ function unLockedModal(id) {
 let verDetalleCotizacionAprobacionModal = ref(null);
 let verDetalleCotizacionAprobacionModalObj = null;
 let datosModalCotizacionAprobacion = ref(null);
+let verUsoFacturaDemandaModalObj = null;
+let verUsoFacturaDemandaModal = ref(null);
+const dataModal = ref(null);
 async function verModalAprobacionReserva(row) {
-  console.log(row);
+  if (row.tipo_reserva_id === 1) {
+    openModalAprobacionReserva(row);
+  } else if (row.tipo_reserva_id === 2) {
+    openModalAprobacionFacturaDemanda(row);
+  }
 
+
+}
+
+async function closeModalAprobacionReserva() {
+  verDetalleCotizacionAprobacionModalObj.hide();
+  datosModalCotizacionAprobacion.value = null;
+  refresh();
+}
+
+// modal aprobacion  reserva
+async function openModalAprobacionReserva(row) {
   if (!row || row.id === null) return
   const id = row.id
   if (isModalLocked(id)) return
@@ -214,8 +131,8 @@ async function verModalAprobacionReserva(row) {
     if (response) {
       datosModalCotizacionAprobacion.value = response;
       verDetalleCotizacionAprobacionModalObj.show();
-      unLockedModal(id);
     }
+    unLockedModal(id);
   } catch (error) {
     swalError(error.response.data.error);
   }
@@ -224,11 +141,33 @@ async function verModalAprobacionReserva(row) {
   }
 }
 
-async function closeModalAprobacionReserva() {
-  verDetalleCotizacionAprobacionModalObj.hide();
-  datosModalCotizacionAprobacion.value = null;
+// modal de aprobacion a factura demanda
+async function openModalAprobacionFacturaDemanda(row) {
+  if (!row || row.id === null) return
+  const id = row.id
+  if (isModalLocked(id)) return
+  try {
+    lockModal(id);
+    const response = await fetchQuotationWithDetialAndStockActive(row.id);
+    if (response) {
+      dataModal.value = response;
+      verUsoFacturaDemandaModalObj.show();
+    }
+    unLockedModal(id);
+  } catch (e) {
+    swalError(e?.response?.data?.error || e?.message || 'Error')
+  }
+  finally {
+    unLockedModal(id);
+  }
+}
+
+async function closeModalUsoFacturaDemanda() {
+  verUsoFacturaDemandaModalObj.hide();
+  dataModal.value = null;
   refresh();
 }
+
 
 /** rechazo de reservca */
 let verModalRechazarReservaModal = ref(null);
@@ -242,7 +181,6 @@ async function verModalRechazar(row) {
       verModalRechazarReservaModalObj.show();
     }
   } catch (error) {
-    console.log(error);
     swalError(error.response.data.error);
   }
 }
@@ -259,13 +197,48 @@ function ensureModals() {
   verDetalleCotizacionAprobacionModalObj = new Modal(
     verDetalleCotizacionAprobacionModal.value
   );
+  verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
+  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
+
 }
 
+
+let filtrarClienteModal = ref(null);
+let filtrarClienteModalObj = null;
+function levantarFiltrocliente() {
+  filtrarClienteModalObj.show();
+}
+function filtrarClienteConsulta(clienteRuc) {
+  filtrarClienteModalObj.hide();
+  table.cliente = clienteRuc;
+}
+
+
+
+/* ---- SOCKET: approvals ---- */
+let stopGridSocket
+
 onMounted(async () => {
+  ptoVta.fetchAll();
+  if (tipoReservasStore.tipoReservas.length == 0) {
+    tipoReservasStore.fetchListTypeReserved()
+  }
   ensureModals();
   if (!table.items.length && !table.loading) {
     fetchReservationRequests(1);
   }
+
+  stopGridSocket = useApprovalsGridRefresh({
+    refreshFn: () => fetchReservationRequests(table.currentPage),
+    debounceMs: 350,
+    // Si quieres log de suscripción:
+    // onSubscribed: () => console.log("📡 Suscrito: refresh-authorized-reservations"),
+    // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
+  })
+
+});
+onBeforeUnmount(() => {
+  stopGridSocket?.()
 });
 </script>
 <template>
@@ -282,7 +255,7 @@ onMounted(async () => {
     </template>
   </BasePageHeading>
   <div class="content">
-    <BaseBlock title="Aprobaciones Reservas" rounded themed>
+    <BaseBlock title="Aprobaciones Reservas" content-full rounded themed>
       <template #options>
         <div class="block-options-item">
           <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
@@ -292,13 +265,43 @@ onMounted(async () => {
           </button>
         </div>
       </template>
+      <div class="row g-3 align-items-center px-2 pt-2 pb-1 mb-4">
+        <!-- sucursal -->
+        <div class="col-12 col-sm-6 col-lg-2">
+          <small class="text-muted d-block mb-1">Sucursal</small>
+          <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
+            <option value="">Todos</option>
+            <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
+              {{ p.PTO_VTA_BOD_BODEGA }}
+            </option>
+          </select>
+        </div>
+        <!-- sucursal -->
+        <div class="col-12 col-sm-6 col-lg-2">
+          <small class="text-muted d-block mb-1">Cliente</small>
+          <button type="button" title="Seleccionar cliente" @click="levantarFiltrocliente()"
+            class="btn btn-outline-info btn-sm w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-2">
+            <i class="fa fa-user"></i>
+            <span>Cliente</span>
+          </button>
+        </div>
+        <!-- sucursal -->
+        <div class="col-12 col-sm-6 col-lg-2">
+          <small class="text-muted d-block mb-1">Tipo Reserva</small>
+          <select class="form-select form-select-sm" v-model="table.tipoReserva">
+            <option value="">Todos</option>
+            <option v-for="item in tipoReservasStore.tipoReservas" :key="item.value" :value="item.id"> {{
+              item.descripcion
+            }}
+            </option>
+          </select>
+        </div>
+      </div>
       <div class="row justify-content-between align-items-center mb-3">
         <div class="col-md-1">
           <select v-model="table.perPage" class="form-select">
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
+            <option v-for="item in listPerpage" :key="item.value" :value="item.value"> {{ item.label }}
+            </option>
           </select>
         </div>
         <div class="col-md-4">
@@ -385,4 +388,29 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+
+
+  <!-- Modal para generar facturas a demanda -->
+  <div class="modal" id="modal-uso-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-uso-reserva"
+    aria-hidden="false" ref="verUsoFacturaDemandaModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verUsoFacturaDemandaComponent v-if="dataModal" :reserva="dataModal"
+          @closeModalUsoFacturaDemanda="closeModalUsoFacturaDemanda()">
+        </verUsoFacturaDemandaComponent>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para filtro de cliente -->
+  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true" ref="filtrarClienteModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
+      </div>
+    </div>
+  </div>
+
+
 </template>

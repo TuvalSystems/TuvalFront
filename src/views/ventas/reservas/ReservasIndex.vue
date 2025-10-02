@@ -1,6 +1,6 @@
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, onBeforeUnmount } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useApprovedReservations } from "@/composables/venta/cotizaciones/reservas/useApprovedReservations";
@@ -17,6 +17,8 @@ import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsult
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verUsoReservaModal from "@/views/ventas/reservas/modal/verUsoReservaModal.vue";
 import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
+import { useAuthorizedReservationsRefresh } from "@/composables/venta/cotizaciones/reservas/useAuthorizedReservationsRefresh";
+// import { echo } from '@/resources/echo'
 
 
 const flatPickrState = reactive({
@@ -209,12 +211,25 @@ function modalesComponent() {
     verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
 }
 
+/** socket */
+let stopRefresh
 onMounted(() => {
     modalesComponent();
     ptoVta.fetchAll();
     if (!table.items.length && !table.loading) {
         fetchList(1);
     }
+    stopRefresh = useAuthorizedReservationsRefresh({
+        refreshFn: () => fetchList(table.currentPage),
+        debounceMs: 350,
+        // Si quieres log de suscripción:
+        // onSubscribed: () => console.log("📡 Suscrito: refresh-authorized-reservations"),
+        // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
+    })
+
+});
+onBeforeUnmount(() => {
+    stopRefresh?.()
 });
 </script>
 <template>
@@ -260,6 +275,7 @@ onMounted(() => {
                 <div class="col-12 col-sm-6 col-lg-2">
                     <small class="text-muted d-block mb-1">Sucursal</small>
                     <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
+                     <option value="">Todos</option>
                         <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA"
                             :value="p.PTO_VTA_BOD_PUNTO_VENTA">
                             {{ p.PTO_VTA_BOD_BODEGA }}
@@ -285,7 +301,6 @@ onMounted(() => {
                 </div>
             </div>
             <div class="row justify-content-between align-items-center mb-3">
-
                 <div class="col-md-1">
                     <select v-model="table.perPage" class="form-select">
                         <option v-for="item in listPerpage" :key="item.value" :value="item.value"> {{ item.label }}
@@ -304,7 +319,7 @@ onMounted(() => {
                 <template #cell-st_solResInv="{ value, row }">
                     <span :class="estadoClass(value)">{{
                         row.st_solResInv ?? "N/A"
-                        }}</span>
+                    }}</span>
                 </template>
                 <template #cell-total="{ value, row }">
                     <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
