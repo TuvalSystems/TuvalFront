@@ -123,7 +123,7 @@ export function useQuotationReserveRequest(datoReserva) {
       isInvalid.value = true;
       isInvalidType.value = true;
       const response = await axiosClient.post(
-        "/cotizaciones/reserva/guardar-solicitud-reserva",
+        "/reservas/guardar-solicitud-reserva",
         {
           reserva: reserva,
         }

@@ -171,7 +171,6 @@
                         </span>
                       </td>
                       <td>
-
                         <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1"
                           :class="getReminderClass(row)"
                           @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''">
@@ -194,12 +193,6 @@
                       </td>
                       <td v-else class="fs-sm nowrap text-end">
                         <button v-if="
-                          row.imprimir == 'yes' && row.estado != 'caducado'
-                        " type="button" class="btn btn-primary btn-sm mx-2" title="Imprimir Cotización"
-                          @click="imprimircotizacion(row)">
-                          <i class="fa fa-print"></i>
-                        </button>
-                        <button v-if="
                           row.recuperar == 'yes' &&
                           row.estado != 'caducado' &&
                           row.estado != 'procesado'
@@ -215,16 +208,30 @@
                           @click="levantarcliente(row)">
                           <i class="fa fa-copy"></i>
                         </button>
-                        <button v-if="
-                          row.imprimir == 'yes' && row.estado != 'caducado'
-                        " type="button" class="btn btn-warning btn-sm mx-2" title="Imprimir Cotización Imágenes"
-                          @click="imprimircotizacionimagenes(row)">
-                          <i class="fa fa-print"></i>
-                        </button>
+
                         <button type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
                           @click="verModalReserva(row)">
                           <i class="fa fa fa-box-archive"></i>
                         </button>
+                        <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button"
+                          class="btn btn-sm btn-alt-secondary" id="dropOptions" data-bs-toggle="dropdown"
+                          aria-haspopup="true" aria-expanded="false">
+                          <i class="fa fa-angle-down ms-1"></i>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropOptions">
+                          <li>
+                            <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" class="dropdown-item"
+                              title="Imprimir Cotización" @click="imprimircotizacion(row)"><i class="fa fa-print"></i>
+                              Imprimir
+                            </button>
+                          </li>
+                          <li>
+                            <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button"
+                              class="dropdown-item" title="Imprimir Cotización Imágenes"
+                              @click="imprimircotizacionimagenes(row)"><i class="fa fa-print"></i>
+                              Imprimir (Imagen)</button>
+                          </li>
+                        </ul>
                       </td>
                     </tr>
                   </template>

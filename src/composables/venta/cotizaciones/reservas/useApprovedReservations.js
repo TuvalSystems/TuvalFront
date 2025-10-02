@@ -128,6 +128,7 @@ export function useApprovedReservations() {
     { label: "Rechazadas", value: "rechazada" },
     { label: "Canceladas", value: "cancelado" },
     { label: "Procesadas", value: "procesado" },
+    { label: "Traslados", value: "traslado" },
   ]);
 
   const estadoClass = (st) => {

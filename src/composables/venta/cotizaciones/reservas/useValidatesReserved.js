@@ -11,7 +11,7 @@ export function useValidatesReserved() {
     loadingRs.value = true;
     try {
       const { data } = await axiosClient.get(
-        `/cotizaciones/reserva/validar-reserva-cotizacion/${id}`
+        `/reservas/validar-reserva-cotizacion/${id}`
       );
       loadingRs.value = false;
       const payload2 = data?.data ?? data ?? {};
