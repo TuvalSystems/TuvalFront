@@ -14,7 +14,7 @@ export const useTipoReservasStore = defineStore('tipoReservas',{
             this.loading = true;
             this.error = null;
             try {
-                const response = await axiosClient.get( "/cotizaciones/reserva/lista-tipo-reservas");
+                const response = await axiosClient.get( "/reservas/lista-tipo-reservas");
                 const res = response.data;
                 this.loading = false;
                 this.tipoReservas = res.data;

@@ -4,9 +4,9 @@ import { ref, nextTick } from "vue";
 import { swalSuccess, swalError } from "@/functions/swal-alert.js";
 
 export function useReservationProcessor(infoCotizacion) {
-  const urlProcess = "/cotizaciones/reserva/procesar-reserva";
+  const urlProcess = "/reservas/procesar-reserva";
   const urlFacturaDemanda =
-    "/cotizaciones/reserva/procesar-reserva-factura-demanda";
+    "/reservas/procesar-reserva-factura-demanda";
   const loadingReservedProcess = ref(false);
   const loadingFacturaDemanda = ref(false);
 

@@ -2,7 +2,7 @@ import axiosClient from "@/axios";
 import { watch, reactive, ref } from "vue";
 
 export function useQuotationReserveRequests() {
-  const endpoint = "/cotizaciones/reserva/lista-solicitudes-reserva";
+  const endpoint = "/reservas/lista-solicitudes-reserva";
   const table = reactive({
     items: [],
     currentPage: 1,

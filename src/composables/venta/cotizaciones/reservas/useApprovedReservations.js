@@ -3,7 +3,7 @@ import { ref, reactive, watch } from "vue";
 
 export function useApprovedReservations() {
   let controller = null;
-  const endpoint = "/cotizaciones/reserva/lista-reserva-aprobadas";
+  const endpoint = "/reservas/lista-reserva-aprobadas";
   const table = reactive({
     items: [],
     currentPage: 1,

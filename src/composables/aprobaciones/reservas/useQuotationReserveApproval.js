@@ -24,7 +24,7 @@ export function useQuotationReserveApproval() {
     loadingQ.value = true;
     try {
       const response = await axiosClient.get(
-        `/cotizaciones/reserva/cotizacion-con-detalle/${id}`
+        `/reservas/cotizacion-con-detalle/${id}`
       );
       const res = response.data;
       loadingQ.value = false;
@@ -43,7 +43,7 @@ export function useQuotationReserveApproval() {
     loadingQ1.value = true;
     try {
       const response = await axiosClient.get(
-        `/cotizaciones/reserva/cotizacion-detalle-stock/${id}`
+        `/reservas/cotizacion-detalle-stock/${id}`
       );
       const res = response.data;
       loadingQ1.value = false;
@@ -62,7 +62,7 @@ export function useQuotationReserveApproval() {
     loadingQ2.value = true;
     try {
       const response = await axiosClient.get(
-        `/cotizaciones/reserva/cotizacion-detalle-stock-activo/${id}`
+        `/reservas/cotizacion-detalle-stock-activo/${id}`
       );
       const res = response.data;
       loadingQ2.value = false;
@@ -82,7 +82,7 @@ export function useQuotationReserveApproval() {
     loadingDeny.value = true;
     try {
       const response = await axiosClient.post(
-        `/cotizaciones/reserva/rechazar-solicitud-reserva`,
+        `/reservas/rechazar-solicitud-reserva`,
         {
           data: dataSendApproval,
         }
@@ -108,7 +108,7 @@ export function useQuotationReserveApproval() {
         return;
       }
       const response = await axiosClient.post(
-        `/cotizaciones/reserva/aprobar-solicitud-reserva`,
+        `/reservas/aprobar-solicitud-reserva`,
         {
           data: dataSendApproval,
         }
