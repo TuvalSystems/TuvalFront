@@ -314,9 +314,9 @@ onBeforeUnmount(() => {
         @onPageChange="fetchReservationRequests" @onSearch="table.searchTerm" @onClick="handleClick"
         :is-row-disabled="isRowDisabled">
         <!-- Slot específico para la columna 'estado' -->
-        <template #cell-st_solResInv="{ value, row }">
+        <template #cell-estado="{ value, row }">
           <span :class="estadoClass(value)">{{
-            row.st_solResInv ?? "N/A"
+            row.estado ?? "N/A"
           }}</span>
         </template>
         <template #cell-total="{ value, row }">

@@ -1,5 +1,5 @@
 <script setup>
-import { watch, reactive, onMounted, toRefs } from 'vue';
+import { watch, reactive, toRefs } from 'vue';
 import { formatPrice, formatPrice4 } from "@/functions";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -48,13 +48,13 @@ function hydrateReservaForm(row) {
         resetForm();
         return;
     }
-    const fecha = row.value.fe_solResInv ?? null;
+    const fecha = row.value.fe_solicitud_reserva ?? null;
     Object.assign(reserva, {
-        id: row.value.id ?? null,
-        co_tipSolResInv: row.value.co_tipSolResInv ?? row.value.co_tipSolResInv ?? null,
-        co_tipTrasResInv: row.value.co_tipTrasResInv ?? null,
-        fe_solResInv: fecha ?? null,
-        tx_obsSolResInv: row.value.tx_obsSolResInv ?? null,
+        cotizacion_id: row.value.cotizacion_id ?? null,
+        tipo_reserva_id: row.value.tipo_reserva_id ?? null,
+        tipo_traslado_reserva_id: row.value.co_tipTrasResInv ?? null,
+        fe_solicitud_reserva: fecha ?? null,
+        obs_solicitud_reserva: row.value.obs_solicitud_reserva ?? null,
     });
 }
 
@@ -65,12 +65,6 @@ watch(
     },
     { immediate: true, deep: true }
 );
-
-// onMounted(() => {
-//     if (tipoReservasStore.tipoReservas.length === 0) {
-//         tipoReservasStore.fetchListTypeReserved()
-//     }
-// });
 
 </script>
 <template>
@@ -125,10 +119,22 @@ watch(
                     <BaseBlock title="Datos de la Solicitud" rounded>
                         <div class="block-content">
                             <div class="mb-3">
+                                <label for="tipoReserva" class="form-label text-muted fs-sm">Tipo de Reserva</label>
+                                <div v-if="tipoReservasStore.loading"> Cargando motivos...</div>
+                                <select v-else id="tipoReserva" class="form-select form-select-sm"
+                                    v-model="reserva.tipo_reserva_id">
+                                    <option disabled value="">Seleccione…</option>
+                                    <option v-for="(tipo, index) in tipoReservasStore.tipoReservas" :key="index"
+                                        :value="tipo.id">
+                                        {{ tipo.descripcion }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="traslado" class="form-label text-muted fs-sm">Traslado</label>
 
                                 <select id="traslado" class="form-select form-select-sm"
-                                    v-model="reserva.co_tipTrasResInv" aria-describedby="trasladoHelp">
+                                    v-model="reserva.tipo_traslado_reserva_id" aria-describedby="trasladoHelp">
                                     <option disabled value="">Seleccione…</option>
                                     <option v-for="(tipo, index) in traslado" :key="index" :value="tipo.id">
                                         {{ tipo.nombre }}
@@ -138,33 +144,20 @@ watch(
                                     bodegas.
                                 </div>
                             </div>
-
-                            <div class="mb-3">
-                                <label for="tipoReserva" class="form-label text-muted fs-sm">Tipo de Reserva</label>
-                                <div v-if="tipoReservasStore.loading"> Cargando motivos...</div>
-                                <select v-else id="tipoReserva" class="form-select form-select-sm"
-                                    v-model="reserva.co_tipSolResInv">
-                                    <option disabled value="">Seleccione…</option>
-                                    <option v-for="(tipo, index) in tipoReservasStore.tipoReservas" :key="index"
-                                        :value="tipo.id">
-                                        {{ tipo.descripcion }}
-                                    </option>
-                                </select>
-                            </div>
-
                             <div class="mb-2">
                                 <label for="fechaReserva" class="form-label text-muted fs-sm">Fecha solicitada</label>
                                 <flat-pickr id="fechaReserva" class="form-control form-control-sm"
-                                    v-model="reserva.fe_solResInv" :config="flatPickrState.fecha" />
+                                    v-model="reserva.fe_solicitud_reserva" :config="flatPickrState.fecha" />
                             </div>
 
                             <div class="mb-1">
                                 <label for="obs" class="form-label text-muted fs-sm">Observación</label>
                                 <textarea id="obs" rows="3" class="form-control form-control-sm"
-                                    v-model="reserva.tx_obsSolResInv" maxlength="400"
+                                    v-model="reserva.obs_solicitud_reserva" maxlength="400"
                                     placeholder="Agrega una observación..."></textarea>
                             </div>
-                            <div class="text-end text-muted fs-xs">{{ (reserva.tx_obsSolResInv || '').length }}/400
+                            <div class="text-end text-muted fs-xs">{{ (reserva.obs_solicitud_reserva || '').length
+                            }}/400
                             </div>
                         </div>
                     </BaseBlock>

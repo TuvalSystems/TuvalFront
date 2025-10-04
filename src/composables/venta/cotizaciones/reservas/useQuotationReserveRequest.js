@@ -9,19 +9,19 @@ export function useQuotationReserveRequest(datoReserva) {
   const isInvalid = ref(false);
   const isInvalidType = ref(false);
   const reserva = reactive({
-    id: null,
-    co_tipSolResInv: null,
-    co_tipTrasResInv: null,
-    fe_solResInv: null,
-    tx_obsSolResInv: null,
+    cotizacion_id : null,
+    tipo_reserva_id: null,
+    tipo_traslado_reserva_id: null,
+    fe_solicitud_reserva: null,
+    obs_solicitud_reserva: null,
   });
 
   function resetForm() {
-    reserva.id = null;
-    reserva.co_tipSolResInv = null;
-    reserva.co_tipTrasResInv = null;
-    reserva.fe_solResInv = null;
-    reserva.tx_obsSolResInv = null;
+    reserva.cotizacion_id = null;
+    reserva.tipo_reserva_id = null;
+    reserva.tipo_traslado_reserva_id = null;
+    reserva.fe_solicitud_reserva = null;
+    reserva.obs_solicitud_reserva = null;
   }
 
   // obtengo el punto de venta de la cotización para validación
@@ -36,7 +36,7 @@ export function useQuotationReserveRequest(datoReserva) {
   function validateSolicitudReserveDate() {
     const pvLimit = limitsForPto.value[0]?.pto_vta_max_dias_reserva ?? 0;
     
-    const numDay = Math.max(0, daysUntil(reserva.fe_solResInv));
+    const numDay = Math.max(0, daysUntil(reserva.fe_solicitud_reserva));
     const d = pvLimit === 1 ? "dia" : "dias";
     const limitStr = `${pvLimit} ${d}`;
     const maxDate = new Date();
@@ -47,12 +47,11 @@ export function useQuotationReserveRequest(datoReserva) {
       invalid,
       message: `La fecha de solicitud de reserva excede el límite de ${limitStr}. Elija hasta ${maxStr}.`,
     };
-   
   }
 
   function validateTypeReserveHasItemLOrService() {
     const dataCot = unref(datoReserva) ?? {};
-    const isType1 = Number(reserva.co_tipSolResInv) === 1;
+    const isType1 = Number(reserva.tipo_reserva_id) === 1;
     const hasL = !!dataCot.has_l_items;
     const hasServ = !!dataCot.has_service_items;
 
@@ -66,7 +65,7 @@ export function useQuotationReserveRequest(datoReserva) {
 
   watch(
     [
-      () => Number(reserva.co_tipSolResInv),
+      () => Number(reserva.tipo_reserva_id),
       () => !!unref(datoReserva)?.has_l_items,
       () => !!unref(datoReserva)?.has_service_items,
     ],
@@ -75,7 +74,7 @@ export function useQuotationReserveRequest(datoReserva) {
       isInvalidType.value = invalid;
 
       if (invalid) {
-        reserva.co_tipSolResInv = null;
+        reserva.tipo_reserva_id = null;
         swalError(message);
       }
     },
@@ -83,7 +82,7 @@ export function useQuotationReserveRequest(datoReserva) {
   );
 
   watch(
-    [() => reserva.co_tipSolResInv, () => reserva.fe_solResInv],
+    [() => reserva.tipo_reserva_id, () => reserva.fe_solicitud_reserva],
     ([typeR, fecha]) => {
       if (!typeR || !fecha) {
         isInvalid.value = false;
@@ -103,19 +102,13 @@ export function useQuotationReserveRequest(datoReserva) {
     if (isInvalidType.value) {
       return false;
     }
-    if (reserva.co_tipSolResInv === null) {
+    if (reserva.tipo_reserva_id === null) {
       throw new Error("Seleccione un tipo de reserva");
     }
-    if (reserva.co_tipSolResInv === null) {
-      throw new Error("Seleccione un tipo de reserva");
-    }
-    if (reserva.co_tipSolResInv === null) {
-      throw new Error("Seleccione un tipo de reserva");
-    }
-    if (reserva.fe_solResInv === null) {
+    if (reserva.fe_solicitud_reserva === null) {
       throw new Error("Seleccione una fecha");
     }
-    if (reserva.tx_obsSolResInv === null) {
+    if (reserva.obs_solicitud_reserva === null) {
       throw new Error("Debe ingresar una observación");
     }
 

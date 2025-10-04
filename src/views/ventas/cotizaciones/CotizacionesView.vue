@@ -286,7 +286,7 @@
     ref="verReservaModal">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.id"
+        <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.cotizacion_id"
           :datosReserva="datosModalReserva" @modalReservaHide="modalReservaHide()"></VerSolicitudReservaModalComponent>
       </div>
     </div>
@@ -456,8 +456,13 @@ let verReservaModal = ref(null);
 let verReservaModalObj = null;
 let datosModalReserva = ref(null);
 async function verModalReserva(row) {
-  if (row.st_solResInv != "" && row.st_solResInv != null) {
-    swalInfo('Ya se registró una reserva para esta cotización para el día ' + row.fe_solResInv);
+  const reserva = row?.reserva ?? null;
+  const hasReserva = (row?.has_reserva === true) || !!reserva;
+  if (hasReserva && reserva) {
+    swalInfo(
+      'Ya se registró una reserva para esta cotización para el día ' +
+      (reserva?.fe_solicitud_reserva ?? '(sin fecha)')
+    );
     return;
   }
   if (row.reserva_disabled === true) {
@@ -465,23 +470,18 @@ async function verModalReserva(row) {
     return;
   }
   const payload = {
-    id: row.id,
+    cotizacion_id: row.id,
     cotizacion: row.cotizacion,
     pto_venta: row.BOD_BODEGA,
     PTO_VTA_ID: row.PTO_VTA_ID,
     razon_social: row.CLI_RAZON_SOCIAL,
     fecha: row.created_at,
     total: row.total,
-    co_tipSolResInv: row.co_tipSolResInv ?? null,
-    co_tipTrasResInv: row.co_tipTrasResInv ?? null,
-    fe_solResInv: row.fe_solResInv ?? null,
-    st_solResInv: row.st_solResInv ?? null,
-    tx_obsSolResInv: row.tx_obsSolResInv ?? null,
     has_l_items: row.has_l_items ?? null,
     has_service_items: row.has_service_items ?? null
   };
-  datosModalReserva.value = null;
-  await nextTick();
+  // datosModalReserva.value = null;
+  // await nextTick();
   datosModalReserva.value = payload;
   await nextTick();
   verReservaModalObj?.show();

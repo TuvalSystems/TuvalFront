@@ -48,6 +48,7 @@ if (echo?.connector?.pusher && !window.__ECHO_CONN_BOUND__) {
   conn.bind("state_change", (states) => console.log("⚡ Pusher state", states));
   conn.bind("error", (err) => console.error("❌ Pusher error", err));
   conn.bind("disconnected", () => console.warn("⚠️ Echo disconnected"));
+  conn.bind('failed',       () => console.log('[WS] failed'));
 }
 
 // Cierre limpio al navegar/cerrar (opcional)

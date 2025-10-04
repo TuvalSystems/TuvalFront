@@ -70,7 +70,7 @@ export function useQuotationReserveRequests() {
     },
     {
       label: "F. Solicitud",
-      key: "fe_solResInv",
+      key: "fe_solicitud_reserva",
       clickable: false,
       sortable: true,
       thClass: "d-none d-md-table-cell",
@@ -78,7 +78,7 @@ export function useQuotationReserveRequests() {
     },
     {
       label: "Estado",
-      key: "st_solResInv",
+      key: "estado",
       clickable: false,
       sortable: true,
       thClass: "d-none d-md-table-cell",
