@@ -88,6 +88,7 @@
                       <tr :class="(row.reservado > 0 && row.reservado == row.cantidad ? 'table-success' : '') ||
                         (row.reservado > 0 && row.pendiente == 0 ? 'table-success' : '') ||
                         (row.reservado > 0 && row.pendiente > 0 ? 'table-warning' : '') ||
+                        (row.reservado == 0   && row.pendiente > 0 ? 'table-warning' : '') ||
                         (row.picking ? 'table-info' : '')
                         ">
                         <td>{{ row.ART_CODIGO_TRES_LETRAS }}</td>
