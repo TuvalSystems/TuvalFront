@@ -123,11 +123,11 @@ export function useReservationProcessor(infoCotizacion) {
     }
   }
 
-  async function procesarReservaFacturaDemanda(quotation) {
+  async function procesarReservaFacturaDemanda(reserve) {
     loadingFacturaDemanda.value = true;
     try {
       const { data, status } = await axiosClient.post(urlFacturaDemanda, {
-        data: quotation,
+        reserva: reserve,
       });
       const ok = status >= 200 && status < 300 && (data?.success ?? true);
 

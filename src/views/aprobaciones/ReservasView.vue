@@ -33,7 +33,6 @@ const tipoReservasStore = useTipoReservasStore()
 const {
   fetchQuotationWithDetial,
   fetchQuotationWithDetialAndStock,
-  loadingDeny,
   fetchQuotationWithDetialAndStockActive
 } = useQuotationReserveApproval();
 
