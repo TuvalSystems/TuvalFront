@@ -86,8 +86,8 @@
                   <DatasetItem tag="tbody" class="fs-sm">
                     <template #default="{ row }">
                       <tr :class="(row.reservado > 0 && row.reservado == row.cantidad ? 'table-success' : '') ||
-                        (row.reservado > 0 && row.pendiente == 0 ? 'table-success' : '') ||
-                        (row.reservado > 0 && row.pendiente > 0 ? 'table-warning' : '') ||
+                        (row.reservado > 0 && row.pendiente == 0 && row.completado == 0 ? 'table-success' : '') ||
+                        (row.reservado > 0 && row.pendiente > 0 && row.completado == 0 ? 'table-warning' : '') ||
                         (row.picking ? 'table-info' : '')
                         ">
                         <td>{{ row.ART_CODIGO_TRES_LETRAS }}</td>
