@@ -2873,7 +2873,7 @@ const store = createStore({
       });
     },
     setTransferenciasVenta: (state, data) => {
-      state.transferencias_venta = data.bodegas;
+      state.transferencias_venta = data.data;
     },
 
     setTransferenciasReposicion: (state, data) => {
