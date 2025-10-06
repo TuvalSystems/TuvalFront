@@ -54,13 +54,19 @@
                       </td>
                       <td class="fs-sm">
                         <a href="javascript:void(0);" @click="funcionverestadodecuenta(row)">{{ row.CLI_RAZON_SOCIAL
-                          }}</a>
+                        }}</a>
                       </td>
                       <td class="fs-sm">
                         <a href="javascript:void(0);" @click="funcionverestadodecuenta(row)">{{ row.CLI_RUC }}</a>
                       </td>
                       <td class="fs-sm">
                         {{ row.USERID }}
+                      </td>
+                      <td class="fs-sm">
+                        {{ row.segmento }}
+                      </td>
+                      <td class="fs-sm">
+                        {{ row.subsegmento }}
                       </td>
                       <td class="fs-sm">
                         {{ row.PTO_VTA_DESCRIPCION }}
@@ -144,6 +150,16 @@ const cols = reactive([
   {
     name: "Usuario",
     field: "USERID",
+    sort: "",
+  },
+  {
+    name: "Segmento",
+    field: "segmento",
+    sort: "",
+  },
+  {
+    name: "Subsegmento",
+    field: "subsegmento",
     sort: "",
   },
   {
@@ -272,7 +288,7 @@ function aprobarPedido(pedido, estadodecuenta) {
   }).catch(err => {
     errorMsg.value = err.response.data.error
     swalError(errorMsg.value);
-    return ;
+    return;
   });
 }
 

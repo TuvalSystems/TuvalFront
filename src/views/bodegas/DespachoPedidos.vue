@@ -1,3 +1,4 @@
+
 <template>
   <!-- Hero -->
   <BasePageHeading title="Despacho Pedidos">
@@ -584,6 +585,7 @@ function despacharguiaGuia(guia) {
       swalError(res.message);
       templateStore.pageLoader({ mode: "off" });
     }else{
+      swalSuccess(res.message);
       if(res.pedido.despachado){
         store.commit('eliminaDespacho',indexorden);
       }else{
@@ -592,8 +594,8 @@ function despacharguiaGuia(guia) {
       templateStore.pageLoader({ mode: "off" });
     }
   }).catch(err => {
-    console.log(err);
-    //swalError(err.response.data.error);
+    // console.log(err);
+    swalError(err.response.data.message);
     templateStore.pageLoader({ mode: "off" });
   });
 }

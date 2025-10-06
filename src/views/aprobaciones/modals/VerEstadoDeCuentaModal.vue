@@ -90,21 +90,21 @@
                 <tbody>
                   <tr>
                     <td>Cupo Asignado</td>
-                    <td class="text-end">${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_ASIGNADO)) }}</td>
+                    <td class="text-end">${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoAsignado)) }}</td>
                   </tr>
                   <tr>
                     <td>Cupo Disponible GP</td>
                     <td class="text-end">
                       <a 
-                        v-if="estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP < verpedido.total" 
+                        v-if="estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total" 
                         class="text-danger"
                         href="javascript:void(0);"
                         @click="swalInfo('El total del pedido supera el cupo disponible')"
                         >
-                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP)) }}
+                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                       </a>
                       <span v-else>
-                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.CUPO_DISPONIBLE_GP)) }}
+                        ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                       </span>
                       
                     </td>
@@ -131,11 +131,11 @@
                 </thead>
                 <tbody>
                   <tr v-for="(documento, index) in estadodecuenta.data.documentosVencidos" :key="index">
-                    <td>{{ documento.DV_NUM_DOC }}</td>
-                    <td class="text-end">${{ format(parseFloat(documento.DV_SALDO_PENDIENTE)) }}</td>
-                    <td class="text-end">{{ documento.DV_DIAS_VENCIDOS }}</td>
-                    <td class="text-end">{{ documento.DV_FECHA_EMISION.date.substr(0, 10) }}</td>
-                    <td class="text-end">{{ documento.DV_FECHA_VENCIMIENTO.date.substr(0, 10) }}</td>
+                    <td>{{ documento.factura }}</td>
+                    <td class="text-end">${{ format(parseFloat(documento.pendienteGpMc)) }}</td>
+                    <td class="text-end">{{ documento.diasVencidos }}</td>
+                    <td class="text-end">{{ documento.fEmision }}</td>
+                    <td class="text-end">{{ documento.fVencimiento }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -159,11 +159,11 @@
                 </thead>
                 <tbody>
                   <tr v-for="(documento, index) in estadodecuenta.data.documentosSinSoporte" :key="index">
-                    <td>{{ documento.DS_NUM_DOC }}</td>
-                    <td class="text-end">${{ format(parseFloat(documento.DS_SALDO_PENDIENTE)) }}</td>
-                    <td class="text-end">{{ documento.DS_DIAS_VENCIDOS }}</td>
-                    <td class="text-end">{{ documento.DS_FECHA_EMISION.date.substr(0, 10) }}</td>
-                    <td class="text-end">{{ documento.DS_FECHA_VENCIMIENTO.date.substr(0, 10) }}</td>
+                    <td>{{ documento.factura }}</td>
+                    <td class="text-end">${{ format(parseFloat(documento.saldoPendiente)) }}</td>
+                    <!-- <td class="text-end">{{ documento.DS_DIAS_VENCIDOS }}</td> -->
+                    <td class="text-end">{{ documento.fEmision.date}}</td>
+                    <td class="text-end">{{ documento.fVencimiento }}</td>
                   </tr>
                 </tbody>
               </table>

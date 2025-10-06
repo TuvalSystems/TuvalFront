@@ -1,10 +1,6 @@
 <template>
-  <Dataset
-    v-slot="{ ds }"
-    :ds-data="cotizaciones.data"
-    :ds-sortby="sortBy"
-    :ds-search-in="['id', 'cotizacion', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at']"
-    >
+  <Dataset v-slot="{ ds }" :ds-data="cotizaciones.data" :ds-sortby="sortBy"
+    :ds-search-in="['id', 'cotizacion', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at']">
     <div class="row" :data-page-count="ds.dsPagecount">
       <div id="datasetLengthcotizaciones" class="col-md-8 py-2">
         <DatasetShow />
@@ -23,12 +19,8 @@
           <table class="table table-hover table-sm table-vcenter mb-0">
             <thead>
               <tr>
-                <th
-                  v-for="(th, index) in cols"
-                  :key="th.field"
-                  :class="['sort', th.sort]"
-                  @click="onSort($event, index)"
-                >
+                <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                  @click="onSort($event, index)">
                   {{ th.name }} <i class="gg-select float-end"></i>
                 </th>
                 <th></th>
@@ -36,34 +28,39 @@
             </thead>
             <DatasetItem tag="tbody" class="fs-sm">
               <template #default="{ row, index }">
-                <tr
-                  :id="'cotizacion-'+index"
-                  :class="row.chao ? 'hide':''"
-                  >
+                <tr :id="'cotizacion-' + index" :class="row.chao ? 'hide' : ''">
                   <td class="fs-sm">
-                   <a href="javascript:void(0);" @click="funcionvercotizacion(row)">{{ row.cotizacion }}</a>
+                    <a href="javascript:void(0);" @click="funcionvercotizacion(row)">{{ row.cotizacion }}</a>
                   </td>
                   <td class="fs-sm">
-                      {{  row.CLI_RAZON_SOCIAL }}
+                    {{ row.CLI_RAZON_SOCIAL }}
                   </td>
                   <td class="fs-sm">
-                      {{ row.CLI_RUC }}
+                    {{ row.CLI_RUC }}
                   </td>
                   <td class="fs-sm">
-                      {{ row.USERID }}
+                    {{ row.USERID }}
                   </td>
                   <td class="fs-sm">
-                      {{ row.COND_ID }}
+                    {{ row.segmento }}
                   </td>
                   <td class="fs-sm">
-                      {{ row.created_at }}
+                    {{ row.subsegmento }}
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.COND_ID }}
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.created_at }}
                   </td>
                   <td class="fs-sm text-end">
-                      ${{ format(parseFloat(row.total)) }}
+                    ${{ format(parseFloat(row.total)) }}
                   </td>
                   <td class="fs-sm text-end nowrap">
-                    <button  type="button" class="btn btn-success btn-sm" @click="aprobarCotizacion(row)"><i class="fa fa-check"></i> Aprobar</button>
-                    <button  type="button" class="btn btn-danger btn-sm mx-2" @click="rechazarCotizacion(row)"><i class="fa fa-times"></i> Rechazar</button>
+                    <button type="button" class="btn btn-success btn-sm" @click="aprobarCotizacion(row)"><i
+                        class="fa fa-check"></i> Aprobar</button>
+                    <button type="button" class="btn btn-danger btn-sm mx-2" @click="rechazarCotizacion(row)"><i
+                        class="fa fa-times"></i> Rechazar</button>
                   </td>
                 </tr>
               </template>
@@ -72,39 +69,26 @@
         </div>
       </div>
     </div>
-    <div
-      class="d-flex flex-md-row flex-column justify-content-between align-items-center"
-    >
+    <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
       <DatasetInfo class="py-3 fs-sm" />
       <DatasetPager class="flex-wrap py-3 fs-sm" />
     </div>
   </Dataset>
   <!-- Large Block Modal -->
-  <div
-    class="modal"
-    id="modal-cotizacion"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-cotizacion"
-    aria-hidden="true"
-    ref="vercotizacionModal"
-    >
+  <div class="modal" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="modal-cotizacion"
+    aria-hidden="true" ref="vercotizacionModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerCotizacionAprobarModal 
-          :vercotizacion="vercotizacion" 
-          :indexCotizacion="indexCotizacion"
-          :tipo="tipo"
-          @rechazar="rechazarCotizacion(vercotizacion)"
-          @aprobar="aprobarCotizacion(vercotizacion)"
-          ></VerCotizacionAprobarModal>
+        <VerCotizacionAprobarModal :vercotizacion="vercotizacion" :indexCotizacion="indexCotizacion" :tipo="tipo"
+          @rechazar="rechazarCotizacion(vercotizacion)" @aprobar="aprobarCotizacion(vercotizacion)">
+        </VerCotizacionAprobarModal>
       </div>
     </div>
   </div>
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { Modal } from "bootstrap";
 import { formatPrice, format } from "@/functions";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
@@ -130,6 +114,16 @@ const cols = reactive([
   {
     name: "Usuario",
     field: "USERID",
+    sort: "",
+  },
+  {
+    name: "Segmento",
+    field: "segmento",
+    sort: "",
+  },
+  {
+    name: "Subsegmento",
+    field: "subsegmento",
     sort: "",
   },
   {
@@ -193,15 +187,15 @@ const store = useStore();
 let errorMsg = ref('');
 const cotizaciones = computed(() => store.state.cotizaciones);
 
-function rechazarcotizacion(cotizacion){
-  swalSuccess('Cotización: '+cotizacion.cotizacion + ' rechazada')
+function rechazarcotizacion(cotizacion) {
+  swalSuccess('Cotización: ' + cotizacion.cotizacion + ' rechazada')
 }
 
 const vercotizacion = ref({});
 const indexCotizacion = ref(null);
 const tipo = ref(null);
 
-function funcionvercotizacion(cotizacion){
+function funcionvercotizacion(cotizacion) {
   vercotizacionModalObj.show();
   vercotizacion.value = cotizacion;
   tipo.value = 'pedido';
@@ -212,7 +206,7 @@ function confirmAprobarCotizacion(cotizacion) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De aprobar la cotización "+cotizacion.cotizacion +"",
+      text: "De aprobar la cotización " + cotizacion.cotizacion + "",
       icon: "question",
       showCancelButton: true,
       customClass: {
@@ -237,22 +231,22 @@ function confirmAprobarCotizacion(cotizacion) {
     });
 }
 
-function aprobarCotizacion(cotizacion){
+function aprobarCotizacion(cotizacion) {
   cotizacion.chao = true;
   vercotizacionModalObj.hide();
-  store.dispatch('aprobarCotizacion', cotizacion).then(() => {  
-    swalSuccess('Cotización: '+ cotizacion.cotizacion + ' aprobada');
+  store.dispatch('aprobarCotizacion', cotizacion).then(() => {
+    swalSuccess('Cotización: ' + cotizacion.cotizacion + ' aprobada');
   }).catch(err => {
     errorMsg.value = err.response.data.error
     swalError(errorMsg.value);
   });
 }
 
-function confirmRechazarCotizacion(cotizacion){
+function confirmRechazarCotizacion(cotizacion) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De rechazar la cotización "+cotizacion.cotizacion +"",
+      text: "De rechazar la cotización " + cotizacion.cotizacion + "",
       icon: "warning",
       showCancelButton: true,
       customClass: {
@@ -277,18 +271,18 @@ function confirmRechazarCotizacion(cotizacion){
     });
 }
 
-function rechazarCotizacion(cotizacion){
+function rechazarCotizacion(cotizacion) {
   cotizacion.chao = true;
   vercotizacionModalObj.hide();
   store.dispatch('rechazarCotizacion', cotizacion).then(() => {
-    swalError('Cotización: '+ cotizacion.cotizacion + ' rechazada');  
+    swalError('Cotización: ' + cotizacion.cotizacion + ' rechazada');
   }).catch(err => {
     errorMsg.value = err.response.data.error
     swalError(errorMsg.value);
   });
 }
 
-let vercotizacionModal= ref(null);
+let vercotizacionModal = ref(null);
 let vercotizacionModalObj = null;
 
 onMounted(() => {

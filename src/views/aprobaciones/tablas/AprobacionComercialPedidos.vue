@@ -41,6 +41,12 @@
                   <td class="fs-sm">
                     {{ row.USERID }}
                   </td>
+                   <td class="fs-sm">
+                    {{ row.segmento }}
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.subsegmento }}
+                  </td>
                   <td class="fs-sm" :class="row.COND_ID != row.COND_ID_ORIGINAL ? 'text-danger' : ''">
                     <a class="text-danger" v-if="row.COND_ID != row.COND_ID_ORIGINAL"
                       @click="verdiferenciacondicion(row)" href="javascript:void(0);">{{ row.COND_ID }}</a>
@@ -110,6 +116,16 @@ const cols = reactive([
   {
     name: "Usuario",
     field: "USERID",
+    sort: "",
+  },
+  {
+    name: "Segmento",
+    field: "segmento",
+    sort: "",
+  },
+  {
+    name: "Subsegmento",
+    field: "subsegmento",
     sort: "",
   },
   {
