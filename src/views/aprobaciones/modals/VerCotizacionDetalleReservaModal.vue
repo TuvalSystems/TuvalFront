@@ -4,7 +4,7 @@ import { watch, reactive, onMounted } from 'vue';
 import { formatPriceJm, formatJm, toInt } from "@/functions";
 
 const props = defineProps({
-    infoCotizacion: {
+    infoReserva: {
         type: Object,
         required: true
     },
@@ -20,7 +20,7 @@ const nf4 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 4, maximumFr
 const money = (n) => `$${nf2.format(n ?? 0)}`;
 const num2 = (n) => nf2.format(n ?? 0);
 const num4 = (n) => nf4.format(n ?? 0);
-const infoCotizacion = computed(() => props.infoCotizacion);
+const infoReserva = computed(() => props.infoReserva);
 const segmento = computed(() => props.segmento);
 </script>
 
@@ -39,22 +39,22 @@ const segmento = computed(() => props.segmento);
                     <div class="col-12 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Cotización</small>
-                            <div class="fw-semibold">{{ infoCotizacion.cotizacion }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.cotizacion }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">RUC</small>
-                            <div class="fw-semibold">{{ infoCotizacion.CLI_RUC }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.CLI_RUC }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Razón Social</small>
-                            <div class="fw-semibold text-truncate" :title="infoCotizacion.CLI_RAZON_SOCIAL">{{
-                                infoCotizacion.CLI_RAZON_SOCIAL
+                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
+                                infoReserva.cotizacion.CLI_RAZON_SOCIAL
                                 }}</div>
                         </div>
                     </div>
@@ -62,37 +62,37 @@ const segmento = computed(() => props.segmento);
                     <div class="col-12 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">P. Venta</small>
-                            <div class="fw-semibold text-truncate" :title="infoCotizacion.PTO_VTA_DESCRIPCION">{{
-                                infoCotizacion.PTO_VTA_DESCRIPCION }}</div>
+                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.PTO_VTA_DESCRIPCION">{{
+                                infoReserva.cotizacion.PTO_VTA_DESCRIPCION }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Bodega</small>
-                            <div class="fw-semibold text-truncate" :title="infoCotizacion.BOD_BODEGA">{{
-                                infoCotizacion.BOD_BODEGA }}</div>
+                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.BOD_BODEGA">{{
+                                infoReserva.cotizacion.BOD_BODEGA }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Cond. Pago</small>
-                            <div class="fw-semibold">{{ infoCotizacion.COND_ID }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.COND_ID }}</div>
                         </div>
                     </div>
 
                     <div class="col-12 col-lg-4">
                         <div class="kv">
-                            <small class="text-muted">Usuario</small>
-                            <div class="fw-semibold">{{ infoCotizacion.USERID }}</div>
+                            <small class="text-muted">Usuario solicita</small>
+                            <div class="fw-semibold">{{ infoReserva.usuario_ingreso.USERID }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Fecha/Hora</small>
-                            <div class="fw-semibold">{{ infoCotizacion.created_at }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.created_at }}</div>
                         </div>
                     </div>
 
@@ -100,7 +100,7 @@ const segmento = computed(() => props.segmento);
                         <div class="kv">
                             <small class="text-muted">% Descuento</small>
                             <div class="fw-semibold">
-                                <span class="badge bg-warning text-dark">{{ num2(infoCotizacion.porcentage_descuento)
+                                <span class="badge bg-warning text-dark">{{ num2(infoReserva.cotizacion.porcentage_descuento)
                                     }}%</span>
                             </div>
                         </div>
@@ -109,7 +109,7 @@ const segmento = computed(() => props.segmento);
                         <div class="kv">
                             <small class="text-muted">Tipo Reserva</small>
                             <div class="fw-semibold">
-                                <div class="fw-semibold">{{ infoCotizacion.tiporeserva.descripcion }}</div>
+                                <div class="fw-semibold">{{ infoReserva.tipo_reserva.descripcion }}</div>
                             </div>
                         </div>
                     </div>
@@ -139,7 +139,7 @@ const segmento = computed(() => props.segmento);
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in infoCotizacion.detallecotizacion" :key="item.id">
+                            <tr v-for="item in infoReserva.cotizacion.detallecotizacion" :key="item.id">
                                 <td class="code">{{ item.ART_CODIGO }}</td>
                                 <td>
                                     <div class="text-truncate" :title="item.ART_DESCRIPCION" style="max-width: 420px;">
@@ -170,20 +170,20 @@ const segmento = computed(() => props.segmento);
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Subtotal</td>
                                 <td class="fw-semibold text-end nums">${{
-                                    formatPriceJm(parseFloat(infoCotizacion.subtotal)) }}
+                                    formatPriceJm(parseFloat(infoReserva.cotizacion.subtotal)) }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Descuento</td>
                                 <td class="fw-semibold text-end nums">${{
-                                    formatPriceJm(parseFloat(infoCotizacion.descuento))
+                                    formatPriceJm(parseFloat(infoReserva.cotizacion.descuento))
                                 }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Total</td>
                                 <td class="fw-semibold text-end nums">${{
-                                    formatPriceJm(parseFloat(infoCotizacion.total)) }}
+                                    formatPriceJm(parseFloat(infoReserva.cotizacion.total)) }}
                                 </td>
                             </tr>
                         </tfoot>

@@ -8,15 +8,18 @@ import {
     swalError,
 } from "@/functions/swal-alert.js";
 const props = defineProps({
-    'infoCotizacion': Object
+    'reserva': Object
 
 });
 const emit = defineEmits(['closeModalAprobacionReserva']);
 
 const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation } = useQuotationReserveApproval();
-const infoCotizacion = computed(() => props.infoCotizacion.cotizacion);
-const rows = computed(() => props.infoCotizacion.rows);
-const infoSegmento = computed(() => props.infoCotizacion.segmento);
+const infoResponse = computed(() => props.reserva);
+
+
+const infoReserva = infoResponse.value.reserva;
+const rows = infoResponse.value.rows;
+const infoSegmento = infoResponse.value.segmento;
 
 const flatPickrState = reactive({
     fecha: {
@@ -28,7 +31,7 @@ const flatPickrState = reactive({
 
 async function aprobarReserva() {
     try {
-        dataSendApproval.id = infoCotizacion.value.id;
+        dataSendApproval.id = infoReserva.value.id;
         const response = await approveReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
@@ -42,7 +45,7 @@ async function aprobarReserva() {
 
 async function rechazarReserva() {
     try {
-        dataSendApproval.id = infoCotizacion.value.id;
+        dataSendApproval.id = infoReserva.value.id;
         const response = await denyReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
@@ -60,7 +63,7 @@ async function rechazarReserva() {
 
 <template>
 
-    <BaseBlock title="Aprobar Reserva deCotización" class="mb-0" transparent themed>
+    <BaseBlock title="Aprobar Reserva de Cotización" class="mb-0" transparent themed>
         <template #options>
             <div class="block-options-item">
                 <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
@@ -75,22 +78,22 @@ async function rechazarReserva() {
                     <div class="col-12 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Cotización</small>
-                            <div class="fw-semibold">{{ infoCotizacion.cotizacion }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.cotizacion }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">RUC</small>
-                            <div class="fw-semibold">{{ infoCotizacion.CLI_RUC }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.CLI_RUC }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Razón Social</small>
-                            <div class="fw-semibold text-truncate" :title="infoCotizacion.CLI_RAZON_SOCIAL">{{
-                                infoCotizacion.CLI_RAZON_SOCIAL
+                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
+                                infoReserva.cotizacion.CLI_RAZON_SOCIAL
                                 }}</div>
                         </div>
                     </div>
@@ -98,44 +101,45 @@ async function rechazarReserva() {
                     <div class="col-12 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">P. Venta</small>
-                            <div class="fw-semibold text-truncate" :title="infoCotizacion.PTO_VTA_DESCRIPCION">{{
-                                infoCotizacion.PTO_VTA_DESCRIPCION }}</div>
+                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.PTO_VTA_DESCRIPCION">
+                                {{
+                                    infoReserva.cotizacion.PTO_VTA_DESCRIPCION }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Bodega</small>
-                            <div class="fw-semibold text-truncate" :title="infoCotizacion.BOD_BODEGA">{{
-                                infoCotizacion.BOD_BODEGA }}</div>
+                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.BOD_BODEGA">{{
+                                infoReserva.cotizacion.BOD_BODEGA }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Cond. Pago</small>
-                            <div class="fw-semibold">{{ infoCotizacion.COND_ID }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.COND_ID }}</div>
                         </div>
                     </div>
 
                     <div class="col-12 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Usuario</small>
-                            <div class="fw-semibold">{{ infoCotizacion.USERID }}</div>
+                            <div class="fw-semibold">{{ infoReserva.usuario_ingreso.USERID }}</div>
                         </div>
                     </div>
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Fecha/Hora</small>
-                            <div class="fw-semibold">{{ infoCotizacion.created_at }}</div>
+                            <div class="fw-semibold">{{ infoReserva.cotizacion.created_at }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Fecha Solicitud Reserva</small>
                             <div class="fw-semibold">
-                                <div class="fw-semibold">{{ infoCotizacion.fe_solResInv }}</div>
+                                <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
                             </div>
                         </div>
                     </div>
@@ -143,7 +147,7 @@ async function rechazarReserva() {
                         <div class="kv">
                             <small class="text-muted">Traslado</small>
                             <div class="fw-semibold">
-                                <div class="fw-semibold">{{ infoCotizacion.reserva_traslado.descripcion }}</div>
+                                <div class="fw-semibold">{{ infoReserva.tipo_traslado.descripcion }}</div>
                             </div>
                         </div>
                     </div>
@@ -167,7 +171,7 @@ async function rechazarReserva() {
                                 <th class="fs-sm" style="font-size: 10px">Cantidad</th>
                             </tr>
                         </thead>
-                        <tbody >
+                        <tbody>
                             <tr v-for="(item, index) in rows" :key="index">
                                 <td class="code">{{ item.ART_CODIGO }}</td>
                                 <td>

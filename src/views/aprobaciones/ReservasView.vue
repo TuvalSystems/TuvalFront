@@ -66,7 +66,7 @@ async function visualizarDetalleCotización(id) {
     const response = await fetchQuotationWithDetial(id);
     if (response) {
       verCotizacionDetalleModalObj.show();
-      datosModalCotizacionDetalle.value = response.cotizacion;
+      datosModalCotizacionDetalle.value = response.reserva;
       datosModalCotizacionSegmento.value = response.segmento;
     }
   } catch (error) {
@@ -99,7 +99,7 @@ function unLockedModal(id) {
 
 let verDetalleCotizacionAprobacionModal = ref(null);
 let verDetalleCotizacionAprobacionModalObj = null;
-let datosModalCotizacionAprobacion = ref(null);
+let dataModalReserva = ref(null);
 let verUsoFacturaDemandaModalObj = null;
 let verUsoFacturaDemandaModal = ref(null);
 const dataModal = ref(null);
@@ -113,12 +113,6 @@ async function verModalAprobacionReserva(row) {
 
 }
 
-async function closeModalAprobacionReserva() {
-  verDetalleCotizacionAprobacionModalObj.hide();
-  datosModalCotizacionAprobacion.value = null;
-  refresh();
-}
-
 // modal aprobacion  reserva
 async function openModalAprobacionReserva(row) {
   if (!row || row.id === null) return
@@ -129,16 +123,23 @@ async function openModalAprobacionReserva(row) {
     lockModal(id);
     const response = await fetchQuotationWithDetialAndStock(row.id);
     if (response) {
-      datosModalCotizacionAprobacion.value = response;
+      dataModalReserva.value = response;
       verDetalleCotizacionAprobacionModalObj.show();
     }
     unLockedModal(id);
   } catch (error) {
     swalError(error.response.data.error);
+    unLockedModal(id);
   }
   finally {
     unLockedModal(id);
   }
+}
+
+async function closeModalAprobacionReserva() {
+  verDetalleCotizacionAprobacionModalObj.hide();
+  dataModalReserva.value = null;
+  refresh();
 }
 
 // modal de aprobacion a factura demanda
@@ -156,6 +157,7 @@ async function openModalAprobacionFacturaDemanda(row) {
     unLockedModal(id);
   } catch (e) {
     swalError(e?.response?.data?.error || e?.message || 'Error')
+    unLockedModal(id);
   }
   finally {
     unLockedModal(id);
@@ -170,18 +172,43 @@ async function closeModalUsoFacturaDemanda() {
 
 
 /** rechazo de reservca */
+const modalCancelLocks = ref(new Map());
+const isModalCancelLocked = (modalRow) => {
+  const id = typeof modalRow === "object" ? modalRow?.id : modalRow;
+  return modalCancelLocks.value.get(String(id)) === true;
+}
+function lockModalCancel(id) {
+  const m = new Map(modalCancelLocks.value)
+  m.set(String(id), true)
+  modalCancelLocks.value = m;
+}
+
+function unLockedModalCancel(id) {
+  const m = new Map(modalCancelLocks.value)
+  m.delete(String(id))
+  modalCancelLocks.value = m
+}
+
 let verModalRechazarReservaModal = ref(null);
 let verModalRechazarReservaModalObj = null;
 
 async function verModalRechazar(row) {
+  if (!row || row.id === null) return
+  const id = row.id
+  if (isModalCancelLocked(id)) return
   try {
+    lockModalCancel(id);
     const response = await fetchQuotationWithDetialAndStock(row.id);
     if (response) {
-      datosModalCotizacionAprobacion.value = response;
+      dataModalReserva.value = response;
       verModalRechazarReservaModalObj.show();
     }
+    unLockedModalCancel(id);
   } catch (error) {
     swalError(error.response.data.error);
+    unLockedModalCancel(id);
+  } finally {
+    unLockedModalCancel(id);
   }
 }
 
@@ -330,9 +357,14 @@ onBeforeUnmount(() => {
             <i v-else class="fa-solid fa-circle-check me-1"></i>
             <!-- Aprobar -->
           </button>
-          <button type="button" class="btn btn-danger btn-sm" aria-placeholder="Rechazar" @click="verModalRechazar(row)"
-            :disabled="loadingDeny">
-            <i class="fa-regular fa-circle-xmark me-11"></i>
+          <button type="button" 
+          class="btn btn-danger btn-sm" 
+          aria-placeholder="Rechazar" 
+          @click="verModalRechazar(row)"
+            :disabled="isModalCancelLocked(row)">
+            <span v-if="isModalCancelLocked(row)" class="spinner-border spinner-border-sm" role="status"
+              aria-hidden="true"></span>
+            <i v-else class="fa-regular fa-circle-xmark me-11"></i>
             <!-- Rechazar -->
           </button>
         </template>
@@ -357,7 +389,7 @@ onBeforeUnmount(() => {
       <div class="modal-content">
         <VerCotizacionDetalleReservaComponent v-if="datosModalCotizacionDetalle &&
           datosModalCotizacionSegmento &&
-          datosModalCotizacionDetalle.id" :infoCotizacion="datosModalCotizacionDetalle"
+          datosModalCotizacionDetalle.id" :infoReserva="datosModalCotizacionDetalle"
           :segmento="datosModalCotizacionSegmento">
         </VerCotizacionDetalleReservaComponent>
       </div>
@@ -369,8 +401,8 @@ onBeforeUnmount(() => {
     aria-labelledby="modal-cotizacion-reserva" aria-hidden="true" ref="verDetalleCotizacionAprobacionModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <verCotizacionAprobacionReservaComponent v-if="datosModalCotizacionAprobacion"
-          :infoCotizacion="datosModalCotizacionAprobacion" @closeModalAprobacionReserva="closeModalAprobacionReserva()">
+        <verCotizacionAprobacionReservaComponent v-if="dataModalReserva && dataModalReserva.reserva"
+          :reserva="dataModalReserva" @closeModalAprobacionReserva="closeModalAprobacionReserva()">
         </verCotizacionAprobacionReservaComponent>
       </div>
     </div>
@@ -382,8 +414,8 @@ onBeforeUnmount(() => {
     aria-hidden="true" ref="verModalRechazarReservaModal">
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
-        <verCotizacionReservaRechazarModal v-if="datosModalCotizacionAprobacion"
-          :infoCotizacion="datosModalCotizacionAprobacion" @closeModalRechazarReserva="closeModalRechazarReserva()">
+        <verCotizacionReservaRechazarModal v-if="dataModalReserva && dataModalReserva.reserva"
+          :reserva="dataModalReserva" @closeModalRechazarReserva="closeModalRechazarReserva()">
         </verCotizacionReservaRechazarModal>
       </div>
     </div>

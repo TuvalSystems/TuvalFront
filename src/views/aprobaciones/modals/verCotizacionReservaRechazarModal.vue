@@ -8,11 +8,12 @@ import {
     swalError,
 } from "@/functions/swal-alert.js";
 const props = defineProps({
-    'infoCotizacion': Object
+    'reserva': Object
 
 });
 const emit = defineEmits(['closeModalRechazarReserva']);
-const infoCoti= computed(() => props.infoCotizacion.cotizacion);
+const infoResponse = computed(() => props.reserva);
+const infoReserva = infoResponse.value.reserva;
 const { dataSendApproval, loadingDeny, denyReservation } = useQuotationReserveApproval();
 const flatPickrState = reactive({
     fecha: {
@@ -23,7 +24,7 @@ const flatPickrState = reactive({
 
 function rechazarReserva() {
     try {
-        dataSendApproval.id = infoCoti.value.id;
+        dataSendApproval.id = infoReserva.value.id;
         const response = denyReservation();
         if (response) {
              emit('closeModalRechazarReserva', true);
@@ -40,7 +41,7 @@ function rechazarReserva() {
 </script>
 
 <template>
-    <BaseBlock :title="`Cotizacion por rechazar ${infoCoti.cotizacion}`" class="mb-0" transparent themed>
+    <BaseBlock :title="`Cotizacion por rechazar ${infoReserva.cotizacion.cotizacion}`" class="mb-0" transparent themed>
         <template #options>
             <div class="block-options-item">
                 <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
@@ -53,7 +54,7 @@ function rechazarReserva() {
         <div class="row g-2 mb-4">
             <div class="col-md-12">
                <div class="kv ">
-                    <label for="fechaReserva" class="form-label text-muted fs-sm">Fecha Aprobación</label>
+                    <label for="fechaReserva" class="form-label text-muted fs-sm">Fecha Rechazo</label>
                     <div class="fw-semibold">
                         <flat-pickr id="fechaReserva" class="form-control form-control-sm"
                             v-model="dataSendApproval.fe_autSolResInv" :config="flatPickrState.fecha" />
