@@ -90,7 +90,7 @@ store.dispatch('transferenciasVenta').then( () => {
 }).catch( err => {
   transferencias_venta_loading.value = false;
 })
-store.dispatch('transferenciasVentaInterval');
+// store.dispatch('transferenciasVentaInterval');
 
 onBeforeUnmount(() => {
   store.dispatch('transferenciasVentaStop');
