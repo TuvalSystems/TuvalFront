@@ -9,7 +9,7 @@ export function useQuotationReserveRequest(datoReserva) {
   const isInvalid = ref(false);
   const isInvalidType = ref(false);
   const reserva = reactive({
-    cotizacion_id : null,
+    cotizacion_id: null,
     tipo_reserva_id: null,
     tipo_traslado_reserva_id: null,
     fe_solicitud_reserva: null,
@@ -35,7 +35,7 @@ export function useQuotationReserveRequest(datoReserva) {
 
   function validateSolicitudReserveDate() {
     const pvLimit = limitsForPto.value[0]?.pto_vta_max_dias_reserva ?? 0;
-    
+
     const numDay = Math.max(0, daysUntil(reserva.fe_solicitud_reserva));
     const d = pvLimit === 1 ? "dia" : "dias";
     const limitStr = `${pvLimit} ${d}`;
@@ -105,11 +105,19 @@ export function useQuotationReserveRequest(datoReserva) {
     if (reserva.tipo_reserva_id === null) {
       throw new Error("Seleccione un tipo de reserva");
     }
+    if (reserva.tipo_reserva_id === 1) {
+      if (reserva.tipo_traslado_reserva_id === null) {
+        throw new Error("Seleccione un tipo de traslado");
+      }
+    }
     if (reserva.fe_solicitud_reserva === null) {
       throw new Error("Seleccione una fecha");
     }
     if (reserva.obs_solicitud_reserva === null) {
       throw new Error("Debe ingresar una observación");
+    }
+    if (reserva.tipo_reserva_id === 2) {
+      reserva.tipo_traslado_reserva_id = null;
     }
 
     try {

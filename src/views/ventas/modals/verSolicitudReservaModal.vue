@@ -52,7 +52,7 @@ function hydrateReservaForm(row) {
     Object.assign(reserva, {
         cotizacion_id: row.value.cotizacion_id ?? null,
         tipo_reserva_id: row.value.tipo_reserva_id ?? null,
-        tipo_traslado_reserva_id: row.value.co_tipTrasResInv ?? null,
+        tipo_traslado_reserva_id: row.value.tipo_traslado_reserva_id ?? null,
         fe_solicitud_reserva: fecha ?? null,
         obs_solicitud_reserva: row.value.obs_solicitud_reserva ?? null,
     });
@@ -130,9 +130,9 @@ watch(
                                     </option>
                                 </select>
                             </div>
-                            <div class="mb-3">
+                            <div v-if="reserva.tipo_reserva_id == 2"></div>
+                            <div class="mb-3" v-else>
                                 <label for="traslado" class="form-label text-muted fs-sm">Traslado</label>
-
                                 <select id="traslado" class="form-select form-select-sm"
                                     v-model="reserva.tipo_traslado_reserva_id" aria-describedby="trasladoHelp">
                                     <option disabled value="">Seleccione…</option>
@@ -144,6 +144,7 @@ watch(
                                     bodegas.
                                 </div>
                             </div>
+
                             <div class="mb-2">
                                 <label for="fechaReserva" class="form-label text-muted fs-sm">Fecha solicitada</label>
                                 <flat-pickr id="fechaReserva" class="form-control form-control-sm"
@@ -157,7 +158,7 @@ watch(
                                     placeholder="Agrega una observación..."></textarea>
                             </div>
                             <div class="text-end text-muted fs-xs">{{ (reserva.obs_solicitud_reserva || '').length
-                            }}/400
+                                }}/400
                             </div>
                         </div>
                     </BaseBlock>

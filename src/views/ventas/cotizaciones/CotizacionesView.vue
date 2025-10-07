@@ -459,7 +459,7 @@ async function verModalReserva(row) {
   const reserva = row?.reserva ?? null;
   const hasReserva = (row?.has_reserva === true) || !!reserva;
   if (hasReserva && reserva) {
-    swalInfo(
+    swalWarning(
       'Ya se registró una reserva para esta cotización para el día ' +
       (reserva?.fe_solicitud_reserva ?? '(sin fecha)')
     );
