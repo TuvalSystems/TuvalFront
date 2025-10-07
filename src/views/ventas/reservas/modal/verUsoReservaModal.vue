@@ -14,17 +14,19 @@ const props = defineProps({
   }
 });
 const emit = defineEmits(['closeModalUsoReserva']);
-const infoCotizacion = computed(() => props.reserva.cotizacion);
-const infoSegmento = computed(() => props.reserva.segmento);
+const infoResponse = computed(() => props.reserva);
+const infoReserva = infoResponse.value.reserva;
+//const infoCotizacion = computed(() => props.reserva.cotizacion);
+const infoSegmento = infoResponse.value.segmento;
 const { getPendingBase, updateReleaseReserved, updateInvoiceReserved, getAuthorized, loadingReservedProcess, processReservation, selectAllRelease,
-  selectAllInvoice, applySelectAllRelease, applySelectAllInvoice } = useReservationProcessor(infoCotizacion);
+  selectAllInvoice, applySelectAllRelease, applySelectAllInvoice } = useReservationProcessor(infoReserva);
 
 
 
 
 
 function validateToProcess() {
-  const detalles = infoCotizacion.value?.detallecotizacion ?? [];
+  const detalles = infoReserva.value?.cotizacion.detallecotizacion ?? [];
   let anySelected = false;
 
   for (const detalle of detalles) {
@@ -60,12 +62,12 @@ function validateToProcess() {
 
 async function procesar() {
   try {
-    if (infoCotizacion.value.reserva_disabled === true) {
+    if (infoReserva.value.cotizacion.reserva_disabled === true) {
       swalWarning("No hay cantidades pendientes para liberar o facturar.");
       return;
     }
     if (!validateToProcess()) return;
-    const { ok, data, message } = await processReservation(infoCotizacion.value);
+    const { ok, data, message } = await processReservation(infoReserva.value);
     if (ok) {
       swalSuccess(message);
       emit('closeModalUsoReserva', true);
@@ -93,22 +95,22 @@ async function procesar() {
           <div class="col-12 col-lg-4">
             <div class="kv">
               <small class="text-muted">Cotización</small>
-              <div class="fw-semibold">{{ infoCotizacion.cotizacion }}</div>
+              <div class="fw-semibold">{{ infoReserva.cotizacion.cotizacion }}</div>
             </div>
           </div>
 
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">RUC</small>
-              <div class="fw-semibold">{{ infoCotizacion.CLI_RUC }}</div>
+              <div class="fw-semibold">{{ infoReserva.cotizacion.CLI_RUC }}</div>
             </div>
           </div>
 
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Razón Social</small>
-              <div class="fw-semibold text-truncate" :title="infoCotizacion.CLI_RAZON_SOCIAL">{{
-                infoCotizacion.CLI_RAZON_SOCIAL
+              <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
+                infoReserva.cotizacion.CLI_RAZON_SOCIAL
               }}</div>
             </div>
           </div>
@@ -116,44 +118,44 @@ async function procesar() {
           <div class="col-12 col-lg-4">
             <div class="kv">
               <small class="text-muted">P. Venta</small>
-              <div class="fw-semibold text-truncate" :title="infoCotizacion.PTO_VTA_DESCRIPCION">{{
-                infoCotizacion.PTO_VTA_DESCRIPCION }}</div>
+              <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.PTO_VTA_DESCRIPCION">{{
+                infoReserva.cotizacion.PTO_VTA_DESCRIPCION }}</div>
             </div>
           </div>
 
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Bodega</small>
-              <div class="fw-semibold text-truncate" :title="infoCotizacion.BOD_BODEGA">{{
-                infoCotizacion.BOD_BODEGA }}</div>
+              <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.BOD_BODEGA">{{
+                infoReserva.cotizacion.BOD_BODEGA }}</div>
             </div>
           </div>
 
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Cond. Pago</small>
-              <div class="fw-semibold">{{ infoCotizacion.COND_ID }}</div>
+              <div class="fw-semibold">{{ infoReserva.cotizacion.COND_ID }}</div>
             </div>
           </div>
 
           <div class="col-12 col-lg-4">
             <div class="kv">
               <small class="text-muted">Usuario</small>
-              <div class="fw-semibold">{{ infoCotizacion.USERID }}</div>
+              <div class="fw-semibold">{{ infoReserva.cotizacion.USERID }}</div>
             </div>
           </div>
 
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Fecha/Hora</small>
-              <div class="fw-semibold">{{ infoCotizacion.created_at }}</div>
+              <div class="fw-semibold">{{ infoReserva.cotizacion.created_at }}</div>
             </div>
           </div>
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Fecha Solicitud Reserva</small>
               <div class="fw-semibold">
-                <div class="fw-semibold">{{ infoCotizacion.fe_solResInv }}</div>
+                <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
               </div>
             </div>
           </div>
@@ -161,7 +163,7 @@ async function procesar() {
             <div class="kv">
               <small class="text-muted">Traslado</small>
               <div class="fw-semibold">
-                <div class="fw-semibold">{{ infoCotizacion.reserva_traslado.descripcion }}</div>
+                <div class="fw-semibold">{{ infoReserva.tipo_traslado.descripcion }}</div>
               </div>
             </div>
           </div>
@@ -169,7 +171,7 @@ async function procesar() {
             <div class="kv">
               <small class="text-muted">Tipo Reserva</small>
               <div class="fw-semibold">
-                <div class="fw-semibold">{{ infoCotizacion.tiporeserva.descripcion }}</div>
+                <div class="fw-semibold">{{ infoReserva.tipo_reserva.descripcion }}</div>
               </div>
             </div>
           </div>
@@ -200,17 +202,17 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px; text-align: center">Liberar
                   <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
                     name="example-checkbox-default1" @change="applySelectAllRelease" v-model="selectAllRelease"
-                    :disabled="infoCotizacion.reserva_disabled" />
+                    :disabled="infoReserva.cotizacion.reserva_disabled" />
                 </th>
                 <th class="fs-sm" style="font-size: 10px; text-align: center">Facturar
                   <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
-                    name="example-checkbox-default1" :disabled="infoCotizacion.reserva_disabled"
+                    name="example-checkbox-default1" :disabled="infoReserva.cotizacion.reserva_disabled"
                     v-model="selectAllInvoice" @change="applySelectAllInvoice" />
                 </th>
               </tr>
             </thead>
             <tbody>
-              <template v-for="(item, i) in infoCotizacion.detallecotizacion" :key="item.id + i">
+              <template v-for="(item, i) in infoReserva.cotizacion.detallecotizacion" :key="item.id + i">
                 <tr v-for="(item2, j) in item.stock" :key="`${item.id}-${(item2.id ?? j)}`">
                   <td class="code">{{ item.ART_CODIGO }}</td>
                   <td>
@@ -259,7 +261,7 @@ async function procesar() {
     </template>
   </BaseBlock>
 
-  <div v-if="infoCotizacion.reserva_disabled === false" class="content text-end mb-4 space-x-2">
+  <div v-if="infoReserva.cotizacion.reserva_disabled === false" class="content text-end mb-4 space-x-2">
     <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">
       Cerrar
     </button>

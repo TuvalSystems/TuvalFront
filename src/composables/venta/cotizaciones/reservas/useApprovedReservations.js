@@ -74,7 +74,7 @@ export function useApprovedReservations() {
     },
     {
       label: "F. Solicitud",
-      key: "fe_solResInv",
+      key: "fe_solicitud_reserva",
       clickable: false,
       sortable: true,
       thClass: "d-none d-md-table-cell",
@@ -82,7 +82,7 @@ export function useApprovedReservations() {
     },
     {
       label: "Estado",
-      key: "st_solResInv",
+      key: "estado",
       clickable: false,
       sortable: true,
       thClass: "d-none d-md-table-cell",
@@ -106,7 +106,7 @@ export function useApprovedReservations() {
     // },
     {
       label: "F. Aprobacion",
-      key: "fe_autSolResInv",
+      key: "fe_autorizacion_reserva",
       clickable: false,
       sortable: true,
       thClass: "d-none d-md-table-cell",

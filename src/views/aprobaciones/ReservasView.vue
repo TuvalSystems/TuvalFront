@@ -64,9 +64,9 @@ async function visualizarDetalleCotización(id) {
   try {
     const response = await fetchQuotationWithDetial(id);
     if (response) {
-      verCotizacionDetalleModalObj.show();
       datosModalCotizacionDetalle.value = response.reserva;
       datosModalCotizacionSegmento.value = response.segmento;
+      verCotizacionDetalleModalObj.show();
     }
   } catch (error) {
     return;

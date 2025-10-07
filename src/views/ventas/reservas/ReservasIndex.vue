@@ -94,7 +94,7 @@ let verUsoFacturaDemandaModalObj = null;
 let verUsoFacturaDemandaModal = ref(null);
 async function crearReserva(row) {
 
-    if (row.st_solResInv == 'pendiente') {
+    if (row.estado == 'pendiente') {
         swalWarning("La reserva aun no ha sido aprobada, no puede visualizar el detalle");
         return;
     }
@@ -191,11 +191,11 @@ async function visualizarDetalleCotización(id) {
     try {
         const response = await fetchQuotationWithDetial(id);
         if (response) {
-            datosModalCotizacionDetalle.value = response.cotizacion;
+            datosModalCotizacionDetalle.value = response.reserva;
             datosModalCotizacionSegmento.value = response.segmento;
             verCotizacionDetalleModalObj.show();
-            unlock(id);
         }
+        unlock(id);
     } catch (error) {
         console.log(error);
     } finally {
@@ -318,7 +318,7 @@ onBeforeUnmount(() => {
 
                 <template #cell-st_solResInv="{ value, row }">
                     <span :class="estadoClass(value)">{{
-                        row.st_solResInv ?? "N/A"
+                        row.estado ?? "N/A"
                     }}</span>
                 </template>
                 <template #cell-total="{ value, row }">
@@ -364,8 +364,7 @@ onBeforeUnmount(() => {
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
                 <VerCotizacionDetalleReservaComponent v-if="datosModalCotizacionDetalle &&
-                    datosModalCotizacionSegmento &&
-                    datosModalCotizacionDetalle.id" :infoCotizacion="datosModalCotizacionDetalle"
+                    datosModalCotizacionSegmento" :infoReserva="datosModalCotizacionDetalle"
                     :segmento="datosModalCotizacionSegmento">
                 </VerCotizacionDetalleReservaComponent>
             </div>

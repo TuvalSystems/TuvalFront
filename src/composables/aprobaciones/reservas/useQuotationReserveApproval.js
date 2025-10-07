@@ -16,8 +16,8 @@ export function useQuotationReserveApproval() {
   /** datos para enviar a aprobar y rechazar */
   const dataSendApproval = reactive({
     id: null,
-    fe_autSolResInv: null,
-    tx_obsAutSolResInv: null,
+    fe_autorizacion_reserva: null,
+    obs_autorizacion_reserva: null,
   });
 
   async function fetchQuotationWithDetial(id) {
@@ -103,7 +103,7 @@ export function useQuotationReserveApproval() {
   async function approveReservation() {
     loadingApproval.value = true;
     try {
-      if (!dataSendApproval.fe_autSolResInv) {
+      if (!dataSendApproval.fe_autorizacion_reserva) {
         swalError("Debe ingresar una fecha de autorizacion");
         return;
       }
