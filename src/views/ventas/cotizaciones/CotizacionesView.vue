@@ -465,7 +465,7 @@ async function verModalReserva(row) {
     );
     return;
   }
-  if (row.reserva_disabled === true) {
+  if (row.reserva_disabled === true && row.has_l_items !== true && row.has_service_items !== true) {
     swalWarning('No puede realizar la reserva: la cotización no tiene cantidades seleccionadas.')
     return;
   }
