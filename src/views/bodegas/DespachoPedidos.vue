@@ -582,7 +582,7 @@ function despacharguiaGuia(guia) {
 
   store.dispatch("despacharGuiaRemision", guia).then((res) => {
     if(!res.success){
-      swalError(res.message);
+      swalError(res.error);
       templateStore.pageLoader({ mode: "off" });
     }else{
       swalSuccess(res.message);
@@ -594,8 +594,7 @@ function despacharguiaGuia(guia) {
       templateStore.pageLoader({ mode: "off" });
     }
   }).catch(err => {
-    // console.log(err);
-    swalError(err.response.data.message);
+    swalError(err.response.data.error);
     templateStore.pageLoader({ mode: "off" });
   });
 }

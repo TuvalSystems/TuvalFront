@@ -337,7 +337,7 @@ function despacharguiaGuia(guia) {
     }
     templateStore.pageLoader({ mode: "off" });
   }).catch(err => {
-    swalError(err.response.data.message);
+    swalError(err.response.data.error);
     templateStore.pageLoader({ mode: "off" });
   })
 }

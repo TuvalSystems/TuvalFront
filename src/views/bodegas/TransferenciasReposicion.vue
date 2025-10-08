@@ -122,8 +122,6 @@ function consultarreposicion(fecha) {
   }
   loading.value = true;
   store.dispatch('getReposicion', params).then((res) => {
-  
-
     if (res.success) {
       swalSuccess(res.message);
       store.dispatch('transferenciasReposicion');
