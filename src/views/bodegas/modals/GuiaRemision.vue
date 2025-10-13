@@ -477,6 +477,11 @@ function generarGuia(verpedido) {
   store.dispatch("generarGuiaVenta", data).then(() => {
     templateStore.pageLoader({ mode: "off" });
     emit("generarGuia");
+  }).catch(err => {
+    console.log(err,'error');
+    
+    swalError(err.response.data.error);
+    templateStore.pageLoader({ mode: "off" });
   });
 }
 
