@@ -3,7 +3,7 @@ import { toInt } from "@/functions";
 import { ref, nextTick } from "vue";
 import { swalSuccess, swalError } from "@/functions/swal-alert.js";
 
-export function useReservationProcessor(infoCotizacion) {
+export function useReservationProcessor(infoReserva) {
   const urlProcess = "/reservas/procesar-reserva";
   const urlFacturaDemanda =
     "/reservas/procesar-reserva-factura-demanda";
@@ -14,16 +14,18 @@ export function useReservationProcessor(infoCotizacion) {
   const selectAllInvoice = ref(false);
 
   function getPendingBase(stock) {
-    const autorizado = toInt(getAuthorized(stock));
-    const facturado = toInt(stock.cantidad_facturada ?? 0); // histórico
+    const autorizado  = toInt(getAuthorized(stock));
+    const facturado   = toInt(stock.cantidad_facturada ?? 0); // histórico
+    const cotizado    = toInt(stock.cantidad_cotizada ?? 0);
+    const trasladado  = toInt(stock.cantidad_traslado ?? 0);
     const canceladoPrev = toInt(stock.cantidad_cancelada ?? 0); // histórico
-    return Math.max(autorizado - facturado - canceladoPrev, 0);
+    return Math.max(autorizado - facturado - cotizado - trasladado - canceladoPrev, 0);
   }
 
   function clampRelease(row, requested) {
     const base = getPendingBase(row);
-    const facturarOtro = toInt(row.a_facturar ?? 0);
-    const pendiente = Math.max(0, base - facturarOtro); // lo que planeas facturar ahora (no cancelable)
+    const cotizarOtro = toInt(row.a_cotizar ?? 0);
+    const pendiente = Math.max(0, base - cotizarOtro); // lo que planeas facturar ahora (no cancelable)
     return Math.max(0, Math.min(toInt(requested), pendiente));
   }
 
@@ -45,12 +47,12 @@ export function useReservationProcessor(infoCotizacion) {
   }
 
   function updateInvoiceReserved(e, stockRow) {
-    const solicitado = toInt(e?.target?.value ?? stockRow.a_facturar);
+    const solicitado = toInt(e?.target?.value ?? stockRow.a_cotizar);
     const val = clampInvoice(stockRow, solicitado);
     if (solicitado > val) {
-      swalError(`Solo puede facturar hasta ${val}.`);
+      swalError(`Solo puede cotizar hasta ${val}.`);
     }
-    stockRow.a_facturar = val;
+    stockRow.a_cotizar = val;
   }
 
   function getAuthorized(stock) {
@@ -59,7 +61,7 @@ export function useReservationProcessor(infoCotizacion) {
 
   /** funcion para correr todas las filas de stock */
   function forEachStockRow(cb) {
-    const dets = infoCotizacion.value?.detallecotizacion ?? [];
+    const dets = infoReserva.cotizacion.detallecotizacion ?? [];
     for (const det of dets) {
       const stocks = det.stock ?? [];
       for (const row of stocks) cb(row, det);
@@ -72,7 +74,7 @@ export function useReservationProcessor(infoCotizacion) {
     forEachStockRow((row) => {
       if (row?.disable_movimiento) return;
       const pedir = checked
-        ? getPendingBase(row) - toInt(row.a_facturar ?? 0) // maximo lo que se puede liberar
+        ? getPendingBase(row) - toInt(row.a_cotizar ?? 0) // maximo lo que se puede liberar
         : 0; // destiladado => limpiar
       row.a_cancelar = clampRelease(row, pedir);
     });
@@ -86,7 +88,7 @@ export function useReservationProcessor(infoCotizacion) {
       const pedir = checked
         ? getPendingBase(row) - toInt(row.a_cancelar ?? 0) // maximo lo que se puede facturar
         : 0; // destiladado => limpiar
-      row.a_facturar = clampInvoice(row, pedir);
+      row.a_cotizar = clampInvoice(row, pedir);
     });
   }
 
@@ -115,8 +117,7 @@ export function useReservationProcessor(infoCotizacion) {
         error?.response?.data?.message ||
         error?.error ||
         "Error al procesar la reserva.";
-      // console.error("[processReservation] ", error);
-      // swalError(msg);
+    
       return { ok: false, error, message: msg };
     } finally {
       loadingReservedProcess.value = false;

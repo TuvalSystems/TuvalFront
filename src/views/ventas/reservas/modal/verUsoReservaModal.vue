@@ -16,7 +16,6 @@ const props = defineProps({
 const emit = defineEmits(['closeModalUsoReserva']);
 const infoResponse = computed(() => props.reserva);
 const infoReserva = infoResponse.value.reserva;
-//const infoCotizacion = computed(() => props.reserva.cotizacion);
 const infoSegmento = infoResponse.value.segmento;
 const { getPendingBase, updateReleaseReserved, updateInvoiceReserved, getAuthorized, loadingReservedProcess, processReservation, selectAllRelease,
   selectAllInvoice, applySelectAllRelease, applySelectAllInvoice } = useReservationProcessor(infoReserva);
@@ -26,28 +25,30 @@ const { getPendingBase, updateReleaseReserved, updateInvoiceReserved, getAuthori
 
 
 function validateToProcess() {
-  const detalles = infoReserva.value?.cotizacion.detallecotizacion ?? [];
+  const detalles = infoReserva.cotizacion.detallecotizacion ?? [];
   let anySelected = false;
 
   for (const detalle of detalles) {
     const stocks = detalle.stock ?? [];
+    console.log(stocks, 'stock');
+
     for (const st of stocks) {
       st.a_cancelar = toInt(st.a_cancelar ?? 0);
-      st.a_facturar = toInt(st.a_facturar ?? 0);
+      st.a_cotizar = toInt(st.a_cotizar ?? 0);
 
       //validar negativos
-      if (st.a_cancelar < 0 || st.a_facturar < 0) {
+      if (st.a_cancelar < 0 || st.a_cotizar < 0) {
         swalError('No puede ingresar cantidades negativas');
         return false;
       }
 
       //clamp por pendiete base : a facturar + a_cancelar <= pendienteBase
       const base = getPendingBase(st);
-      const totalNow = st.a_cancelar + st.a_facturar;
+      const totalNow = st.a_cancelar + st.a_cotizar;
       if (totalNow > base) {
-        st.a_cancelar = Math.max(0, base - st.a_facturar);
+        st.a_cancelar = Math.max(0, base - st.a_cotizar);
       }
-      if ((st.a_cancelar > 0 || st.a_facturar > 0) && st.cantidad_autorizada_reserva > 0) {
+      if ((st.a_cancelar > 0 || st.a_cotizar > 0) && st.cantidad_autorizada_reserva > 0) {
         anySelected = true;
       }
     }
@@ -62,12 +63,12 @@ function validateToProcess() {
 
 async function procesar() {
   try {
-    if (infoReserva.value.cotizacion.reserva_disabled === true) {
+    if (infoReserva.cotizacion.reserva_disabled === true) {
       swalWarning("No hay cantidades pendientes para liberar o facturar.");
       return;
     }
     if (!validateToProcess()) return;
-    const { ok, data, message } = await processReservation(infoReserva.value);
+    const { ok, data, message } = await processReservation(infoReserva);
     if (ok) {
       swalSuccess(message);
       emit('closeModalUsoReserva', true);
@@ -185,7 +186,10 @@ async function procesar() {
             </div>
           </div>
         </div>
-        <!-- detale de la cotizacion -->
+        <div v-if="infoReserva.estado === 'traslado'">
+           <p class="alert alert-danger">T: Unidades en traslado (en tránsito entre bodegas). No disponibles para Liberar/Cotizar hasta completar el traslado.</p>
+        </div>
+        <!-- detalle de la cotizacion -->
         <div class="table-responsive mb-0">
           <table class="table table-sm table-borderless align-middle mb-0">
             <thead style="position: sticky; top: 0; z-index: 1;">
@@ -196,15 +200,17 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px">Descripción</th>
                 <th class="fs-sm" style="font-size: 10px;text-align: right ">Cant.</th>
                 <th class="fs-sm" style="font-size: 10px">Bodega</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right">P.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right">L.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right"  v-bstooltip="'Cantidad Pendiente'"> P.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right">C.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right">T.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right">F.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right">L.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: center">Liberar
                   <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
                     name="example-checkbox-default1" @change="applySelectAllRelease" v-model="selectAllRelease"
                     :disabled="infoReserva.cotizacion.reserva_disabled" />
                 </th>
-                <th class="fs-sm" style="font-size: 10px; text-align: center">Facturar
+                <th class="fs-sm" style="font-size: 10px; text-align: center">Cotizar
                   <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
                     name="example-checkbox-default1" :disabled="infoReserva.cotizacion.reserva_disabled"
                     v-model="selectAllInvoice" @change="applySelectAllInvoice" />
@@ -235,21 +241,25 @@ async function procesar() {
                   </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.seleccionado) }}
                   </td>
-                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.cantidad_cancelada) }}
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_cotizada)
+                    }}</td>
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">
+                    <span v-if="item2.cantidad_traslado > 0" class="badge bg-danger"> {{ toInt(item2.cantidad_traslado) }}</span>
+                    <span v-else> {{ toInt(item2.cantidad_traslado) }}</span>
                   </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.cantidad_facturada) }}
-                  </td>
+                    toInt(item2.cantidad_facturada) }} </td>
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
+                    toInt(item2.cantidad_cancelada) }} </td>
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
                       style="width: 100px" step="1" min="0" v-model.number="item2.a_cancelar" inputmode="numeric"
-                      @change="updateReleaseReserved($event, item2)" :disabled="item2.disable_movimiento"
-                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_cancelada || 0)))">
+                      @change="updateReleaseReserved($event, item2)" :disabled="item2.disable_movimiento || item2.disable_traslado"
+                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_cotizada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
-                      style="width: 100px" step="1" min="0" v-model.number="item2.a_facturar" inputmode="numeric"
-                      @change="updateInvoiceReserved($event, item2)" :disabled="item2.disable_movimiento"
-                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_cancelada || 0)))">
+                      style="width: 100px" step="1" min="0" v-model.number="item2.a_cotizar" inputmode="numeric"
+                      @change="updateInvoiceReserved($event, item2)" :disabled="item2.disable_movimiento || item2.disable_traslado"
+                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_cotizada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
                 </tr>
               </template>

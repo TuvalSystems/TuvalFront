@@ -108,12 +108,11 @@ async function crearReserva(row) {
 
 }
 
-async function openModalUsoReserva(row) {
-
+async function openModalUsoReserva(row) { 
     if (!row || row.id == null) return
     const id = row.id
     if (isTestLocked(id)) return
-
+     dataModal.value = null;
     try {
         lockTest(id)
         const response = await fetchQuotationWithDetialAndStockActive(row.id);
@@ -133,6 +132,7 @@ async function openModalUsoFacturaDemanda(row) {
     if (!row || row.id == null) return
     const id = row.id
     if (isTestLocked(id)) return
+    dataModal.value = null;
     try {
         lockTest(id)
         const response = await fetchQuotationWithDetialAndStockActive(row.id);
@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
                 <div class="col-12 col-sm-6 col-lg-2">
                     <small class="text-muted d-block mb-1">Sucursal</small>
                     <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
-                     <option value="">Todos</option>
+                        <option value="">Todos</option>
                         <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA"
                             :value="p.PTO_VTA_BOD_PUNTO_VENTA">
                             {{ p.PTO_VTA_BOD_BODEGA }}
@@ -316,10 +316,10 @@ onBeforeUnmount(() => {
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchList"
                 @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
 
-                <template #cell-st_solResInv="{ value, row }">
-                    <span :class="estadoClass(value)">{{
+                <template #cell-estado="{ value, row }">
+                    <span :class="estadoClass(value)" style="font-size:12px">{{
                         row.estado ?? "N/A"
-                    }}</span>
+                        }}</span>
                 </template>
                 <template #cell-total="{ value, row }">
                     <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>

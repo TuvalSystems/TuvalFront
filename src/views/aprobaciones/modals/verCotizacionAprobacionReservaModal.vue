@@ -36,7 +36,7 @@ async function aprobarReserva() {
         const response = await approveReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
-            await swalSuccess("Cotización aprobada");
+            await swalSuccess("Reserva aprobada");
         }
     } catch (error) {
         console.log(error);
@@ -52,7 +52,7 @@ async function rechazarReserva() {
         const response = await denyReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
-            await swalSuccess("Cotización rechazada");
+            await swalSuccess("Reserva rechazada");
         }
     } catch (error) {
         swalError(error.response.data.error);

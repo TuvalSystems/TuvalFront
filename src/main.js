@@ -25,6 +25,7 @@ import clickRipple from "@/directives/clickRipple";
 
 // directiva para manejar decimales
 import zeroDecimals from "@/directives/zeroDecimals";
+import { bsTooltip } from '@/directives/bsTooltip'
 // Bootstrap framework
 import * as bootstrap from "bootstrap";
 window.bootstrap = bootstrap;
@@ -50,6 +51,7 @@ app.component("BasePageHeading", BasePageHeading);
 // Register global directives
 app.directive("click-ripple", clickRipple);
 app.directive("zero-decimals", zeroDecimals);
+app.directive('bstooltip', bsTooltip)
 // Use Pinia and Vue Router
 app.use(createPinia());
 app.use(store);

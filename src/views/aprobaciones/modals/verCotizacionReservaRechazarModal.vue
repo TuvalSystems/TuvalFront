@@ -24,7 +24,7 @@ const flatPickrState = reactive({
 
 function rechazarReserva() {
     try {
-        dataSendApproval.id = infoReserva.value.id;
+        dataSendApproval.id = infoReserva.id;
         const response = denyReservation();
         if (response) {
              emit('closeModalRechazarReserva', true);
@@ -57,7 +57,7 @@ function rechazarReserva() {
                     <label for="fechaReserva" class="form-label text-muted fs-sm">Fecha Rechazo</label>
                     <div class="fw-semibold">
                         <flat-pickr id="fechaReserva" class="form-control form-control-sm"
-                            v-model="dataSendApproval.fe_autSolResInv" :config="flatPickrState.fecha" />
+                            v-model="dataSendApproval.fe_autorizacion_reserva" :config="flatPickrState.fecha" />
                     </div>
                 </div>
             </div>
@@ -66,10 +66,10 @@ function rechazarReserva() {
                     <label for="fechaReserva" class="form-label text-muted fs-sm">Observación</label>
                     <div class="fw-semibold">
                         <textarea id="obs" rows="3" class="form-control form-control-sm" maxlength="400"
-                            v-model="dataSendApproval.tx_obsAutSolResInv"
+                            v-model="dataSendApproval.obs_autorizacion_reserva"
                             placeholder="Detalles adicionales (opcional)"></textarea>
                     </div>
-                    <div class="text-end text-muted fs-xs">{{ (dataSendApproval.tx_obsAutSolResInv || '').length
+                    <div class="text-end text-muted fs-xs">{{ (dataSendApproval.obs_autorizacion_reserva || '').length
                     }}/400
                     </div>
                 </div>

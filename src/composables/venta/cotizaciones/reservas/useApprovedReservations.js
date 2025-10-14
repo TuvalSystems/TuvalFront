@@ -143,6 +143,8 @@ export function useApprovedReservations() {
         return "badge bg-warning  fw-semibold";
       case "procesado":
         return "badge bg-primary  fw-semibold";
+      case "traslado":
+        return "badge bg-light  text-danger fw-semibold";
       default:
         return "badge bg-secondary";
     }

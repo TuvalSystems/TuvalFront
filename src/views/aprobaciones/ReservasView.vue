@@ -341,12 +341,12 @@ onBeforeUnmount(() => {
         :is-row-disabled="isRowDisabled">
         <!-- Slot específico para la columna 'estado' -->
         <template #cell-estado="{ value, row }">
-          <span :class="estadoClass(value)">{{
+          <span :class="estadoClass(value)" style="font-size:12px">{{
             row.estado ?? "N/A"
           }}</span>
         </template>
         <template #cell-total="{ value, row }">
-          <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
+          <span :class="totalClass(value)" > ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
         </template>
         <template #actions="{ row }">
           <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="Aprobar"
