@@ -239,7 +239,8 @@ async function procesar() {
                   <td class="fs-sm text-sm">
                     <div style="font-size: 12px">{{ item2.STO_ART_BODEGA }}</div>
                   </td>
-                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.seleccionado) }}
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.pendiente) }} 
+                    <!-- pendiente es un atribudo del modelo -->
                   </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_cotizada)
                     }}</td>
@@ -254,12 +255,12 @@ async function procesar() {
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
                       style="width: 100px" step="1" min="0" v-model.number="item2.a_cancelar" inputmode="numeric"
                       @change="updateReleaseReserved($event, item2)" :disabled="item2.disable_movimiento || item2.disable_traslado"
-                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_cotizada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
+                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0)  - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
                       style="width: 100px" step="1" min="0" v-model.number="item2.a_cotizar" inputmode="numeric"
                       @change="updateInvoiceReserved($event, item2)" :disabled="item2.disable_movimiento || item2.disable_traslado"
-                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_cotizada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
+                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
                 </tr>
               </template>
