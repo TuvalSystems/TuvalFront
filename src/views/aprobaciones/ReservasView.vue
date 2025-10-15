@@ -120,6 +120,7 @@ async function openModalAprobacionReserva(row) {
 
   try {
     lockModal(id);
+    dataModalReserva.value = null;
     const response = await fetchQuotationWithDetialAndStock(row.id);
     if (response) {
       dataModalReserva.value = response;
@@ -148,6 +149,7 @@ async function openModalAprobacionFacturaDemanda(row) {
   if (isModalLocked(id)) return
   try {
     lockModal(id);
+     dataModal.value = null;
     const response = await fetchQuotationWithDetialAndStockActive(row.id);
     if (response) {
       dataModal.value = response;
@@ -213,7 +215,7 @@ async function verModalRechazar(row) {
 
 async function closeModalRechazarReserva() {
   verModalRechazarReservaModalObj.hide();
-  datosModalCotizacionAprobacion.value = null;
+  dataModalReserva.value = null;
   refresh();
 }
 

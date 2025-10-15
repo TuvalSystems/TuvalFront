@@ -20,6 +20,12 @@ export function useQuotationReserveApproval() {
     obs_autorizacion_reserva: null,
   });
 
+  const resetForm = () => {
+    dataSendApproval.id = null;
+    dataSendApproval.fe_autorizacion_reserva = null;
+    dataSendApproval.obs_autorizacion_reserva = null;
+  };
+
   async function fetchQuotationWithDetial(id) {
     loadingQ.value = true;
     try {
@@ -89,6 +95,7 @@ export function useQuotationReserveApproval() {
       );
       const res = response.data;
       loadingDeny.value = false;
+      resetForm();
       return res;
     } catch (error) {
       console.log("Error al obtener la cotizacion", error);
@@ -115,6 +122,7 @@ export function useQuotationReserveApproval() {
       );
       const res = response.data;
       loadingApproval.value = false;
+      resetForm();
       return res;
     } catch (error) {
       swalError(error.response.data.error);
@@ -131,5 +139,6 @@ export function useQuotationReserveApproval() {
     loadingApproval,
     approveReservation,
     fetchQuotationWithDetialAndStockActive,
+    resetForm
   };
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { useQuotationReserveApproval } from '@/composables/aprobaciones/reservas/useQuotationReserveApproval';
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -7,15 +7,15 @@ import {
     swalSuccess,
     swalError,
 } from "@/functions/swal-alert.js";
+import { data } from 'autoprefixer';
 const props = defineProps({
     'reserva': Object
 
 });
 const emit = defineEmits(['closeModalAprobacionReserva']);
 
-const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation } = useQuotationReserveApproval();
+const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm } = useQuotationReserveApproval();
 const infoResponse = computed(() => props.reserva);
-
 
 const infoReserva = infoResponse.value.reserva;
 const rows = infoResponse.value.rows;
@@ -31,8 +31,6 @@ const flatPickrState = reactive({
 
 async function aprobarReserva() {
     try {
-       
-        dataSendApproval.id = infoReserva.id;
         const response = await approveReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
@@ -40,7 +38,6 @@ async function aprobarReserva() {
         }
     } catch (error) {
         console.log(error);
-        
         swalError(error.response.data.error);
     }
 
@@ -48,18 +45,32 @@ async function aprobarReserva() {
 
 async function rechazarReserva() {
     try {
-        dataSendApproval.id = infoReserva.value.id;
+        // dataSendApproval.id = infoReserva.id;
         const response = await denyReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
             await swalSuccess("Reserva rechazada");
         }
     } catch (error) {
-        swalError(error.response.data.error);
+        const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "Error al guardar la solicitud";
+        swalError(msg);
     }
 
 }
 
+function hydrateApprovalForm(row) {
+    if (!row) return resetForm();
+    dataSendApproval.id = row.id ?? null;
+    dataSendApproval.fe_autorizacion_reserva = row.fe_autorizacion_reserva ?? null;
+    console.log(dataSendApproval, row, 'dataSendApproval');
+
+}
+
+watch(
+  infoReserva,                    
+  (row) => hydrateApprovalForm(row),
+  { immediate: true }
+);
 
 
 </script>

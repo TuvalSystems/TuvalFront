@@ -17,6 +17,7 @@ const emit = defineEmits(['closeModalUsoReserva']);
 const infoResponse = computed(() => props.reserva);
 const infoReserva = infoResponse.value.reserva;
 const infoSegmento = infoResponse.value.segmento;
+const listaContizaciones = infoResponse.value.quoteList;
 const { getPendingBase, updateReleaseReserved, updateInvoiceReserved, getAuthorized, loadingReservedProcess, processReservation, selectAllRelease,
   selectAllInvoice, applySelectAllRelease, applySelectAllInvoice } = useReservationProcessor(infoReserva);
 
@@ -176,18 +177,28 @@ async function procesar() {
               </div>
             </div>
           </div>
-
           <div class="col-12" v-if="infoSegmento.segmento || infoSegmento.subsegmento">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-              <span class="text-muted me-1">Segmentación:</span>
+            <div class="kv">
+               <small class="text-muted">Segmentación</small>
               <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
               <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
               }}</span>
             </div>
           </div>
+          <div class="col-12 col-lg-12" v-if="listaContizaciones">
+             <div class="kv">
+              <small class="text-muted">Cotizaciones</small>
+               <span v-for="c in listaContizaciones.split(',').map(s => s.trim()).filter(Boolean)" :key="c"
+                class="badge bg-warning fs-xs me-1 mb-2">
+                {{ c }}
+              </span>
+             </div>
+           
+          </div>
         </div>
         <div v-if="infoReserva.estado === 'traslado'">
-           <p class="alert alert-danger">T: Unidades en traslado (en tránsito entre bodegas). No disponibles para Liberar/Cotizar hasta completar el traslado.</p>
+          <p class="alert alert-danger">T: Unidades en traslado (en tránsito entre bodegas). No disponibles para
+            Liberar/Cotizar hasta completar el traslado.</p>
         </div>
         <!-- detalle de la cotizacion -->
         <div class="table-responsive mb-0">
@@ -200,7 +211,7 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px">Descripción</th>
                 <th class="fs-sm" style="font-size: 10px;text-align: right ">Cant.</th>
                 <th class="fs-sm" style="font-size: 10px">Bodega</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right"  v-bstooltip="'Cantidad Pendiente'"> P.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right" v-bstooltip="'Cantidad Pendiente'"> P.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right">C.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right">T.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right">F.</th>
@@ -239,13 +250,14 @@ async function procesar() {
                   <td class="fs-sm text-sm">
                     <div style="font-size: 12px">{{ item2.STO_ART_BODEGA }}</div>
                   </td>
-                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.pendiente) }} 
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.pendiente) }}
                     <!-- pendiente es un atribudo del modelo -->
                   </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_cotizada)
-                    }}</td>
+                  }}</td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">
-                    <span v-if="item2.cantidad_traslado > 0" class="badge bg-danger"> {{ toInt(item2.cantidad_traslado) }}</span>
+                    <span v-if="item2.cantidad_traslado > 0" class="badge bg-danger"> {{ toInt(item2.cantidad_traslado)
+                    }}</span>
                     <span v-else> {{ toInt(item2.cantidad_traslado) }}</span>
                   </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
@@ -254,12 +266,14 @@ async function procesar() {
                     toInt(item2.cantidad_cancelada) }} </td>
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
                       style="width: 100px" step="1" min="0" v-model.number="item2.a_cancelar" inputmode="numeric"
-                      @change="updateReleaseReserved($event, item2)" :disabled="item2.disable_movimiento || item2.disable_traslado"
-                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0)  - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
+                      @change="updateReleaseReserved($event, item2)"
+                      :disabled="item2.disable_movimiento || item2.disable_traslado"
+                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
                       style="width: 100px" step="1" min="0" v-model.number="item2.a_cotizar" inputmode="numeric"
-                      @change="updateInvoiceReserved($event, item2)" :disabled="item2.disable_movimiento || item2.disable_traslado"
+                      @change="updateInvoiceReserved($event, item2)"
+                      :disabled="item2.disable_movimiento || item2.disable_traslado"
                       :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
                 </tr>

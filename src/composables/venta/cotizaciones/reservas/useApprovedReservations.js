@@ -41,7 +41,7 @@ export function useApprovedReservations() {
     },
     {
       label: "Fecha",
-      key: "created_at",
+      key: "cot_created_at",
       clickable: false,
       sortable: true,
       thClass: "d-none d-md-table-cell text-center",
