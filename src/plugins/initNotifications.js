@@ -51,7 +51,7 @@ export function initNotifications() {
     // console.warn("Canal notificaciones error:", err);
   });
   chan.notification((n) => {
-    const title = n.titulo ?? "Notificación";
+    const title = n.title ?? "Notificación";
     const msg = n.message ?? "";
     bsToast({
       title,
