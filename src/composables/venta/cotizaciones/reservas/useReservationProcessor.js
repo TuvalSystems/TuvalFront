@@ -17,9 +17,9 @@ export function useReservationProcessor(infoReserva) {
     const autorizado  = toInt(getAuthorized(stock));
     const facturado   = toInt(stock.cantidad_facturada ?? 0); // histórico
     // const cotizado    = toInt(stock.cantidad_cotizada ?? 0);
-    const trasladado  = toInt(stock.cantidad_traslado ?? 0);
+    // const trasladado  = toInt(stock.cantidad_traslado ?? 0);
     const canceladoPrev = toInt(stock.cantidad_cancelada ?? 0); // histórico
-    return Math.max(autorizado - facturado  - trasladado - canceladoPrev, 0);
+    return Math.max(autorizado - facturado - canceladoPrev, 0);
   }
 
   function clampRelease(row, requested) {

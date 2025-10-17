@@ -25,7 +25,8 @@ const VentasCotizacionProspecto = () =>
 const VentasCotizaciones = () =>
   import("@/views/ventas/cotizaciones/CotizacionesView.vue");
 const VentasPedidos = () => import("@/views/ventas/pedidos/PedidosView.vue");
-const VentasReservas = () => import("@/views/ventas/reservas/ReservasIndex.vue");
+const VentasReservas = () =>
+  import("@/views/ventas/reservas/ReservasIndex.vue");
 const VentasConsultas = () => import("@/views/ventas/ConsultasView.vue");
 const VentasCrearCliente = () =>
   import("@/views/ventas/cotizaciones/CrearClienteView.vue");
@@ -86,6 +87,11 @@ const DevolucionesBodegas = () =>
 
 const Notificaciones = () => import("@/views/Notificaciones.vue");
 const PasswordChange = () => import("@/views/auth/PasswordChange.vue");
+
+/** bodegas reservas */
+const TransferenciaReservaIndex = () =>
+  import("@/views/bodegas/reservas/TransferenciaReservaIndex.vue");
+
 import Login from "../views/Login.vue";
 import AuthLayout from "../components/AuthLayout.vue";
 import store from "../store";
@@ -191,7 +197,7 @@ const routes = [
         },
       },
 
-       {
+      {
         path: "reservas",
         name: "ventas-reservas",
         component: VentasReservas,
@@ -309,7 +315,6 @@ const routes = [
           title: "Aprobaciones - Reservas",
         },
       },
-
     ],
   },
   {
@@ -442,6 +447,20 @@ const routes = [
         meta: {
           title: "Bodegas - Devoluciones",
         },
+      },
+      {
+        path: "reservas/transferencias",
+        name: "bodegas-reservas-transferencias",
+        component: TransferenciaReservaIndex,
+        meta: {
+          title: "Bodegas - Reservas - Transferencias",
+        },
+      },
+      {
+        path: "/bodegas/transferencias/reserva/:ptovtaId",
+        name: "bodegas-reservas-transferencias-detalle",
+        component: () => import("@/views/bodegas/reservas/TransferenciaReservaDetalleBodega.vue"),
+        props: true,
       },
     ],
   },

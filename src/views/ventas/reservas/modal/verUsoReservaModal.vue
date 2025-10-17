@@ -179,21 +179,21 @@ async function procesar() {
           </div>
           <div class="col-12" v-if="infoSegmento.segmento || infoSegmento.subsegmento">
             <div class="kv">
-               <small class="text-muted">Segmentación</small>
+              <small class="text-muted">Segmentación</small>
               <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
               <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
               }}</span>
             </div>
           </div>
           <div class="col-12 col-lg-12" v-if="listaContizaciones">
-             <div class="kv">
+            <div class="kv">
               <small class="text-muted">Cotizaciones</small>
-               <span v-for="c in listaContizaciones.split(',').map(s => s.trim()).filter(Boolean)" :key="c"
+              <span v-for="c in listaContizaciones.split(',').map(s => s.trim()).filter(Boolean)" :key="c"
                 class="badge bg-warning fs-xs me-1 mb-2">
                 {{ c }}
               </span>
-             </div>
-           
+            </div>
+
           </div>
         </div>
         <div v-if="infoReserva.estado === 'traslado'">
@@ -216,15 +216,15 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px; text-align: right">T.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right">F.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right">L.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: center">Liberar
-                  <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
-                    name="example-checkbox-default1" @change="applySelectAllRelease" v-model="selectAllRelease"
-                    :disabled="infoReserva.cotizacion.reserva_disabled" />
-                </th>
                 <th class="fs-sm" style="font-size: 10px; text-align: center">Cotizar
                   <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
                     name="example-checkbox-default1" :disabled="infoReserva.cotizacion.reserva_disabled"
                     v-model="selectAllInvoice" @change="applySelectAllInvoice" />
+                </th>
+                <th class="fs-sm" style="font-size: 10px; text-align: center">Liberar
+                  <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
+                    name="example-checkbox-default1" @change="applySelectAllRelease" v-model="selectAllRelease"
+                    :disabled="infoReserva.cotizacion.reserva_disabled" />
                 </th>
               </tr>
             </thead>
@@ -265,17 +265,18 @@ async function procesar() {
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
                     toInt(item2.cantidad_cancelada) }} </td>
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
-                      style="width: 100px" step="1" min="0" v-model.number="item2.a_cancelar" inputmode="numeric"
-                      @change="updateReleaseReserved($event, item2)"
-                      :disabled="item2.disable_movimiento || item2.disable_traslado"
-                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
-                  </td>
-                  <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
                       style="width: 100px" step="1" min="0" v-model.number="item2.a_cotizar" inputmode="numeric"
                       @change="updateInvoiceReserved($event, item2)"
                       :disabled="item2.disable_movimiento || item2.disable_traslado"
                       :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
+                  <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
+                      style="width: 100px" step="1" min="0" v-model.number="item2.a_cancelar" inputmode="numeric"
+                      @change="updateReleaseReserved($event, item2)"
+                      :disabled="item2.disable_movimiento || ( item2.disable_traslado && item2.picking)"
+                      :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
+                  </td>
+
                 </tr>
               </template>
 

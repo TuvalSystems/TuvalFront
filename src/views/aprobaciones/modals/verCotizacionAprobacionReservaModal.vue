@@ -3,17 +3,18 @@ import { computed, reactive, watch } from 'vue';
 import { useQuotationReserveApproval } from '@/composables/aprobaciones/reservas/useQuotationReserveApproval';
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import {
-    swalSuccess,
-    swalError,
-} from "@/functions/swal-alert.js";
-import { data } from 'autoprefixer';
+import { swalSuccess, swalError } from "@/functions/swal-alert.js";
 const props = defineProps({
     'reserva': Object
-
 });
 const emit = defineEmits(['closeModalAprobacionReserva']);
 
+const flatPickrState = reactive({
+    fecha: {
+        minDate:  new Date(new Date().setDate(new Date().getDate() - 1)),
+        locale: Spanish,
+    },
+});
 const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm } = useQuotationReserveApproval();
 const infoResponse = computed(() => props.reserva);
 
@@ -21,12 +22,6 @@ const infoReserva = infoResponse.value.reserva;
 const rows = infoResponse.value.rows;
 const infoSegmento = infoResponse.value.segmento;
 
-const flatPickrState = reactive({
-    fecha: {
-        minDate: Date.now(),
-        locale: Spanish,
-    },
-});
 
 
 async function aprobarReserva() {
@@ -45,7 +40,6 @@ async function aprobarReserva() {
 
 async function rechazarReserva() {
     try {
-        // dataSendApproval.id = infoReserva.id;
         const response = await denyReservation();
         if (response) {
             emit('closeModalAprobacionReserva', true);
@@ -62,14 +56,12 @@ function hydrateApprovalForm(row) {
     if (!row) return resetForm();
     dataSendApproval.id = row.id ?? null;
     dataSendApproval.fe_autorizacion_reserva = row.fe_autorizacion_reserva ?? null;
-    console.log(dataSendApproval, row, 'dataSendApproval');
-
 }
 
 watch(
-  infoReserva,                    
-  (row) => hydrateApprovalForm(row),
-  { immediate: true }
+    infoReserva,
+    (row) => hydrateApprovalForm(row),
+    { immediate: true }
 );
 
 
@@ -108,7 +100,7 @@ watch(
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
                                 infoReserva.cotizacion.CLI_RAZON_SOCIAL
-                            }}</div>
+                                }}</div>
                         </div>
                     </div>
 
@@ -170,7 +162,7 @@ watch(
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
                             <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                 </div>
@@ -226,7 +218,7 @@ watch(
                             placeholder="Detalles adicionales (opcional)"></textarea>
                     </div>
                     <div class="text-end text-muted fs-xs">{{ (dataSendApproval.obs_autorizacion_reserva || '').length
-                        }}/400
+                    }}/400
                     </div>
                 </div>
             </div>
