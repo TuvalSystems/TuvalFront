@@ -1,18 +1,27 @@
 <script setup>
 import { onMounted, toRefs } from 'vue';
 import { formatPrice } from "@/functions";
+import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
+
 const props = defineProps({
-  ptovtaId: { type: String, required: true },
+  ptovtaId: { type: String, required: true },  //ptovta destino
   bodega: { type: String, required: true },
   peso: { type: Number, required: true },
 });
 const { ptovtaId } = toRefs(props);
-
-const peso = 0.021;
-const bodega = 'Bodega 1';
-
+const {
+  dataDetailTransfer,
+  loadingDetailTransfer,
+  payload,
+  fetchListTransfersByWarehouseOriginAndDestination,
+} = useReservationTransferByWarehouse();
+const bodega =  dataDetailTransfer.destination;
+const pesoTotal = dataDetailTransfer.pesoTotal;
 onMounted(() => {
-  // console.log(ptovtaId);
+  payload.destino = ptovtaId.value;
+  if (dataDetailTransfer.value === null) {
+    fetchListTransfersByWarehouseOriginAndDestination();
+  }
 });
 </script>
 
@@ -41,7 +50,7 @@ onMounted(() => {
     <BaseBlock :title="'Destino: ' + bodega">
       <template #options>
         <div class="block-options-item">
-          <span class="badge bg-warning">Peso total: {{ formatPrice(peso) }} Tn</span>
+          <span class="badge bg-warning">Peso total: {{ formatPrice(pesoTotal) }} Tn</span>
         </div>
       </template>
     </BaseBlock>

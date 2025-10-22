@@ -1,10 +1,11 @@
-/** composable para manejar la transferencia de reservas */
 import { ref } from "vue";
 import axiosClient from "@/axios";
 import { useStore } from "vuex";
 import { swalError } from "@/functions/swal-alert.js";
 
 export function useReservationTransfers(){
+/** composable para manejar la transferencia de reservas */
+
   const store = useStore();
   const ptoVtaId = store.state.puntodeventaselect;
   const dataTransfer = ref(null);
@@ -20,7 +21,7 @@ export function useReservationTransfers(){
       dataTransfer.value = res.data;
       return dataTransfer.value;
     } catch (error) {
-      console.log("Error al obtener lista transferencia", error);
+      console.log("Error al obtener la información", error);
       swalError(error?.response?.data?.error || error?.message || 'Error');
       return;
     } finally {
