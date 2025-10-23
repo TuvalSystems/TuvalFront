@@ -466,8 +466,10 @@ function verPicking(bodega) {
 
   store.dispatch('detallePickingTransferencia', arreglo)
 }
-
 function guiaRemision(bodega) {
+  if (!validateLimitSelectItems(bodega.traslados)) {
+    return;
+  }
   currentBodega.value = bodega;
   store.commit("resetFlatPickrState");
   store.commit("resetVehiculo");
@@ -477,6 +479,21 @@ function guiaRemision(bodega) {
   guiaRemisionModalObj.show();
 }
 
+
+function validateLimitSelectItems(selectedItems, maxItems = 100) {
+  const itemsCount = selectedItems.reduce((acc, it) => {
+    const sel = Number(it?.seleccionado ?? 0);
+    return acc + (sel > 0 ? 1 : 0);
+  }, 0);
+
+  // Máximo inclusivo: 100 es OK; 101 no
+  if (Number.isFinite(maxItems) && maxItems >= 0 && itemsCount > maxItems) {
+    swalWarning(`Solo puedes seleccionar hasta un máximo de ${maxItems} ítems (llevas ${itemsCount}).`);
+    return false;
+  }
+
+  return true;
+}
 
 const cols = reactive([
   {
