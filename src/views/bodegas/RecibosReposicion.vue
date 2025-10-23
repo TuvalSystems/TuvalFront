@@ -176,12 +176,12 @@
                         'is-invalid': articulo.repetido,
                       }"
                       @change="checkRepetidos"
-                      >
+                      >{{ articulo.compartimientos }}
                       <option
                         v-for="(compartimiento, index) in articulo.compartimientos" :key="index"
-                        :value="compartimiento.Compartimento"
+                        :value="compartimiento.bin"
 
-                        >{{ compartimiento.Compartimento }}</option>
+                        >{{ compartimiento.bin }}</option>
                     </select>
                   </td>
                   <td class="text-end">
@@ -388,11 +388,9 @@ function refrescar(){
 function verGuia(bodega) {
   guiaRemisionModalObj.show();
   store.dispatch('detalleReciboReposicion', bodega.id).then((res) => {
-    console.log(res);
     currentGuia.value = bodega;
-
     res.detalle.map( articulo => {
-        articulo.compartimiento = articulo.compartimientos[0].Compartimento;
+        articulo.compartimiento = articulo.compartimientos[0]?.bin || '';
     });
 
     currentGuia.value.detalle = res.detalle;
