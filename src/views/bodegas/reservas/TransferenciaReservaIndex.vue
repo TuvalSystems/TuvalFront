@@ -31,14 +31,13 @@ onMounted(() => {
     </template>
   </BasePageHeading>
   <div class="content">
-
     <div v-if="loadingTransfer" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
       <p class="mt-2 text-muted">Cargando transferencias...</p>
     </div>
-    <div v-if="dataTransfer !== null && !loadingTransfer">
+    <div v-if="!loadingTransfer && dataTransfer">
       <div class="row items-push">
         <div v-for="(bodega, i) in dataTransfer" :key="i" class="col-sm-6 col-xxl-3">
 
@@ -82,9 +81,11 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div v-if="dataTransfer === null && !loadingTransfer">
-      <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
-      <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
+    <div v-if="!loadingTransfer && (!dataTransfer || dataTransfer.length === 0)">
+      <div class="text-center">
+        <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+        <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
+      </div>
     </div>
   </div>
 </template>
