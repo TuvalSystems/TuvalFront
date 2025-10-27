@@ -1,7 +1,11 @@
 <script setup>
-import { onMounted, toRefs, ref } from 'vue';
+import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice } from "@/functions";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
+import { Modal } from "bootstrap";
+/** modales */
+import verPickingReservas from "@/views/bodegas/reservas/modals/verPickingReservasModal.vue"
+import verGuiaRemisionReserva from "@/views/bodegas/reservas/modals/verGuiaRemisionReservasModal.vue"
 const props = defineProps({
   ptovtaId: { type: String, required: true },  //ptovta destino
 });
@@ -20,6 +24,10 @@ const {
   datasetLengthRef,
   disabledPicking,
   disabledGuiaRemision,
+
+  //picking - cancelar
+  loadingCancelPicking,
+
   //functions
   //cabecera
   fetchHeaderTransferByWarehouseOriginAndDestination,
@@ -33,21 +41,51 @@ const {
   selectAll,
   applyAlPendingTransfer,
   applyTransfer,
+  cancelPicking
+
 
 } = useReservationTransferByWarehouse();
 
+let pickingModal = ref(null);
+let pickingModalObj = null;
+let guiaRemisionModal = ref(null);
+let guiaRemisionModalObj = null;
 
-function verPicking() {
+let dataPicking = ref([]);
+async function verPicking() {
+  dataPicking.value = (dataDetailTransfer.value || []).filter((item) => item.check_seleccion === true);
+  if (dataPicking.value.length === 0) {
+    return
+  }
 
+  await nextTick();
+  pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
+  pickingModalObj.show();
+}
+
+async function closePickingModal() {
+  await nextTick();
+  pickingModalObj.hide();
 }
 
 
+const dataGuiaRemision = ref([]);
 function guiaRemision() {
-
+  dataGuiaRemision = dataDetailTransfer.value.filter(item => item.check_seleccion == true);
+  guiaRemisionModalObj.show();
 }
 
 
-
+function initialModal() {
+  if (pickingModal.value) {
+    pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
+    // pickingModalObj = new Modal(pickingModal.value);
+  }
+  if (guiaRemisionModal.value) {
+    guiaRemisionModalObj = Modal.getOrCreateInstance(guiaRemisionModal.value, { backdrop: true })
+    // guiaRemisionModalObj = new Modal(guiaRemisionModal.value);
+  }
+}
 
 
 
@@ -58,6 +96,9 @@ onMounted(async () => {
   payloadHeader.destino = ptovtaId.value;
   if (!dataHeaderTransfer.value) fetchHeaderTransferByWarehouseOriginAndDestination();
   if (!dataDetailTransfer.value) fetchListTransfersByWarehouseOriginAndDestination();
+
+  await nextTick()
+  initialModal();
 });
 
 
@@ -181,12 +222,10 @@ onMounted(async () => {
                               @change="applyTransfer(row)" />
                           </td>
                           <td class="fs-sm" style="width:30px">
-                            <button v-if="row.picking" class="btn btn-sm btn-danger" title="Cancelar Picking">
+                            <button v-if="row.picking" class="btn btn-sm btn-danger" title="Cancelar Picking"
+                              @click="cancelPicking(row)" :disabled="loadingCancelPicking">
                               <i class="fa fa-xmark"></i>
                             </button>
-                            <!-- <button v-else class="btn btn-sm btn-primary" title="Generar Picking">
-                              <i class="fa fa-check"></i>
-                            </button> -->
                           </td>
                         </tr>
                       </template>
@@ -223,6 +262,29 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+
+
+  <!-- modales  -->
+  <!-- modal de picking -->
+  <div class="modal" id="modal-liberar" tabindex="-1" role="dialog" aria-labelledby="modal-picking" aria-hidden="true"
+    ref="pickingModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verPickingReservas v-if="dataPicking && dataPicking.length > 0" :header="dataHeaderTransfer"
+          :picking="dataPicking" @refresh="refresh()" @closePickingModal="closePickingModal()"></verPickingReservas>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal guia remision reservas -->
+
+  <div class="modal" id="modal-guia-reservas" tabindex="-1" role="dialog" aria-labelledby="modal-guia-reservas"
+    aria-hidden="true" ref="guiaRemisionModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content"></div>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>

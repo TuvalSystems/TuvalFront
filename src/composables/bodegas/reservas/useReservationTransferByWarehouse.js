@@ -9,7 +9,7 @@ import {
   swalError,
   toast,
 } from "@/functions/swal-alert.js";
-
+import { downloadPdfFromApi } from "@/utils/pdf";
 export function useReservationTransferByWarehouse() {
   /** maneja el detalle de mis transferencias de reserva por bodega */
   const store = useStore();
@@ -27,12 +27,20 @@ export function useReservationTransferByWarehouse() {
   const loadingDetailTransfer = ref(false);
   const apiListTransferByWarehouse = `reservas/transferencias/lista-traslados-por-reserva-bodega`;
 
+
+  const apiCancelPicking = `reservas/transferencias/cancelar-picking-item-reserva`;
+  const apiUpdatePicking = `reservas/transferencias/actualizar-picking-items`;
+  const apiPdfPicking = `reservas/transferencias/pdf-picking-reserva`;
+
+
+  //payload detalle
   const payload = reactive({
     origen: ptoOrigen,
     destino: null,
     cotizacion: "",
   });
 
+  // tabla detalle de transferencias de reservas
   const cols = reactive([
     {
       name: "CTL",
@@ -54,7 +62,7 @@ export function useReservationTransferByWarehouse() {
     },
     {
       name: "COMPART.",
-      field: "",
+      field: "compartimiento",
       thClass: "fs-sm text-center",
       sort: "",
     },
@@ -346,7 +354,7 @@ export function useReservationTransferByWarehouse() {
     // 5) Asignar y marcar
     row.seleccionado = val;
     row.check_seleccion = val > 0;
-    checkDisablePickingAndGuide();  
+    checkDisablePickingAndGuide();
     return true;
   }
 
@@ -364,6 +372,100 @@ export function useReservationTransferByWarehouse() {
     );
     disabledPicking.value = !hasSelected;
     disabledGuiaRemision.value = !hasSelected;
+  }
+
+  /**
+   *   funciones de proceso de actualizacion de picking de transferencias
+   */
+
+  const loadingCancelPicking = ref(false);
+  async function cancelPicking(row) {
+    loadingCancelPicking.value = true;
+    try {
+      const response = await axiosClient.post(apiCancelPicking, { row });
+      const data = response?.data ?? {};
+      const ok = data.success === true; // exige true explícito
+      const msg =
+        data.message ||
+        (ok
+          ? "Reserva procesada correctamente."
+          : "No se pudo procesar la reserva.");
+
+      if (!ok) {
+        throw new Error(data.error || msg);
+      }
+      swalSuccess(msg);
+      row.picking = 0;
+      return { ok: true, data, message: msg };
+    } catch (error) {
+      loadingCancelPicking.value = false;
+      const msg =
+        error?.response?.data?.error ||
+        error?.message ||
+        "Error al procesar la reserva.";
+      swalError(msg);
+      return { ok: false, data: error?.response?.data ?? null, message: msg };
+    } finally {
+      loadingCancelPicking.value = false;
+    }
+  }
+
+  const loadingPicking = ref(false);
+  async function applyPickingSelected(items) {
+    loadingPicking.value = true;
+    try {
+      const response = await axiosClient.post(apiUpdatePicking, { items });
+      const data = response?.data ?? {};
+      const ok = data.success === true; // exige true explícito
+      const msg =
+        data.message ||
+        (ok
+          ? "Reserva procesada correctamente."
+          : "No se pudo procesar la reserva.");
+
+      if (!ok) {
+        throw new Error(data.error || msg);
+      }
+      swalSuccess(msg);
+      return { ok: true, data, message: msg };
+    } catch (error) {
+      loadingPicking.value = false;
+      const msg =
+        error?.response?.data?.error ||
+        error?.message ||
+        "Error al procesar la reserva.";
+      swalError(msg);
+      return { ok: false, data: error?.response?.data ?? null, message: msg };
+    } finally {
+      loadingPicking.value = false;
+    }
+  }
+  /** funcion para generar el pdf del picking */
+  const loadingPdfPicking = ref(false);
+  const lastError = ref(null);
+  async function printPickingPdf(payload) {
+    try {
+      lastError.value = null;
+      loadingPdfPicking.value = true;
+      const res = await downloadPdfFromApi({
+        url: apiPdfPicking,
+        method: "POST",
+        payload,
+        filenameFallback: "picking-reserva.pdf",
+      });
+      if (!res.ok) {
+        lastError.value = res.message || "Error";
+        swalError(lastError.value);
+      }
+      return res;
+    } catch (error) {
+      lastError.value =
+        error?.response?.data?.error || error?.message || "Error";
+      swalError(lastError.value);
+      return { ok: false, message: lastError.value };
+    } finally {
+      loadingPdfPicking.value = false;
+    }
   }
 
   return {
@@ -392,7 +494,15 @@ export function useReservationTransferByWarehouse() {
     seacrchQuotation,
     selectAll,
     applyAlPendingTransfer,
-    applyTransfer
-    
+    applyTransfer,
+
+    // function picking
+    //loading
+    loadingCancelPicking,
+    loadingPicking,
+    // functions
+    cancelPicking,
+    applyPickingSelected,
+    printPickingPdf,
   };
 }
