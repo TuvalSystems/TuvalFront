@@ -1694,7 +1694,7 @@ const store = createStore({
         )
         .then((res) => {
           commit("setTransferenciasVentaLoading", false);
-          return res.data.traslados;
+          return res.data.data;
         });
     },
     cancelarPicking({ commit }, picking) {
