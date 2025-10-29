@@ -219,7 +219,7 @@ const flatPickrState = computed(() => store.state.flatPickrState);
 const observacion = ref('');
 const ruta = ref('');
 const boton_generar = ref('boton_generar');
-
+useTipoReservasStore
 const { currentBodega } = defineProps({
   currentBodega: Object,
 });

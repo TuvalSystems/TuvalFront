@@ -2,6 +2,7 @@
 import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice } from "@/functions";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
+
 import { Modal } from "bootstrap";
 /** modales */
 import verPickingReservas from "@/views/bodegas/reservas/modals/verPickingReservasModal.vue"
@@ -10,8 +11,8 @@ const props = defineProps({
   ptovtaId: { type: String, required: true },  //ptovta destino
 });
 const { ptovtaId } = toRefs(props);
-const {
 
+const {
   //cabecera
   dataHeaderTransfer,
   loadingHeaderTransfer,
@@ -43,16 +44,19 @@ const {
   applyTransfer,
   cancelPicking
 
-
 } = useReservationTransferByWarehouse();
 
 let pickingModal = ref(null);
 let pickingModalObj = null;
 let guiaRemisionModal = ref(null);
 let guiaRemisionModalObj = null;
-
 let dataPicking = ref([]);
+let dataGuiaRemision = ref([]);
+
+
+
 async function verPicking() {
+  dataPicking.value = [];
   dataPicking.value = (dataDetailTransfer.value || []).filter((item) => item.check_seleccion === true);
   if (dataPicking.value.length === 0) {
     return
@@ -62,41 +66,55 @@ async function verPicking() {
   pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
   pickingModalObj.show();
 }
-
 async function closePickingModal() {
   await nextTick();
+  dataPicking.value = [];
   pickingModalObj.hide();
 }
 
 
-const dataGuiaRemision = ref([]);
-function guiaRemision() {
-  dataGuiaRemision = dataDetailTransfer.value.filter(item => item.check_seleccion == true);
+
+async function guiaRemision() {
+  dataGuiaRemision.value = [];
+  dataGuiaRemision.value = (dataDetailTransfer.value || []).filter((item) => item.check_seleccion === true);
+  if (dataGuiaRemision.value.length === 0) {
+    return
+  }
+  await nextTick();
+  guiaRemisionModalObj = Modal.getOrCreateInstance(guiaRemisionModal.value, { backdrop: true })
   guiaRemisionModalObj.show();
 }
+
+async function closeGuiaRemisionModal() {
+  await nextTick();
+  dataGuiaRemision.value = [];
+  guiaRemisionModalObj.hide();
+}
+
+
+
+
+
+
+
+
+
 
 
 function initialModal() {
   if (pickingModal.value) {
     pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
-    // pickingModalObj = new Modal(pickingModal.value);
   }
   if (guiaRemisionModal.value) {
     guiaRemisionModalObj = Modal.getOrCreateInstance(guiaRemisionModal.value, { backdrop: true })
-    // guiaRemisionModalObj = new Modal(guiaRemisionModal.value);
   }
 }
-
-
-
-
 
 onMounted(async () => {
   payload.destino = ptovtaId.value;
   payloadHeader.destino = ptovtaId.value;
   if (!dataHeaderTransfer.value) fetchHeaderTransferByWarehouseOriginAndDestination();
   if (!dataDetailTransfer.value) fetchListTransfersByWarehouseOriginAndDestination();
-
   await nextTick()
   initialModal();
 });
@@ -147,8 +165,8 @@ onMounted(async () => {
         <div class="row g-3 align-items-end px-2 pt-2 pb-1 mb-4">
           <div class="col-12 col-sm-6 col-lg-3">
             <small class="text-muted d-block mb-1">Cotización</small>
-            <div class="input-group">
-              <select class="form-select form-control-sm" v-model="payload.cotizacion">
+            <div class="input-group input-group-sm">
+              <select class="form-select form-select-sm" v-model="payload.cotizacion">
                 <option value="">Todos</option>
                 <option v-for="p in dataHeaderTransfer.listaQuotations" :key="p" :value="p">{{ p }}</option>
               </select>
@@ -189,7 +207,7 @@ onMounted(async () => {
                         </th>
                         <th class="fs-sm text-center" style="font-size:10px;">
                           <label class="d-inline-flex align-items-center gap-1 m-0">
-                            <span>SELECCIONAR</span>
+                            <span>SELEC.</span>
                             <input type="checkbox" class="form-check-input m-0" @click="selectAll($event)" />
                           </label>
                         </th>
@@ -240,20 +258,24 @@ onMounted(async () => {
             </div>
           </Dataset>
           <div class="row">
-            <div class="col-md-12 text-end mb-2">
-              <button type="button" class="btn btn-sm btn-warning mx-2" :disabled="disabledPicking"
-                @click="verPicking()">
-                <i class="fa fa-people-carry-box"></i> Picking
-              </button>
-              <button type="button" class="btn btn-sm btn-success mx-2" :disabled="disabledGuiaRemision"
-                @click="guiaRemision()"><i class="fa fa-file-lines"></i>
-                Generar guía de remisión</button>
+            <div class="col-12 col-md-6  ms-md-auto">
+              <div class="d-grid d-sm-flex gap-2 justify-content-end">
+                <button type="button" class="btn btn-warning btn-sm w-100 w-sm-auto" :disabled="disabledPicking"
+                  @click="verPicking()">
+                  <i class="fa fa-people-carry-box me-1"></i>
+                  <span class="d-none d-sm-inline">Picking</span>
+                </button>
+                <button type="button" class="btn btn-primary btn-sm w-100 w-sm-auto" :disabled="disabledGuiaRemision"
+                  @click="guiaRemision()">
+                  <i class="fa fa-file-lines me-1"></i>
+                  <span class="d-none d-sm-inline">Generar guía de remisión</span>
+                </button>
+              </div>
             </div>
           </div>
+
         </div>
       </BaseBlock>
-
-
     </div>
     <div v-if="!loadingHeaderTransfer && (!dataHeaderTransfer || dataHeaderTransfer.length === 0)">
       <div class="text-center">
@@ -277,21 +299,24 @@ onMounted(async () => {
   </div>
 
   <!-- modal guia remision reservas -->
-
   <div class="modal" id="modal-guia-reservas" tabindex="-1" role="dialog" aria-labelledby="modal-guia-reservas"
     aria-hidden="true" ref="guiaRemisionModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-      <div class="modal-content"></div>
+      <div class="modal-content">
+        <verGuiaRemisionReserva v-if="dataGuiaRemision && dataGuiaRemision.length > 0" :header="dataHeaderTransfer"
+          :detalle="dataGuiaRemision" @refresh="refresh()" @closeModal="closeGuiaRemisionModal()">
+        </verGuiaRemisionReserva>
+      </div>
     </div>
   </div>
 
 </template>
 
 <style scoped>
-@media (min-width: 992px) {
+@media (min-width: 1000px) {
   .table.table-sm> :not(caption)>*>* {
-    padding-top: .35rem;
-    padding-bottom: .35rem;
+    padding-top: .25rem;
+    padding-bottom: .15rem;
   }
 }
 </style>
