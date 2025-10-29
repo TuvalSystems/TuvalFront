@@ -229,12 +229,16 @@
                           <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
                               @click="imprimirpedidoride(row)"><i class="fa-solid fa-file-pdf"></i> Generar
                               RIDE</button></li>
-                              <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
+                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
                               @click="imprimirpedidoridesinimagen(row)"><i class="fa-solid fa-file-pdf"></i> Generar
                               RIDE(sin imagen)</button></li>
-                              
+
                           <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
                               @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print"></i> Generar XML</button>
+                          </li>
+                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
+                              @click="operModalActualizarDatosPedido(row)"><i class="fa-solid fa-print"></i> Actualizar
+                              Datos</button>
                           </li>
                         </ul>
 
@@ -299,9 +303,21 @@
       </div>
     </div>
   </div>
+
+  <!-- modal de actualizacion de datos de orden y nota cliente -->
+  <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
+    ref="verActualizarDatos">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verActualizarOrdYNotaModalComponent v-if="datosModalAcPedido && datosModalAcPedido.id"
+          :pedido="datosModalAcPedido" @llenarPedidos="llenarpedidos('todos')" @closeModal="closeModalActualizarDatosPedido">
+        </verActualizarOrdYNotaModalComponent>
+      </div>
+    </div>
+  </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useStore } from 'vuex'
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
@@ -315,7 +331,7 @@ import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { formatPrice, format } from "@/functions";
-
+import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
 const flatPickrState = reactive({
   fecha_desde: {
     maxDate: Date.now(),
@@ -443,7 +459,7 @@ function refrescarFecha() {
 
 }
 async function funcionverpedido(pedido) {
-  store.dispatch('despachoenproceso', pedido.id).then((res) => {  
+  store.dispatch('despachoenproceso', pedido.id).then((res) => {
     pedido.despacho_en_proceso = res.data.despacho_en_proceso;
     pedido.transferencia_en_proceso = res.data.transferencia_en_proceso;
     pedido.item_l_recibido = res.data.item_l_recibido;
@@ -731,6 +747,26 @@ function motivoEspera(pedido) {
   swalWarning(msg);
 }
 
+
+let verActualizarDatos = ref(null);
+let verActualizarDatosObj = null;
+let datosModalAcPedido = ref({});
+
+async function operModalActualizarDatosPedido(pedido) {
+  if (pedido.estado === 'facturado') {
+    swalError('No se puede actualizar la orden de compra y nota cliente de un pedido facturado')
+    return;
+  }
+  datosModalAcPedido.value = pedido;
+  await nextTick();
+  verActualizarDatosObj.show();
+}
+
+function closeModalActualizarDatosPedido() {
+  datosModalAcPedido.value = {};
+  verActualizarDatosObj.hide();
+}
+
 onMounted(() => {
 
   verpedidoModalObj = new Modal(verpedidoModal.value);
@@ -738,6 +774,7 @@ onMounted(() => {
   filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
   facturarexistenteModalObj = new Modal(facturarexistenteModal.value);
   facturardespachadoModalObj = new Modal(facturardespachadoModal.value);
+  verActualizarDatosObj = new Modal(verActualizarDatos.value);
   // Remove labels from
   document.querySelectorAll("#datasetLength label").forEach((el) => {
     el.remove();
