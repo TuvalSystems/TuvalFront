@@ -2,7 +2,14 @@
 import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice } from "@/functions";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
-
+import {
+  swalSimple,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+  swalError,
+  toast,
+} from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 /** modales */
 import verPickingReservas from "@/views/bodegas/reservas/modals/verPickingReservasModal.vue"
@@ -54,6 +61,17 @@ let dataPicking = ref([]);
 let dataGuiaRemision = ref([]);
 
 
+
+async function cancelarPicking(row) {
+  let resp = await cancelPicking(row);  
+  if (!resp.ok) {
+    swalError(resp.message);
+    return;
+  }
+  row.picking = 0;
+  swalSuccess(resp.message);
+
+}
 
 async function verPicking() {
   dataPicking.value = [];
@@ -241,7 +259,7 @@ onMounted(async () => {
                           </td>
                           <td class="fs-sm" style="width:30px">
                             <button v-if="row.picking" class="btn btn-sm btn-danger" title="Cancelar Picking"
-                              @click="cancelPicking(row)" :disabled="loadingCancelPicking">
+                              @click="cancelarPicking(row)" :disabled="loadingCancelPicking">
                               <i class="fa fa-xmark"></i>
                             </button>
                           </td>

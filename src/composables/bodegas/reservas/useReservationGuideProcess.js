@@ -1,26 +1,30 @@
-import { ref, reactive, watch, toRef, computed } from "vue";
+import { ref, reactive } from "vue";
 import axiosClient from "@/axios";
 import { swalError } from "@/functions/swal-alert.js";
 import { formatJm } from "@/functions";
+import { useApiAction } from "@/composables/core/useApiAction";
 export const useReservationGuideProcess = () => {
+  //instancia general para apis 
+  const { run } = useApiAction();
   const loadingProcessGuide = ref(false);
+  const apiCreateGuideRemision = `bodegas/reservas/guia-remision/crear-guia-reserva`;
   const pesoTotalItems = ref(0);
   const pesoTotalItemsFmt = ref("0.00");
-  const data = reactive({
-    //header
+  const initialState = {
+    // header
     bod_origen: null,
     pto_origen: null,
     origen: null,
     bod_destino: null,
     pto_destino: null,
     destino: null,
-    //detalle
+    // detalle
     detalle: [],
-    //local
+    // local
     vehiculo_id: null,
     transporte_id: null,
 
-    //externo
+    // externo
     transporte: null,
     nombre_transporte: null,
     tipo_identificacion: null,
@@ -31,7 +35,9 @@ export const useReservationGuideProcess = () => {
     fecha_llegada: null,
     observacion: null,
     ruta: null,
-  });
+  };
+
+  const data = reactive(structuredClone(initialState));
 
   let modo = ref("local");
   const tipoIdentificacion = [
@@ -43,11 +49,11 @@ export const useReservationGuideProcess = () => {
   function calcularPesoItems(items) {
     const totalKg = Array.isArray(items)
       ? items.reduce(
-          (acc, it) =>
-            acc +
-            (Number(it?.art_peso) || 0) * (Number(it?.seleccionado ?? 0) || 0),
-          0
-        )
+        (acc, it) =>
+          acc +
+          (Number(it?.art_peso) || 0) * (Number(it?.seleccionado ?? 0) || 0),
+        0
+      )
       : 0;
     pesoTotalItems.value = totalKg;
     pesoTotalItemsFmt.value = formatJm(totalKg, 2);
@@ -76,6 +82,15 @@ export const useReservationGuideProcess = () => {
   function clearChangeModeExterno() {
     data.vehiculo_id = null;
     data.transporte_id = null;
+  }
+  function clearData() {
+    Object.keys(initialState).forEach((key) => {
+      if (Array.isArray(initialState[key])) {
+        data[key] = [];
+      } else {
+        data[key] = initialState[key];
+      }
+    });
   }
 
   function isBlank(v) {
@@ -131,9 +146,9 @@ export const useReservationGuideProcess = () => {
     return true;
   }
 
-  function generarGuiaRemision() {
+  async function generarGuiaRemision() {
     if (!validationModo()) return;
-    const observacion = (data.observacion || "").trim().slice(0, 250);
+    const observacion = (data.observacion || "").trim().slice(0, 350);
     const ruta = (data.ruta || "").trim();
 
     // payload condicionado por modo
@@ -155,20 +170,24 @@ export const useReservationGuideProcess = () => {
       ruta,
       ...(modo.value === "local"
         ? {
-            vehiculo_id: data.vehiculo_id,
-            transporte_id: data.transporte_id,
-          }
+          vehiculo_id: data.vehiculo_id,
+          transporte_id: data.transporte_id,
+        }
         : {
-            transporte: (data.transporte || "").trim(), // empresa/razón social si aplica
-            nombre_transporte: (data.nombre_transporte || "").trim(),
-            tipo_identificacion: data.tipo_identificacion,
-            identificacion: String(data.identificacion || "").trim(),
-            placa: String(data.placa || "")
-              .toUpperCase()
-              .replace(/\s/g, ""),
-          }),
+          transporte: (data.transporte || "").trim(), // empresa/razón social si aplica
+          nombre_transporte: (data.nombre_transporte || "").trim(),
+          tipo_identificacion: data.tipo_identificacion,
+          identificacion: String(data.identificacion || "").trim(),
+          placa: String(data.placa || "")
+            .toUpperCase()
+            .replace(/\s/g, ""),
+        }),
     };
-    console.log(payload);
+    return await run(() => axiosClient.post(apiCreateGuideRemision, payload), {
+      loadingRef: loadingProcessGuide,
+      onSuccess: () => clearData(),
+      successMessage: "Guía de remisión creada.",
+    });
   }
 
   return {
@@ -177,6 +196,7 @@ export const useReservationGuideProcess = () => {
     modo,
     tipoIdentificacion,
     pesoTotalItemsFmt,
+    loadingProcessGuide,
 
     //functions
     calcularPesoItems,

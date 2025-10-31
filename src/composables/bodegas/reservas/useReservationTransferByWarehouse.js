@@ -9,8 +9,12 @@ import {
   swalError,
   toast,
 } from "@/functions/swal-alert.js";
+import { useApiAction } from "@/composables/core/useApiAction";
+
 import { downloadPdfFromApi } from "@/utils/pdf";
 export function useReservationTransferByWarehouse() {
+  //instancia general para apis 
+  const { run } = useApiAction();
   /** maneja el detalle de mis transferencias de reserva por bodega */
   const store = useStore();
   const ptoOrigen = store.state.puntodeventaselect;
@@ -154,45 +158,41 @@ export function useReservationTransferByWarehouse() {
   }
 
   async function fetchHeaderTransferByWarehouseOriginAndDestination() {
-    loadingHeaderTransfer.value = true;
-    try {
-      validatePtoDestination();
-      const response = await axiosClient.post(
-        apiHeaderTransferByWarehouseOriginAndDestination,
-        payloadHeader
-      );
-      const res = response.data;
-      loadingHeaderTransfer.value = false;
-      dataHeaderTransfer.value = res.data;
-      return dataHeaderTransfer.value;
-    } catch (error) {
-      console.log("Error al obtener cabecera transferencia", error);
-      swalError(error?.response?.data?.error || error?.message || "Error");
-      return;
-    } finally {
-      loadingHeaderTransfer.value = false;
-    }
+     if (!validatePtoDestination()) return;
+    return await run(() => axiosClient.post(apiHeaderTransferByWarehouseOriginAndDestination, payloadHeader), {
+      loadingRef: loadingHeaderTransfer,
+      successMessage: "Proceso realizado exitosamente.",
+       onSuccess: (list) => {
+        dataHeaderTransfer.value = list; // list ya es response.data.data
+      },
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener lista transferencia"
+        );
+      },
+    });
   }
 
   async function fetchListTransfersByWarehouseOriginAndDestination() {
-    loadingDetailTransfer.value = true;
-    try {
-      validatePtoDestination();
-      const response = await axiosClient.post(
-        apiListTransferByWarehouse,
-        payload
-      );
-      const res = response.data;
-      loadingDetailTransfer.value = false;
-      dataDetailTransfer.value = res.data;
-      return dataDetailTransfer.value;
-    } catch (error) {
-      console.log("Error al obtener lista transferencia", error);
-      swalError(error?.response?.data?.error || error?.message || "Error");
-      return;
-    } finally {
-      loadingDetailTransfer.value = false;
-    }
+    if (!validatePtoDestination()) return;
+    return await run(() => axiosClient.post(apiListTransferByWarehouse, payload), {
+      loadingRef: loadingDetailTransfer,
+      successMessage: "Items cargados correctamente.",
+       onSuccess: (list) => {
+        dataDetailTransfer.value = list; // list ya es response.data.data
+      },
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener lista transferencia"
+        );
+      },
+    });
   }
 
   function refresh() {
@@ -205,7 +205,7 @@ export function useReservationTransferByWarehouse() {
 
   async function validatePtoDestination() {
     if (payload.destino === null) {
-      return;
+      return false;
     }
   }
 
@@ -380,65 +380,19 @@ export function useReservationTransferByWarehouse() {
 
   const loadingCancelPicking = ref(false);
   async function cancelPicking(row) {
-    loadingCancelPicking.value = true;
-    try {
-      const response = await axiosClient.post(apiCancelPicking, { row });
-      const data = response?.data ?? {};
-      const ok = data.success === true; // exige true explícito
-      const msg =
-        data.message ||
-        (ok
-          ? "Reserva procesada correctamente."
-          : "No se pudo procesar la reserva.");
-
-      if (!ok) {
-        throw new Error(data.error || msg);
-      }
-      swalSuccess(msg);
-      row.picking = 0;
-      return { ok: true, data, message: msg };
-    } catch (error) {
-      loadingCancelPicking.value = false;
-      const msg =
-        error?.response?.data?.error ||
-        error?.message ||
-        "Error al procesar la reserva.";
-      swalError(msg);
-      return { ok: false, data: error?.response?.data ?? null, message: msg };
-    } finally {
-      loadingCancelPicking.value = false;
-    }
+    return await run(() => axiosClient.post(apiCancelPicking, {row}), {
+      loadingRef: loadingCancelPicking,
+      successMessage: "Proceso realizado exitosamente.",
+    });
   }
 
   const loadingPicking = ref(false);
-  async function applyPickingSelected(items) {
-    loadingPicking.value = true;
-    try {
-      const response = await axiosClient.post(apiUpdatePicking, { items });
-      const data = response?.data ?? {};
-      const ok = data.success === true; // exige true explícito
-      const msg =
-        data.message ||
-        (ok
-          ? "Reserva procesada correctamente."
-          : "No se pudo procesar la reserva.");
 
-      if (!ok) {
-        throw new Error(data.error || msg);
-      }
-      swalSuccess(msg);
-      return { ok: true, data, message: msg };
-    } catch (error) {
-      loadingPicking.value = false;
-      const msg =
-        error?.response?.data?.error ||
-        error?.message ||
-        "Error al procesar la reserva.";
-      swalError(msg);
-      return { ok: false, data: error?.response?.data ?? null, message: msg };
-    } finally {
-      loadingPicking.value = false;
-    }
+  async function applyPickingSelected(items) {
+     return await run(() => axiosClient.post(apiUpdatePicking, {items}), {
+      loadingRef: loadingPicking,
+      successMessage: "Proceso realizado exitosamente.",
+    });
   }
   /** funcion para generar el pdf del picking */
   const loadingPdfPicking = ref(false);

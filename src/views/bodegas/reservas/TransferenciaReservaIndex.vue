@@ -1,8 +1,7 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 import { formatPrice } from "@/functions";
 import { useReservationTransfers } from '@/composables/bodegas/reservas/useReservationTransfer';
-import { useRoute } from "vue-router";
 const {
   dataTransfer,
   loadingTransfer,

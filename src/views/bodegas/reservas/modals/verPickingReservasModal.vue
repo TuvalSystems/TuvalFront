@@ -48,16 +48,22 @@ async function imprimirPicking() {
     pesototal: pesoTotalItemsFmt.value,
     items: props.picking,
   }
-  await applyPickingSelected(props.picking);
+  const respAc = await applyPickingSelected(props.picking);
+  if (!respAc.ok) {
+    swalError(respAc.message);
+    return;
+  }
+
   const res = await printPickingPdf(payload);
+  
   if (res?.ok) {
-    // swalSuccess('PDF generado correctamente.')
     await nextTick()
     emit('closePickingModal')
     emit('refresh')
   } else {
     swalError(res?.message || 'No se pudo generar el PDF.')
   }
+  swalSuccess(respAc.message);
 }
 
 onMounted(() => {

@@ -4,7 +4,14 @@ import { useFetchTransportAndVehicle } from '@/composables/bodegas/reservas/useF
 import { useReservationGuideProcess } from '@/composables/bodegas/reservas/useReservationGuideProcess';
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-
+import {
+  swalSimple,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+  swalError,
+  toast,
+} from "@/functions/swal-alert.js";
 const props = defineProps({
   header: { type: Object, default: () => ({}) },
   detalle: { type: Array, default: () => [] }
@@ -14,7 +21,7 @@ const {
   modo,
   tipoIdentificacion,
   pesoTotalItemsFmt,
-
+  loadingProcessGuide,
   //functions
   calcularPesoItems,
   generarGuiaRemision,
@@ -58,9 +65,20 @@ const detalleRef = toRef(props, "detalle");
 const activeItemsCount = computed(() => Array.isArray(detalleRef.value) ? detalleRef.value.filter(item => Number(item?.seleccionado) > 0).length : 0);
 
 
+
+
+async function storeGuideRemision() {
+  const resp = await generarGuiaRemision();  
+  if (!resp.ok ) {
+    swalError(resp.message);
+    return;
+  }
+  swalSuccess(resp.message);
+  emit("refresh");
+  emit("closeModal");
+}
+
 watch(() => [flatPickrState.horaInicio, flatPickrState.horaFin], ([a, b]) => {
-  console,console.log(data);
-  
   data.fecha_salida = formatDateTime(a)  // 'YYYY-MM-DD HH:mm'
   data.fecha_llegada = formatDateTime(b)
 }, { immediate: true });
@@ -79,7 +97,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseBlock title="Generar guía de remisión hacia : xyz" class="mb-0 modal-card shadow-lg" bordered themed>
+  <BaseBlock :title="`Destino: ${props.header.destination}`" class="mb-0 modal-card shadow-lg" bordered themed>
     <template #options>
       <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
         <i class="fa fa-fw fa-times"></i>
@@ -141,8 +159,8 @@ onMounted(() => {
       <!-- Rigth :form -->
       <div class="col-lg-5 right-rail p-4">
         <div class="sticky-rail">
-          <div class="mb-3">
-            <div class="label-sm mb-2">Transporte</div>
+          <div class="mb-1">
+            <div class="label-sm mb-1">Transporte</div>
             <div class="btn-group btn-group-sm mb-3" role="group">
               <input type="radio" class="btn-check" name="transporte" id="optLocal" checked value="local" v-model="modo"
                 @click="clearChangeModeLocal()">
@@ -251,10 +269,9 @@ onMounted(() => {
             <button class="btn btn-dark btn-sm" data-bs-dismiss="modal">
               <!-- <i class="fa-regular fa-circle-xmark me-2"></i> -->
               Cancelar</button>
-            <button class="btn btn-primary btn-sm" @click="generarGuiaRemision()"><i
+            <button class="btn btn-primary btn-sm" @click="storeGuideRemision()" :disabled="loadingProcessGuide"><i
                 class="fa-solid fa-file-lines me-2"></i>Generar</button>
           </div>
-
         </div>
       </div>
     </div>
@@ -334,7 +351,7 @@ onMounted(() => {
 
 /* alto y scroll solo para el cuerpo */
 .table-fixed tbody {
-  max-height: 400px;
+  max-height: 500px;
   /* ← ajusta según tu UI */
   overflow-y: auto;
   overflow-x: hidden;

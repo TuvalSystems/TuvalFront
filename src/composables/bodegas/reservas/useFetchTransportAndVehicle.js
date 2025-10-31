@@ -1,8 +1,11 @@
 import axiosClient from "@/axios";
 import { ref } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
+import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useFetchTransportAndVehicle() {
+  const { run } = useApiAction();
+
   const vehiculos = ref([]);
   const transportes = ref([]);
   const loadingVehiculos = ref(false);
@@ -10,49 +13,41 @@ export function useFetchTransportAndVehicle() {
   const apiVehicle = "/reservas/transferencias/lista-vehiculos";
   const apiPersonalTransport = "/reservas/transferencias/lista-transportistas";
   async function fetchVehiculos() {
-    loadingVehiculos.value = true;
-    try {
-      const response = await axiosClient.post(apiVehicle);
-      const res = response.data;
-      loadingVehiculos.value = false;
-      vehiculos.value = res.data;
-    } catch (error) {
-      let msg =
-        error?.response?.data?.error ||
-        error?.message ||
-        "Error al obtener los vehiculos.";
-      console.log("Error al obtener los vehiculos", msg);
-      swalError(msg);
-      return;
-    } finally {
-      loadingVehiculos.value = false;
-    }
+    return await run(() => axiosClient.post(apiVehicle), {
+      loadingRef: loadingVehiculos,
+      successMessage: "Items cargados correctamente.",
+      onSuccess: (list) => {
+        vehiculos.value = list; // list ya es response.data.data
+      },
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+           "Error al obtener la información"
+        );
+      },
+    });
   }
 
   async function fetchPersonalTransport(transportId) {
-    {
-      loadingTransportes.value = true;
-      try {
-        const response = await axiosClient.post(
-          apiPersonalTransport,
-          { vehicle_id: transportId },
-          { headers: { "Content-Type": "application/json" } }
-        );
-        const res = response.data;
-        loadingTransportes.value = false;
-        transportes.value = res.data;
-      } catch (error) {
-        let msg =
-          error?.response?.data?.error ||
+    return await run(() => axiosClient.post(apiPersonalTransport, { vehicle_id: transportId },
+      { headers: { "Content-Type": "application/json" } }), {
+      loadingRef: loadingTransportes,
+      successMessage: "Items cargados correctamente.",
+      onSuccess: (list) => {
+        transportes.value = list; // list ya es response.data.data
+      },
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
           error?.message ||
-          "Error al obtener los transportistas.";
-        console.log("Error al obtener los transportistas", msg);
-        swalError(msg);
-        return;
-      } finally {
-        loadingTransportes.value = false;
-      }
-    }
+          "Error al obtener la información"
+        );
+      },
+    });
+
   }
 
   return {
