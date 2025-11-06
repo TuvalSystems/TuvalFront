@@ -431,7 +431,7 @@ function aplicartraslado(traslado) {
 function seleccionartodos(traslados, maxItems = 100) {
   let count = 0;
   for (const t of traslados) {
-    if (count < maxFilas && (Number(t.pendiente) || 0) > 0) {
+    if (count < maxItems && (Number(t.pendiente) || 0) > 0) {
       t.seleccionado = Number(t.pendiente) || 0;
       t.aplicar_todo = true;
       count++;
