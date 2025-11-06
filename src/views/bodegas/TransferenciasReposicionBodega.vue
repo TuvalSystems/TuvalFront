@@ -31,7 +31,7 @@
           <div class="block-options-item">
             <button type="button" class="btn btn-sm btn-primary"
               @click="seleccionartodos(transferencias_reposicion[route.params.id].traslados)"><i
-                class="fa fa-hand-pointer"></i> Seleccionar todos</button>
+                class="fa fa-hand-pointer"></i> Seleccionar hasta {{ maxItems }} items</button>
           </div>
           <div class="block-options-item">
             <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i
@@ -428,7 +428,8 @@ function aplicartraslado(traslado) {
   checkgenerarguia();
 }
 
-function seleccionartodos(traslados, maxItems = 100) {
+const  maxItems = 100;
+function seleccionartodos(traslados) {
   let count = 0;
   for (const t of traslados) {
     if (count < maxItems && (Number(t.pendiente) || 0) > 0) {
