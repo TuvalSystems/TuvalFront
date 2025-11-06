@@ -428,11 +428,18 @@ function aplicartraslado(traslado) {
   checkgenerarguia();
 }
 
-function seleccionartodos(traslados) {
-  traslados.map(traslado => {
-    traslado.seleccionado = traslado.pendiente;
-    traslado.aplicar_todo = true;
-  });
+function seleccionartodos(traslados, maxItems = 100) {
+  let count = 0;
+  for (const t of traslados) {
+    if (count < maxItems && (Number(t.pendiente) || 0) > 0) {
+      t.seleccionado = Number(t.pendiente) || 0;
+      t.aplicar_todo = true;
+      count++;
+    } else {
+      t.seleccionado = 0;
+      t.aplicar_todo = false;
+    }
+  }
   checkgenerarguia();
 }
 
