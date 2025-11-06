@@ -1,16 +1,15 @@
 <script setup>
+import { storeToRefs } from "pinia";
 import { onMounted, reactive, watch, toRef, computed } from 'vue';
 import { useFetchTransportAndVehicle } from '@/composables/bodegas/reservas/useFetchTransportAndVehicle';
 import { useReservationGuideProcess } from '@/composables/bodegas/reservas/useReservationGuideProcess';
+import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles"; 
+
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import {
-  swalSimple,
-  swalInfo,
   swalSuccess,
-  swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 const props = defineProps({
   header: { type: Object, default: () => ({}) },
@@ -30,14 +29,9 @@ const {
   clearChangeModeLocal,
   clearChangeModeExterno,
 } = useReservationGuideProcess();
-const {
-  vehiculos,
-  transportes,
-  loadingVehiculos,
-  loadingTransportes,
-  fetchVehiculos,
-  fetchPersonalTransport,
-} = useFetchTransportAndVehicle();
+const vehicles = useVehiclesStore();
+const { list: vehiculos, loading: loadingVehiculos } = storeToRefs(vehicles);
+const { transportes, loadingTransportes, fetchPersonalTransport } = useFetchTransportAndVehicle();
 const emit = defineEmits(["refresh", "closeModal"]);
 const flatPickrState = reactive({
   horaInicio: addMinutes(new Date(), 20), // Date
@@ -92,7 +86,6 @@ watch(() => [props.header, props.detalle], ([h, d]) => {
 
 
 onMounted(() => {
-  fetchVehiculos();
 });
 </script>
 

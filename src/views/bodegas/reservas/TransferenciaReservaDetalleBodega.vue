@@ -2,6 +2,8 @@
 import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice } from "@/functions";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
+import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
+
 import {
   swalSimple,
   swalInfo,
@@ -32,7 +34,8 @@ const {
   datasetLengthRef,
   disabledPicking,
   disabledGuiaRemision,
-
+  dataPendingGuides,
+  loadingPendingGuides,
   //picking - cancelar
   loadingCancelPicking,
 
@@ -49,9 +52,13 @@ const {
   selectAll,
   applyAlPendingTransfer,
   applyTransfer,
-  cancelPicking
-
+  fectchListGuideRemisionPending,
+  cancelPicking,
+  printGuidePdf,
+  loadingDispacthGuide,
+  dispatchGuideReservedPending
 } = useReservationTransferByWarehouse();
+const vehicles = useVehiclesStore();
 
 let pickingModal = ref(null);
 let pickingModalObj = null;
@@ -63,7 +70,7 @@ let dataGuiaRemision = ref([]);
 
 
 async function cancelarPicking(row) {
-  let resp = await cancelPicking(row);  
+  let resp = await cancelPicking(row);
   if (!resp.ok) {
     swalError(resp.message);
     return;
@@ -110,7 +117,27 @@ async function closeGuiaRemisionModal() {
 }
 
 
+/*** procesos de guias de remisiones pendientes */
 
+async function printPdfGuiaRemision(id) {
+  const res = await printGuidePdf(id);
+  if (res?.ok) {
+    await nextTick()
+    swalSuccess('Guia de Remision generada correctamente.');
+  } else {
+    swalError(res?.message || 'No se pudo generar el PDF.')
+  }
+}
+
+
+async function dispatchGuiaRemision(id) {
+  const resp = await dispatchGuideReservedPending(id);
+  if (!resp.ok) {
+    swalError(resp.message || 'No se pudo aplicar la transferencia.');
+    return;
+  }
+  swalSuccess(resp.message);
+}
 
 
 
@@ -133,8 +160,10 @@ onMounted(async () => {
   payloadHeader.destino = ptovtaId.value;
   if (!dataHeaderTransfer.value) fetchHeaderTransferByWarehouseOriginAndDestination();
   if (!dataDetailTransfer.value) fetchListTransfersByWarehouseOriginAndDestination();
+  if (!dataPendingGuides.value) fectchListGuideRemisionPending();
   await nextTick()
   initialModal();
+  vehicles.fetch();
 });
 
 
@@ -166,7 +195,7 @@ onMounted(async () => {
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
-      <p class="mt-2 text-muted">Cargando detalle de transferencias...</p>
+      <p class="mt-2 text-muted">Cargando información de transferencias...</p>
     </div>
     <div v-if="!loadingHeaderTransfer && dataHeaderTransfer">
       <BaseBlock :title="'Destino: ' + dataHeaderTransfer.destination" content-full>
@@ -292,6 +321,42 @@ onMounted(async () => {
             </div>
           </div>
 
+        </div>
+      </BaseBlock>
+    </div>
+    <!-- lista de guias de remision de reservas pendientes -colagadas- -->
+    <div v-if="!loadingPendingGuides && dataPendingGuides">
+      <BaseBlock>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="table-responsive mb-0">
+              <table class="table table-sm table-hover table-vcenter align-middle mb-0">
+                <thead style="position: sticky; top: 0; z-index: 1;">
+                  <tr>
+                    <th class="fs-sm text-center">N° Guia</th>
+                    <th class="fs-sm text-center">Fecha</th>
+                    <th class="fs-sm text-center">Transportista</th>
+                    <th class="fs-sm text-center">Vehiculo</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, index) in dataPendingGuides" :key="index">
+                    <td class="fs-sm text-center">{{ row.numero_guia }}</td>
+                    <td class="fs-sm text-center">{{ row.fecha_salida }}</td>
+                    <td class="fs-sm text-center">{{ row.razon_social_transportista }}</td>
+                    <td class="fs-sm text-center">{{ row.placa }}</td>
+                    <td class="fs-sm text-center space-x-2">
+                      <button type="button" class="btn btn-sm btn-outline-primary"
+                        @click="printPdfGuiaRemision(row.id)">Imprimir</button>
+                      <button type="button" class="btn btn-sm btn-outline-success"
+                        @click="dispatchGuiaRemision(row.id)" :disabled="loadingDispacthGuide">Despachar</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </BaseBlock>
     </div>

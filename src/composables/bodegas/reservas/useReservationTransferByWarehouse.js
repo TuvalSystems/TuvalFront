@@ -10,11 +10,14 @@ import {
   toast,
 } from "@/functions/swal-alert.js";
 import { useApiAction } from "@/composables/core/useApiAction";
+import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 
 import { downloadPdfFromApi } from "@/utils/pdf";
 export function useReservationTransferByWarehouse() {
   //instancia general para apis 
   const { run } = useApiAction();
+  //instancia de vehiculo 
+  const vehicles = useVehiclesStore();
   /** maneja el detalle de mis transferencias de reserva por bodega */
   const store = useStore();
   const ptoOrigen = store.state.puntodeventaselect;
@@ -31,11 +34,17 @@ export function useReservationTransferByWarehouse() {
   const loadingDetailTransfer = ref(false);
   const apiListTransferByWarehouse = `reservas/transferencias/lista-traslados-por-reserva-bodega`;
 
+  const dataPendingGuides = ref(null);
+  const loadingPendingGuides = ref(false);
+  const apiListPendingGuides = `reservas/transferencias/lista-guias-remision-reservas-pendientes`;
 
   const apiCancelPicking = `reservas/transferencias/cancelar-picking-item-reserva`;
   const apiUpdatePicking = `reservas/transferencias/actualizar-picking-items`;
   const apiPdfPicking = `reservas/transferencias/pdf-picking-reserva`;
 
+  // guías de remisión pendientes - pdf - despacho
+  const apiPdfGuidePending = `bodegas/reservas/guia-remision/generar-pdf`;
+  const apiDispatchPendingGuides = `bodegas/reservas/guia-remision/despachar-guia`;
 
   //payload detalle
   const payload = reactive({
@@ -158,11 +167,11 @@ export function useReservationTransferByWarehouse() {
   }
 
   async function fetchHeaderTransferByWarehouseOriginAndDestination() {
-     if (!validatePtoDestination()) return;
+    if (!validatePtoDestination()) return;
     return await run(() => axiosClient.post(apiHeaderTransferByWarehouseOriginAndDestination, payloadHeader), {
       loadingRef: loadingHeaderTransfer,
       successMessage: "Proceso realizado exitosamente.",
-       onSuccess: (list) => {
+      onSuccess: (list) => {
         dataHeaderTransfer.value = list; // list ya es response.data.data
       },
       onError: (backend, error) => {
@@ -181,7 +190,7 @@ export function useReservationTransferByWarehouse() {
     return await run(() => axiosClient.post(apiListTransferByWarehouse, payload), {
       loadingRef: loadingDetailTransfer,
       successMessage: "Items cargados correctamente.",
-       onSuccess: (list) => {
+      onSuccess: (list) => {
         dataDetailTransfer.value = list; // list ya es response.data.data
       },
       onError: (backend, error) => {
@@ -197,6 +206,9 @@ export function useReservationTransferByWarehouse() {
 
   function refresh() {
     fetchListTransfersByWarehouseOriginAndDestination();
+    fectchListGuideRemisionPending();
+    vehicles.fetch();
+
   }
 
   function seacrchQuotation() {
@@ -380,7 +392,7 @@ export function useReservationTransferByWarehouse() {
 
   const loadingCancelPicking = ref(false);
   async function cancelPicking(row) {
-    return await run(() => axiosClient.post(apiCancelPicking, {row}), {
+    return await run(() => axiosClient.post(apiCancelPicking, { row }), {
       loadingRef: loadingCancelPicking,
       successMessage: "Proceso realizado exitosamente.",
     });
@@ -389,7 +401,7 @@ export function useReservationTransferByWarehouse() {
   const loadingPicking = ref(false);
 
   async function applyPickingSelected(items) {
-     return await run(() => axiosClient.post(apiUpdatePicking, {items}), {
+    return await run(() => axiosClient.post(apiUpdatePicking, { items }), {
       loadingRef: loadingPicking,
       successMessage: "Proceso realizado exitosamente.",
     });
@@ -422,6 +434,73 @@ export function useReservationTransferByWarehouse() {
     }
   }
 
+
+
+  /*** proceso de listado de guias de remision de reserva pendientes*/
+  async function fectchListGuideRemisionPending() {
+    if (!validatePtoDestination()) return;
+    return await run(() => axiosClient.post(apiListPendingGuides, payloadHeader), {
+      loadingRef: loadingPendingGuides,
+      successMessage: "Proceso realizado exitosamente.",
+      onSuccess: (list) => {
+        dataPendingGuides.value = list; // list ya es response.data.data
+      },
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener lista transferencia"
+        );
+      },
+    });
+  }
+
+
+  /***
+   *  proceso de generar el pdf de las guias de remisiones pendientes
+   */
+
+  const loadingPdfPendingGuides = ref(false);
+  const lastErrorPendingGuides = ref(null);
+
+  async function printGuidePdf(guideId) {
+    let payloadPrint = {
+      id: guideId
+    }
+    try {
+      loadingPdfPendingGuides.value = true;
+      lastErrorPendingGuides.value = null;
+      const res = await downloadPdfFromApi({
+        url: apiPdfGuidePending,
+        method: "POST",
+        payloadPrint,
+        filenameFallback: "guia-remision-reserva.pdf",
+      });
+      if (!res.ok) {
+        lastErrorPendingGuides.value = res.message || "Error";
+        return { ok: false, message: lastErrorPendingGuides.value };
+      }
+      return res;
+    } catch (error) {
+      lastErrorPendingGuides.value =
+        error?.response?.data?.error || error?.message || "Error";
+      swalError(lastErrorPendingGuides.value);
+      return { ok: false, message: lastErrorPendingGuides.value };
+    } finally {
+      loadingPdfPendingGuides.value = false;
+    }
+  }
+
+  const loadingDispacthGuide = ref(false);
+  async function dispatchGuideReservedPending(id) {
+    return await run(() => axiosClient.post(apiDispatchPendingGuides, { id }), {
+      loadingRef: loadingDispacthGuide,
+      onSuccess: () => refresh(),
+      successMessage: "Proceso realizado exitosamente.",
+    })
+  }
+
   return {
     //states
 
@@ -438,7 +517,9 @@ export function useReservationTransferByWarehouse() {
     datasetLengthRef,
     disabledPicking,
     disabledGuiaRemision,
-
+    dataPendingGuides,
+    loadingPendingGuides,
+    loadingDispacthGuide,
     //functions
     fetchHeaderTransferByWarehouseOriginAndDestination,
     sortBy,
@@ -449,7 +530,9 @@ export function useReservationTransferByWarehouse() {
     selectAll,
     applyAlPendingTransfer,
     applyTransfer,
-
+    fectchListGuideRemisionPending,
+     printGuidePdf,
+    dispatchGuideReservedPending,
     // function picking
     //loading
     loadingCancelPicking,
@@ -458,5 +541,6 @@ export function useReservationTransferByWarehouse() {
     cancelPicking,
     applyPickingSelected,
     printPickingPdf,
+   
   };
 }
