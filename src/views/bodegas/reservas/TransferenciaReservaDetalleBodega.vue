@@ -120,7 +120,7 @@ async function closeGuiaRemisionModal() {
 /*** procesos de guias de remisiones pendientes */
 
 async function printPdfGuiaRemision(id) {
-  const res = await printGuidePdf(id);
+  const res = await printGuidePdf({'id': id});
   if (res?.ok) {
     await nextTick()
     swalSuccess('Guia de Remision generada correctamente.');
@@ -349,8 +349,8 @@ onMounted(async () => {
                     <td class="fs-sm text-center space-x-2">
                       <button type="button" class="btn btn-sm btn-outline-primary"
                         @click="printPdfGuiaRemision(row.id)">Imprimir</button>
-                      <button type="button" class="btn btn-sm btn-outline-success"
-                        @click="dispatchGuiaRemision(row.id)" :disabled="loadingDispacthGuide">Despachar</button>
+                      <button type="button" class="btn btn-sm btn-outline-success" @click="dispatchGuiaRemision(row.id)"
+                        :disabled="loadingDispacthGuide">Despachar</button>
                     </td>
                   </tr>
                 </tbody>

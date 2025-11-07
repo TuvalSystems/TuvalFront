@@ -464,17 +464,14 @@ export function useReservationTransferByWarehouse() {
   const loadingPdfPendingGuides = ref(false);
   const lastErrorPendingGuides = ref(null);
 
-  async function printGuidePdf(guideId) {
-    let payloadPrint = {
-      id: guideId
-    }
+  async function printGuidePdf(payload) {   
     try {
       loadingPdfPendingGuides.value = true;
       lastErrorPendingGuides.value = null;
       const res = await downloadPdfFromApi({
         url: apiPdfGuidePending,
         method: "POST",
-        payloadPrint,
+        payload,     
         filenameFallback: "guia-remision-reserva.pdf",
       });
       if (!res.ok) {
