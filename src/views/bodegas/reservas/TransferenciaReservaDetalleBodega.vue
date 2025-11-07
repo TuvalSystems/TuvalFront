@@ -123,7 +123,7 @@ async function printPdfGuiaRemision(id) {
   const res = await printGuidePdf({'id': id});
   if (res?.ok) {
     await nextTick()
-    swalSuccess('Guia de Remision generada correctamente.');
+    swalSuccess('Documento generado correctamente.');
   } else {
     swalError(res?.message || 'No se pudo generar el PDF.')
   }

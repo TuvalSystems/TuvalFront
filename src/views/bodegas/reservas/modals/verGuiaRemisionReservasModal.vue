@@ -3,7 +3,8 @@ import { storeToRefs } from "pinia";
 import { onMounted, reactive, watch, toRef, computed } from 'vue';
 import { useFetchTransportAndVehicle } from '@/composables/bodegas/reservas/useFetchTransportAndVehicle';
 import { useReservationGuideProcess } from '@/composables/bodegas/reservas/useReservationGuideProcess';
-import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles"; 
+import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
+import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -29,6 +30,10 @@ const {
   clearChangeModeLocal,
   clearChangeModeExterno,
 } = useReservationGuideProcess();
+const {
+  printGuidePdf,
+  dispatchGuideReservedPending
+} = useReservationTransferByWarehouse();
 const vehicles = useVehiclesStore();
 const { list: vehiculos, loading: loadingVehiculos } = storeToRefs(vehicles);
 const { transportes, loadingTransportes, fetchPersonalTransport } = useFetchTransportAndVehicle();
@@ -62,14 +67,26 @@ const activeItemsCount = computed(() => Array.isArray(detalleRef.value) ? detall
 
 
 async function storeGuideRemision() {
-  const resp = await generarGuiaRemision();  
-  if (!resp.ok ) {
+  const resp = await generarGuiaRemision();
+  if (!resp.ok) {
     swalError(resp.message);
     return;
   }
-  swalSuccess(resp.message);
-  emit("refresh");
-  emit("closeModal");
+  await emit("closeModal");
+  const id = resp?.data?.id;
+  const resD = await dispatchGuideReservedPending(id);
+  if (!resD?.ok) {
+    swalError(resD?.message ?? 'No se pudo aplicar la transferencia.');
+    return
+  }
+  swalSuccess(resD?.message ?? 'Guía procesada correctamente.');
+
+  const respdf = await printGuidePdf({ 'id': id });
+  if (!respdf.ok) {
+    swalError(respdf?.message || 'No se pudo generar el PDF.');
+  }
+  await emit("refresh");
+
 }
 
 watch(() => [flatPickrState.horaInicio, flatPickrState.horaFin], ([a, b]) => {
