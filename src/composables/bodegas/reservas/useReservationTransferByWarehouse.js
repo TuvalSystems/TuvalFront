@@ -493,7 +493,7 @@ export function useReservationTransferByWarehouse() {
   async function dispatchGuideReservedPending(id) {
     return await run(() => axiosClient.post(apiDispatchPendingGuides, { id }), {
       loadingRef: loadingDispacthGuide,
-      onSuccess: () => refresh(),
+      // onSuccess: () => refresh(),
       successMessage: "Proceso realizado exitosamente.",
     })
   }

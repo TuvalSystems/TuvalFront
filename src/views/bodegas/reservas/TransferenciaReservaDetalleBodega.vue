@@ -137,6 +137,7 @@ async function dispatchGuiaRemision(id) {
     return;
   }
   swalSuccess(resp.message);
+  refresh();
 }
 
 

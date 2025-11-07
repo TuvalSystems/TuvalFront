@@ -110,44 +110,40 @@ export const useReservationGuideProcess = () => {
   function validationModo() {
     if (modo.value === "local") {
       if (isBlank(data.vehiculo_id) || isBlank(data.transporte_id)) {
-        swalError("Selecciona vehículo y transportista (local)");
-        return false;
+        return { ok: false, message: "Selecciona el vehículo y el transportista" };
       }
     } else {
       if (isBlank(data.nombre_transporte)) {
-        swalError("Ingresa el nombre del transportista externo");
-        return false;
-      }
-      if (isBlank(data.tipo_identificacion)) {
-        swalError("Selecciona el tipo de identificación");
-        return false;
+        return { ok: false, message: "Ingresa el nombre del transportista externo" };
       }
       if (isBlank(data.identificacion)) {
-        swalError("Ingresa la identificación del transportista externo");
-        return false;
+        return { ok: false, message: "Ingresa la identificación del transportista externo" };
+      }
+      if (isBlank(data.tipo_identificacion)) {
+        return { ok: false, message: "Selecciona el tipo de identificación" };
       }
       if (!validarPlacaEC(data.placa)) {
-        swalError("Placa inválida");
-        return false;
+        return { ok: false, message: "Placa inválida" };
       }
     }
     if (isBlank(data.ruta)) {
-      swalError("Ingresa la ruta");
-      return false;
+      return { ok: false, message: "Ingresa la ruta" };
     }
     if (isBlank(data.fecha_llegada) || !isValidDateStr(data.fecha_llegada)) {
-      swalError("Fecha/Hora de llegada inválida");
-      return false;
+       return { ok: false, message: "Fecha/Hora de llegada inválida" };
+      
     }
     if (toDate(data.fecha_salida) > toDate(data.fecha_llegada)) {
-      swalError("La salida no puede ser posterior a la llegada");
-      return false;
+       return { ok: false, message: "La salida no puede ser posterior a la llegada" };
     }
-    return true;
+    return { ok: true };
   }
 
   async function generarGuiaRemision() {
-    if (!validationModo()) return;
+    let validate = validationModo();
+    if (!validate?.ok) {
+      return { ok: false, message: validate?.message };
+    }
     const observacion = (data.observacion || "").trim().slice(0, 350);
     const ruta = (data.ruta || "").trim();
 

@@ -73,6 +73,9 @@ async function storeGuideRemision() {
     return;
   }
   await emit("closeModal");
+  await emit("refresh");
+
+
   const id = resp?.data?.id;
   const resD = await dispatchGuideReservedPending(id);
   if (!resD?.ok) {
@@ -80,12 +83,10 @@ async function storeGuideRemision() {
     return
   }
   swalSuccess(resD?.message ?? 'Guía procesada correctamente.');
-
   const respdf = await printGuidePdf({ 'id': id });
   if (!respdf.ok) {
     swalError(respdf?.message || 'No se pudo generar el PDF.');
   }
-  await emit("refresh");
 
 }
 
@@ -273,7 +274,7 @@ onMounted(() => {
             <div class="d-flex justify-content-between mini "><span>Ítems</span><strong>{{ activeItemsCount }}</strong>
             </div>
             <div class="d-flex justify-content-between mini "><span>Peso total</span><strong>{{ pesoTotalItemsFmt
-            }}kg</strong></div>
+                }}kg</strong></div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-3">
             <button class="btn btn-dark btn-sm" data-bs-dismiss="modal">
