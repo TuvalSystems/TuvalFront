@@ -462,6 +462,12 @@ const routes = [
         component: () => import("@/views/bodegas/reservas/TransferenciaReservaDetalleBodega.vue"),
         props: true,
       },
+      {
+        path: "/bodegas/transferencias/reservas/recibir",
+        name: "bodegas-reservas-transferencias-recibir",
+        component: () => import("@/views/bodegas/reservas/RecibirReservasIndex.vue"),
+        props: true,
+      },
     ],
   },
 
