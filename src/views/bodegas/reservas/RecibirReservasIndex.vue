@@ -1,6 +1,101 @@
-<script setup lang="ts">
-import { onMounted } from 'vue';
-onMounted(() => { });
+<script setup>
+import { onMounted, ref, nextTick } from 'vue';
+import BaseTable from "@/components/BaseTable.vue";
+import { useReceiveReservationTransfers } from "@/composables/bodegas/reservas/useReceiveReservationTransfers";
+import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
+import {
+    swalError,
+    swalSuccess
+} from "@/functions/swal-alert.js";
+const {
+    //states
+    table,
+    columns,
+    listPerpage,
+
+    //functions
+    onSort,
+    refresh,
+    fetchListReceivedReservationTransfers,
+} = useReceiveReservationTransfers();
+
+const {
+    printGuidePdf,
+} = useReservationTransferByWarehouse();
+
+/** functions standar component table  */
+const handleClick = ({ row, col }) => {
+    if (col.key === "numero_guia") {
+    }
+};
+
+
+const lockedIds = ref(new Set());
+function isRowDisabled(row) {
+    return lockedIds.value.has(row.id);
+}
+
+
+
+/** bloqueo de modal  */
+const modalLocks = ref(new Map());
+const isModalLocked = (modalRow) => {
+    const id = typeof modalRow === "object" ? modalRow?.id : modalRow;
+    return modalLocks.value.get(String(id)) === true;
+}
+
+function lockModal(id) {
+    const m = new Map(modalLocks.value)
+    m.set(String(id), true)
+    modalLocks.value = m;
+}
+
+
+function unLockedModal(id) {
+    const m = new Map(modalLocks.value)
+    m.delete(String(id))
+    modalLocks.value = m
+}
+
+
+/** print pdf */
+const lockIdPdf = ref(new Map());
+function islockedPdf(row) {
+    const id = typeof row === "object" ? row?.id : row;
+    return lockIdPdf.value.get(String(id)) === true;
+}
+function lockPdf(id) {
+    const m = new Map(lockIdPdf.value)
+    m.set(String(id), true)
+    lockIdPdf.value = m;
+}
+function unLockedPdf(id) {
+    const m = new Map(lockIdPdf.value)
+    m.delete(String(id))
+    lockIdPdf.value = m
+}
+async function printPdfGuiaRemision(row) {
+
+    if (!row || row.id === null) return
+    const id = row.id
+    if (islockedPdf(id)) return
+    lockPdf(id);
+    const res = await printGuidePdf({ 'id': id });
+    if (res?.ok) {
+        unLockedPdf(id);
+        await nextTick()
+        swalSuccess('Documento generado correctamente.');
+    } else {
+        unLockedPdf(id);
+        swalError(res?.message || 'No se pudo generar el PDF.')
+    }
+}
+
+onMounted(async () => {
+    if (!table.items.length && !table.loading) {
+        fetchListReceivedReservationTransfers(1);
+    }
+});
 </script>
 
 <template>
@@ -22,7 +117,59 @@ onMounted(() => { });
 
     <!-- END Page Content -->
     <div class="content">
-
+        <BaseBlock title="Recibir Reservas" content-full rounded themed>
+            <template #options>
+                <div class="block-options-item">
+                    <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading"
+                        title="Refrescar" aria-label="Refrescar">
+                        <i v-if="!table.loading" class="fa fa-refresh"></i>
+                        <span v-else class="spinner-border spinner-border-sm"></span>
+                    </button>
+                </div>
+            </template>
+            <div class="row justify-content-between align-items-center mb-3">
+                <div class="col-md-1">
+                    <select v-model="table.perPage" class="form-select">
+                        <option v-for="item in listPerpage" :key="item.value" :value="item.value"> {{ item.label }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+                </div>
+            </div>
+            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+                :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
+                :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
+                @onPageChange="fetchListReceivedReservationTransfers" @onSearch="table.searchTerm"
+                @onClick="handleClick" :is-row-disabled="isRowDisabled">
+                <!-- Slot específico para la columna 'estado' -->
+                <template #actions="{ row }">
+                    <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="imprir pdf"
+                        @click="printPdfGuiaRemision(row)" :disabled="islockedPdf(row)">
+                        <span v-if="islockedPdf(row)" class="spinner-border spinner-border-sm" role="status"
+                            aria-hidden="true"></span>
+                        <i v-else class="fa fa-print"></i>
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm nowrap mx-1" aria-placeholder="recibir"
+                        @click="verModalRechazar(row)" :disabled="isModalLocked(row)">
+                        <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" role="status"
+                            aria-hidden="true"></span>
+                        <i v-else class="fa fa-people-carry-box"></i>
+                        Recibir
+                    </button>
+                </template>
+                <!-- Slot de vacío -->
+                <template #empty>
+                    <div class="text-center py-5">
+                        <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">
+                            No se encontraron registros para mostrar
+                        </p>
+                    </div>
+                </template>
+            </BaseTable>
+        </BaseBlock>
     </div>
 
 </template>
