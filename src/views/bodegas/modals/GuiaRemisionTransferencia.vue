@@ -1,10 +1,12 @@
 <template>
-  <BaseBlock v-if="currentBodega.bodega && currentBodega.bodega != ''" :title="'Generar guía de remisión hacia: ' + currentBodega.bodega" class="mb-0">
+  <BaseBlock v-if="currentBodega.bodega && currentBodega.bodega != ''"
+    :title="'Generar guía de remisión hacia: ' + currentBodega.bodega" class="mb-0">
     <div class="table-responsive">
-      <table v-if="!picking.loading && picking.data && picking.data.length" class="table table-striped table-sm table-vcenter">
+      <table v-if="!picking.loading && picking.data && picking.data.length"
+        class="table table-striped table-sm table-vcenter">
         <thead>
           <tr>
-            
+
             <th>CTL</th>
             <th>Descripción</th>
             <th>UDM</th>
@@ -13,33 +15,33 @@
           </tr>
         </thead>
         <tbody>
-          
+
           <tr v-for="(articulo, index) in picking.data" :key="index">
-            
+
             <td class="fs-sm">
-                {{ articulo.ART_CODIGO_TRES_LETRAS }}
+              {{ articulo.ART_CODIGO_TRES_LETRAS }}
             </td>
             <td class="fs-sm">
               {{ articulo.ART_DESCRIPCION }}
             </td>
             <td class="fs-sm">
-                {{ articulo.ART_PLAN_UMEDIDA }}
+              {{ articulo.ART_PLAN_UMEDIDA }}
             </td>
             <td class="fs-sm text-end">
-                {{ articulo.seleccionado }}
+              {{ articulo.seleccionado }}
             </td>
             <td class="fs-sm text-end">
               {{ formatPrice(articulo.seleccionado * articulo.ART_PESO) }}
             </td>
           </tr>
-          
+
           <tr>
             <th colspan="5">&nbsp;</th>
           </tr>
           <tr>
             <th colspan="4" class="fs-sm text-end">Peso total del despacho</th>
             <th class="fs-sm text-end">{{ formatPrice(picking.peso) }}</th>
-           
+
           </tr>
         </tbody>
       </table>
@@ -54,54 +56,28 @@
           <tr>
             <td class="text-end">Transporte: </td>
             <td>
-              <select
-                class="form-select"
-                id="example-select-floating"
-                name="example-select-floating"
-                aria-label="Estado"
-                v-model="despacho"
-                > 
-                <option value="Retiro en bodega"
-                  >Externo</option>
-                  <option value="Despacho en ruta"
-                  >Local</option>
+              <select class="form-select" id="example-select-floating" name="example-select-floating"
+                aria-label="Estado" v-model="despacho">
+                <option value="Retiro en bodega">Externo</option>
+                <option value="Despacho en ruta">Local</option>
               </select>
             </td>
           </tr>
           <tr v-if="despacho == 'Despacho en ruta'">
             <td class="text-end">Vehículo:</td>
             <td>
-              <select
-                class="form-select"
-                id="example-select-floating"
-                name="example-select-floating"
-                aria-label="Estado"
-                v-model="vehiculo.vehiculo_id"
-                @change="changeVehiculo()"
-              >
-                <option
-                  v-for="(vehiculo, index) in vehiculos"
-                  :key="index"
-                  :value="vehiculo.id"
-                >
+              <select class="form-select" id="example-select-floating" name="example-select-floating"
+                aria-label="Estado" v-model="vehiculo.vehiculo_id" @change="changeVehiculo()">
+                <option v-for="(vehiculo, index) in vehiculos" :key="index" :value="vehiculo.id">
                   {{ vehiculo.nombre }} - {{ vehiculo.placa }}
                 </option>
               </select>
             </td>
             <td class="text-end">Transportista:</td>
             <td>
-              <select
-                class="form-select"
-                id="example-select-floating"
-                name="example-select-floating"
-                aria-label="Estado"
-                v-model="transportista.transportista_id"
-              >
-                <option
-                  v-for="(transportista, index) in transportistas"
-                  :key="index"
-                  :value="transportista.id"
-                >
+              <select class="form-select" id="example-select-floating" name="example-select-floating"
+                aria-label="Estado" v-model="transportista.transportista_id">
+                <option v-for="(transportista, index) in transportistas" :key="index" :value="transportista.id">
                   {{ transportista.nombre }} - {{ transportista.identificacion }}
                 </option>
               </select>
@@ -111,20 +87,11 @@
             <tr>
               <td class="text-end">Nombre Transportista: </td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="nombre"
-                  v-model="transportista.nombre"
-                />
+                <input type="text" class="form-control" id="nombre" v-model="transportista.nombre" />
               </td>
               <td class="text-end">Tipo identificacion: </td>
               <td>
-                <select
-                  class="form-select"
-                  v-model="transportista.tipo_identificacion"
-                  id="tipo_identificacion"
-                  >
+                <select class="form-select" v-model="transportista.tipo_identificacion" id="tipo_identificacion">
                   <option value="04">RUC</option>
                   <option value="05">Cédula</option>
                   <option value="06">Pasaporte</option>
@@ -134,57 +101,34 @@
             <tr>
               <td class="text-end"># Identificacion: </td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="identificacion"
-                  v-model="transportista.identificacion"
-                />
+                <input type="text" class="form-control" id="identificacion" v-model="transportista.identificacion" />
               </td>
               <td class="text-end">Placa de vehículo: </td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="placa"
-                  v-model="vehiculo.placa"
-                />
+                <input type="text" class="form-control" id="placa" v-model="vehiculo.placa" />
               </td>
             </tr>
           </template>
           <tr>
             <td class="text-end">Fecha / Hora salida: </td>
             <td>
-              <flat-pickr
-                  id="example-flatpickr-datetime24"
-                  class="form-control"
-                  v-model="flatPickrState.horaInicio"
-                  :config="flatPickrState.configDateTime24"
-                />
+              <flat-pickr id="example-flatpickr-datetime24" class="form-control" v-model="flatPickrState.horaInicio"
+                :config="flatPickrState.configDateTime24" />
             </td>
             <td class="text-end">Fecha / Hora llegada: </td>
-            <td><flat-pickr
-                  id="example-flatpickr-datetime24"
-                  class="form-control"
-                  v-model="flatPickrState.horaFin"
-                  :config="flatPickrState.configDateTime24"
-                /></td>
+            <td><flat-pickr id="example-flatpickr-datetime24" class="form-control" v-model="flatPickrState.horaFin"
+                :config="flatPickrState.configDateTime24" /></td>
           </tr>
           <tr>
             <td class="text-end">Observación:</td>
             <td colspan="3">
-              <textarea class="form-control"
-                id="telefono"
-                v-model="observacion"></textarea>
+              <textarea class="form-control" id="telefono" v-model="observacion"></textarea>
             </td>
           </tr>
           <tr>
             <td class="text-end">Ruta:</td>
             <td colspan="3">
-              <input type="text" class="form-control"
-                id="ruta"
-                placeholder="Ej: Guayaquil - Ambato"
-                v-model="ruta"/>
+              <input type="text" class="form-control" id="ruta" placeholder="Ej: Guayaquil - Ambato" v-model="ruta" />
             </td>
           </tr>
         </tbody>
@@ -192,19 +136,20 @@
     </div>
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
-    <button  type="button" class="btn btn-secondary btn-sm mx-2" data-bs-dismiss="modal"> Cancelar</button>
-    <button ref="boton_generar" type="button" class="btn btn-success btn-sm mx-2" @click="generarGuia()"><i class="fa fa-file-lines"></i> Generar</button>
+    <button type="button" class="btn btn-secondary btn-sm mx-2" data-bs-dismiss="modal"> Cancelar</button>
+    <button ref="boton_generar" type="button" class="btn btn-success btn-sm mx-2" @click="generarGuia()"
+      :disabled="disabledGenerarGuia"><i class="fa fa-file-lines"></i> Generar</button>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, reactive } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import Swal from "sweetalert2";
 import flatPickr from 'vue-flatpickr-component';
 import { useTemplateStore } from "@/stores/template";
 import { formatPrice } from "@/functions";
-import {swalSuccess} from "@/functions/swal-alert";
+import { swalSuccess } from "@/functions/swal-alert";
 
 
 const store = useStore();
@@ -226,39 +171,42 @@ const { currentBodega } = defineProps({
 
 
 function changeVehiculo() {
-  if(vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id){
+  if (vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id) {
     var id = vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id;
     transportista.value.transportista_id = transportistas.value.find((item) => item.id === id).id;
   }
 }
 
-function generarGuia(){
+let disabledGenerarGuia = ref(false);
+async function generarGuia() {
 
   let vehi;
   let trans;
-  if(despacho.value == 'Retiro en bodega'){
-    if(!transportista.value.nombre || !transportista.value.identificacion || !transportista.value.tipo_identificacion || !vehiculo.value.placa){
+  if (despacho.value == 'Retiro en bodega') {
+    if (!transportista.value.nombre || !transportista.value.identificacion || !transportista.value.tipo_identificacion || !vehiculo.value.placa) {
       swalError('Llenar datos de transporte externo');
       return;
     }
-  }else{
-    if(!transportista.value.transportista_id){
+  } else {
+    if (!transportista.value.transportista_id) {
       swalError('Seleccionar transportista');
       return;
     }
   }
+  disabledGenerarGuia.value = true;
   boton_generar.value.classList.add('hide');
   templateStore.pageLoader({ mode: "on" });
 
-  if(despacho.value == 'Retiro en bodega'){
-    trans = transportista.value;
-    vehi = vehiculo.value;
-  }else{
-    trans = transportistas.value.find(item => item.id === transportista.value.transportista_id);
-    vehi = vehiculos.value.find(item => item.id === vehiculo.value.vehiculo_id);
-  }
+  try {
+    if (despacho.value == 'Retiro en bodega') {
+      trans = transportista.value;
+      vehi = vehiculo.value;
+    } else {
+      trans = transportistas.value.find(item => item.id === transportista.value.transportista_id);
+      vehi = vehiculos.value.find(item => item.id === vehiculo.value.vehiculo_id);
+    }
 
-  const data = reactive({
+    const data = {
       transportista: trans,
       vehiculo: vehi,
       fecha_inicio: flatPickrState.value.horaInicio,
@@ -266,22 +214,26 @@ function generarGuia(){
       items: picking.value.data,
       observacion: observacion.value,
       ruta: ruta.value,
-      tipo: currentBodega.tipo
-    });
+      tipo: currentBodega.tipo,
+    };
 
+    // 1) consultar
+    await store.dispatch('consultarGuiaTraslado', data);
+    // 2) generar
+    await store.dispatch('generarGuiaTraslado', data);
+    emit('generarGuia');
 
-  store.dispatch('consultarGuiaTraslado', data).then( (res) => {
-    store.dispatch('generarGuiaTraslado', data).then( (res) => {
-      templateStore.pageLoader({ mode: "off" });
-      boton_generar.value.classList.remove('hide');
-      emit('generarGuia');
-    });
-
-  }).catch(err => {
-    templateStore.pageLoader({ mode: "off" });
-    boton_generar.value.classList.remove('hide');
-    swalError(err.response.data.error);
-  });
+  } catch (err) {
+    const msg =
+      err?.response?.data?.error ||
+      err?.message ||
+      'Error al generar la guía';
+    swalError(msg);
+  } finally {
+    templateStore.pageLoader({ mode: 'off' });
+    boton_generar.value?.classList.remove('hide');
+    disabledGenerarGuia.value = false;
+  }
 
 }
 

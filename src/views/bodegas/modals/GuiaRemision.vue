@@ -1,12 +1,7 @@
 <template>
   <BaseBlock title="Generar guía de remisión" class="mb-0" v-if="verpedido.pedido">
     <template #options>
-      <button
-        type="button"
-        class="btn-block-option"
-        data-bs-dismiss="modal"
-        aria-label="Close"
-      >
+      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
         <i class="fa fa-fw fa-times"></i>
       </button>
     </template>
@@ -72,13 +67,8 @@
           <tr>
             <td class="text-end">{{ verpedido.pedido.despacho }} Transporte:</td>
             <td>
-              <select
-                class="form-select"
-                id="example-select-floating"
-                name="example-select-floating"
-                aria-label="Estado"
-                v-model="verpedido.pedido.despacho"
-              >
+              <select class="form-select" id="example-select-floating" name="example-select-floating"
+                aria-label="Estado" v-model="verpedido.pedido.despacho">
                 <option value="Retiro en bodega">Externo</option>
                 <option value="Despacho en ruta">Local</option>
               </select>
@@ -87,37 +77,18 @@
           <tr v-if="verpedido.pedido.despacho === 'Despacho en ruta'">
             <td class="text-end">Vehículo:</td>
             <td>
-              <select
-                class="form-select"
-                id="example-select-floating"
-                name="example-select-floating"
-                aria-label="Estado"
-                v-model="vehiculo.vehiculo_id"
-                @change="changeVehiculo()"
-              >
-                <option
-                  v-for="(vehiculo, index) in vehiculos"
-                  :key="index"
-                  :value="vehiculo.id"
-                >
+              <select class="form-select" id="example-select-floating" name="example-select-floating"
+                aria-label="Estado" v-model="vehiculo.vehiculo_id" @change="changeVehiculo()">
+                <option v-for="(vehiculo, index) in vehiculos" :key="index" :value="vehiculo.id">
                   {{ vehiculo.nombre }} - {{ vehiculo.placa }}
                 </option>
               </select>
             </td>
             <td class="text-end">Transportista:</td>
             <td>
-              <select
-                class="form-select"
-                id="example-select-floating"
-                name="example-select-floating"
-                aria-label="Estado"
-                v-model="transportista.transportista_id"
-              >
-                <option
-                  v-for="(transportista, index) in transportistas"
-                  :key="index"
-                  :value="transportista.id"
-                >
+              <select class="form-select" id="example-select-floating" name="example-select-floating"
+                aria-label="Estado" v-model="transportista.transportista_id">
+                <option v-for="(transportista, index) in transportistas" :key="index" :value="transportista.id">
                   {{ transportista.nombre }} - {{ transportista.identificacion }}
                 </option>
               </select>
@@ -127,20 +98,11 @@
             <tr>
               <td class="text-end">Nombre Transportista:</td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="nombre"
-                  v-model="transportista.nombre"
-                />
+                <input type="text" class="form-control" id="nombre" v-model="transportista.nombre" />
               </td>
               <td class="text-end">Tipo identificacion:</td>
               <td>
-                <select
-                  class="form-select"
-                  v-model="transportista.tipo_identificacion"
-                  id="tipo_identificacion"
-                >
+                <select class="form-select" v-model="transportista.tipo_identificacion" id="tipo_identificacion">
                   <option value="04">RUC</option>
                   <option value="05">Cédula</option>
                   <option value="06">Pasaporte</option>
@@ -150,64 +112,37 @@
             <tr>
               <td class="text-end"># Identificacion:</td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="identificacion"
-                  v-model="transportista.identificacion"
-                />
+                <input type="text" class="form-control" id="identificacion" v-model="transportista.identificacion" />
               </td>
               <td class="text-end">Placa de vehículo:</td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="placa"
-                  v-model="vehiculo.placa"
-                />
+                <input type="text" class="form-control" id="placa" v-model="vehiculo.placa" />
               </td>
             </tr>
           </template>
           <tr>
             <td class="text-end">Fecha / Hora salida:</td>
             <td>
-              <flat-pickr
-                id="example-flatpickr-datetime24"
-                class="form-control"
-                v-model="flatPickrState.horaInicio"
-                :config="flatPickrState.configDateTime24"
-              />
+              <flat-pickr id="example-flatpickr-datetime24" class="form-control" v-model="flatPickrState.horaInicio"
+                :config="flatPickrState.configDateTime24" />
             </td>
             <td class="text-end">Fecha / Hora llegada:</td>
             <td>
-              <flat-pickr
-                id="example-flatpickr-datetime24"
-                class="form-control"
-                v-model="flatPickrState.horaFin"
-                :config="flatPickrState.configDateTime24"
-              />
+              <flat-pickr id="example-flatpickr-datetime24" class="form-control" v-model="flatPickrState.horaFin"
+                :config="flatPickrState.configDateTime24" />
             </td>
           </tr>
           <tr>
             <td class="text-end">Observación:</td>
             <td colspan="3">
-              <textarea
-                class="form-control"
-                id="telefono"
-                v-model="observacion"
-              ></textarea>
+              <textarea class="form-control" id="telefono" v-model="observacion"></textarea>
             </td>
           </tr>
           <tr>
             <td class="text-end">Ruta:</td>
             <td colspan="3">
-              <input
-                type="text"
-                class="form-control"
-                id="ruta"
-                placeholder="Ej: Guayaquil – Ambato"
-                v-model="vehiculo.ruta"
-              />
+              <input type="text" class="form-control" id="ruta" placeholder="Ej: Guayaquil – Ambato"
+                v-model="vehiculo.ruta" />
             </td>
           </tr>
         </tbody>
@@ -219,10 +154,7 @@
       </button>
     </div>
     <div class="table-responsive">
-      <table
-        v-if="detalle_orden_despacho.length"
-        class="table table-striped table-sm table-vcenter"
-      >
+      <table v-if="detalle_orden_despacho.length" class="table table-striped table-sm table-vcenter">
         <thead>
           <tr>
             <th>CTL</th>
@@ -237,17 +169,14 @@
         </thead>
         <tbody>
           <template v-for="(articulo, index) in detalle_orden_despacho" :key="index">
-            <tr
-              :class="
-                (articulo.reservado > 0 && articulo.reservado === articulo.ART_CANTIDAD
-                  ? 'table-success'
-                  : '') ||
-                (articulo.reservado > 0 && articulo.pendiente === 0
-                  ? 'table-success'
-                  : '') ||
-                (articulo.reservado > 0 && articulo.pendiente > 0 ? 'table-warning' : '')
-              "
-            >
+            <tr :class="(articulo.reservado > 0 && articulo.reservado === articulo.ART_CANTIDAD
+                ? 'table-success'
+                : '') ||
+              (articulo.reservado > 0 && articulo.pendiente === 0
+                ? 'table-success'
+                : '') ||
+              (articulo.reservado > 0 && articulo.pendiente > 0 ? 'table-warning' : '')
+              ">
               <td class="fs-sm">
                 {{ articulo.ART_CODIGO_TRES_LETRAS }}
               </td>
@@ -270,22 +199,12 @@
                 {{ articulo.pendiente }}
               </td>
               <td style="width: 31px" class="text-center">
-                <input
-                  v-if="articulo.pendiente > 0"
-                  type="checkbox"
-                  class="form-check-input"
-                  v-model="articulo.aplicar_todo"
-                  @change="aplicatodo(articulo)"
-                />
+                <input v-if="articulo.pendiente > 0" type="checkbox" class="form-check-input"
+                  v-model="articulo.aplicar_todo" @change="aplicatodo(articulo)" />
               </td>
               <td style="width: 80px">
-                <input
-                  v-if="articulo.pendiente > 0"
-                  type="text"
-                  class="form-control text-end"
-                  v-model="articulo.seleccionado"
-                  @change="aplicartraslado(articulo)"
-                />
+                <input v-if="articulo.pendiente > 0" type="text" class="form-control text-end"
+                  v-model="articulo.seleccionado" @change="aplicartraslado(articulo)" />
               </td>
             </tr>
           </template>
@@ -301,12 +220,7 @@
     </div>
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
-    <button
-      :disabled="!generar"
-      type="button"
-      class="btn btn-sm btn-success mx-2"
-      @click="generarGuia(verpedido)"
-    >
+    <button :disabled="disabledGenerarGuia" type="button" class="btn btn-sm btn-success mx-2" @click="generarGuia(verpedido)">
       <i class="fa fa-file-lines"></i> Generar
     </button>
     <button type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal">
@@ -321,7 +235,7 @@ import { useTemplateStore } from "@/stores/template";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import flatPickr from 'vue-flatpickr-component';
 
-import {formatPrice} from "../../../functions";
+import { formatPrice } from "../../../functions";
 
 
 function addMinutes(numOfMinutes, date = new Date()) {
@@ -353,7 +267,7 @@ const { verpedido } = defineProps({
 const emit = defineEmits(["generarGuia", "cerrarGuia"]);
 
 function changeVehiculo() {
-  if(vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id){
+  if (vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id) {
     const id = vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id;
     transportista.value.transportista_id = transportistas.value.find((item) => item.id === id).id;
   }
@@ -400,7 +314,7 @@ function isInt(value) {
 
 function aplicartraslado(traslado) {
 
-  if(!isInt(traslado.seleccionado) && traslado.ART_DECIMAL_CANTIDAD === 0){
+  if (!isInt(traslado.seleccionado) && traslado.ART_DECIMAL_CANTIDAD === 0) {
     swalError('Ingresar un número entero');
     traslado.seleccionado = 0;
     traslado.aplicar_todo = false;
@@ -434,10 +348,15 @@ function aplicartraslado(traslado) {
   checkgenerarguia();
 }
 
-function generarGuia(verpedido) {
-  let vehi;
-  let trans;
-  if (verpedido.pedido.despacho === "Retiro en bodega") {
+let disabledGenerarGuia = ref(false);
+async function generarGuia(verpedido) {
+  // evita doble click
+  if (disabledGenerarGuia.value) return;
+
+  // 1. Validaciones
+  const esRetiro = verpedido.pedido.despacho === "Retiro en bodega";
+
+  if (esRetiro) {
     if (
       !transportista.value.nombre ||
       !transportista.value.identificacion ||
@@ -454,17 +373,26 @@ function generarGuia(verpedido) {
     }
   }
 
-  if (verpedido.pedido.despacho === "Retiro en bodega") {
+  // 2. Armar transportista / vehículo
+  let trans, vehi;
+  if (esRetiro) {
     trans = transportista.value;
     vehi = vehiculo.value;
   } else {
-    trans = transportistas.value.find((item) => item.id === transportista.value.transportista_id);
-    vehi = vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id);
+    trans = transportistas.value.find(
+      (item) => item.id === transportista.value.transportista_id
+    );
+    vehi = vehiculos.value.find(
+      (item) => item.id === vehiculo.value.vehiculo_id
+    );
   }
 
+  // 3. bloquear UI
+  disabledGenerarGuia.value = true;
   templateStore.pageLoader({ mode: "on" });
 
-  const data = reactive({
+  // 4. payload (objeto plano, no reactive)
+  const data = {
     pedido: verpedido,
     transportista: trans,
     vehiculo: vehi,
@@ -472,12 +400,24 @@ function generarGuia(verpedido) {
     fecha_fin: flatPickrState.value.horaFin,
     items: detalle_orden_despacho.value,
     observacion: observacion.value,
-    ruta: vehiculo.value.ruta,
-  });
-  store.dispatch("generarGuiaVenta", data).then(() => {
-    templateStore.pageLoader({ mode: "off" });
+    // si el vehículo no tiene ruta, que no reviente:
+    ruta: vehiculo.value?.ruta ?? null,
+  };
+
+  try {
+    await store.dispatch("generarGuiaVenta", data);
     emit("generarGuia");
-  });
+  } catch (err) {
+    console.log(err, "error");
+    const msg =
+      err?.response?.data?.error ||
+      err?.message ||
+      "Error al generar la guía";
+    swalError(msg);
+  } finally {
+    templateStore.pageLoader({ mode: "off" });
+    disabledGenerarGuia.value = false;
+  }
 }
 
 </script>

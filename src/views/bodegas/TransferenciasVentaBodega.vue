@@ -368,7 +368,12 @@ function despacharguiaGuia(guia) {
     }
     templateStore.pageLoader({ mode: "off" });
   }).catch(err => {
-    swalError(err.response.data.message);
+    const msg =
+      err?.response?.data?.error ||
+      err?.response?.data?.message ||
+      err?.message ||
+      'Error al despachar la guía de remisión';
+    swalError(msg);
     templateStore.pageLoader({ mode: "off" });
   })
 }

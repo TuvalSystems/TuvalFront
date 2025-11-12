@@ -31,7 +31,7 @@
           <div class="block-options-item">
             <button type="button" class="btn btn-sm btn-primary"
               @click="seleccionartodos(transferencias_reposicion[route.params.id].traslados)"><i
-                class="fa fa-hand-pointer"></i> Seleccionar todos</button>
+                class="fa fa-hand-pointer"></i> Seleccionar hasta {{ maxItems }} items</button>
           </div>
           <div class="block-options-item">
             <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i
@@ -337,7 +337,7 @@ function despacharguiaGuia(guia) {
     }
     templateStore.pageLoader({ mode: "off" });
   }).catch(err => {
-    swalError(err.response.data.message);
+    swalError(err.response.data.error);
     templateStore.pageLoader({ mode: "off" });
   })
 }
@@ -428,11 +428,19 @@ function aplicartraslado(traslado) {
   checkgenerarguia();
 }
 
+const  maxItems = 100;
 function seleccionartodos(traslados) {
-  traslados.map(traslado => {
-    traslado.seleccionado = traslado.pendiente;
-    traslado.aplicar_todo = true;
-  });
+  let count = 0;
+  for (const t of traslados) {
+    if (count < maxItems && (Number(t.pendiente) || 0) > 0) {
+      t.seleccionado = Number(t.pendiente) || 0;
+      t.aplicar_todo = true;
+      count++;
+    } else {
+      t.seleccionado = 0;
+      t.aplicar_todo = false;
+    }
+  }
   checkgenerarguia();
 }
 
@@ -466,8 +474,10 @@ function verPicking(bodega) {
 
   store.dispatch('detallePickingTransferencia', arreglo)
 }
-
 function guiaRemision(bodega) {
+  if (!validateLimitSelectItems(bodega.traslados)) {
+    return;
+  }
   currentBodega.value = bodega;
   store.commit("resetFlatPickrState");
   store.commit("resetVehiculo");
@@ -477,6 +487,21 @@ function guiaRemision(bodega) {
   guiaRemisionModalObj.show();
 }
 
+
+function validateLimitSelectItems(selectedItems, maxItems = 100) {
+  const itemsCount = selectedItems.reduce((acc, it) => {
+    const sel = Number(it?.seleccionado ?? 0);
+    return acc + (sel > 0 ? 1 : 0);
+  }, 0);
+
+  // Máximo inclusivo: 100 es OK; 101 no
+  if (Number.isFinite(maxItems) && maxItems >= 0 && itemsCount > maxItems) {
+    swalWarning(`Solo puedes seleccionar hasta un máximo de ${maxItems} ítems (llevas ${itemsCount}).`);
+    return false;
+  }
+
+  return true;
+}
 
 const cols = reactive([
   {

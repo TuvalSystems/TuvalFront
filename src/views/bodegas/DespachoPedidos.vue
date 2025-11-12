@@ -456,6 +456,9 @@ function refrescar(imprimir = false) {
       imprimirGuia(ultimaguia.value);
       despacharguiaGuia(ultimaguia.value);
     }
+  }).catch((error) => {
+    console.log("error" + error);
+    
   });
 }
 
@@ -464,6 +467,8 @@ function refrescarDespacho() {
   store.dispatch("getUltimaGuia").then(() => {
     imprimirGuia(ultimaguia.value);
     despacharguiaGuia(ultimaguia.value);
+  }).catch((error) => {
+    console.log("error" + error);
   });
 }
 
@@ -512,6 +517,10 @@ async function imprimirGuia(guia) {
         document.body.appendChild(link);
         link.click();
       }
+    }).catch((error) => {
+      console.error("Error al imprimir la guía:", error);
+      // Aquí puedes mostrar una notificación al usuario
+      swalError("Error al imprimir la guía.");
     });
 }
 
@@ -582,7 +591,7 @@ function despacharguiaGuia(guia) {
 
   store.dispatch("despacharGuiaRemision", guia).then((res) => {
     if(!res.success){
-      swalError(res.message);
+      swalError(res.error);
       templateStore.pageLoader({ mode: "off" });
     }else{
       swalSuccess(res.message);
@@ -594,8 +603,7 @@ function despacharguiaGuia(guia) {
       templateStore.pageLoader({ mode: "off" });
     }
   }).catch(err => {
-    // console.log(err);
-    swalError(err.response.data.message);
+    swalError(err.response.data.error);
     templateStore.pageLoader({ mode: "off" });
   });
 }
