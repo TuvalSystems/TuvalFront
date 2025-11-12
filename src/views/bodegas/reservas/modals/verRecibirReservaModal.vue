@@ -7,7 +7,7 @@ import {
     toast
 } from "@/functions/swal-alert.js";
 import Swal from "sweetalert2";
-const emit = defineEmits(['closeModal']);
+const emit = defineEmits(['closeModal', 'refresh']);
 const props = defineProps({
     'header': Object,
 });
@@ -98,9 +98,12 @@ async function confirmarRecibir() {
 async function procesar(payload) {
     const resp = await processReceivedItems(payload);
     if (!resp?.ok) {
-        throw new Error(resp?.message || 'No se pudo procesar la recepción.');
+        swalError(resp?.message || 'No se pudo procesar la recepción.');
+        return;
     }
     swalSuccess(resp?.message)
+    emit('closeModal');
+    emit('refresh');
     return resp;
 }
 

@@ -78,11 +78,13 @@ export function useReservationTransferReceipt() {
 
 
     /** recibir items de reserva tranferidos*/
-    const loadingReceived = ref(null)
+    const loadingReceived = ref(false);
     const apiProcessReceivedItems = 'bodegas/reservas/guia-remision/detalle-transferencias-por-recibir/recibir';
     async function processReceivedItems(payload){
-        console.log(payload , 'items recibidos xddd');
-        loadingReceived.value = false;
+      return await run(() => axiosClient.post(apiProcessReceivedItems, payload), {
+        loadingRef: loadingReceived,
+        successMessage: "Proceso realizado exitosamente.",
+      });
     }
 
 

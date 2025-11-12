@@ -217,7 +217,7 @@ onMounted(async () => {
         aria-hidden="true" ref="receivedModal">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
-                <verRecibirReserva v-if="dataHeaderModal && dataHeaderModal.id" :header="dataHeaderModal" @closeModal="closeModalRecived()">
+                <verRecibirReserva v-if="dataHeaderModal && dataHeaderModal.id" :header="dataHeaderModal" @closeModal="closeModalRecived()"  @refresh="refresh()">
                 </verRecibirReserva>
             </div>
         </div>
