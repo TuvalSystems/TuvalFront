@@ -190,38 +190,7 @@ export function useApprovedReservations() {
         table.totalItems = paginador?.total ?? 0;
       }
     })
-    // try {
-    //   const response = await axiosClient.get(endpoint, {
-    //     params: {
-    //       page: table.currentPage,
-    //       perPage: table.perPage,
-    //       search: table.searchTerm,
-    //       sortBy: table.sortField,
-    //       sortOrder: table.sortOrder,
-    //       fecha_desde: table.fecha_desde,
-    //       fecha_hasta: table.fecha_hasta,
-    //       status: table.status,
-    //       ptovta: table.ptovta,
-    //       cliente: table.cliente,
-    //     },
-    //     signal: ctrl.value.signal,
-    //   });
-    //   const data = response.data.data;
-    //   if (data) {
-    //     table.items = data.data;
-    //     table.totalPage = data.last_page;
-    //     table.totalItems = data.total;
-    //   }
-    // } catch (e) {
-    //   table.loading = false;
-    //   //   console.error("Error fetching items:", error);
-    //   if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
-    //     error = e?.response?.data?.error || "Error obteniendo cotizaciones";
-    //     console.error(error, e);
-    //   }
-    // } finally {
-    //   table.loading = false;
-    // }
+  
   }
 
   const refresh = () => {
