@@ -1,8 +1,11 @@
 import axiosClient from "@/axios";
-import { watch, reactive, ref } from "vue";
-
+import { watch, reactive, ref, toRef } from "vue";
+import { useApiAction } from "@/composables/core/useApiAction";
 export function useQuotationReserveRequests() {
-  const endpoint = "/reservas/lista-solicitudes-reserva";
+  const apiList = "/reservas/lista-solicitudes-reserva";
+  const { run } = useApiAction();
+    const ctrl = ref(null); // AbortController actual
+  let debounceId;
   const table = reactive({
     items: [],
     currentPage: 1,
@@ -15,8 +18,9 @@ export function useQuotationReserveRequests() {
     cliente: null,
     ptovta: null,
     tipoReserva: null,
-  }); // todas las refs viven aqui
-
+    loading: false,
+  });
+  const loadingRef = toRef(table, "loading");
   const columns = [
     {
       label: "Pto. Venta",
@@ -109,45 +113,34 @@ export function useQuotationReserveRequests() {
     { label: "50", value: "50" },
   ]);
 
-  const ctrl = ref(null); // AbortController actual
-  let debounceId;
+
 
   const fetchReservationRequests = async (page = 1) => {
     if (ctrl.value) ctrl.value.abort();
     ctrl.value = new AbortController();
-
-    table.loading = true;
     table.currentPage = page;
-    try {
-      const response = await axiosClient.get(endpoint, {
-        params: {
-          page: table.currentPage,
-          perPage: table.perPage,
-          search: table.searchTerm,
-          sortBy: table.sortField,
-          sortOrder: table.sortOrder,
-          tipoReserva: table.tipoReserva,
-          ptovta: table.ptovta,
-          cliente: table.cliente,
-        },
-        signal: ctrl.value.signal,
-      });
-      const data = response.data.data;
-
-      if (data) {
-        table.items = data.data;
-        table.totalPage = data.last_page;
-        table.totalItems = data.total;
-      }
-    } catch (e) {
-      table.loading = false;
-      if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
-        error = e?.response?.data?.error || "Error obteniendo cotizaciones";
-        console.error(error, e);
-      }
-    } finally {
-      table.loading = false;
+    const payload = {
+      page: table.currentPage,
+      perPage: table.perPage,
+      search: table.searchTerm,
+      sortBy: table.sortField,
+      sortOrder: table.sortOrder,
+      tipoReserva: table.tipoReserva,
+      ptovta: table.ptovta,
+      cliente: table.cliente,
     }
+    return await run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+      loadingRef,
+      latestOnly: true,                         // 👈 activa takeLatest
+      key: `lista-solicitudes-reserva`,      // 👈 clave para este endpoint
+      successMessage: "Proceso realizado exitosamente.",
+      onSuccess: (paginador) => {
+        const rows = paginador?.data ?? [];
+        table.items = rows;
+        table.totalPage = paginador?.last_page ?? 1;
+        table.totalItems = paginador?.total ?? 0;
+      }
+    })
   };
 
   const refresh = () => {

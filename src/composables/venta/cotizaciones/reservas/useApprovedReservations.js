@@ -1,9 +1,11 @@
 import axiosClient from "@/axios";
-import { ref, reactive, watch } from "vue";
-
+import { ref, reactive, watch, toRef } from "vue";
+import { useApiAction } from "@/composables/core/useApiAction";
 export function useApprovedReservations() {
-  let controller = null;
-  const endpoint = "/reservas/lista-reserva-aprobadas";
+  const { run } = useApiAction();
+  const ctrl = ref(null); // AbortController actual
+  let debounceId;
+  const apiList = "/reservas/lista-reserva-aprobadas";
   const table = reactive({
     items: [],
     currentPage: 1,
@@ -20,6 +22,7 @@ export function useApprovedReservations() {
     cliente: null,
     ptovta: null,
   });
+  const loadingRef = toRef(table, "loading");
 
   const columns = [
     {
@@ -157,47 +160,68 @@ export function useApprovedReservations() {
     return "text-end fw-semibold";
   };
 
-  const ctrl = ref(null); // AbortController actual
-  let debounceId;
+
 
   async function fetchList(page = 1) {
     if (ctrl.value) ctrl.value.abort();
     ctrl.value = new AbortController();
-
-    table.loading = true;
     table.currentPage = page;
-    try {
-      const response = await axiosClient.get(endpoint, {
-        params: {
-          page: table.currentPage,
-          perPage: table.perPage,
-          search: table.searchTerm,
-          sortBy: table.sortField,
-          sortOrder: table.sortOrder,
-          fecha_desde: table.fecha_desde,
-          fecha_hasta: table.fecha_hasta,
-          status: table.status,
-          ptovta: table.ptovta,
-          cliente: table.cliente,
-        },
-        signal: ctrl.value.signal,
-      });
-      const data = response.data.data;
-      if (data) {
-        table.items = data.data;
-        table.totalPage = data.last_page;
-        table.totalItems = data.total;
-      }
-    } catch (e) {
-      table.loading = false;
-      //   console.error("Error fetching items:", error);
-      if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
-        error = e?.response?.data?.error || "Error obteniendo cotizaciones";
-        console.error(error, e);
-      }
-    } finally {
-      table.loading = false;
+    const payload = {
+      page: table.currentPage,
+      perPage: table.perPage,
+      search: table.searchTerm,
+      sortBy: table.sortField,
+      sortOrder: table.sortOrder,
+      fecha_desde: table.fecha_desde,
+      fecha_hasta: table.fecha_hasta,
+      status: table.status,
+      ptovta: table.ptovta,
+      cliente: table.cliente,
     }
+    return await run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+      loadingRef,
+      latestOnly: true,                         // 👈 activa takeLatest
+      key: `lista-reserva-aprobadas`,      // 👈 clave para este endpoint
+      successMessage: "Proceso realizado exitosamente.",
+      onSuccess: (paginador) => {
+        const rows = paginador?.data ?? [];
+        table.items = rows;
+        table.totalPage = paginador?.last_page ?? 1;
+        table.totalItems = paginador?.total ?? 0;
+      }
+    })
+    // try {
+    //   const response = await axiosClient.get(endpoint, {
+    //     params: {
+    //       page: table.currentPage,
+    //       perPage: table.perPage,
+    //       search: table.searchTerm,
+    //       sortBy: table.sortField,
+    //       sortOrder: table.sortOrder,
+    //       fecha_desde: table.fecha_desde,
+    //       fecha_hasta: table.fecha_hasta,
+    //       status: table.status,
+    //       ptovta: table.ptovta,
+    //       cliente: table.cliente,
+    //     },
+    //     signal: ctrl.value.signal,
+    //   });
+    //   const data = response.data.data;
+    //   if (data) {
+    //     table.items = data.data;
+    //     table.totalPage = data.last_page;
+    //     table.totalItems = data.total;
+    //   }
+    // } catch (e) {
+    //   table.loading = false;
+    //   //   console.error("Error fetching items:", error);
+    //   if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
+    //     error = e?.response?.data?.error || "Error obteniendo cotizaciones";
+    //     console.error(error, e);
+    //   }
+    // } finally {
+    //   table.loading = false;
+    // }
   }
 
   const refresh = () => {

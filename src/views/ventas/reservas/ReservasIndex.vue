@@ -252,7 +252,7 @@ onBeforeUnmount(() => {
         <BaseBlock title="Reservas" content-full themed rounded>
             <template #options>
                 <div class="block-options-item">
-                    <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading"
+                    <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading"
                         title="Refrescar" aria-label="Refrescar">
                         <i v-if="!table.loading" class="fa fa-refresh"></i>
                         <span v-else class="spinner-border spinner-border-sm"></span>

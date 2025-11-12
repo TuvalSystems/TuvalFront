@@ -56,7 +56,7 @@ export function useReservationProcessor(infoReserva) {
   }
 
   function getAuthorized(stock) {
-    return toInt(stock.cantidad_autorizada_reserva ?? 0);
+    return toInt(stock.cantidad_reservada ?? 0);
   }
 
   /** funcion para correr todas las filas de stock */

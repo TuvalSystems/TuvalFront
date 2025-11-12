@@ -49,7 +49,7 @@ function validateToProcess() {
       if (totalNow > base) {
         st.a_cancelar = Math.max(0, base - st.a_cotizar);
       }
-      if ((st.a_cancelar > 0 || st.a_cotizar > 0) && st.cantidad_autorizada_reserva > 0) {
+      if ((st.a_cancelar > 0 || st.a_cotizar > 0) && st.cantidad_reservada > 0) {
         anySelected = true;
       }
     }
@@ -246,7 +246,7 @@ async function procesar() {
                   </td>
 
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.cantidad_autorizada_reserva) }}</td>
+                    toInt(item2.cantidad_reservada) }}</td>
                   <td class="fs-sm text-sm">
                     <div style="font-size: 12px">{{ item2.STO_ART_BODEGA }}</div>
                   </td>
