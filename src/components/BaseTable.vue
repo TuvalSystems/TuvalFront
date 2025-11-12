@@ -43,6 +43,9 @@ const props = defineProps({
         type: String,
         default: "asc",
     },
+    processing: { type: Boolean, default: false },          // 🔒 lock global (toda la tabla)
+    isRowDisabled: { type: Function, default: null },              // 🔒 lock por fila (opcional)
+
 });
 
 const emit = defineEmits(["onSort", "onPageChange", "onClick"]);
@@ -79,11 +82,13 @@ const pages = computed(() => {
 });
 
 
+const isDisabledRow = (row) => (props.isRowDisabled ? !!props.isRowDisabled(row) : false);
+const isCellClickable = (row, col) => col.clickable && !props.processing && !isDisabledRow(row);
+
 const handleRowClick = (event, row, col) => {
-    event.preventDefault();
-    // console.log('🟢 CLICK detectado en BaseTable:', row, col.key);
-    emit('onClick', { row, col });
-    // console.log('🟡 Evento emitido desde BaseTable');
+   event.preventDefault();
+  if (!isCellClickable(row, col)) return; // ⛔ bloquea si está en procesamiento o fila deshabilitada
+  emit('onClick', { row, col });
 };
 
 
@@ -152,7 +157,7 @@ const getTdClass = (col, row) => {
 
                     <!-- datos de la tabla  y acciones -->
                     <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
-                        <tr v-for="row in data" :key="row.id ?? index">
+                        <tr v-for="(row, index) in data" :key="row.id ?? index">
                             <td v-for="col in columns" :key="col.key" :class="getTdClass(col, row)"
                                 style="font-size: 12px; overflow: hidden; text-overflow: ellipsis ">
 
@@ -164,6 +169,9 @@ const getTdClass = (col, row) => {
                                 <!-- Si es clickable, lo renderizamos como enlace -->
                                 <template v-else>
                                     <a v-if="col.clickable" href="javascript:void(0)"
+                                        :class="['clickable', (processing || isDisabledRow(row)) ? 'is-disabled' : '']"
+                                        :aria-disabled="processing || isDisabledRow(row)"
+                                        :tabindex="(processing || isDisabledRow(row)) ? -1 : 0"
                                         @click="(event) => handleRowClick(event, row, col)">
                                         <span v-if="typeof col.render === 'function'">
                                             {{ col.render(row[col.key]) }}
@@ -274,6 +282,12 @@ const getTdClass = (col, row) => {
 .clickable {
     cursor: pointer;
     color: #0d6efd;
+}
+
+.clickable.is-disabled {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* table */

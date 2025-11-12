@@ -164,15 +164,16 @@
                           {{ row.estado }}
                         </a>
                         <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill" :class="row.aprobado_comercial_mensaje ? 'pointer bg-danger-light text-danger' : '' || row.estado == 'aprobado' ? 'bg-success-light text-success'
-                              : '' || row.estado == 'rechazado'? 'bg-danger-light text-danger' : '' || row.estado == 'caducado'? 'bg-danger-light text-danger'
-                                  : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''" @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : '' ">{{ row.estado }}
+                          : '' || row.estado == 'rechazado' ? 'bg-danger-light text-danger' : '' || row.estado == 'caducado' ? 'bg-danger-light text-danger'
+                            : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''"
+                          @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : ''">{{
+                            row.estado }}
                         </span>
                       </td>
                       <td>
-                      
-                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1" 
-                           :class="getReminderClass(row)"
-                           @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''" >
+                        <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1"
+                          :class="getReminderClass(row)"
+                          @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''">
                           {{ row.recordatorioventa == 1 ? "Si" : "No" }}
                         </span>
                       </td>
@@ -192,12 +193,6 @@
                       </td>
                       <td v-else class="fs-sm nowrap text-end">
                         <button v-if="
-                          row.imprimir == 'yes' && row.estado != 'caducado'
-                        " type="button" class="btn btn-primary btn-sm mx-2" title="Imprimir Cotización"
-                          @click="imprimircotizacion(row)">
-                          <i class="fa fa-print"></i>
-                        </button>
-                        <button v-if="
                           row.recuperar == 'yes' &&
                           row.estado != 'caducado' &&
                           row.estado != 'procesado'
@@ -213,17 +208,30 @@
                           @click="levantarcliente(row)">
                           <i class="fa fa-copy"></i>
                         </button>
-                        <button v-if="
-                          row.imprimir == 'yes' && row.estado != 'caducado'
-                        " type="button" class="btn btn-warning btn-sm mx-2" title="Imprimir Cotización Imágenes"
-                          @click="imprimircotizacionimagenes(row)">
-                          <i class="fa fa-print"></i>
+
+                        <button type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
+                          @click="verModalReserva(row)">
+                          <i class="fa fa fa-box-archive"></i>
                         </button>
-                        <!-- <button
-                        v-if="row.facturar == 'yes' && row.estado != 'procesado'"
-                        type="button" class="btn btn-danger btn-sm mx-1" title="Procesar cotización" @click="confirmfacturar(row)">
-                        <i class="fa fa-file-invoice-dollar"></i>
-                      </button> -->
+                        <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button"
+                          class="btn btn-sm btn-alt-secondary" id="dropOptions" data-bs-toggle="dropdown"
+                          aria-haspopup="true" aria-expanded="false">
+                          <i class="fa fa-angle-down ms-1"></i>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropOptions">
+                          <li>
+                            <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" class="dropdown-item"
+                              title="Imprimir Cotización" @click="imprimircotizacion(row)"><i class="fa fa-print"></i>
+                              Imprimir
+                            </button>
+                          </li>
+                          <li>
+                            <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button"
+                              class="dropdown-item" title="Imprimir Cotización Imágenes"
+                              @click="imprimircotizacionimagenes(row)"><i class="fa fa-print"></i>
+                              Imprimir (Imagen)</button>
+                          </li>
+                        </ul>
                       </td>
                     </tr>
                   </template>
@@ -267,10 +275,25 @@
     ref="verNoVentaModal">
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
-        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta" @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
+        <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta"
+          @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
       </div>
     </div>
   </div>
+
+  <!-- Modal de reserva -->
+  <div class="modal" id="modal-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-reserva" aria-hidden="true"
+    ref="verReservaModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.cotizacion_id"
+          :datosReserva="datosModalReserva" @modalReservaHide="modalReservaHide()"></VerSolicitudReservaModalComponent>
+      </div>
+    </div>
+  </div>
+
+
+
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from "vue";
@@ -293,7 +316,14 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { formatPrice, format } from "@/functions";
 import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
+import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
+import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits'
+import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitudReservaModal.vue";
+import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 const motivoStore = useMotivosStore()
+const tipoReservasStore = useTipoReservasStore()
+const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits()
+const { checkExistingReserve } = useValidatesReserved()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -420,6 +450,50 @@ async function funcionvercotizacion(cotizacion, index) {
   store.dispatch("detallecotizacion", cotizacion);
 }
 
+
+
+let verReservaModal = ref(null);
+let verReservaModalObj = null;
+let datosModalReserva = ref(null);
+async function verModalReserva(row) {
+  const reserva = row?.reserva ?? null;
+  const hasReserva = (row?.has_reserva === true) || !!reserva;
+  if (hasReserva && reserva) {
+    swalWarning(
+      'Ya se registró una reserva para esta cotización para el día ' +
+      (reserva?.fe_solicitud_reserva ?? '(sin fecha)')
+    );
+    return;
+  }
+  if (row.reserva_disabled === true && row.has_l_items !== true && row.has_service_items !== true) {
+    swalWarning('No puede realizar la reserva: la cotización no tiene cantidades seleccionadas.')
+    return;
+  }
+  const payload = {
+    cotizacion_id: row.id,
+    cotizacion: row.cotizacion,
+    pto_venta: row.BOD_BODEGA,
+    PTO_VTA_ID: row.PTO_VTA_ID,
+    razon_social: row.CLI_RAZON_SOCIAL,
+    fecha: row.created_at,
+    total: row.total,
+    has_l_items: row.has_l_items ?? null,
+    has_service_items: row.has_service_items ?? null
+  };
+  // datosModalReserva.value = null;
+  // await nextTick();
+  datosModalReserva.value = payload;
+  await nextTick();
+  verReservaModalObj?.show();
+
+}
+
+async function modalReservaHide() {
+  verReservaModalObj?.hide();
+  datosModalReserva.value = null
+  llenarcotizaciones('pendientes');
+}
+
 function motivoEspera(cotizacion) {
   let msg = "La cotización requiere ";
   if (cotizacion.requiere_aprobacion_comercial === "yes") {
@@ -465,7 +539,18 @@ async function llenarcotizaciones(estado) {
     });
 }
 
-function recuperarcotizacion(cotizacion) {
+async function recuperarcotizacion(cotizacion) {
+  let respRes;
+  try {
+    respRes = await checkExistingReserve(cotizacion.id);
+  } catch {
+    return;
+  }
+  if (respRes?.exists) {
+    swalError('No puede recuperar la cotización: la cotización cuenta con una reserva  ');
+    return;
+  }
+
   templateStore.pageLoader({ mode: "on" });
   store
     .dispatch("recuperarCotizacion", cotizacion)
@@ -505,7 +590,17 @@ function recuperarcotizacionprospecto(cotizacion) {
   });
 }
 
-function volverapedir(cotizacion) {
+async function volverapedir(cotizacion) {
+  let respRes;
+  try {
+    respRes = await checkExistingReserve(cotizacion.id);
+  } catch {
+    return;
+  }
+  if (respRes?.exists) {
+    swalError('No puede volver a pedir la cotización ya que cuenta con una reserva');
+    return;
+  }
   templateStore.pageLoader({ mode: "on" });
   store
     .dispatch("volverapedirCotizacion", cotizacion)
@@ -520,7 +615,19 @@ function volverapedir(cotizacion) {
     });
 }
 
-function levantarcliente(pedido) {
+
+async function levantarcliente(pedido) {
+  let respRes;
+  try {
+    respRes = await checkExistingReserve(pedido.id);
+  } catch {
+    return;
+  }
+  if (respRes?.exists) {
+    swalError('No puede copiar la cotización ya que cuenta con una reserva');
+    return;
+  }
+
   store.commit("resetCotizacion");
   levantarClienteModalObj.show();
   vercotizacion.value = pedido;
@@ -604,9 +711,9 @@ function showModalNoVenta(row) {
     datosModalNoVenta.value = {
       id: row.id,
       motivo_id: row.cotizacion_venta_motivo_id,
-      recordar : row.recordar,
-      observacion : row.observacion,
-      fecha_recordatorio : row.fecha_recordatorio,
+      recordar: row.recordar,
+      observacion: row.observacion,
+      fecha_recordatorio: row.fecha_recordatorio,
       cotizacion: row.cotizacion
     }
     nextTick(() => {
@@ -615,19 +722,19 @@ function showModalNoVenta(row) {
   });
 }
 
-function getReminderClass(row){  
+function getReminderClass(row) {
   if (row.recordatorioventa == 0) {
     if (row.cotizacion_venta_motivo_id != null || row.recordar == 1) {
       return 'bg-success-light text-success'
     } else {
       return 'bg-warning-light text-warning'
     }
-    
-  }else if(row.recordatorioventa == 1){
-      return 'bg-info-light text-info'
+
+  } else if (row.recordatorioventa == 1) {
+    return 'bg-info-light text-info'
   }
-  
-  
+
+
   return 'bg-danger-light text-danger';
 }
 
@@ -635,6 +742,7 @@ function getReminderClass(row){
 
 onMounted(() => {
   vercotizacionModalObj = new Modal(vercotizacionModal.value);
+  verReservaModalObj = new Modal(verReservaModal.value);
   levantarClienteModalObj = new Modal(levantarClienteModal.value);
   verNoVentaModalObj = new Modal(verNoVentaModal.value);
   // Remove labels from
@@ -648,8 +756,16 @@ onMounted(() => {
   selectLength.classList = "";
   selectLength.classList.add("form-select");
   selectLength.style.width = "80px";
-   if (motivoStore.motivos.length == 0) {
-        motivoStore.fetchMotivos()
-    }
+  if (motivoStore.motivos.length == 0) {
+    motivoStore.fetchMotivos()
+  }
+  if (tipoReservasStore.tipoReservas.length == 0) {
+    tipoReservasStore.fetchListTypeReserved()
+  }
+
+  if (puntosVentaReservaLimitsStore.puntosVentaReservaLimits.length == 0) {
+    puntosVentaReservaLimitsStore.fetchPuntosVentaReservaLimits()
+  }
+
 });
 </script>

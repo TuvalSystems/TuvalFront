@@ -888,7 +888,7 @@ const store = createStore({
        commit(
         "setIntervalPedidosporAprobarCrediticios",
          setInterval(() => {
-          dispatch("llenarpedidosporaprobarcrediticios");
+          dispatch("llenarpedidosporaprobarcrediticios")
         }, 10000)
        );
     },
