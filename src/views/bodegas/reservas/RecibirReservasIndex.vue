@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref, nextTick } from 'vue';
+import { Modal } from "bootstrap";
 import BaseTable from "@/components/BaseTable.vue";
 import { useReceiveReservationTransfers } from "@/composables/bodegas/reservas/useReceiveReservationTransfers";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
+import verRecibirReserva from "@/views/bodegas/reservas/modals/verRecibirReservaModal.vue"
 import {
     swalError,
     swalSuccess
@@ -23,6 +25,11 @@ const {
     printGuidePdf,
 } = useReservationTransferByWarehouse();
 
+
+/** datos de modales */
+let receivedModal = ref(null);
+let receivedModalObj = null;
+
 /** functions standar component table  */
 const handleClick = ({ row, col }) => {
     if (col.key === "numero_guia") {
@@ -38,23 +45,44 @@ function isRowDisabled(row) {
 
 
 /** bloqueo de modal  */
-const modalLocks = ref(new Map());
-const isModalLocked = (modalRow) => {
-    const id = typeof modalRow === "object" ? modalRow?.id : modalRow;
-    return modalLocks.value.get(String(id)) === true;
+const lockRecived = ref(new Map());
+const isModalRecivedLocked = (row) => {
+    const id = typeof row === "object" ? row?.id : row;
+    return lockRecived.value.get(String(id)) === true;
 }
 
-function lockModal(id) {
-    const m = new Map(modalLocks.value)
+function lockReceived(id) {
+    const m = new Map(lockRecived.value)
     m.set(String(id), true)
-    modalLocks.value = m;
+    lockRecived.value = m;
 }
 
 
-function unLockedModal(id) {
-    const m = new Map(modalLocks.value)
+function unLockRecived(id) {
+    const m = new Map(lockRecived.value)
     m.delete(String(id))
-    modalLocks.value = m
+    lockRecived.value = m
+}
+
+
+const dataHeaderModal = ref({});
+async function openModalRecived(row) {
+    dataHeaderModal.value = {};
+    if (!row || row.id === null) return
+    const id = row.id
+    dataHeaderModal.value = row
+    if (isModalRecivedLocked(id)) return
+    lockReceived(id);
+    await nextTick();
+    receivedModalObj = Modal.getOrCreateInstance(receivedModal.value, { backdrop: true });
+    unLockRecived(id);
+    receivedModalObj.show();
+}
+
+async function closeModalRecived (){
+    await nextTick();
+    dataHeaderModal.value = {};
+    receivedModalObj.hide();
 }
 
 
@@ -91,10 +119,21 @@ async function printPdfGuiaRemision(row) {
     }
 }
 
+
+
+async function initalModal() {
+    if (receivedModal.value) {
+        receivedModalObj = Modal.getOrCreateInstance(receivedModal.value, { backdrop: true })
+    }
+}
+
 onMounted(async () => {
+
     if (!table.items.length && !table.loading) {
         fetchListReceivedReservationTransfers(1);
     }
+    await nextTick()
+    initalModal();
 });
 </script>
 
@@ -152,8 +191,8 @@ onMounted(async () => {
                         <i v-else class="fa fa-print"></i>
                     </button>
                     <button type="button" class="btn btn-success btn-sm nowrap mx-1" aria-placeholder="recibir"
-                        @click="verModalRechazar(row)" :disabled="isModalLocked(row)">
-                        <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" role="status"
+                        @click="openModalRecived(row)" :disabled="isModalRecivedLocked(row)">
+                        <span v-if="isModalRecivedLocked(row)" class="spinner-border spinner-border-sm" role="status"
                             aria-hidden="true"></span>
                         <i v-else class="fa fa-people-carry-box"></i>
                         Recibir
@@ -172,6 +211,25 @@ onMounted(async () => {
         </BaseBlock>
     </div>
 
+
+    <!-- modal para recibir reservas -->
+    <div class="modal" id="modal-guia-reservas" tabindex="-1" role="dialog" aria-labelledby="modal-guia-reservas"
+        aria-hidden="true" ref="receivedModal">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <verRecibirReserva v-if="dataHeaderModal && dataHeaderModal.id" :header="dataHeaderModal" @closeModal="closeModalRecived()">
+                </verRecibirReserva>
+            </div>
+        </div>
+    </div>
+
 </template>
 
-<style lang="css" scoped></style>
+<style scoped>
+@media (min-width: 1000px) {
+    .table.table-sm> :not(caption)>*>* {
+        padding-top: .25rem;
+        padding-bottom: .15rem;
+    }
+}
+</style>

@@ -26,6 +26,11 @@ export async function ensurePdfBlob(res) {
   return blob
 }
 
+function ensurePdfExtension(name) {
+  return /\.pdf$/i.test(name) ? name : `${name}.pdf`;
+}
+
+
 /**
  * Llama a tu API Laravel, valida que sea PDF y descarga el archivo
  * @param {Object} opts
@@ -46,22 +51,30 @@ export async function downloadPdfFromApi(opts) {
   } = opts || {}
 
   try {
-    const config = { responseType: 'blob', headers }
+    const config = {
+      responseType: 'blob',
+      headers: { Accept: 'application/pdf', ...headers },
+      validateStatus: s => s < 500
+    }
 
     const res = method === 'GET'
       ? await axiosClient.get(url, { ...config, params: payload })
       : await axiosClient.post(url, payload, config)
 
     const blob = await ensurePdfBlob(res) // lanza si no es PDF
+
     const cd = res.headers && res.headers['content-disposition']
-    const filename = getFilenameFromDisposition(cd, filenameFallback)
+    let filename = getFilenameFromDisposition(cd, filenameFallback)
+    filename = ensurePdfExtension(filename);
 
     const href = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = href
     a.download = filename
-    a.click()
-    URL.revokeObjectURL(href)
+    document.body.appendChild(a); // más compatible con Safari
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(href);
 
     return { ok: true, filename }
   } catch (err) {

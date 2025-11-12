@@ -1,4 +1,4 @@
-import { ref, reactive, toRef, watch } from "vue";
+import { ref, reactive, toRef, watch, onBeforeUnmount } from "vue";
 import axiosClient from "@/axios";
 import { useStore } from "vuex";
 import { useApiAction } from "@/composables/core/useApiAction";
@@ -44,8 +44,7 @@ export function useReceiveReservationTransfers() {
     },
     {
       'label': 'Cotizaciones',
-      'key': 'quotes',
-      clickable: false,
+      'key': 'quotesText',
       sortable: true,
       render: (value) => value,
       thClass: " text-start d-none d-md-table-cell",
@@ -67,7 +66,6 @@ export function useReceiveReservationTransfers() {
     { label: "50", value: "50" },
   ]);
 
-
   async function fetchListReceivedReservationTransfers(page = 1) {
     if (ctrl.value) ctrl.value.abort();
     ctrl.value = new AbortController();
@@ -87,7 +85,11 @@ export function useReceiveReservationTransfers() {
       key: `receive-reservation-transfers`,      // 👈 clave para este endpoint
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: (paginador) => {
-        table.items = paginador?.data ?? [];
+        const rows = paginador?.data ?? [];
+        table.items = rows.map(r => ({
+          ...r,
+          quotesText: Array.isArray(r.quotes) ? r.quotes.join(', ') : (r.quotes ?? ''),
+        }));
         table.totalPage = paginador?.last_page ?? 1;
         table.totalItems = paginador?.total ?? 0;
       }
@@ -110,27 +112,39 @@ export function useReceiveReservationTransfers() {
   }
 
 
+  function debouncedFetch(ms = 250, page = 1) {
+    clearTimeout(debounceId);
+    debounceId = setTimeout(() => fetchListReceivedReservationTransfers(page), ms);
+  }
 
+  // 1) search + perPage
   watch(
-    () => [
-      table.searchTerm,
-      table.perPage,
-    ],
-    () => {
-      clearTimeout(debounceId);
-      debounceId = setTimeout(() => {
-        if (table.searchTerm === "" || table.searchTerm.length >= 4) {
-          fetchListReceivedReservationTransfers(1);
-        }
-      }, 250);
-    }
+    [() => table.searchTerm, () => table.perPage],
+    ([newSearch, newPerPage], [oldSearch, oldPerPage]) => {
+      const s = (newSearch ?? '').trim();
+
+      // si cambió perPage, recarga SIEMPRE (sin esperar a 4 chars)
+      if (newPerPage !== oldPerPage) {
+        fetchListReceivedReservationTransfers(1);
+        return;
+      }
+
+      // si cambió search:
+      if (s === '' || s.length >= 4) {
+        debouncedFetch(250, 1);
+      }
+      // opcional: si quieres limpiar la tabla cuando s < 4, hazlo aquí
+    },
+    { flush: 'post' }
   );
 
   watch(
-    () => [table.sortField, table.sortOrder],
-    () => fetchListReceivedReservationTransfers(1)
+    [() => table.sortField, () => table.sortOrder],
+    () => fetchListReceivedReservationTransfers(1),
+    { flush: 'post' }
   );
 
+  onBeforeUnmount(() => clearTimeout(debounceId));
 
   return {
     // state
