@@ -72,8 +72,8 @@ async function storeGuideRemision() {
     swalError(resp.message);
     return;
   }
-   emit("closeModal");
-   emit("refresh");
+
+  emit("closeModal");
 
 
   const id = resp?.data?.id;
@@ -83,6 +83,7 @@ async function storeGuideRemision() {
     return
   }
   swalSuccess(resD?.message ?? 'Guía procesada correctamente.');
+  emit("refresh");
   const respdf = await printGuidePdf({ 'id': id });
   if (!respdf.ok) {
     swalError(respdf?.message || 'No se pudo generar el PDF.');
