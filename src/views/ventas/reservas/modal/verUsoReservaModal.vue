@@ -31,8 +31,6 @@ function validateToProcess() {
 
   for (const detalle of detalles) {
     const stocks = detalle.stock ?? [];
-    console.log(stocks, 'stock');
-
     for (const st of stocks) {
       st.a_cancelar = toInt(st.a_cancelar ?? 0);
       st.a_cotizar = toInt(st.a_cotizar ?? 0);
