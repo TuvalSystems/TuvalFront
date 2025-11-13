@@ -44,11 +44,11 @@ export const echo = new Echo({
 if (echo?.connector?.pusher && !window.__ECHO_CONN_BOUND__) {
   window.__ECHO_CONN_BOUND__ = true; // evita binds dupplicados en hot-reload
   const conn = echo.connector.pusher.connection;
-  conn.bind("connected", () => console.log("🔄 Echo connected / reconnected"));
-  conn.bind("state_change", (states) => console.log("⚡ Pusher state", states));
-  conn.bind("error", (err) => console.error("❌ Pusher error", err));
-  conn.bind("disconnected", () => console.warn("⚠️ Echo disconnected"));
-  conn.bind('failed',       () => console.log('[WS] failed'));
+  // conn.bind("connected", () => console.log("🔄 Echo connected / reconnected"));
+  // conn.bind("state_change", (states) => console.log("⚡ Pusher state", states));
+  // conn.bind("error", (err) => console.error("❌ Pusher error", err));
+  // conn.bind("disconnected", () => console.warn("⚠️ Echo disconnected"));
+  // conn.bind('failed',       () => console.log('[WS] failed'));
 }
 
 // Cierre limpio al navegar/cerrar (opcional)
