@@ -73,7 +73,6 @@ async function storeGuideRemision() {
     return;
   }
 
-  emit("closeModal");
 
 
   const id = resp?.data?.id;
@@ -88,6 +87,7 @@ async function storeGuideRemision() {
   if (!respdf.ok) {
     swalError(respdf?.message || 'No se pudo generar el PDF.');
   }
+  emit("closeModal");
 
 }
 
