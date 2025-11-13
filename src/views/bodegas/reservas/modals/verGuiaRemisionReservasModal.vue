@@ -72,8 +72,8 @@ async function storeGuideRemision() {
     swalError(resp.message);
     return;
   }
-  await emit("closeModal");
-  await emit("refresh");
+   emit("closeModal");
+   emit("refresh");
 
 
   const id = resp?.data?.id;
