@@ -83,7 +83,7 @@ async function storeGuideRemision() {
     return
   }
   swalSuccess(resD?.message ?? 'Guía procesada correctamente.');
-  emit("refresh");
+  // emit("refresh");
   const respdf = await printGuidePdf({ 'id': id });
   if (!respdf.ok) {
     swalError(respdf?.message || 'No se pudo generar el PDF.');

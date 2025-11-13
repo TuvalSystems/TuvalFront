@@ -114,6 +114,7 @@ async function closeGuiaRemisionModal() {
   await nextTick();
   dataGuiaRemision.value = [];
   guiaRemisionModalObj.hide();
+  refresh();
 }
 
 
