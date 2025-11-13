@@ -153,7 +153,7 @@ onUnmounted(() => {
                   <i class="fa fa-fw fa-bell"></i>
                   <span v-if="unreadCount > 0"
                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                    style="font-size: 0.7rem;"> {{ unreadCount > 9 ? "9+" : unreadCount }}</span>
+                    style="font-size: 0.6rem;"> {{ unreadCount > 9 ? "9+" : unreadCount }}</span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 border-0 fs-sm"
                   aria-labelledby="page-header-notifications-dropdown">
