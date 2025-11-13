@@ -23,8 +23,7 @@
 @import "@/assets/scss/vendor/flatpickr";
 
 // Vue Select + Custom overrides
-// @import "vue-select/src/scss/vue-select";
-// @import "@/assets/scss/vendor/vue-select";
+@import "vue-select/src/scss/vue-select";
 @import "@/assets/scss/vendor/vue-select";
 
 // Vue Form Slider + Custom overrides
