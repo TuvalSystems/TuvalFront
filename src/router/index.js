@@ -85,7 +85,7 @@ const BodegasConsultas = () => import("@/views/bodegas/BodegasConsultas.vue");
 const DevolucionesBodegas = () =>
   import("@/views/bodegas/DevolucionesBodegas.vue");
 
-const Notificaciones = () => import("@/views/Notificaciones.vue");
+const Notificaciones = () => import("@/views/notificaciones/index.vue");
 const PasswordChange = () => import("@/views/auth/PasswordChange.vue");
 
 /** bodegas reservas */

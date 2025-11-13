@@ -74,7 +74,7 @@ export function useReceiveReservationTransfers() {
     const payload = {
       ptovta: ptoVtaId,
       page: table.currentPage,
-      perpage: Number(table.perPage) || 10,
+      perPage: Number(table.perPage) || 10,
       search: table.searchTerm,
       sortBy: table.sortField || "fecha_salida",
       sortOrder: table.sortOrder || "desc",
