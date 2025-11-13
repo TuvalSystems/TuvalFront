@@ -6,7 +6,6 @@ import {
     swalError,
     toast
 } from "@/functions/swal-alert.js";
-import Swal from "sweetalert2";
 const emit = defineEmits(['closeModal', 'refresh']);
 const props = defineProps({
     'header': Object,
