@@ -170,8 +170,8 @@
         <tbody>
           <template v-for="(articulo, index) in detalle_orden_despacho" :key="index">
             <tr :class="(articulo.reservado > 0 && articulo.reservado === articulo.ART_CANTIDAD
-                ? 'table-success'
-                : '') ||
+              ? 'table-success'
+              : '') ||
               (articulo.reservado > 0 && articulo.pendiente === 0
                 ? 'table-success'
                 : '') ||
@@ -220,7 +220,8 @@
     </div>
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
-    <button :disabled="disabledGenerarGuia" type="button" class="btn btn-sm btn-success mx-2" @click="generarGuia(verpedido)">
+    <button :disabled="disabledGenerarGuia" type="button" class="btn btn-sm btn-success mx-2"
+      @click="generarGuia(verpedido)">
       <i class="fa fa-file-lines"></i> Generar
     </button>
     <button type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal">
@@ -350,6 +351,10 @@ function aplicartraslado(traslado) {
 
 let disabledGenerarGuia = ref(false);
 async function generarGuia(verpedido) {
+  let itemsDespacho = detalle_orden_despacho.value.filter((item) => item.seleccionado > 0);
+  if (itemsDespacho.length === 0) {
+   return  swalError('Seleccionar al menos un item para generar la guia');
+  }
   // evita doble click
   if (disabledGenerarGuia.value) return;
 
@@ -398,7 +403,7 @@ async function generarGuia(verpedido) {
     vehiculo: vehi,
     fecha_inicio: flatPickrState.value.horaInicio,
     fecha_fin: flatPickrState.value.horaFin,
-    items: detalle_orden_despacho.value,
+    items: itemsDespacho,
     observacion: observacion.value,
     // si el vehículo no tiene ruta, que no reviente:
     ruta: vehiculo.value?.ruta ?? null,
