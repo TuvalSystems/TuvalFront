@@ -878,8 +878,8 @@ const store = createStore({
       return axiosClient
         .post("/verpedidosycotizacionesporaprobar", consulta)
         .then((res) => {
-          commit("getPedidos", res.data.pedidos);
-          commit("getVercotizaciones", res.data.cotizaciones);
+          commit("getPedidos", res.data.data.pedidos);
+          commit("getVercotizaciones", res.data.data.cotizaciones);
           return res;
         });
     },
