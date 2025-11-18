@@ -100,7 +100,7 @@ const segmento = computed(() => props.segmento);
                         <div class="kv">
                             <small class="text-muted">% Descuento</small>
                             <div class="fw-semibold">
-                                <span class="badge bg-warning text-dark">{{ num2(infoReserva.cotizacion.porcentage_descuento)
+                                <span class="badge bg-warning text-white">{{ num2(infoReserva.cotizacion.porcentage_descuento)
                                     }}%</span>
                             </div>
                         </div>
@@ -150,7 +150,7 @@ const segmento = computed(() => props.segmento);
                                     <span class="badge bg-secondary">{{ item.ART_CODIGO_TRES_LETRAS }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info text-dark">{{ item.ART_PLAN_UMEDIDA }}</span>
+                                    <span class="badge bg-info text-white">{{ item.ART_PLAN_UMEDIDA }}</span>
                                 </td>
                                 <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ toInt(item.ART_CANTIDAD) }}
                                 </td>
