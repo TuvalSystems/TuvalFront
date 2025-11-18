@@ -561,7 +561,7 @@ async function recuperarcotizacion(cotizacion) {
     return;
   }
   if (respRes?.exists) {
-    swalError('No puede recuperar la cotización: la cotización cuenta con una reserva  ');
+    swalInfo('No puede recuperar la cotización: la cotización cuenta con una reserva  ');
     return;
   }
 
@@ -612,7 +612,7 @@ async function volverapedir(cotizacion) {
     return;
   }
   if (respRes?.exists) {
-    swalError('No puede volver a pedir la cotización ya que cuenta con una reserva');
+    swalInfo('No puede volver a pedir la cotización ya que cuenta con una reserva');
     return;
   }
   templateStore.pageLoader({ mode: "on" });
@@ -638,7 +638,7 @@ async function levantarcliente(pedido) {
     return;
   }
   if (respRes?.exists) {
-    swalError('No puede copiar la cotización ya que cuenta con una reserva');
+    swalInfo('No puede copiar la cotización ya que cuenta con una reserva');
     return;
   }
 
