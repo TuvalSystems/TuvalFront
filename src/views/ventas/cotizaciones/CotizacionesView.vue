@@ -234,8 +234,9 @@
                         </ul>
                       </td>
                       <td v-if="row.estado === 'espera'">
-                        <button type="button" class="btn btn-danger btn-sm" :disabled="loadingChange" title="Rechazar Cotizacion"
-                          @click="rechazarCotizacionEstadoEspera(row.id)"><i class="fa fa-ban"></i></button>
+                        <button type="button" class="btn btn-danger btn-sm" :disabled="loadingChange"
+                          title="Rechazar Cotizacion" @click="rechazarCotizacionEstadoEspera(row.id)"><i
+                            class="fa fa-ban"></i></button>
                       </td>
                     </tr>
                   </template>
