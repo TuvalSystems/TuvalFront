@@ -233,6 +233,10 @@
                           </li>
                         </ul>
                       </td>
+                      <td v-if="row.estado === 'espera'">
+                        <button type="button" class="btn btn-danger btn-sm" :disabled="loadingChange" title="Rechazar Cotizacion"
+                          @click="rechazarCotizacionEstadoEspera(row.id)"><i class="fa fa-ban"></i></button>
+                      </td>
                     </tr>
                   </template>
                 </DatasetItem>
@@ -320,6 +324,9 @@ import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoRese
 import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits'
 import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitudReservaModal.vue";
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
+import { useUpdateQuotationStatus } from "@/composables/aprobaciones/cotizaciones/useUpdateQuotationStatus";
+
+const { loadingChange, changeStatusQuoteBeenWaiting } = useUpdateQuotationStatus();
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
 const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits()
@@ -444,10 +451,17 @@ function refrescarFecha() {
   llenarcotizaciones(estado_filtro.value);
 }
 async function funcionvercotizacion(cotizacion, index) {
-  vercotizacionModalObj.show();
+
   vercotizacion.value = cotizacion;
   tipo.value = "cotizacion";
   store.dispatch("detallecotizacion", cotizacion);
+  vercotizacionModalObj.show();
+}
+
+async function closeModalVerCotizacion() {
+  vercotizacionModalObj.hide();
+  vercotizacion.value = {};
+  llenarcotizaciones("pendientes");
 }
 
 
@@ -768,4 +782,15 @@ onMounted(() => {
   }
 
 });
+
+async function rechazarCotizacionEstadoEspera(id) {
+  const res = await changeStatusQuoteBeenWaiting(id);
+  if (!res?.ok) {
+    return swalError("No se pudo rechazar la cotización");
+  }
+  swalSuccess("Cotización rechazada");
+  llenarcotizaciones("pendientes");
+}
+
+
 </script>

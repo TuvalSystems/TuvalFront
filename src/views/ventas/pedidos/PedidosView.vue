@@ -243,6 +243,10 @@
                         </ul>
 
                         <!-- dropdown -->
+                        <button v-if="row.estado === 'espera'" type="button" class="btn btn-danger btn-sm mx-1"
+                          :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
+                          <i class="fa fa-ban"></i>
+                        </button>
                       </td>
                     </tr>
                   </template>
@@ -310,7 +314,8 @@
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
         <verActualizarOrdYNotaModalComponent v-if="datosModalAcPedido && datosModalAcPedido.id"
-          :pedido="datosModalAcPedido" @llenarPedidos="llenarpedidos('todos')" @closeModal="closeModalActualizarDatosPedido">
+          :pedido="datosModalAcPedido" @llenarPedidos="llenarpedidos('todos')"
+          @closeModal="closeModalActualizarDatosPedido">
         </verActualizarOrdYNotaModalComponent>
       </div>
     </div>
@@ -322,7 +327,6 @@ import { useStore } from 'vuex'
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
-import { swalError, swalWarning, toast } from "@/functions/swal-alert.js";
 import VerPedidoModal from "../modals/VerPedidoModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import FiltrarCliente from "../modals/FiltrarCliente.vue";
@@ -332,6 +336,16 @@ import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { formatPrice, format } from "@/functions";
 import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
+import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
+import {
+  swalSimple,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+  swalError,
+  toast,
+} from "@/functions/swal-alert.js";
+const { loadingChange, changeStatusOrderBeenWaiting } = useUpdateOrderStatus();
 const flatPickrState = reactive({
   fecha_desde: {
     maxDate: Date.now(),
@@ -787,5 +801,16 @@ onMounted(() => {
   selectLength.classList.add("form-select");
   selectLength.style.width = "80px";
 });
+
+
+async function rechazarPedidoEstadoEspera(id) {
+  const res = await changeStatusOrderBeenWaiting(id);
+  if (!res?.ok) {
+    return swalError("No se pudo rechazar el pedido");
+  }
+  swalSuccess("Cotización rechazada");
+  llenarpedidos('todos');
+}
+
 
 </script>
