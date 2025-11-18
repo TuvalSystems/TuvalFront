@@ -195,7 +195,7 @@ async function procesar() {
           </div>
         </div>
         <div v-if="infoReserva.estado === 'traslado'">
-          <p class="alert alert-danger">T: Unidades en traslado (en tránsito entre bodegas). No disponibles para
+          <p class="alert alert-danger">T: Unidades en traslado (tránsito entre bodegas). No disponibles para
             Liberar/Cotizar hasta completar el traslado.</p>
         </div>
         <!-- detalle de la cotizacion -->

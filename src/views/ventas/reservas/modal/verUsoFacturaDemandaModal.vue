@@ -129,7 +129,7 @@ async function procesar() {
                         <div class="kv">
                             <small class="text-muted">% Descuento</small>
                             <div class="fw-semibold">
-                                <span class="badge bg-warning text-white">{{ num2(infoReserva.cotizacion.porcentage_descuento)
+                                <span class="badge bg-warning text-white" style="font-size:12px">{{ num2(infoReserva.cotizacion.porcentage_descuento)
                                     }}%</span>
                             </div>
                         </div>
@@ -156,6 +156,7 @@ async function procesar() {
                     <table class="table table-sm table-borderless align-middle mb-0">
                         <thead style="position: sticky; top: 0; z-index: 1;">
                             <tr>
+                                <th></th>
                                 <th class="fs-sm">Código</th>
                                 <th class="fs-sm">Descripción</th>
                                 <th class="fs-sm">CTL</th>
@@ -168,7 +169,8 @@ async function procesar() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in infoReserva.cotizacion.detallecotizacion" :key="item.id">
+                            <tr v-for="(item , i) in infoReserva.cotizacion.detallecotizacion" :key="item.id">
+                                <td>{{ i + 1 }}</td>
                                 <td class="code">{{ item.ART_CODIGO }}</td>
                                 <td>
                                     <div class="text-truncate" :title="item.ART_DESCRIPCION" style="max-width: 420px;">
@@ -197,20 +199,27 @@ async function procesar() {
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="8" class="fw-semibold text-end">Subtotal</td>
+                                <td colspan="9" class="fw-semibold text-end">Subtotal</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.subtotal)) }}
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="8" class="fw-semibold text-end">Descuento</td>
+                                <td colspan="9" class="fw-semibold text-end">Iva</td>
+                                <td class="fw-semibold text-end nums">${{
+                                    formatPriceJm(parseFloat(infoReserva.cotizacion.iva))
+                                }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="9" class="fw-semibold text-end">Descuento</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.descuento))
                                 }}
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="8" class="fw-semibold text-end">Total</td>
+                                <td colspan="9" class="fw-semibold text-end">Total</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.total)) }}
                                 </td>

@@ -170,6 +170,7 @@ watch(
                     <table class="table table-sm table-borderless align-middle mb-0">
                         <thead style="position: sticky; top: 0; z-index: 1;">
                             <tr>
+                                <th></th>
                                 <th class="fs-sm" style="font-size: 10px">Código</th>
                                 <th class="fs-sm" style="font-size: 10px">descripcion</th>
                                 <th class="fs-sm" style="font-size: 10px">CTL</th>
@@ -179,6 +180,7 @@ watch(
                         </thead>
                         <tbody>
                             <tr v-for="(item, index) in rows" :key="index">
+                                <td>{{ index + 1 }}</td>
                                 <td class="code">{{ item.ART_CODIGO }}</td>
                                 <td>
                                     <div class="text-truncate" :title="item.ART_DESCRIPCION" style="max-width: 420px;">
