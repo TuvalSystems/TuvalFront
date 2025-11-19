@@ -283,7 +283,7 @@ onBeforeUnmount(() => {
     </template>
   </BasePageHeading>
   <div class="content">
-    <BaseBlock title="Aprobaciones Reservas" content-full rounded transparent>
+    <BaseBlock title="Aprobaciones Reservas" content-full rounded >
       <template #options>
         <div class="block-options-item">
           <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"

@@ -249,7 +249,7 @@ onBeforeUnmount(() => {
 
     <!-- contenido -->
     <div class="content">
-        <BaseBlock title="Reservas" content-full transparent rounded>
+        <BaseBlock title="Reservas" content-full  rounded>
             <template #options>
                 <div class="block-options-item">
                     <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading"
