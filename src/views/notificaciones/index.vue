@@ -77,7 +77,7 @@ onMounted(() => {
     <!-- END Hero -->
 
     <div class="content">
-        <BaseBlock title="Notificaciones" content-full rounded themed>
+        <BaseBlock title="Notificaciones" content-full rounded>
 
             <template #options>
                 <div class="block-options-item space-x-2">
