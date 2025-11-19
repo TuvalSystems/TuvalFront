@@ -14,6 +14,9 @@ import {
   DatasetShow,
 } from "vue-dataset";
 
+// Bootstrap framework
+import * as bootstrap from "bootstrap";
+window.bootstrap = bootstrap;
 
 // Template components
 import BaseBlock from "@/components/BaseBlock.vue";
@@ -26,9 +29,6 @@ import clickRipple from "@/directives/clickRipple";
 // directiva para manejar decimales
 import zeroDecimals from "@/directives/zeroDecimals";
 import { bsTooltip } from '@/directives/bsTooltip'
-// Bootstrap framework
-import * as bootstrap from "bootstrap";
-window.bootstrap = bootstrap;
 
 
 // import echo-subscriptions para notificaciones
