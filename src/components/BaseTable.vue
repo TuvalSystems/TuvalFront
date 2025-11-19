@@ -199,7 +199,7 @@ const getTdClass = (col, row) => {
                 <!-- Paginacion Integrada -->
                 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                     <div>
-                        <p class="mb-0 text-white" style="font-size: 12px">
+                        <p class="mb-0 text-secondary" style="font-size: 14px">
                             Mostrando
                             <strong>{{ (currentPage - 1) * perPage + 1 }}</strong> a
                             <strong>{{ Math.min(currentPage * perPage, totalItems) }}</strong>
