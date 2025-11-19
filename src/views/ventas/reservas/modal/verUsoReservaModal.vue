@@ -209,11 +209,11 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px">Descripción</th>
                 <th class="fs-sm" style="font-size: 10px;text-align: right ">Cant.</th>
                 <th class="fs-sm" style="font-size: 10px">Bodega</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right" v-bstooltip="'Cantidad Pendiente'"> P.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right">C.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right">T.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right">F.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right">L.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top" title="Cantidad Pendiente"> P.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Cotizada">C.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Traslado">T.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Facturada">F.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Liberada">L.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: center">Cotizar
                   <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
                     name="example-checkbox-default1" :disabled="infoReserva.cotizacion.reserva_disabled"
