@@ -1,45 +1,42 @@
 <template>
   <BaseBlock title="Pedido por aprobar" class="mb-0">
     <template #options>
-        <button
-          type="button"
-          class="btn-block-option"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-          >
-          <i class="fa fa-fw fa-times"></i>
-        </button>
-      </template>
+      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+        <i class="fa fa-fw fa-times"></i>
+      </button>
+    </template>
     <template #content>
       <div class="block-content fs-sm ">
         <div class="table-responsive">
-            <p v-if="verpedido.motivo_aprobacion_comercial && verpedido.motivo_aprobacion_comercial.startsWith('Requiere aprobación')" class="alert alert-danger">{{verpedido.motivo_aprobacion_comercial}}</p>
+          <p v-if="verpedido.motivo_aprobacion_comercial && verpedido.motivo_aprobacion_comercial.startsWith('Requiere aprobación')"
+            class="alert alert-danger">{{ verpedido.motivo_aprobacion_comercial }}</p>
           <table class="table table-striped table-sm table-vcenter">
             <tbody>
               <tr>
-                  <th class="fs-sm">Pedido</th>
-                  <td class="fs-sm">{{verpedido.pedido}}</td>
-                  <th class="fs-sm">RUC</th>
-                  <td class="fs-sm">{{verpedido.CLI_RUC}}</td>
-                  <th class="fs-sm">Razón Social</th>
-                  <td class="fs-sm">{{verpedido.CLI_RAZON_SOCIAL}}</td>
+                <th class="fs-sm">Pedido</th>
+                <td class="fs-sm">{{ verpedido.pedido }}</td>
+                <th class="fs-sm">RUC</th>
+                <td class="fs-sm">{{ verpedido.CLI_RUC }}</td>
+                <th class="fs-sm">Razón Social</th>
+                <td class="fs-sm">{{ verpedido.CLI_RAZON_SOCIAL }}</td>
               </tr>
               <tr>
-                  <th class="fs-sm">P. de venta</th>
-                  <td class="fs-sm">
-                    {{verpedido.PTO_VTA_DESCRIPCION}}
-                  </td>
-                  
-                  <th class="fs-sm">Cond. Pago</th>
-                  <td class="fs-sm">
-                    <a class="text-danger" v-if="verpedido.COND_ID != verpedido.COND_ID_ORIGINAL" @click="verdiferenciacondicion(verpedido)" href="javascript:void(0);">
-                     de {{ verpedido.COND_ID_ORIGINAL }} a {{ verpedido.COND_ID }}
-                    </a>
-                    <span v-else>{{ verpedido.COND_ID }}</span>
-                  </td>
-                  <th class="fs-sm">Usuario</th>
-                  <td class="fs-sm">{{verpedido.USERID}}</td>
-                  
+                <th class="fs-sm">P. de venta</th>
+                <td class="fs-sm">
+                  {{ verpedido.PTO_VTA_DESCRIPCION }}
+                </td>
+
+                <th class="fs-sm">Cond. Pago</th>
+                <td class="fs-sm">
+                  <a class="text-danger" v-if="verpedido.COND_ID != verpedido.COND_ID_ORIGINAL"
+                    @click="verdiferenciacondicion(verpedido)" href="javascript:void(0);">
+                    de {{ verpedido.COND_ID_ORIGINAL }} a {{ verpedido.COND_ID }}
+                  </a>
+                  <span v-else>{{ verpedido.COND_ID }}</span>
+                </td>
+                <th class="fs-sm">Usuario</th>
+                <td class="fs-sm">{{ verpedido.USERID }}</td>
+
               </tr>
               <tr>
                 <th class="fs-sm">Bodega</th>
@@ -48,16 +45,18 @@
                 </td>
                 <th class="fs-sm">% Descuento</th>
                 <td class="fs-sm">
-                  <a class="text-danger" v-if="verpedido.porcentage_descuento != verpedido.porcentage_descuentooriginal" @click="verdiferenciaporcentaje(verpedido)" href="javascript:void(0);">{{ verpedido.porcentage_descuento }}</a>
+                  <a class="text-danger" v-if="verpedido.porcentage_descuento != verpedido.porcentage_descuentooriginal"
+                    @click="verdiferenciaporcentaje(verpedido)" href="javascript:void(0);">{{
+                      verpedido.porcentage_descuento }}</a>
                   <span v-else>{{ verpedido.porcentage_descuento }}</span>
                 </td>
-            
+
                 <th class="fs-sm">Fecha/hora</th>
                 <td class="fs-sm">
                   {{ verpedido.created_at }}
                 </td>
               </tr>
-                <tr v-if="segmentocliente &&  segmentocliente.data &&
+              <tr v-if="segmentocliente && segmentocliente.data &&
                 Object.keys(segmentocliente.data).length">
                 <th>Segmento</th>
                 <td>{{ segmentocliente.data.segmento }}</td>
@@ -71,8 +70,9 @@
               </tr>
             </tbody>
           </table>
-      
-          <table v-if="estadodecuenta.data && !estadodecuenta.loading && estadodecuenta.data.cupoDisponible" class="table table-sm table-bordered">
+
+          <table v-if="estadodecuenta.data && !estadodecuenta.loading && estadodecuenta.data.cupoDisponible"
+            class="table table-sm table-bordered">
             <thead>
               <tr class="table-success">
                 <th colspan="2">Cupo disponible</th>
@@ -86,88 +86,92 @@
               <tr>
                 <td>Cupo Disponible GP</td>
                 <td class="text-end">
-                  <a 
-                    v-if="estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total" 
-                    class="text-danger"
-                    href="javascript:void(0);"
-                    @click="swalInfo('El total del pedido supera el cupo disponible')"
-                    >
+                  <a v-if="estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total" class="text-danger"
+                    href="javascript:void(0);" @click="swalInfo('El total del pedido supera el cupo disponible')">
                     ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                   </a>
                   <span v-else>
                     ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
                   </span>
-                  
+
                 </td>
               </tr>
             </tbody>
           </table>
-        
+
           <div v-if="detallepedido.loading" class="text-center">
-            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+            </div>
           </div>
 
-          <table v-if="detallepedido.data.length && !detallepedido.loading" class="table table-hover table-sm table-vcenter mt-4">      
+          <table v-if="detallepedido.data.length && !detallepedido.loading"
+            class="table table-hover table-sm table-vcenter mt-4">
             <thead>
               <tr>
-                  <th>#</th>
-                  <th>Código</th>
-                  <th>Descripción</th>
-                  <th>CTL</th>
-                  <th>UDM</th>
-                  <th class="text-end">Cantidad</th>
-                  <th class="text-end">Precio</th>
-                  <th class="text-end">%Mod.</th>
-                  <th class="text-end">% Desc.</th>
-                  <th class="text-end">Descuento</th>
-                  <th class="text-end">Total</th>
-                  
+                <th>#</th>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>CTL</th>
+                <th>UDM</th>
+                <th class="text-end">Cantidad</th>
+                <th class="text-end">Precio</th>
+                <th class="text-end">%Mod.</th>
+                <th class="text-end">% Desc.</th>
+                <th class="text-end">Descuento</th>
+                <th class="text-end">Total</th>
+
               </tr>
             </thead>
             <tbody>
               <template v-for="(articulo, index) in detallepedido.data" :key="index">
                 <tr>
-                  <td class="fs-sm">{{index+1}}</td>
-                  <td class="fs-sm">
-                    {{ articulo.ART_CODIGO }}
-                    
+                  <td class="fs-sm">{{ index + 1 }}</td>
+                  <td class="fs-sm text" @click="verPorcentajesDeCambio(articulo)">
+                    <span class="text-danger">{{ articulo.ART_CODIGO }}</span>
+
                   </td>
                   <td class="fs-sm">
-                    <a class="text-danger" v-if="articulo.approval_descripcion === true && articulo.ART_TIPO_COMPRA !== 'L'" @click="verdiferenciadescripcion(articulo)" href="javascript:void(0);">{{ articulo.ART_DESCRIPCION }}</a>
+                    <a class="text-danger"
+                      v-if="articulo.approval_descripcion === true && articulo.ART_TIPO_COMPRA !== 'L'"
+                      @click="verdiferenciadescripcion(articulo)" href="javascript:void(0);">{{ articulo.ART_DESCRIPCION
+                      }}</a>
                     <span v-else>{{ articulo.ART_DESCRIPCION }}</span>
                   </td>
                   <td class="fs-sm">
-                      {{ articulo.ART_CODIGO_TRES_LETRAS }}
+                    {{ articulo.ART_CODIGO_TRES_LETRAS }}
                   </td>
                   <td class="fs-sm">
-                      {{ articulo.ART_PLAN_UMEDIDA }}
+                    {{ articulo.ART_PLAN_UMEDIDA }}
                   </td>
                   <td class="fs-sm text-end">
-                      {{ articulo.ART_CANTIDAD }}
+                    {{ articulo.ART_CANTIDAD }}
                   </td>
-                
+
                   <td class="fs-sm text-end">
-                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.approval_valor === true" @click="verdiferenciavalor(articulo)" href="javascript:void(0);">
+                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.approval_valor === true"
+                      @click="verdiferenciavalor(articulo)" href="javascript:void(0);">
                       ${{ articulo.ART_VALOR }}
                     </a>
                     <span v-else>${{ articulo.ART_VALOR }}</span>
                   </td>
-                  <td class="fs-sm text-end" :class="articulo.approval_modificador === true ? 'text-danger':''">
+                  <td class="fs-sm text-end" :class="articulo.approval_modificador === true ? 'text-danger' : ''">
                     <span v-if="articulo.ART_TIPO_COMPRA != 'L'">
                       {{ format(parseFloat(articulo.modificador)) }}%
                     </span>
                   </td>
                   <td class="fs-sm text-end">
-                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.approval_descuento === true" @click="verdiferenciadescuento(articulo)" href="javascript:void(0);">
+                    <a class="text-danger"
+                      v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.approval_descuento === true"
+                      @click="verdiferenciadescuento(articulo)" href="javascript:void(0);">
                       {{ articulo.descuento }}%
                     </a>
                     <span v-else>{{ articulo.descuento }}%</span>
                   </td>
                   <td class="fs-sm text-end">
-                      ${{ format4(parseFloat(articulo.ART_DESCUENTO)) }}
+                    ${{ format4(parseFloat(articulo.ART_DESCUENTO)) }}
                   </td>
                   <td class="fs-sm text-end">
-                    ${{ format(parseFloat((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD))  }}
+                    ${{ format(parseFloat((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD)) }}
                   </td>
                 </tr>
                 <tr v-if="articulo.proveedores.length">
@@ -180,7 +184,7 @@
                         <th class="text-end">Margen</th>
                         <th class="text-end">Costo unitario</th>
                         <th class="text-end">Proveedor</th>
-                        
+
                       </tr>
                       <tr v-for="(proveedor, indice) in articulo.proveedores" :key="indice">
                         <td>{{ proveedor.DESCRIPCION_ARTICULO }}</td>
@@ -189,7 +193,7 @@
                         <td class="text-end">{{ proveedor.MARGEN }}%</td>
                         <td class="text-end">${{ proveedor.COSTO_UNITARIO }}</td>
                         <td class="text-end">{{ proveedor.PROV_RAZON_SOCIAL }}</td>
-                       
+
                       </tr>
                     </table>
                   </td>
@@ -205,49 +209,48 @@
               </tr>
               <tr>
                 <th colspan="10" class="fs-sm text-end">Subtotal - descuento</th>
-                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotalmenosdescuento)) }}</th>
+                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotalmenosdescuento)) }}</th>
               </tr>
               <tr>
                 <th colspan="10" class="fs-sm text-end">IVA</th>
-                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.iva)) }}</th>
+                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.iva)) }}</th>
               </tr>
               <tr>
                 <th colspan="10" class="fs-sm text-end">Total</th>
-                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.total)) }}</th>
+                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.total)) }}</th>
               </tr>
             </tbody>
           </table>
         </div>
-        
+
       </div>
     </template>
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
 
     <div class="row">
-      
+
       <label for="orden-de-compra" class="col-sm-2 col-form-label text-right">Mensaje:</label>
       <div class="col-sm-7">
-        <input v-model="verpedido.aprobado_comercial_mensaje" type="text" 
-          id="orden-de-compra" class="form-control" 
-          placeholder="Motivo de rechazo"
-          @change="guardarMensaje(verpedido)"
-          />
+        <input v-model="verpedido.aprobado_comercial_mensaje" type="text" id="orden-de-compra" class="form-control"
+          placeholder="Motivo de rechazo" @change="guardarMensaje(verpedido)" />
       </div>
       <div class="col-sm-3 text-end">
-        <button  type="button" class="btn btn-success btn-sm" @click="emit('aprobar')"><i class="fa fa-check"></i> Aprobar</button>
-        <button  type="button" class="btn btn-danger btn-sm mx-2" @click="emit('rechazar')"><i class="fa fa-times"></i> Rechazar</button>
+        <button type="button" class="btn btn-success btn-sm" @click="emit('aprobar')"><i class="fa fa-check"></i>
+          Aprobar</button>
+        <button type="button" class="btn btn-danger btn-sm mx-2" @click="emit('rechazar')"><i class="fa fa-times"></i>
+          Rechazar</button>
       </div>
     </div>
 
-    
+
   </div>
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import {formatPrice, format, format4} from "@/functions";
+import { formatPrice, format, format4 } from "@/functions";
 
 const { verpedido, indexPedido, tipo } = defineProps({
   verpedido: Object,
@@ -261,40 +264,60 @@ const estadodecuenta = computed(() => store.state.estadodecuenta);
 const segmentocliente = computed(() => store.state.segmentocliente);
 
 
-function guardarMensaje(pedido){
+function guardarMensaje(pedido) {
   store.dispatch('guardarMensajePedido', pedido)
-} 
+}
 
 
 let errorMsg = ref('');
 
 const emit = defineEmits(["aprobar", "rechazar"]);
 
-function verdiferenciacondicion(pedido){
+function verdiferenciacondicion(pedido) {
   let msg = 'simon';
-  swalInfo('Cambio condición de pago', 'de <b>'+ pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
+  swalInfo('Cambio condición de pago', 'de <b>' + pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
 }
 
-function verdiferenciaporcentaje(pedido){
+function verdiferenciaporcentaje(pedido) {
   let msg = 'simon';
-  swalInfo('Cambio porcentaje de descuento', 'de <b>'+ pedido.porcentage_descuentooriginal + '%</b> a <b>' + pedido.porcentage_descuento + '%</b>');
+  swalInfo('Cambio porcentaje de descuento', 'de <b>' + pedido.porcentage_descuentooriginal + '%</b> a <b>' + pedido.porcentage_descuento + '%</b>');
 }
 
-function verdiferenciadescripcion(articulo){
+function verdiferenciadescripcion(articulo) {
   let msg = 'simon';
-  swalInfo('Cambio de descripción de artículo', 'de <br><b>'+ articulo.ART_DESCRIPCION_ORIGINAL + '</b><br> a <br><b>' + articulo.ART_DESCRIPCION + '</b>');
+  swalInfo('Cambio de descripción de artículo', 'de <br><b>' + articulo.ART_DESCRIPCION_ORIGINAL + '</b><br> a <br><b>' + articulo.ART_DESCRIPCION + '</b>');
 }
 
-function verdiferenciavalor(articulo){
+function verdiferenciavalor(articulo) {
   let msg = 'simon';
-  swalInfo('Cambio de precio de artículo', 'de <b>$'+ articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.ART_VALOR + '</b>');
+  swalInfo('Cambio de precio de artículo', 'de <b>$' + articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.ART_VALOR + '</b>');
 }
 
-function verdiferenciadescuento(articulo){
+function verdiferenciadescuento(articulo) {
   let msg = 'simon';
-  swalInfo('Cambio de porcentaje de descuento', 'de <b>'+ articulo.descuento_original + '%</b> a <b>' + articulo.descuento + '%</b>');
+  swalInfo('Cambio de porcentaje de descuento', 'de <b>' + articulo.descuento_original + '%</b> a <b>' + articulo.descuento + '%</b>');
 }
 
+function verPorcentajesDeCambio(articulo) {
+  const discount = Number(articulo.discountChange ?? 0);
+  const price = Number(articulo.priceChange ?? 0);
+
+  // Si quieres 2 decimales siempre
+  const discountLabel = `${discount.toFixed(2)}%`;
+  const priceLabel = `${price.toFixed(2)}%`;
+
+  const html = `
+    <p>
+      <strong>Descuento:</strong> ${discountLabel}<br>
+      <strong>Precio:</strong> ${priceLabel}
+    </p>
+  `;
+
+  swalInfo(
+    'Porcentajes de cambio del artículo',
+    html
+  );
+}
 onMounted(() => {
 });
 onBeforeUnmount(() => {
