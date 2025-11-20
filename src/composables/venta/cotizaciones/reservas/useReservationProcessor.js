@@ -2,8 +2,11 @@ import axiosClient from "@/axios";
 import { toInt } from "@/functions";
 import { ref, nextTick } from "vue";
 import { swalSuccess, swalError } from "@/functions/swal-alert.js";
+import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useReservationProcessor(infoReserva) {
+  const { run } = useApiAction();
+
   const urlProcess = "/reservas/procesar-reserva";
   const urlFacturaDemanda =
     "/reservas/procesar-reserva-factura-demanda";
@@ -14,8 +17,8 @@ export function useReservationProcessor(infoReserva) {
   const selectAllInvoice = ref(false);
 
   function getPendingBase(stock) {
-    const autorizado  = toInt(getAuthorized(stock));
-    const facturado   = toInt(stock.cantidad_facturada ?? 0); // histórico
+    const autorizado = toInt(getAuthorized(stock));
+    const facturado = toInt(stock.cantidad_facturada ?? 0); // histórico
     // const cotizado    = toInt(stock.cantidad_cotizada ?? 0);
     // const trasladado  = toInt(stock.cantidad_traslado ?? 0);
     const canceladoPrev = toInt(stock.cantidad_cancelada ?? 0); // histórico
@@ -93,64 +96,33 @@ export function useReservationProcessor(infoReserva) {
   }
 
   async function processReservation(quotation) {
-    if (loadingReservedProcess.value) {
-      return { ok: false, message: "Ya hay un proceso en curso." };
-    }
-    loadingReservedProcess.value = true;
-    try {
-      const { data, status } = await axiosClient.post(urlProcess, {
-        data: quotation,
-      });
-
-      const ok = status >= 200 && status < 300 && (data?.success ?? true);
-
-      if (!ok) {
-        const msg = data?.error || "No se pudo procesar la reserva.";
-        throw new Error(msg);
-      }
-      const msg = data?.message || "Reserva procesada correctamente.";
-      // swalSuccess(msg);
-      return { ok: true, data, message: msg };
-    } catch (error) {
-      const msg =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.error ||
-        "Error al procesar la reserva.";
-    
-      return { ok: false, error, message: msg };
-    } finally {
-      loadingReservedProcess.value = false;
-    }
+     return await run(() => axiosClient.post(urlProcess, { data: quotation }), {
+      loadingRef: loadingReservedProcess,
+      successMessage: "Proceso realizado exitosamente.",
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener la información"
+        );
+      },
+    })
   }
 
   async function procesarReservaFacturaDemanda(reserve) {
-    loadingFacturaDemanda.value = true;
-    try {
-      const { data, status } = await axiosClient.post(urlFacturaDemanda, {
-        reserva: reserve,
-      });
-      const ok = status >= 200 && status < 300 && (data?.success ?? true);
-
-      if (!ok) {
-        const msg = data?.error || "No se pudo procesar la reserva.";
-        throw new Error(msg);
-      }
-      const msg = data?.message || "Reserva procesada correctamente.";
-      // swalSuccess(msg);
-      return { ok: true, data, message: msg };
-    } catch (error) {
-      const msg =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.error ||
-        "Error al procesar la reserva.";
-      // console.error("[procesarReservaFacturaDemanda2] ", error);
-      // swalError(msg);
-      return { ok: false, error, message: msg };
-    } finally {
-      loadingFacturaDemanda.value = false;
-    }
+    return await run(() => axiosClient.post(urlFacturaDemanda, { reserva: reserve }), {
+      loadingRef: loadingFacturaDemanda,
+      successMessage: "Proceso realizado exitosamente.",
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener la información"
+        );
+      },
+    })
   }
 
   return {

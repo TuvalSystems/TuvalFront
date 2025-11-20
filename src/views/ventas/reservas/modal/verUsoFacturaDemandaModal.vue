@@ -39,23 +39,31 @@ const maxlengthNc = ref(300);
 
 
 async function procesar() {
-    try {
-        const { ok, data, message } = await procesarReservaFacturaDemanda(infoReserva);
-        if (ok) {
-            emit('closeModalUsoFacturaDemanda', true);
-            swalSuccess(message);
-            return data;
-        }
+
+    const resp = await procesarReservaFacturaDemanda(infoReserva);
+    if (resp?.ok) {
+        let ord = resp?.data
         emit('closeModalUsoFacturaDemanda', true);
-        swalError(message);
-        router.push({
-        name: 'ventas-pedidos'
-      });
-
-    } catch (error) {
-        swalError(error?.message || "Error al procesar la reserva.");
+        swalSuccess(resp?.message);
+        if (ord.requiere_aprobacion_comercial === "yes") {
+            router.push({
+                name: 'aprobaciones-comerciales'
+            });
+        }
+        if (ord.requiere_aprobacion_crediticia === "yes") {
+             router.push({
+                name: 'aprobaciones-crediticias'
+            });
+        }
+        // if (ord.requiere_aprobacion_comercial === "no" && ord.requiere_aprobacion_crediticia === "no") {
+        //      router.push({
+        //         name: 'ventas-pedidos'
+        //     });
+        // }
     }
-
+    if (!resp?.ok) {
+        swalError(resp?.message || "Error al procesar la reserva.");
+    }
 };
 </script>
 
@@ -90,15 +98,16 @@ async function procesar() {
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
                                 infoReserva.cotizacion.CLI_RAZON_SOCIAL
-                                }}</div>
+                            }}</div>
                         </div>
                     </div>
 
                     <div class="col-12 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">P. Venta</small>
-                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.PTO_VTA_DESCRIPCION">{{
-                                infoReserva.cotizacion.PTO_VTA_DESCRIPCION }}</div>
+                            <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.PTO_VTA_DESCRIPCION">
+                                {{
+                                    infoReserva.cotizacion.PTO_VTA_DESCRIPCION }}</div>
                         </div>
                     </div>
 
@@ -135,7 +144,8 @@ async function procesar() {
                         <div class="kv">
                             <small class="text-muted">% Descuento</small>
                             <div class="fw-semibold">
-                                <span class="badge bg-warning text-white" style="font-size:12px">{{ num2(infoReserva.cotizacion.porcentage_descuento)
+                                <span class="badge bg-warning text-white" style="font-size:12px">{{
+                                    num2(infoReserva.cotizacion.porcentage_descuento)
                                     }}%</span>
                             </div>
                         </div>
@@ -153,7 +163,7 @@ async function procesar() {
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="segmento.segmento" class="badge bg-info">{{ segmento.segmento }}</span>
                             <span v-if="segmento.subsegmento" class="badge bg-primary">{{ segmento.subsegmento
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -175,7 +185,7 @@ async function procesar() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(item , i) in infoReserva.cotizacion.detallecotizacion" :key="item.id">
+                            <tr v-for="(item, i) in infoReserva.cotizacion.detallecotizacion" :key="item.id">
                                 <td>{{ i + 1 }}</td>
                                 <td class="code">{{ item.ART_CODIGO }}</td>
                                 <td>
@@ -214,14 +224,14 @@ async function procesar() {
                                 <td colspan="9" class="fw-semibold text-end">Iva</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.iva))
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="9" class="fw-semibold text-end">Descuento</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.descuento))
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr>
@@ -263,7 +273,7 @@ async function procesar() {
                                 </div>
                                 <div class="text-end text-muted fs-xs">{{ (infoReserva.obs_autorizacion_reserva ||
                                     '').length
-                                    }}/400
+                                }}/400
                                 </div>
                             </div>
                         </div>

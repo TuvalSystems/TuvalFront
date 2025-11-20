@@ -63,25 +63,23 @@ function validateToProcess() {
 
 
 async function procesar() {
-  try {
-    if (infoReserva.cotizacion.reserva_disabled === true) {
-      swalWarning("No hay cantidades pendientes para liberar o facturar.");
-      return;
-    }
-    if (!validateToProcess()) return;
-    const { ok, data, message } = await processReservation(infoReserva);
-    if (ok) {
-      swalSuccess(message);
-      emit('closeModalUsoReserva', true);
-      router.push({
-        name: 'ventas-cotizaciones'
-      })
-      return data;
-    }
-    swalError(message);
-  } catch (error) {
-    swalError(error?.message || "Error al procesar la reserva.");
+
+  if (infoReserva.cotizacion.reserva_disabled === true) {
+    swalWarning("No hay cantidades pendientes para liberar o facturar.");
+    return;
   }
+  if (!validateToProcess()) return;
+  const resp = await processReservation(infoReserva);
+  if (!resp?.ok) {
+    swalError(resp?.message || "Error al procesar la reserva.");
+    return;
+  }
+  swalSuccess(resp?.message);
+  emit('closeModalUsoReserva', true);
+  router.push({
+    name: 'ventas-cotizaciones'
+  })
+
 }
 
 </script>
