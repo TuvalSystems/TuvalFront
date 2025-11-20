@@ -212,6 +212,8 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px">3L</th>
                 <th class="fs-sm" style="font-size: 10px">Zafiro</th>
                 <th class="fs-sm" style="font-size: 10px">Descripción</th>
+                <th class="fs-sm" style="font-size: 10px;text-align: right " data-bs-placement="top"
+                  title="Stock Disponible">STOCK</th>
                 <th class="fs-sm" style="font-size: 10px;text-align: right ">Cant.</th>
                 <th class="fs-sm" style="font-size: 10px">Bodega</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
@@ -254,7 +256,10 @@ async function procesar() {
                   </td>
 
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.cantidad_reservada) }}</td>
+                    toInt(item2.STO_ART_STOCK_DISPONIBLE) }}</td>
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.pendiente) }}
+                    <!-- pendiente es un atribudo del modelo -->
+                  </td>
                   <td class="fs-sm text-sm">
                     <div style="font-size: 12px">{{ item2.STO_ART_BODEGA }}</div>
                   </td>
