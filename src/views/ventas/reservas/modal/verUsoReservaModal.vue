@@ -7,12 +7,14 @@ import {
   swalSuccess
 } from "@/functions/swal-alert.js";
 import { useReservationProcessor } from "@/composables/venta/cotizaciones/reservas/useReservationProcessor";
+import { useRouter } from "vue-router";
 const props = defineProps({
   reserva: {
     type: Object,
     required: true
   }
 });
+const router = useRouter();
 const emit = defineEmits(['closeModalUsoReserva']);
 const infoResponse = computed(() => props.reserva);
 const infoReserva = infoResponse.value.reserva;
@@ -71,6 +73,9 @@ async function procesar() {
     if (ok) {
       swalSuccess(message);
       emit('closeModalUsoReserva', true);
+      router.push({
+        name: 'ventas-cotizaciones'
+      })
       return data;
     }
     swalError(message);
@@ -209,11 +214,16 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px">Descripción</th>
                 <th class="fs-sm" style="font-size: 10px;text-align: right ">Cant.</th>
                 <th class="fs-sm" style="font-size: 10px">Bodega</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top" title="Cantidad Pendiente"> P.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Cotizada">C.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Traslado">T.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Facturada">F.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right"  data-bs-placement="top" title="Cantidad Liberada">L.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
+                  title="Cantidad Pendiente"> P.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
+                  title="Cantidad Cotizada">C.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
+                  title="Cantidad Traslado">T.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
+                  title="Cantidad Facturada">F.</th>
+                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
+                  title="Cantidad Liberada">L.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: center">Cotizar
                   <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
                     name="example-checkbox-default1" :disabled="infoReserva.cotizacion.reserva_disabled"
@@ -271,7 +281,7 @@ async function procesar() {
                   <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
                       style="width: 100px" step="1" min="0" v-model.number="item2.a_cancelar" inputmode="numeric"
                       @change="updateReleaseReserved($event, item2)"
-                      :disabled="item2.disable_movimiento || ( item2.disable_traslado && item2.picking)"
+                      :disabled="item2.disable_movimiento || (item2.disable_traslado && item2.picking)"
                       :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
 

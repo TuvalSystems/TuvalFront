@@ -5,6 +5,8 @@ import { swalSuccess, swalError } from "@/functions/swal-alert.js";
 import { useReservationProcessor } from "@/composables/venta/cotizaciones/reservas/useReservationProcessor";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
+import { useRouter } from "vue-router";
+
 const props = defineProps({
     reserva: {
         type: Object,
@@ -23,7 +25,7 @@ const flatPickrState = reactive({
 const infoResponse = computed(() => props.reserva);
 const infoReserva = infoResponse.value.reserva;
 const segmento = infoResponse.value.segmento;
-
+const router = useRouter();
 
 // Formateadores (USD y cantidades)
 const nf2 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -46,6 +48,10 @@ async function procesar() {
         }
         emit('closeModalUsoFacturaDemanda', true);
         swalError(message);
+        router.push({
+        name: 'ventas-pedidos'
+      });
+
     } catch (error) {
         swalError(error?.message || "Error al procesar la reserva.");
     }
