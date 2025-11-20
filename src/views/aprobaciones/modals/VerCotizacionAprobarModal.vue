@@ -129,8 +129,8 @@
               <template v-for="(articulo, index) in detallecotizacion.data" :key="index">
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
-                  <td class="fs-sm">
-                    {{ articulo.ART_CODIGO }}
+                  <td class="fs-sm text" @click="verPorcentajesDeCambio(articulo)">
+                    <span class="text-danger">{{ articulo.ART_CODIGO }}</span>
 
                   </td>
                   <td class="fs-sm">
@@ -291,6 +291,28 @@ function verdiferenciadescuento(articulo) {
   let msg = 'simon';
   swalInfo('Cambio de descuento de artículo', 'de <b>' + articulo.descuento_original + '%</b> a <b>$' + articulo.descuento + '%</b>');
 }
+
+function verPorcentajesDeCambio(articulo) {
+  const discount = Number(articulo.discountChange ?? 0);
+  const price = Number(articulo.priceChange ?? 0);
+
+  // Si quieres 2 decimales siempre
+  const discountLabel = `${discount.toFixed(2)}%`;
+  const priceLabel = `${price.toFixed(2)}%`;
+
+  const html = `
+    <p>
+      <strong>Descuento:</strong> ${discountLabel}<br>
+      <strong>Precio:</strong> ${priceLabel}
+    </p>
+  `;
+
+  swalInfo(
+    'Porcentajes de cambio del artículo',
+    html
+  );
+}
+
 onMounted(() => {
 });
 onBeforeUnmount(() => {
