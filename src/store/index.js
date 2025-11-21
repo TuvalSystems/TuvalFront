@@ -423,8 +423,8 @@ const store = createStore({
   actions: {
     login({ commit }, user) {
       return axiosClient.post("/login", user).then(({ data }) => {
-        commit("setUser", data);
-        return data;
+        commit("setUser", data.data);
+        return data.data;
       });
     },
     logout({ commit }) {
@@ -433,11 +433,11 @@ const store = createStore({
         return data;
       });
     },
-    notificaciones() {
-      return axiosClient.get("/notificaciones").then((res) => {
-        return res.data;
-      });
-    },
+    // notificaciones() {
+      // return axiosClient.get("/notificaciones").then((res) => {
+      //   return res.data;
+      // });
+    // },
     sincronizaDataGP({ commit }, path) {
       return axiosClient.get(path).then((response) => {
         return response;
