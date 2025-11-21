@@ -195,7 +195,7 @@ onMounted(async () => {
 
 <template>
   <div class="block-content">
-    <BaseBlock rounded title="Transferencias Enviadas" themed>
+    <BaseBlock rounded title="Transferencias Enviadas">
       <template #options>
         <div class="space-x-1">
           <div class="block-options-item">
@@ -237,7 +237,7 @@ onMounted(async () => {
             </div>
           </div>
           <div class="block-options-item">
-            <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
+            <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
               aria-label="Refrescar">
               <i v-if="!table.loading" class="fa fa-refresh"></i>
               <span v-else class="spinner-border spinner-border-sm"></span>

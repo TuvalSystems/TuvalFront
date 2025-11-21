@@ -302,7 +302,7 @@ onMounted(() => {
 
 <template>
   <div class="block-content block-content-full">
-    <BaseBlock title="Despachos Pedidos" rounded themed>
+    <BaseBlock title="Despachos Pedidos" rounded>
       <template #options>
         <div class="block-options-item">
           <div class="block-options-item">
@@ -342,7 +342,7 @@ onMounted(() => {
             </div>
           </div>
           <div class="block-options-item">
-            <button class="btn btn-outline-success btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
+            <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
               aria-label="Refrescar">
               <i v-if="!table.loading" class="fa fa-refresh"></i>
               <span v-else class="spinner-border spinner-border-sm"></span>
