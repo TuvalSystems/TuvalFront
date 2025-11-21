@@ -364,7 +364,7 @@ onBeforeUnmount(() => {
             :disabled="isModalCancelLocked(row)">
             <span v-if="isModalCancelLocked(row)" class="spinner-border spinner-border-sm" role="status"
               aria-hidden="true"></span>
-            <i v-else class="fa-regular fa-circle-xmark me-11"></i>
+            <i v-else class="fa fa-ban me-11"></i>
             <!-- Rechazar -->
           </button>
         </template>
