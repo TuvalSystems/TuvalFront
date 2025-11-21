@@ -593,6 +593,7 @@ function despacharguiaGuia(guia) {
     if(!res.success){
       swalError(res.error);
       templateStore.pageLoader({ mode: "off" });
+      return;
     }else{
       swalSuccess(res.message);
       if(res.pedido.despachado){
