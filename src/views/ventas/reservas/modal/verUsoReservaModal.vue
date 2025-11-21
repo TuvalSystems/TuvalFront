@@ -76,9 +76,12 @@ async function procesar() {
   }
   swalSuccess(resp?.message);
   emit('closeModalUsoReserva', true);
-  router.push({
-    name: 'ventas-cotizaciones'
-  })
+  if (Object.keys(resp?.data || {}).length > 0) {
+    router.push({
+      name: 'ventas-cotizaciones'
+    })
+  }
+
 
 }
 
