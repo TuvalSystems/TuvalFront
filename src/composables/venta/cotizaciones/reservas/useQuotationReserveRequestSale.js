@@ -3,11 +3,15 @@ import { ref, reactive, watch, unref, onMounted, computed } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
 import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
 import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
-export function useQuotationReserveRequest(datoReserva) {
+import { useApiAction } from "@/composables/core/useApiAction";
+
+export function useQuotationReserveRequestSale(datoReserva) {
   const ptoStore = usePuntosVentaReservaLimits();
   const reservedValidation = ref(false);
   const isInvalid = ref(false);
-  const isInvalidType = ref(false);
+  // const isInvalidType = ref(false);
+  const { run } = useApiAction();
+
   const reserva = reactive({
     cotizacion_id: null,
     tipo_reserva_id: null,
@@ -16,6 +20,7 @@ export function useQuotationReserveRequest(datoReserva) {
     obs_solicitud_reserva: null,
   });
 
+  const apiSolicitud = "/reservas/guardar-solicitud-reserva";
   function resetForm() {
     reserva.cotizacion_id = null;
     reserva.tipo_reserva_id = null;
@@ -71,10 +76,11 @@ export function useQuotationReserveRequest(datoReserva) {
     ],
     () => {
       const { invalid, message } = validateTypeReserveHasItemLOrService();
-      isInvalidType.value = invalid;
-
+      isInvalid.value = invalid;
+      
       if (invalid) {
         reserva.tipo_reserva_id = null;
+        isInvalid.value = true;
         swalError(message);
       }
     },
@@ -95,56 +101,40 @@ export function useQuotationReserveRequest(datoReserva) {
     { immediate: false } // pon true si quieres validar también al cargar si ya hay valores
   );
 
-  const solicitarReserva = async () => {
+  async function solicitarReserva() {
     if (isInvalid.value) {
       return false;
     }
-    if (isInvalidType.value) {
-      return false;
-    }
     if (reserva.tipo_reserva_id === null) {
-      throw new Error("Seleccione un tipo de reserva");
+      return returnErrorMessage("Seleccione un tipo de reserva");
     }
     if (reserva.tipo_reserva_id === 1) {
       if (reserva.tipo_traslado_reserva_id === null) {
-        throw new Error("Seleccione un tipo de traslado");
+        return returnErrorMessage("Seleccione un tipo de traslado");
+
       }
     }
     if (reserva.fe_solicitud_reserva === null) {
-      throw new Error("Seleccione una fecha");
+      return returnErrorMessage("Seleccione una fecha");
+
     }
     if (reserva.obs_solicitud_reserva === null) {
-      throw new Error("Debe ingresar una observación");
+      return returnErrorMessage("Ingrese una observación");
+
     }
     if (reserva.tipo_reserva_id === 2) {
       reserva.tipo_traslado_reserva_id = null;
     }
 
-    try {
-      isInvalid.value = true;
-      isInvalidType.value = true;
-      const response = await axiosClient.post(
-        "/reservas/guardar-solicitud-reserva",
-        {
-          reserva: reserva,
-        }
-      );
-      if (response.status === 200) {
-        resetForm();
-        swalSuccess("Reserva solicitada correctamente");
-        isInvalid.value = false;
-        isInvalidType.value = false;
-        return true;
-      }
-    } catch (error) {
-      swalError(error.response?.data?.error || error.message);
-      isInvalid.value = false;
-      isInvalidType.value = false;
-
-      return false;
-    }
-    return false;
+    return await run(() => axiosClient.post(apiSolicitud, { reserva: reserva }), {
+      loadingRef: isInvalid,
+      successMessage: "Reserva solicitada correctamente.",
+    });
   };
+
+  function returnErrorMessage(message) {
+    return { ok: false, message: message };
+  }
 
   onMounted(async () => {
     if (!unref(ptoStore).puntosVentaReservaLimits) {
@@ -158,6 +148,5 @@ export function useQuotationReserveRequest(datoReserva) {
     reservedValidation,
     isInvalid,
     resetForm,
-    isInvalidType,
   };
 }

@@ -5,7 +5,7 @@ import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { storeToRefs } from 'pinia'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore';
-import { useQuotationReserveRequest } from '@/composables/venta/cotizaciones/reservas/useQuotationReserveRequest';
+import { useQuotationReserveRequestSale } from '@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale';
 import {
     swalSuccess,
     swalError,
@@ -17,7 +17,7 @@ const props = defineProps({
 const { datosReserva } = toRefs(props);
 const tipoReservasStore = useTipoReservasStore();
 const { tipoReservas } = storeToRefs(tipoReservasStore);
-const { reserva, solicitarReserva, isInvalid, resetForm, isInvalidType } = useQuotationReserveRequest(datosReserva);
+const { reserva, solicitarReserva, isInvalid, resetForm, isInvalidType } = useQuotationReserveRequestSale(datosReserva);
 
 const flatPickrState = reactive({
     fecha: {
@@ -32,14 +32,13 @@ const traslado = reactive([
 ]);
 
 async function guardarYEmitir() {
-    try {
-        await solicitarReserva();
-        emit('modalReservaHide', true);
-        await swalSuccess('Solicitud Guardada Exitosamente');
-    } catch (error) {
-        const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "Error al guardar la solicitud";
-        swalError(msg);
+    const resp = await solicitarReserva();
+    if (!resp.ok) {
+        swalError(resp.message);
+        return;
     }
+    emit('modalReservaHide', true);
+    await swalSuccess(resp?.message || 'Solicitud Guardada Exitosamente');
 }
 
 function hydrateReservaForm(row) {
@@ -172,8 +171,8 @@ watch(
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cancelar</button>
             <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir"
-                :disabled="isInvalid || isInvalidType">
-                <span v-if="isInvalidType || isInvalid" class="spinner-border spinner-border-sm me-2" role="status"
+                :disabled="isInvalid">
+                <span v-if="isInvalid" class="spinner-border spinner-border-sm me-2" role="status"
                     aria-hidden="true"></span>
                 Solicitar
             </button>
