@@ -41,29 +41,24 @@ const maxlengthNc = ref(300);
 async function procesar() {
 
     const resp = await procesarReservaFacturaDemanda(infoReserva);
-    if (resp?.ok) {
-        let ord = resp?.data
-        emit('closeModalUsoFacturaDemanda', true);
-        swalSuccess(resp?.message);
-        if (ord.requiere_aprobacion_comercial === "yes") {
-            router.push({
-                name: 'aprobaciones-comerciales'
-            });
-        }
-        if (ord.requiere_aprobacion_crediticia === "yes") {
-             router.push({
-                name: 'aprobaciones-crediticias'
-            });
-        }
-        // if (ord.requiere_aprobacion_comercial === "no" && ord.requiere_aprobacion_crediticia === "no") {
-        //      router.push({
-        //         name: 'ventas-pedidos'
-        //     });
-        // }
-    }
     if (!resp?.ok) {
         swalError(resp?.message || "Error al procesar la reserva.");
+        return;
     }
+    let ord = resp?.data
+    emit('closeModalUsoFacturaDemanda', true);
+    swalSuccess(resp?.message);
+    if (ord.requiere_aprobacion_comercial === "yes") {
+        router.push({
+            name: 'aprobaciones-comerciales'
+        });
+    }
+    if (ord.requiere_aprobacion_crediticia === "yes") {
+        router.push({
+            name: 'aprobaciones-crediticias'
+        });
+    }
+
 };
 </script>
 

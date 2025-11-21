@@ -57,23 +57,31 @@ let verCotizacionDetalleModal = ref(null);
 let verCotizacionDetalleModalObj = null;
 let datosModalCotizacionDetalle = ref(null);
 let datosModalCotizacionSegmento = ref(null);
+
+function lock(id) {
+  const s = new Set(lockedIds.value)
+  s.add(id)
+  lockedIds.value = s
+}
+function unlock(id) {
+  const s = new Set(lockedIds.value)
+  s.delete(id)
+  lockedIds.value = s
+}
 async function visualizarDetalleCotización(id) {
   if (lockedIds.value.has(id)) return;
-  lockedIds.value.add(id);
-  lockedIds.value = new Set(lockedIds.value);
-  try {
-    const response = await fetchQuotationWithDetial(id);
-    if (response) {
-      datosModalCotizacionDetalle.value = response.reserva;
-      datosModalCotizacionSegmento.value = response.segmento;
-      verCotizacionDetalleModalObj.show();
-    }
-  } catch (error) {
-    return;
-  } finally {
-    lockedIds.value.delete(id);
-    lockedIds.value = new Set(lockedIds.value); // 🔓 re-habilita esa fila
+  lock(id);
+  const resp = await fetchQuotationWithDetial(id);
+
+  if (!resp?.ok) {
+    unlock(id);
+    return swalError(resp?.message);
   }
+  datosModalCotizacionDetalle.value = resp?.data.reserva;
+  datosModalCotizacionSegmento.value = resp?.data.segmento;
+  verCotizacionDetalleModalObj.show();
+  await nextTick();
+  unlock(id);
 }
 
 /** manejo del modal para la aprobación */
@@ -117,23 +125,17 @@ async function openModalAprobacionReserva(row) {
   if (!row || row.id === null) return
   const id = row.id
   if (isModalLocked(id)) return
-
-  try {
-    lockModal(id);
-    dataModalReserva.value = null;
-    const response = await fetchQuotationWithDetialAndStock(row.id);
-    if (response) {
-      dataModalReserva.value = response;
-      verDetalleCotizacionAprobacionModalObj.show();
-    }
+  dataModalReserva.value = null;
+  lockModal(id);
+  const resp = await fetchQuotationWithDetialAndStock(row.id);
+  if (!resp?.ok) {
     unLockedModal(id);
-  } catch (error) {
-    swalError(error.response.data.error);
-    unLockedModal(id);
+    return swalError(resp?.message);
   }
-  finally {
-    unLockedModal(id);
-  }
+  dataModalReserva.value = resp.data;
+  verDetalleCotizacionAprobacionModalObj.show();
+  await nextTick();
+  unLockedModal(id);
 }
 
 async function closeModalAprobacionReserva() {
@@ -147,22 +149,17 @@ async function openModalAprobacionFacturaDemanda(row) {
   if (!row || row.id === null) return
   const id = row.id
   if (isModalLocked(id)) return
-  try {
-    lockModal(id);
-     dataModal.value = null;
-    const response = await fetchQuotationWithDetialAndStockActive(row.id);
-    if (response) {
-      dataModal.value = response;
-      verUsoFacturaDemandaModalObj.show();
-    }
-    unLockedModal(id);
-  } catch (e) {
-    swalError(e?.response?.data?.error || e?.message || 'Error')
-    unLockedModal(id);
+  dataModal.value = null;
+  lockModal(id);
+  const resp = await fetchQuotationWithDetialAndStockActive(row.id);
+  if (!resp?.ok) {
+    unLockedModal(id); (id);
+    return swalError(resp?.message);
   }
-  finally {
-    unLockedModal(id);
-  }
+  dataModal.value = resp.data;
+  verUsoFacturaDemandaModalObj.show();
+  await nextTick();
+  unLockedModal(id);
 }
 
 async function closeModalUsoFacturaDemanda() {
@@ -192,25 +189,24 @@ function unLockedModalCancel(id) {
 
 let verModalRechazarReservaModal = ref(null);
 let verModalRechazarReservaModalObj = null;
-
+const dataRechazoModal = ref(null);
 async function verModalRechazar(row) {
   if (!row || row.id === null) return
   const id = row.id
   if (isModalCancelLocked(id)) return
-  try {
-    lockModalCancel(id);
-    const response = await fetchQuotationWithDetialAndStock(row.id);
-    if (response) {
-      dataModalReserva.value = response;
-      verModalRechazarReservaModalObj.show();
-    }
+
+  dataRechazoModal.value = null;
+  lockModalCancel(id);
+  const resp = await fetchQuotationWithDetialAndStock(row.id);
+  if (!resp?.ok) {
     unLockedModalCancel(id);
-  } catch (error) {
-    swalError(error.response.data.error);
-    unLockedModalCancel(id);
-  } finally {
-    unLockedModalCancel(id);
+    return swalError(resp?.message);
   }
+  dataRechazoModal.value = resp.data;
+  verModalRechazarReservaModalObj.show();
+  await nextTick();
+  unLockedModalCancel(id);
+
 }
 
 async function closeModalRechazarReserva() {
@@ -283,7 +279,7 @@ onBeforeUnmount(() => {
     </template>
   </BasePageHeading>
   <div class="content">
-    <BaseBlock title="Aprobaciones Reservas" content-full rounded >
+    <BaseBlock title="Aprobaciones Reservas" content-full rounded>
       <template #options>
         <div class="block-options-item">
           <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
@@ -348,7 +344,7 @@ onBeforeUnmount(() => {
           }}</span>
         </template>
         <template #cell-total="{ value, row }">
-          <span :class="totalClass(value)" > ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
+          <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
         </template>
         <template #actions="{ row }">
           <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="Aprobar"
@@ -358,10 +354,7 @@ onBeforeUnmount(() => {
             <i v-else class="fa-solid fa-circle-check me-1"></i>
             <!-- Aprobar -->
           </button>
-          <button type="button" 
-          class="btn btn-danger btn-sm" 
-          aria-placeholder="Rechazar" 
-          @click="verModalRechazar(row)"
+          <button type="button" class="btn btn-danger btn-sm" aria-placeholder="Rechazar" @click="verModalRechazar(row)"
             :disabled="isModalCancelLocked(row)">
             <span v-if="isModalCancelLocked(row)" class="spinner-border spinner-border-sm" role="status"
               aria-hidden="true"></span>
@@ -415,8 +408,8 @@ onBeforeUnmount(() => {
     aria-hidden="true" ref="verModalRechazarReservaModal">
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
       <div class="modal-content">
-        <verCotizacionReservaRechazarModal v-if="dataModalReserva && dataModalReserva.reserva"
-          :reserva="dataModalReserva" @closeModalRechazarReserva="closeModalRechazarReserva()">
+        <verCotizacionReservaRechazarModal v-if="dataRechazoModal && dataRechazoModal.reserva"
+          :reserva="dataRechazoModal" @closeModalRechazarReserva="closeModalRechazarReserva()">
         </verCotizacionReservaRechazarModal>
       </div>
     </div>

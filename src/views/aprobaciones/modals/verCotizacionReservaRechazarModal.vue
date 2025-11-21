@@ -22,17 +22,17 @@ const flatPickrState = reactive({
     },
 });
 
-function rechazarReserva() {
-    try {
-        dataSendApproval.id = infoReserva.id;
-        const response = denyReservation();
-        if (response) {
-             emit('closeModalRechazarReserva', true);
-            swalSuccess("Cotización rechazada");
-        }
-    } catch (error) {
-        swalError(error.response.data.error);
+async function rechazarReserva() {
+
+    dataSendApproval.id = infoReserva.id;
+    const resp = await denyReservation();
+    if (!resp?.ok) {
+        await swalError(resp?.message);
+        return;
     }
+    emit('closeModalRechazarReserva', true);
+    await swalSuccess(resp?.message || 'Reserva rechazada exitosamente.');
+
 
 }
 
@@ -53,7 +53,7 @@ function rechazarReserva() {
     <div class="content">
         <div class="row g-2 mb-4">
             <div class="col-md-12">
-               <div class="kv ">
+                <div class="kv ">
                     <label for="fechaReserva" class="form-label text-muted fs-sm">Fecha Rechazo</label>
                     <div class="fw-semibold">
                         <flat-pickr id="fechaReserva" class="form-control form-control-sm"
@@ -61,8 +61,8 @@ function rechazarReserva() {
                     </div>
                 </div>
             </div>
-             <div class="col-12">
-              <div class="kv">
+            <div class="col-12">
+                <div class="kv">
                     <label for="fechaReserva" class="form-label text-muted fs-sm">Observación</label>
                     <div class="fw-semibold">
                         <textarea id="obs" rows="3" class="form-control form-control-sm" maxlength="400"
@@ -76,17 +76,17 @@ function rechazarReserva() {
             </div>
         </div>
     </div>
-     <div class="content text-end mb-4 space-x-2">
-          <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">
+    <div class="content text-end mb-4 space-x-2">
+        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">
             Cerrar
         </button>
-          <button type="button" class="btn btn-sm btn-danger" @click="rechazarReserva" :disabled="loadingDeny">
+        <button type="button" class="btn btn-sm btn-danger" @click="rechazarReserva" :disabled="loadingDeny">
             <span v-if="loadingDeny" class="spinner-border spinner-border-sm me-2" role="status"
                 aria-hidden="true"></span>
             <i v-else class="fa fa-times me-1"></i>
             Rechazar
         </button>
-     </div>
+    </div>
 </template>
 <style scoped>
 .kv small {

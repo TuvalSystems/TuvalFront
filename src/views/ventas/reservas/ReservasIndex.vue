@@ -1,6 +1,6 @@
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
-import { onMounted, reactive, ref, onBeforeUnmount } from "vue";
+import { onMounted, reactive, ref, onBeforeUnmount, nextTick } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useApprovedReservations } from "@/composables/venta/cotizaciones/reservas/useApprovedReservations";
@@ -88,6 +88,7 @@ function unlockTest(id) {
 }
 
 const dataModal = ref(null);
+const dataDemandaModal = ref(null);
 let verCrearEditarReservaModal = ref(null);
 let verCrearEditarReservaModalObj = null;
 let verUsoFacturaDemandaModalObj = null;
@@ -108,44 +109,38 @@ async function crearReserva(row) {
 
 }
 
-async function openModalUsoReserva(row) { 
+async function openModalUsoReserva(row) {
     if (!row || row.id == null) return
     const id = row.id
     if (isTestLocked(id)) return
-     dataModal.value = null;
-    try {
-        lockTest(id)
-        const response = await fetchQuotationWithDetialAndStockActive(row.id);
-        if (response) {
-            dataModal.value = response;
-            verCrearEditarReservaModalObj.show();
-        }
+    dataModal.value = null;
+    lockTest(id);
+    const resp = await fetchQuotationWithDetialAndStockActive(row.id);
+    if (!resp?.ok) {
         unlockTest(id);
-    } catch (e) {
-        swalError(e?.response?.data?.error || e?.message || 'Error')
-    } finally {
-        unlockTest(id)
+        return swalError(resp?.message);
     }
+    dataModal.value = resp.data;
+    verCrearEditarReservaModalObj.show();
+    await nextTick();
+    unlockTest(id);
 }
 
 async function openModalUsoFacturaDemanda(row) {
     if (!row || row.id == null) return
     const id = row.id
     if (isTestLocked(id)) return
-    dataModal.value = null;
-    try {
-        lockTest(id)
-        const response = await fetchQuotationWithDetialAndStockActive(row.id);
-        if (response) {
-            dataModal.value = response;
-            verUsoFacturaDemandaModalObj.show();
-        }
+    dataDemandaModal.value = null;
+    lockTest(id);
+    const resp = await fetchQuotationWithDetialAndStockActive(row.id);
+    if (!resp?.ok) {
         unlockTest(id);
-    } catch (e) {
-        swalError(e?.response?.data?.error || e?.message || 'Error')
-    } finally {
-        unlockTest(id)
+        return swalError(resp?.message);
     }
+    dataDemandaModal.value = resp.data;
+    verUsoFacturaDemandaModalObj.show();
+    await nextTick();
+    unlockTest(id);
 }
 
 async function closeModalUsoReserva() {
@@ -156,7 +151,7 @@ async function closeModalUsoReserva() {
 
 async function closeModalUsoFacturaDemanda() {
     verUsoFacturaDemandaModalObj.hide();
-    dataModal.value = null;
+    dataDemandaModal.value = null;
     refresh();
 }
 
@@ -188,19 +183,16 @@ let datosModalCotizacionSegmento = ref(null);
 async function visualizarDetalleCotización(id) {
     if (lockedIds.value.has(id)) return;
     lock(id);
-    try {
-        const response = await fetchQuotationWithDetial(id);
-        if (response) {
-            datosModalCotizacionDetalle.value = response.reserva;
-            datosModalCotizacionSegmento.value = response.segmento;
-            verCotizacionDetalleModalObj.show();
-        }
+    const resp = await fetchQuotationWithDetial(id);
+    if (!resp?.ok) {
         unlock(id);
-    } catch (error) {
-        console.log(error);
-    } finally {
-        unlock(id); // 🔓 re-habilita esa fila
+        return swalError(resp?.message);
     }
+    datosModalCotizacionDetalle.value = resp.data.reserva;
+    datosModalCotizacionSegmento.value = resp.data.segmento;
+    verCotizacionDetalleModalObj.show();
+    await nextTick();
+    unlock(id);
 }
 
 
@@ -249,7 +241,7 @@ onBeforeUnmount(() => {
 
     <!-- contenido -->
     <div class="content">
-        <BaseBlock title="Reservas" content-full  rounded>
+        <BaseBlock title="Reservas" content-full rounded>
             <template #options>
                 <div class="block-options-item">
                     <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading"
@@ -319,7 +311,7 @@ onBeforeUnmount(() => {
                 <template #cell-estado="{ value, row }">
                     <span :class="estadoClass(value)" style="font-size:12px">{{
                         row.estado ?? "N/A"
-                        }}</span>
+                    }}</span>
                 </template>
                 <template #cell-total="{ value, row }">
                     <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
@@ -388,7 +380,7 @@ onBeforeUnmount(() => {
         aria-hidden="false" ref="verUsoFacturaDemandaModal">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
-                <verUsoFacturaDemandaComponent v-if="dataModal" :reserva="dataModal"
+                <verUsoFacturaDemandaComponent v-if="dataDemandaModal" :reserva="dataDemandaModal"
                     @closeModalUsoFacturaDemanda="closeModalUsoFacturaDemanda()">
                 </verUsoFacturaDemandaComponent>
             </div>

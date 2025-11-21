@@ -1,9 +1,13 @@
 import axiosClient from "@/axios";
 import { swalError } from "@/functions/swal-alert.js";
 import { watch, reactive, ref } from "vue";
+import { useApiAction } from "@/composables/core/useApiAction";
+
 export function useQuotationReserveApproval() {
+  const { run } = useApiAction();
   const data = ref(null);
-  const dataQutationDetailStock = ref(null);
+
+  const dataQuotationDetailStock = ref(null);
   const loadingQ = ref(false);
   const loadingQ1 = ref(false);
   const loadingDeny = ref(false);
@@ -13,6 +17,12 @@ export function useQuotationReserveApproval() {
   const dataQuotationDetailAndStockActive = ref(null);
   const loadingQ2 = ref(false);
 
+  // apis consultas
+  const apiFetchWithDetail = "/reservas/cotizacion-con-detalle/";
+  const apiFetchWithDetailAnStock = "/reservas/cotizacion-detalle-stock/";
+  const apiFetchWithDetailAnStockActive = "/reservas/cotizacion-detalle-stock-activo/";
+  const apiDenyReservation = "/reservas/rechazar-solicitud-reserva";
+  const apiApproveReservation = "/reservas/aprobar-solicitud-reserva";
   /** datos para enviar a aprobar y rechazar */
   const dataSendApproval = reactive({
     id: null,
@@ -27,111 +37,58 @@ export function useQuotationReserveApproval() {
   };
 
   async function fetchQuotationWithDetial(id) {
-    loadingQ.value = true;
-    try {
-      const response = await axiosClient.get(
-        `/reservas/cotizacion-con-detalle/${id}`
-      );
-      const res = response.data;
-      loadingQ.value = false;
-      data.value = res.data;
-      return data.value;
-    } catch (error) {
-      console.log("Error al obtener la cotizacion", error);
-      swalError(error.response.data.error);
-      return;
-    } finally {
-      loadingQ.value = false;
-    }
+    return await run(() => axiosClient.get(`${apiFetchWithDetail}${id}`), {
+      loadingRef: loadingQ,
+      onSuccess: (res) => {
+        data.value = res;
+      },
+      successMessage: "Proceso realizado exitosamente.",
+    });
+
   }
 
+
   async function fetchQuotationWithDetialAndStock(id) {
-    loadingQ1.value = true;
-    try {
-      const response = await axiosClient.get(
-        `/reservas/cotizacion-detalle-stock/${id}`
-      );
-      const res = response.data;
-      loadingQ1.value = false;
-      dataQutationDetailStock.value = res.data;
-      return dataQutationDetailStock.value;
-    } catch (error) {
-      console.log("Error al obtener la cotizacion", error);
-      swalError(error.response.data.error);
-      return;
-    } finally {
-      loadingQ1.value = false;
-    }
+    return await run(() => axiosClient.get(`${apiFetchWithDetailAnStock}${id}`), {
+      loadingRef: loadingQ1,
+      onSuccess: (res) => {
+        dataQuotationDetailStock.value = res;
+      },
+      successMessage: "Proceso realizado exitosamente.",
+    });
   }
 
   async function fetchQuotationWithDetialAndStockActive(id) {
-    loadingQ2.value = true;
-    try {
-      const response = await axiosClient.get(
-        `/reservas/cotizacion-detalle-stock-activo/${id}`
-      );
-      const res = response.data;
-      loadingQ2.value = false;
-      dataQuotationDetailAndStockActive.value = res.data;
-      return dataQuotationDetailAndStockActive.value;
-    } catch (error) {
-      console.log("Error al obtener la reserva", error);
-      swalError(error.response.data.error);
-      return;
-    } finally {
-      loadingQ2.value = false;
-    }
+    return await run(() => axiosClient.get(`${apiFetchWithDetailAnStockActive}${id}`), {
+      loadingRef: loadingQ2,
+      onSuccess: (res) => {
+        dataQuotationDetailAndStockActive.value = res;
+      },
+      successMessage: "Proceso realizado exitosamente.",
+    });
   }
 
   /** denegar solicitud */
   async function denyReservation() {
-    loadingDeny.value = true;
-    try {
-      const response = await axiosClient.post(
-        `/reservas/rechazar-solicitud-reserva`,
-        {
-          data: dataSendApproval,
-        }
-      );
-      const res = response.data;
-      loadingDeny.value = false;
-      resetForm();
-      return res;
-    } catch (error) {
-      console.log("Error al obtener la cotizacion", error);
-      swalError(error.response.data.error);
-      return;
-    } finally {
-      loadingDeny.value = false;
-    }
+    return await run(()=> axiosClient.post(apiDenyReservation, { data: dataSendApproval }), {
+      loadingRef: loadingDeny,
+      successMessage: "Proceso realizado exitosamente.",
+      onSuccess: () => { resetForm();}
+    });
   }
 
   /** aprobar solicitud */
   async function approveReservation() {
-    loadingApproval.value = true;
-    try {
-      if (!dataSendApproval.fe_autorizacion_reserva) {
-        swalError("Debe ingresar una fecha de autorizacion");
-        return;
-      }
-      const response = await axiosClient.post(
-        `/reservas/aprobar-solicitud-reserva`,
-        {
-          data: dataSendApproval,
-        }
-      );
-      const res = response.data;
-      loadingApproval.value = false;
-      resetForm();
-      return res;
-    } catch (error) {
-      swalError(error.response.data.error);
-    }
+    return await run(()=> axiosClient.post(apiApproveReservation, { data: dataSendApproval }), {
+      loadingRef: loadingApproval,
+      successMessage: "Proceso realizado exitosamente.",
+      onSuccess: () => { resetForm();}
+    });
   }
 
   return {
     fetchQuotationWithDetial,
-    dataQutationDetailStock,
+    dataQuotationDetailStock,
     fetchQuotationWithDetialAndStock,
     loadingDeny,
     denyReservation,

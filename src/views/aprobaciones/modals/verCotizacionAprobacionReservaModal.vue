@@ -11,7 +11,7 @@ const emit = defineEmits(['closeModalAprobacionReserva']);
 
 const flatPickrState = reactive({
     fecha: {
-        minDate:  new Date(new Date().setDate(new Date().getDate() - 1)),
+        minDate: new Date(new Date().setDate(new Date().getDate() - 1)),
         locale: Spanish,
     },
 });
@@ -25,31 +25,24 @@ const infoSegmento = infoResponse.value.segmento;
 
 
 async function aprobarReserva() {
-    try {
-        const response = await approveReservation();
-        if (response) {
-            emit('closeModalAprobacionReserva', true);
-            await swalSuccess("Reserva aprobada");
-        }
-    } catch (error) {
-        console.log(error);
-        swalError(error.response.data.error);
+    const resp = await approveReservation();
+    if (!resp?.ok) {
+        await swalError(resp?.message);
+        return;
     }
+    emit('closeModalAprobacionReserva', true);
+    await swalSuccess(resp?.message || "Reserva aprobada exitosamente.");
 
 }
 
 async function rechazarReserva() {
-    try {
-        const response = await denyReservation();
-        if (response) {
-            emit('closeModalAprobacionReserva', true);
-            await swalSuccess("Reserva rechazada");
-        }
-    } catch (error) {
-        const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "Error al guardar la solicitud";
-        swalError(msg);
+    const resp = await denyReservation();
+    if (!resp?.ok) {
+        swalError(resp?.message);
+        return;
     }
-
+    emit('closeModalAprobacionReserva', true);
+    swalSuccess(resp?.message || "Reserva rechazada");
 }
 
 function hydrateApprovalForm(row) {
@@ -100,7 +93,7 @@ watch(
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
                                 infoReserva.cotizacion.CLI_RAZON_SOCIAL
-                                }}</div>
+                            }}</div>
                         </div>
                     </div>
 
@@ -162,7 +155,7 @@ watch(
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
                             <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -220,7 +213,7 @@ watch(
                             placeholder="Detalles adicionales (opcional)"></textarea>
                     </div>
                     <div class="text-end text-muted fs-xs">{{ (dataSendApproval.obs_autorizacion_reserva || '').length
-                    }}/400
+                        }}/400
                     </div>
                 </div>
             </div>
