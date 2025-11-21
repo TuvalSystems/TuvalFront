@@ -343,6 +343,12 @@ onBeforeUnmount(() => {
             row.estado ?? "N/A"
           }}</span>
         </template>
+        <template #cell-bodegas_uso="{ value, row }">
+          <code v-for="(bod, index) in value" :key="`${row.id}-bodega-${index}`" class="d-block mb-1"
+            style="width: fit-content;">
+        {{ bod }}
+    </code>
+        </template>
         <template #cell-total="{ value, row }">
           <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
         </template>

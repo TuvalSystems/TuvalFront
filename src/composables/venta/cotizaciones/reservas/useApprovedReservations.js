@@ -93,7 +93,7 @@ export function useApprovedReservations() {
     },
     {
       label: "Mult.Bod.",
-      key: "tipo_traslado",
+      key: "bodegas_uso",
       clickable: false,
       sortable: true,
       thClass: "d-none d-md-table-cell",

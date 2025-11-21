@@ -316,6 +316,13 @@ onBeforeUnmount(() => {
                 <template #cell-total="{ value, row }">
                     <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
                 </template>
+                <!-- slot para cambiar el diseño y estilo de la columna para listar las bodegas usadas por la cotizacion -->
+                <template #cell-bodegas_uso="{ value, row }">
+                    <code v-for="(bod, index) in value" :key="`${row.id}-bodega-${index}`" class="d-block mb-1"
+                        style="width: fit-content;">
+        {{ bod }}
+    </code>
+                </template>
                 <template #actions="{ row }">
                     <button type="button" class="btn btn-primary btn-sm mx-1" title="Usar Reserva"
                         @click="crearReserva(row)" :disabled="isTestLocked(row)">
