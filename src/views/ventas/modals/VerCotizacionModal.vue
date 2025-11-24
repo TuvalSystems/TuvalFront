@@ -6,7 +6,6 @@
       </button>
     </template>
     <template #content>
-      {{ vercotizacion.id }}
       <div class="block-content fs-sm">
         <div class="table-responsive">
           <table class="table table-striped table-sm table-vcenter">

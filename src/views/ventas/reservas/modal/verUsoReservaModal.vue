@@ -258,7 +258,7 @@ async function procesar() {
 
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
                     toInt(item2.STO_ART_STOCK_DISPONIBLE) }}</td>
-                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.pendiente) }}
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_autorizada_reserva) }}
                     <!-- pendiente es un atribudo del modelo -->
                   </td>
                   <td class="fs-sm text-sm">
