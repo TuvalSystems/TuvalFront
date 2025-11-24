@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
 import { toInt } from "@/functions";
 import { ref, nextTick } from "vue";
-import { swalSuccess, swalError } from "@/functions/swal-alert.js";
+import { swalSuccess, swalError, swalWarning, swalInfo } from "@/functions/swal-alert.js";
 import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useReservationProcessor(infoReserva) {
@@ -44,7 +44,7 @@ export function useReservationProcessor(infoReserva) {
     const solicitado = toInt(e?.target?.value ?? stockRow.a_cancelar);
     const val = clampRelease(stockRow, solicitado);
     if (solicitado > val) {
-      swalError(`Solo puede liberar hasta ${val}.`);
+      swalWarning(`Solo puede liberar maximo esta cantidad ${val}.`);
     }
     stockRow.a_cancelar = val;
   }
@@ -53,7 +53,7 @@ export function useReservationProcessor(infoReserva) {
     const solicitado = toInt(e?.target?.value ?? stockRow.a_cotizar);
     const val = clampInvoice(stockRow, solicitado);
     if (solicitado > val) {
-      swalError(`Solo puede cotizar hasta ${val}.`);
+      swalWarning(`Solo puede cotizar maximo esta cantidad ${val}.`);
     }
     stockRow.a_cotizar = val;
   }

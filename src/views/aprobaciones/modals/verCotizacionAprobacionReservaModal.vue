@@ -150,6 +150,16 @@ watch(
                             </div>
                         </div>
                     </div>
+                      <!-- espacio para que se coloque la observación en la siguiente fila -->
+                          <div class="col-6 col-lg-4"></div>
+                    <div class="col-6 col-lg-4">
+                        <div class="kv">
+                            <small class="text-muted">Observación Solicitud</small>
+                            <span class="badge bg-dark text-white text-wrap text-start mt-1">{{
+                                infoReserva.obs_solicitud_reserva
+                                }}</span>
+                        </div>
+                    </div>
                     <div class="col-12" v-if="infoSegmento.segmento || infoSegmento.subsegmento">
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             <span class="text-muted me-1">Segmentación:</span>
@@ -245,6 +255,13 @@ watch(
 .kv small {
     display: block;
     line-height: 1;
+}
+.kv .badge {
+    white-space: normal; /* CLAVE: Permite que el texto haga salto de línea */
+    text-align: left;    /* Alinea el texto a la izquierda para leer mejor párrafos */
+    display: block;      /* Hace que ocupe el ancho disponible de la columna */
+    line-height: 1.4;    /* Da un poco de aire entre las líneas de texto */
+    font-weight: 12px; /* Opcional: quita la negrita si el texto es muy largo */
 }
 
 .kv .fw-semibold {
