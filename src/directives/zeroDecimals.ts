@@ -1,5 +1,6 @@
 import type { Directive } from "vue";
 
+/** funcion para colocar v-zero-decimals en inputs tipo numero para no admitir valores negativos o decimales, solo enteros */
 type ZDHandlers = {
   normalize: () => void;
   setZeroIfEmpty: () => void;

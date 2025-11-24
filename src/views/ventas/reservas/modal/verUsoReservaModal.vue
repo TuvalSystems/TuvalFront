@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { toInt } from "@/functions";
+import {  toNum } from "@/functions";
 import {
   swalWarning,
   swalError,
@@ -34,8 +34,8 @@ function validateToProcess() {
   for (const detalle of detalles) {
     const stocks = detalle.stock ?? [];
     for (const st of stocks) {
-      st.a_cancelar = toInt(st.a_cancelar ?? 0);
-      st.a_cotizar = toInt(st.a_cotizar ?? 0);
+      st.a_cancelar = toNum(st.a_cancelar ?? 0);
+      st.a_cotizar = toNum(st.a_cotizar ?? 0);
 
       //validar negativos
       if (st.a_cancelar < 0 || st.a_cotizar < 0) {
@@ -275,36 +275,36 @@ async function procesar() {
                   </td>
 
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.STO_ART_STOCK_DISPONIBLE) }}</td>
+                    toNum(item2.STO_ART_STOCK_DISPONIBLE) }}</td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.cantidad_autorizada_reserva) }}
+                    toNum(item2.cantidad_autorizada_reserva) }}
                     <!-- pendiente es un atribudo del modelo -->
                   </td>
                   <td class="fs-sm text-sm">
                     <div style="font-size: 12px">{{ item2.STO_ART_BODEGA }}</div>
                   </td>
-                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.pendiente) }}
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toNum(item2.pendiente) }}
                     <!-- pendiente es un atribudo del modelo -->
                   </td>
-                  <!-- <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_cotizada)
+                  <!-- <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toNum(item2.cantidad_cotizada)
                   }}</td> -->
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">
-                    <span v-if="item2.cantidad_traslado > 0" class="badge bg-danger"> {{ toInt(item2.cantidad_traslado)
+                    <span v-if="item2.cantidad_traslado > 0" class="badge bg-danger"> {{ toNum(item2.cantidad_traslado)
                     }}</span>
-                    <span v-else> {{ toInt(item2.cantidad_traslado) }}</span>
+                    <span v-else> {{ toNum(item2.cantidad_traslado) }}</span>
                   </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.cantidad_facturada) }} </td>
+                    toNum(item2.cantidad_facturada) }} </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
-                    toInt(item2.cantidad_cancelada) }} </td>
-                  <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
-                      style="width: 100px" step="1" min="0" v-model.number="item2.a_cotizar" inputmode="numeric"
+                    toNum(item2.cantidad_cancelada) }} </td>
+                  <td> <input type="text" class="form-control form-control-sm text-end"
+                      style="width: 100px" step="1" min="0.00" v-model.number="item2.a_cotizar" inputmode="numeric"
                       @change="updateInvoiceReserved($event, item2)"
                       :disabled="item2.disable_movimiento || item2.disable_traslado"
                       :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
-                  <td> <input v-zero-decimals type="text" class="form-control form-control-sm text-end"
-                      style="width: 100px" step="1" min="0" v-model.number="item2.a_cancelar" inputmode="numeric"
+                  <td> <input  type="text" class="form-control form-control-sm text-end"
+                      style="width: 100px" step="1" min="0.00" v-model.number="item2.a_cancelar" inputmode="numeric"
                       @change="updateReleaseReserved($event, item2)"
                       :disabled="item2.disable_movimiento || (item2.disable_traslado && item2.picking)"
                       :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">

@@ -126,4 +126,9 @@ export const roundTo = (n, decimals = 2) => {
   return Math.round((Number(n) || 0) * f) / f;
 };
 
-export default {removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt,roundTo};
+
+export const toNum =(v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+export default {removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt,roundTo, toNum};
