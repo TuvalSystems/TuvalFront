@@ -219,8 +219,8 @@ async function procesar() {
                 <th class="fs-sm" style="font-size: 10px">Bodega</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
                   title="Cantidad Pendiente"> P.</th>
-                <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
-                  title="Cantidad Cotizada">C.</th>
+                <!-- <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
+                  title="Cantidad Cotizada">C.</th> -->
                 <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
                   title="Cantidad Traslado">T.</th>
                 <th class="fs-sm" style="font-size: 10px; text-align: right" data-bs-placement="top"
@@ -258,7 +258,8 @@ async function procesar() {
 
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
                     toInt(item2.STO_ART_STOCK_DISPONIBLE) }}</td>
-                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_autorizada_reserva) }}
+                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
+                    toInt(item2.cantidad_autorizada_reserva) }}
                     <!-- pendiente es un atribudo del modelo -->
                   </td>
                   <td class="fs-sm text-sm">
@@ -267,8 +268,8 @@ async function procesar() {
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.pendiente) }}
                     <!-- pendiente es un atribudo del modelo -->
                   </td>
-                  <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_cotizada)
-                  }}</td>
+                  <!-- <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{ toInt(item2.cantidad_cotizada)
+                  }}</td> -->
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">
                     <span v-if="item2.cantidad_traslado > 0" class="badge bg-danger"> {{ toInt(item2.cantidad_traslado)
                     }}</span>
