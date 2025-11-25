@@ -32,7 +32,7 @@
             <button type="button" class="btn btn-sm btn-primary"
               @click="seleccionartodos(transferencias_reposicion[route.params.id].traslados)"><i
                 class="fa fa-hand-pointer"></i> Seleccionar hasta {{ maxItems }} items</button>
-            <button type="button" class="btn btn-sm btn-secondary"
+            <button type="button" class="btn btn-sm btn-warning"
               @click="seleccionarPicking(transferencias_reposicion[route.params.id].traslados)">Picking</button>
           </div>
           <div class="block-options-item">
