@@ -117,7 +117,7 @@ async function procesar() {
               <small class="text-muted">Razón Social</small>
               <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
                 infoReserva.cotizacion.CLI_RAZON_SOCIAL
-              }}</div>
+                }}</div>
             </div>
           </div>
 
@@ -174,7 +174,7 @@ async function procesar() {
               </div>
             </div>
           </div>
-           <div class="col-6 col-lg-4"></div>
+          <div class="col-6 col-lg-4"></div>
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Fecha Aprobación</small>
@@ -197,7 +197,7 @@ async function procesar() {
               <small class="text-muted">Segmentación</small>
               <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
               <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
-              }}</span>
+                }}</span>
             </div>
           </div>
 
@@ -260,7 +260,7 @@ async function procesar() {
                   </td>
                   <td>
                     <span class="badge bg-secondary" style="font-size: 12px">{{ item.articulo.ART_CODIGO_ZAFIRO || 'N/A'
-                    }}</span>
+                      }}</span>
                   </td>
                   <td>
                     <div class="text-wrap" :title="item.ART_DESCRIPCION" style="max-width: 320px;font-size: 12px">
@@ -284,7 +284,7 @@ async function procesar() {
                   }}</td> -->
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">
                     <span v-if="item2.cantidad_traslado > 0" class="badge bg-danger"> {{ toNum(item2.cantidad_traslado)
-                    }}</span>
+                      }}</span>
                     <span v-else> {{ toNum(item2.cantidad_traslado) }}</span>
                   </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{

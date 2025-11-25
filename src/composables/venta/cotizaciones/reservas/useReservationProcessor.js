@@ -72,11 +72,16 @@ export function useReservationProcessor(infoReserva) {
     }
   }
 
+ 
   async function applySelectAllRelease() {
+    if (selectAllRelease.value) {
+      selectAllInvoice.value = false; // Desmarcar el check de cabecera opuesto
+      forEachStockRow(row => row.a_cotizar = 0); // Limpiar los inputs de la columna opuesta
+    }
     await nextTick(); // asegura que v-model ya actualizó
     const checked = selectAllRelease.value;
     forEachStockRow((row) => {
-      if (row?.disable_movimiento) return;
+      if (row?.disable_movimiento || (row?.disable_traslado && row?.picking)) return;
       const pedir = checked
         ? getPendingBase(row) - toNum(row.a_cotizar ?? 0) // maximo lo que se puede liberar
         : 0; // destiladado => limpiar
@@ -85,10 +90,14 @@ export function useReservationProcessor(infoReserva) {
   }
 
   async function applySelectAllInvoice() {
+    if (selectAllInvoice.value) {
+      selectAllRelease.value = false; // Desmarcar el check de cabecera opuesto
+      forEachStockRow(row => row.a_cancelar = 0); // Limpiar los inputs de la columna opuesta
+    }
     await nextTick();
     const checked = selectAllInvoice.value;
     forEachStockRow((row) => {
-      if (row?.disable_movimiento) return;
+      if (row?.disable_movimiento || row?.disable_traslado) return;
       const pedir = checked
         ? getPendingBase(row) - toNum(row.a_cancelar ?? 0) // maximo lo que se puede facturar
         : 0; // destiladado => limpiar
@@ -97,7 +106,7 @@ export function useReservationProcessor(infoReserva) {
   }
 
   async function processReservation(quotation) {
-     return await run(() => axiosClient.post(urlProcess, { data: quotation }), {
+    return await run(() => axiosClient.post(urlProcess, { data: quotation }), {
       loadingRef: loadingReservedProcess,
       successMessage: "Proceso realizado exitosamente.",
       onError: (backend, error) => {
