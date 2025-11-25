@@ -29,6 +29,7 @@ async function updateForm() {
   if (!ok) return;    
     emit('closeModal');
     emit('llenarPedidos');
+    swalSuccess('Pedido actualizado correctamente');
 }
 
 watch(

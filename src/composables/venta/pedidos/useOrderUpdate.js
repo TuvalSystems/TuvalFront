@@ -2,10 +2,17 @@ import axiosClient from "@/axios";
 import { reactive, ref } from "vue";
 
 import { swalSuccess, swalWarning, swalError } from "@/functions/swal-alert.js";
+import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useOrderUpdate() {
+  const { run } = useApiAction();
+
   const loadingUpdate = ref(false);
   const apiOrderUpdate = "/pedidos/actualizar-datos-pedidos";
+
+  const loadingDateInvoice = ref(false);
+  const apiOrderUpdateDateInvoice = "/pedidos/actualizar-fecha-factura-reserva";
+
   const data = reactive({
     id: null,
     orden_de_compra: null,
@@ -57,6 +64,43 @@ export function useOrderUpdate() {
     data.nota_cliente = null;
   }
 
+
+
+  /*** proceso de actualizar fecha de factura */
+  const dataUpddateDateInvoice = reactive({
+    id: null,
+    fe_facturacion_reserva: null,
+  });
+
+  function insertDataInvoice(ord) {
+    console.log(ord);
+    
+    dataUpddateDateInvoice.id = ord.id;
+    dataUpddateDateInvoice.fe_facturacion_reserva = ord.fe_facturacion_reserva;
+  }
+
+  function resetFormDateInvoice() {
+    dataUpddateDateInvoice.id = null;
+    dataUpddateDateInvoice.fe_facturacion_reserva = null;
+  }
+
+  async function updateDateInvoiceReserved() {
+    return await run(() => axiosClient.post(apiOrderUpdateDateInvoice, dataUpddateDateInvoice), {
+      loadingRef: loadingDateInvoice,
+      onSuccess: () => {
+        resetFormDateInvoice();
+      },
+      onError: (err) => {
+        const msg =
+          err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          err?.error ||
+          "Error al actualizar la fecha de factura.";
+        swalError(msg);
+      },
+    });
+  }
+
   return {
     //state
     data,
@@ -65,5 +109,13 @@ export function useOrderUpdate() {
     insertData,
     updateOrder,
     resetForm,
+
+
+    // para actualizar fecha de factura
+    dataUpddateDateInvoice,
+    loadingDateInvoice,
+    updateDateInvoiceReserved,
+    insertDataInvoice,
+    resetFormDateInvoice,
   };
 }

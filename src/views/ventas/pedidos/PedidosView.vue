@@ -236,9 +236,17 @@
                           <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
                               @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print"></i> Generar XML</button>
                           </li>
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="operModalActualizarDatosPedido(row)"><i class="fa-solid fa-print"></i> Actualizar
+                          <li><button class="dropdown-item"
+                              v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)"
+                              @click="operModalActualizarDatosPedido(row)"><i class="fa-solid fa-user"></i> Actualizar
                               Datos</button>
+                          </li>
+                          <li>
+                            <button
+                              v-if="row.origen === 'reserva' && !['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)"
+                              class="dropdown-item" @click="openModalUpdateDateInvoice(row)">
+                              <i class="fa fa-calendar-days"></i> Reprogramar Facturación
+                            </button>
                           </li>
                         </ul>
 
@@ -320,6 +328,20 @@
       </div>
     </div>
   </div>
+
+  <!-- modal de actualizacion de fecha de facturacion de reserva -->
+
+  <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
+    ref="verModalUpdateDateInvoice">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verActualizarFechaFacturaReserva v-if="datosModalPedidoAcDate && datosModalPedidoAcDate.id"
+          :pedido="datosModalPedidoAcDate" @llenarPedidos="llenarpedidos('todos')"
+          @closeModal="closeModalUpdateDateInvoice">
+        </verActualizarFechaFacturaReserva>
+      </div>
+    </div>
+  </div>
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from "vue";
@@ -336,6 +358,7 @@ import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { formatPrice, format } from "@/functions";
 import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
+import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
 import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
 import {
   swalSimple,
@@ -768,7 +791,7 @@ let datosModalAcPedido = ref({});
 
 async function operModalActualizarDatosPedido(pedido) {
   if (pedido.estado === 'facturado') {
-    swalError('No se puede actualizar la orden de compra y nota cliente de un pedido facturado')
+    swalWarning('No se puede actualizar la orden de compra y nota cliente de un pedido facturado')
     return;
   }
   datosModalAcPedido.value = pedido;
@@ -781,6 +804,24 @@ function closeModalActualizarDatosPedido() {
   verActualizarDatosObj.hide();
 }
 
+let verModalUpdateDateInvoice = ref(null);
+let verModalUpdateDateInvoiceObj = null;
+let datosModalPedidoAcDate = ref({});
+async function openModalUpdateDateInvoice(pedido) {
+  if (pedido.origen !== 'reserva') {
+    swalWarning('Solo se puede reprogramar la facturación de pedidos de origen reserva')
+    return;
+  }
+  datosModalPedidoAcDate.value = pedido;
+  await nextTick();
+  verModalUpdateDateInvoiceObj.show();
+}
+
+function closeModalUpdateDateInvoice() {
+  datosModalPedidoAcDate.value = {};
+  verModalUpdateDateInvoiceObj.hide();
+}
+
 onMounted(() => {
 
   verpedidoModalObj = new Modal(verpedidoModal.value);
@@ -789,6 +830,7 @@ onMounted(() => {
   facturarexistenteModalObj = new Modal(facturarexistenteModal.value);
   facturardespachadoModalObj = new Modal(facturardespachadoModal.value);
   verActualizarDatosObj = new Modal(verActualizarDatos.value);
+  verModalUpdateDateInvoiceObj = new Modal(verModalUpdateDateInvoice.value);
   // Remove labels from
   document.querySelectorAll("#datasetLength label").forEach((el) => {
     el.remove();
