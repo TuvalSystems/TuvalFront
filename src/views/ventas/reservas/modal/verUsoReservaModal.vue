@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import {  toNum } from "@/functions";
+import { toNum } from "@/functions";
 import {
   swalWarning,
   swalError,
@@ -151,12 +151,7 @@ async function procesar() {
             </div>
           </div>
 
-          <div class="col-6 col-lg-4">
-            <div class="kv">
-              <small class="text-muted">Fecha Solicitud</small>
-              <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
-            </div>
-          </div>
+
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Traslado</small>
@@ -167,12 +162,19 @@ async function procesar() {
           </div>
           <div class="col-6 col-lg-4">
             <div class="kv">
+              <small class="text-muted">Fecha Solicitud</small>
+              <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-4">
+            <div class="kv">
               <small class="text-muted">Tipo Reserva</small>
               <div class="fw-semibold">
                 <div class="fw-semibold">{{ infoReserva.tipo_reserva.descripcion }}</div>
               </div>
             </div>
           </div>
+           <div class="col-6 col-lg-4"></div>
           <div class="col-6 col-lg-4">
             <div class="kv">
               <small class="text-muted">Fecha Aprobación</small>
@@ -289,14 +291,14 @@ async function procesar() {
                     toNum(item2.cantidad_facturada) }} </td>
                   <td class="fs-sm text-sm" style="font-size: 10px; text-align: right">{{
                     toNum(item2.cantidad_cancelada) }} </td>
-                  <td> <input type="text" class="form-control form-control-sm text-end"
-                      style="width: 100px" step="1" min="0.00" v-model.number="item2.a_cotizar" inputmode="numeric"
+                  <td> <input type="text" class="form-control form-control-sm text-end" style="width: 100px" step="1"
+                      min="0.00" v-model.number="item2.a_cotizar" inputmode="numeric"
                       @change="updateInvoiceReserved($event, item2)"
                       :disabled="item2.disable_movimiento || item2.disable_traslado"
                       :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
                   </td>
-                  <td> <input  type="text" class="form-control form-control-sm text-end"
-                      style="width: 100px" step="1" min="0.00" v-model.number="item2.a_cancelar" inputmode="numeric"
+                  <td> <input type="text" class="form-control form-control-sm text-end" style="width: 100px" step="1"
+                      min="0.00" v-model.number="item2.a_cancelar" inputmode="numeric"
                       @change="updateReleaseReserved($event, item2)"
                       :disabled="item2.disable_movimiento || (item2.disable_traslado && item2.picking)"
                       :max="Math.max(0, (getAuthorized(item2) - (item2.cantidad_facturada || 0) - (item2.cantidad_traslado || 0) - (item2.cantidad_cancelada || 0)))">
