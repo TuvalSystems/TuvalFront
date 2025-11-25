@@ -136,7 +136,7 @@ watch(
                     </div>
                     <div class="col-6 col-lg-4">
                         <div class="kv">
-                            <small class="text-muted">Fecha Solicitud Reserva</small>
+                            <small class="text-muted">Fecha Solicitud</small>
                             <div class="fw-semibold">
                                 <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
                             </div>

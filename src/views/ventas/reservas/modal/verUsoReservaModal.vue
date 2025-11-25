@@ -153,8 +153,8 @@ async function procesar() {
 
           <div class="col-6 col-lg-4">
             <div class="kv">
-              <small class="text-muted">Fecha/Hora</small>
-              <div class="fw-semibold">{{ infoReserva.cotizacion.created_at }}</div>
+              <small class="text-muted">Fecha Solicitud</small>
+              <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
             </div>
           </div>
           <div class="col-6 col-lg-4">
@@ -185,7 +185,7 @@ async function procesar() {
             <div class="kv">
               <small class="text-muted">Fecha Aprobación</small>
               <div class="fw-semibold">
-                <div class="fw-semibold">{{ infoReserva.fe_ingreso_autorizacion_reserva }}</div>
+                <div class="fw-semibold">{{ infoReserva.fe_autorizacion_reserva }}</div>
               </div>
             </div>
           </div>
