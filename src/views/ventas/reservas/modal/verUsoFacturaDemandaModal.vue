@@ -130,8 +130,8 @@ async function procesar() {
 
                     <div class="col-6 col-lg-4">
                         <div class="kv">
-                            <small class="text-muted">Fecha/Hora</small>
-                            <div class="fw-semibold">{{ infoReserva.cotizacion.created_at }}</div>
+                            <small class="text-muted">Fecha/Hora Solicitud</small>
+                            <div class="fw-semibold">{{ infoReserva.fe_ingreso_solicitud_reserva }}</div>
                         </div>
                     </div>
 
@@ -151,6 +151,15 @@ async function procesar() {
                             <div class="fw-semibold">
                                 <div class="fw-semibold">{{ infoReserva.tipo_reserva.descripcion }}</div>
                             </div>
+                        </div>
+                    </div>
+                      <div class="col-6 col-lg-4"></div>
+                    <div class="col-6 col-lg-4">
+                        <div class="kv">
+                            <small class="text-muted">Observación</small>
+                            <span class="badge bg-dark text-white text-wrap text-start mt-1 badge2">{{
+                                infoReserva.obs_solicitud_reserva
+                            }}</span>
                         </div>
                     </div>
                     <div class="col-12" v-if="segmento.segmento || segmento.subsegmento">
@@ -307,5 +316,36 @@ async function procesar() {
 .code {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
     font-size: 14px;
+}
+
+.kv small {
+  display: block;
+  line-height: 1;
+}
+
+.kv .badge2 {
+  white-space: normal;
+  /* CLAVE: Permite que el texto haga salto de línea */
+  text-align: left;
+  /* Alinea el texto a la izquierda para leer mejor párrafos */
+  display: block;
+  /* Hace que ocupe el ancho disponible de la columna */
+  line-height: 1.4;
+  /* Da un poco de aire entre las líneas de texto */
+  font-weight: 12px;
+  /* Opcional: quita la negrita si el texto es muy largo */
+}
+
+.kv .fw-semibold {
+    line-height: 1.2;
+}
+
+.text-monospace {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+/* columnas numéricas alineadas */
+.code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 }
 </style>

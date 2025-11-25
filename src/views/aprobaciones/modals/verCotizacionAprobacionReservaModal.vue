@@ -93,7 +93,7 @@ watch(
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
                                 infoReserva.cotizacion.CLI_RAZON_SOCIAL
-                            }}</div>
+                                }}</div>
                         </div>
                     </div>
 
@@ -150,14 +150,14 @@ watch(
                             </div>
                         </div>
                     </div>
-                      <!-- espacio para que se coloque la observación en la siguiente fila -->
-                          <div class="col-6 col-lg-4"></div>
+                    <!-- espacio para que se coloque la observación en la siguiente fila -->
+                    <div class="col-6 col-lg-4"></div>
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Observación Solicitud</small>
                             <span class="badge bg-dark text-white text-wrap text-start mt-1">{{
                                 infoReserva.obs_solicitud_reserva
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                     <div class="col-12" v-if="infoSegmento.segmento || infoSegmento.subsegmento">
@@ -165,7 +165,7 @@ watch(
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
                             <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                 </div>
@@ -223,7 +223,7 @@ watch(
                             placeholder="Detalles adicionales (opcional)"></textarea>
                     </div>
                     <div class="text-end text-muted fs-xs">{{ (dataSendApproval.obs_autorizacion_reserva || '').length
-                        }}/400
+                    }}/400
                     </div>
                 </div>
             </div>
@@ -256,12 +256,18 @@ watch(
     display: block;
     line-height: 1;
 }
+
 .kv .badge {
-    white-space: normal; /* CLAVE: Permite que el texto haga salto de línea */
-    text-align: left;    /* Alinea el texto a la izquierda para leer mejor párrafos */
-    display: block;      /* Hace que ocupe el ancho disponible de la columna */
-    line-height: 1.4;    /* Da un poco de aire entre las líneas de texto */
-    font-weight: 12px; /* Opcional: quita la negrita si el texto es muy largo */
+    white-space: normal;
+    /* CLAVE: Permite que el texto haga salto de línea */
+    text-align: left;
+    /* Alinea el texto a la izquierda para leer mejor párrafos */
+    display: block;
+    /* Hace que ocupe el ancho disponible de la columna */
+    line-height: 1.4;
+    /* Da un poco de aire entre las líneas de texto */
+    font-weight: 12px;
+    /* Opcional: quita la negrita si el texto es muy largo */
 }
 
 .kv .fw-semibold {
