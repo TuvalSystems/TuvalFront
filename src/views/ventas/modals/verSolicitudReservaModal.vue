@@ -9,6 +9,7 @@ import { useQuotationReserveRequestSale } from '@/composables/venta/cotizaciones
 import {
     swalSuccess,
     swalError,
+    swalWarning
 } from "@/functions/swal-alert.js";
 const emit = defineEmits(['modalReservaHide']);
 const props = defineProps({
@@ -34,7 +35,7 @@ const traslado = reactive([
 async function guardarYEmitir() {
     const resp = await solicitarReserva();
     if (!resp.ok) {
-        swalError(resp.message);
+        swalWarning(resp.message);
         return;
     }
     emit('modalReservaHide', true);

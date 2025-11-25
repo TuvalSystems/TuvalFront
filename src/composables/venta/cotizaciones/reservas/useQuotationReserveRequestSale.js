@@ -1,6 +1,6 @@
 import axiosClient from "@/axios";
 import { ref, reactive, watch, unref, onMounted, computed } from "vue";
-import { swalError } from "@/functions/swal-alert.js";
+import { swalError, swalWarning } from "@/functions/swal-alert.js";
 import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
 import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
 import { useApiAction } from "@/composables/core/useApiAction";
@@ -81,7 +81,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
       if (invalid) {
         reserva.tipo_reserva_id = null;
         isInvalid.value = true;
-        swalError(message);
+        swalWarning(message);
       }
     },
     { immediate: true }
@@ -96,7 +96,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
       }
       const { invalid, message } = validateSolicitudReserveDate();
       isInvalid.value = invalid;
-      if (invalid) swalError(message);
+      if (invalid) swalWarning(message);
     },
     { immediate: false } // pon true si quieres validar también al cargar si ya hay valores
   );
@@ -129,6 +129,14 @@ export function useQuotationReserveRequestSale(datoReserva) {
     return await run(() => axiosClient.post(apiSolicitud, { reserva: reserva }), {
       loadingRef: isInvalid,
       successMessage: "Reserva solicitada correctamente.",
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al realizar la solicitud de reserva"
+        );
+      }
     });
   };
 
