@@ -213,81 +213,70 @@
                           @click="confirmfacturar(row)">
                           <i class="fa fa-file-invoice-dollar"></i>
                         </button>
-                        <div class="btn-group btn-group-sm">
-                          <button type="button" class="btn btn-alt-secondary btn-sm" id="dropOptions"
+                        <!-- dropdown -->
+                        <div class="dropdown d-inline-block">
+                          <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fa fa-angle-down ms-1"></i>
-                          </button>
+                            <i class="fa fa-fw fa-ellipsis-v"></i> </button>
 
-                          <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropOptions">
-                            <!-- Sección: Documentos -->
-                            <li>
-                              <h6 class="dropdown-header text-muted text-uppercase small">
-                                Documentos
-                              </h6>
-                            </li>
+                          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                            aria-labelledby="dropOptions">
 
                             <template v-if="row.imprimir === 'yes'">
+                              <li class="dropdown-header text-uppercase">Exportar</li>
+
                               <li>
-                                <button class="dropdown-item" @click="imprimirpedidoimagenes(row)">
-                                  <i class="fa-solid fa-file-pdf me-2"></i>
-                                  Generar Pedido
+                                <button class="dropdown-item d-flex align-items-center"
+                                  @click="imprimirpedidoimagenes(row)">
+                                  <i class="fa-solid fa-file-pdf text-danger me-2"></i> Pedido
                                 </button>
                               </li>
                               <li>
-                                <button class="dropdown-item" @click="imprimirpedidoride(row)">
-                                  <i class="fa-solid fa-file-pdf me-2"></i>
-                                  Generar RIDE
+                                <button class="dropdown-item d-flex align-items-center"
+                                  @click="imprimirpedidoride(row)">
+                                  <i class="fa-solid fa-file-invoice text-primary me-2"></i> RIDE
                                 </button>
                               </li>
                               <li>
-                                <button class="dropdown-item" @click="imprimirpedidoridesinimagen(row)">
-                                  <i class="fa-solid fa-file-pdf me-2"></i>
-                                  RIDE (sin imagen)
+                                <button class="dropdown-item d-flex align-items-center"
+                                  @click="imprimirpedidoridesinimagen(row)">
+                                  <i class="fa-regular fa-file-pdf text-muted me-2"></i> RIDE (Sin img)
                                 </button>
                               </li>
                               <li>
-                                <button class="dropdown-item" @click="imprimirpedidoxml(row)">
-                                  <i class="fa-solid fa-print me-2"></i>
-                                  Generar XML
+                                <button class="dropdown-item d-flex align-items-center" @click="imprimirpedidoxml(row)">
+                                  <i class="fa-solid fa-code text-warning me-2"></i> XML
                                 </button>
                               </li>
-                              <li>
-                                <hr class="dropdown-divider" />
-                              </li>
+
+                              <li class="dropdown-divider"></li>
                             </template>
 
-                            <!-- Sección: Gestión -->
-                            <li>
-                              <h6 class="dropdown-header text-muted text-uppercase small">
-                                Gestión
-                              </h6>
-                            </li>
+                            <li class="dropdown-header text-uppercase">Gestión</li>
 
-                            <li>
-                              <button class="dropdown-item"
-                                v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)"
+                            <li v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)">
+                              <button class="dropdown-item d-flex align-items-center"
                                 @click="operModalActualizarDatosPedido(row)">
-                                <i class="fa-solid fa-user me-2"></i>
-                                Actualizar Datos
+                                <i class="fa-solid fa-user-pen text-info me-2"></i> Actualizar Datos
                               </button>
                             </li>
 
-                            <li>
-                              <button v-if="canRescheduleInvoice(row)" class="dropdown-item"
+                            <li
+                              v-if="canRescheduleInvoice(row)">
+                              <button class="dropdown-item d-flex align-items-center"
                                 @click="openModalUpdateDateInvoice(row)">
-                                <i class="fa fa-calendar-days me-2"></i>
-                                Reprogramar Facturación
+                                <i class="fa-regular fa-calendar-days text-success me-2"></i> Reprogramar
                               </button>
                             </li>
 
-                            <li>
-                              <button v-if="row.estado === 'espera'" :disabled="loadingChange"
-                                class="dropdown-item text-danger" @click="rechazarPedidoEstadoEspera(row.id)">
-                                <i class="fa fa-ban me-2"></i>
-                                Rechazar Pedido
+                            <li v-if="row.estado === 'espera'">
+                              <div class="dropdown-divider"></div>
+                              <button class="dropdown-item d-flex align-items-center text-danger"
+                                :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
+                                <i class="fa fa-ban me-2"></i> Rechazar Pedido
                               </button>
                             </li>
+
                           </ul>
                         </div>
 
@@ -903,3 +892,23 @@ async function rechazarPedidoEstadoEspera(id) {
 
 
 </script>
+
+<style scoped>
+/* Alineación de iconos */
+.dropdown-menu .dropdown-item i {
+  width: 20px; /* Un poco más ancho para que todos los iconos se alineen igual */
+  text-align: center;
+}
+
+/* BLINDAJE VISUAL */
+.dropdown-menu {
+  /* Asegura que el fondo sea sólido y no transparente */
+  background-color: #262b34 !important; 
+  
+  /* Asegura que el menú flote por encima de las otras filas de la tabla */
+  z-index: 9999 !important; 
+  
+  /* Borde sutil */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>
