@@ -214,71 +214,70 @@
                           <i class="fa fa-file-invoice-dollar"></i>
                         </button>
                         <!-- dropdown -->
-                        <div class="dropdown d-inline-block">
-                          <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fa fa-fw fa-ellipsis-v"></i> </button>
 
-                          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
-                            aria-labelledby="dropOptions">
 
-                            <template v-if="row.imprimir === 'yes'">
-                              <li class="dropdown-header text-uppercase">Exportar</li>
+                        <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
+                          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="fa fa-fw fa-ellipsis-v"></i> </button>
 
-                              <li>
-                                <button class="dropdown-item d-flex align-items-center"
-                                  @click="imprimirpedidoimagenes(row)">
-                                  <i class="fa-solid fa-file-pdf text-danger me-2"></i> Pedido
-                                </button>
-                              </li>
-                              <li>
-                                <button class="dropdown-item d-flex align-items-center"
-                                  @click="imprimirpedidoride(row)">
-                                  <i class="fa-solid fa-file-invoice text-primary me-2"></i> RIDE
-                                </button>
-                              </li>
-                              <li>
-                                <button class="dropdown-item d-flex align-items-center"
-                                  @click="imprimirpedidoridesinimagen(row)">
-                                  <i class="fa-regular fa-file-pdf text-muted me-2"></i> RIDE (Sin img)
-                                </button>
-                              </li>
-                              <li>
-                                <button class="dropdown-item d-flex align-items-center" @click="imprimirpedidoxml(row)">
-                                  <i class="fa-solid fa-code text-warning me-2"></i> XML
-                                </button>
-                              </li>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                          aria-labelledby="dropOptions">
 
-                              <li class="dropdown-divider"></li>
-                            </template>
+                          <template v-if="row.imprimir === 'yes'">
+                            <li class="dropdown-header text-uppercase">Exportar</li>
 
-                            <li class="dropdown-header text-uppercase">Gestión</li>
-
-                            <li v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)">
+                            <li>
                               <button class="dropdown-item d-flex align-items-center"
-                                @click="operModalActualizarDatosPedido(row)">
-                                <i class="fa-solid fa-user-pen text-info me-2"></i> Actualizar Datos
+                                @click="imprimirpedidoimagenes(row)">
+                                <i class="fa-solid fa-file-pdf text-danger me-2"></i> Pedido
                               </button>
                             </li>
-
-                            <li
-                              v-if="canRescheduleInvoice(row)">
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center" @click="imprimirpedidoride(row)">
+                                <i class="fa-solid fa-file-invoice text-primary me-2"></i> RIDE
+                              </button>
+                            </li>
+                            <li>
                               <button class="dropdown-item d-flex align-items-center"
-                                @click="openModalUpdateDateInvoice(row)">
-                                <i class="fa-regular fa-calendar-days text-success me-2"></i> Reprogramar
+                                @click="imprimirpedidoridesinimagen(row)">
+                                <i class="fa-regular fa-file-pdf text-muted me-2"></i> RIDE (Sin img)
+                              </button>
+                            </li>
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center" @click="imprimirpedidoxml(row)">
+                                <i class="fa-solid fa-code text-warning me-2"></i> XML
                               </button>
                             </li>
 
-                            <li v-if="row.estado === 'espera'">
-                              <div class="dropdown-divider"></div>
-                              <button class="dropdown-item d-flex align-items-center text-danger"
-                                :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
-                                <i class="fa fa-ban me-2"></i> Rechazar Pedido
-                              </button>
-                            </li>
+                            <li class="dropdown-divider"></li>
+                          </template>
 
-                          </ul>
-                        </div>
+                          <li class="dropdown-header text-uppercase">Gestión</li>
+
+                          <li v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)">
+                            <button class="dropdown-item d-flex align-items-center"
+                              @click="operModalActualizarDatosPedido(row)">
+                              <i class="fa-solid fa-user-pen text-info me-2"></i> Actualizar Datos
+                            </button>
+                          </li>
+
+                          <li v-if="canRescheduleInvoice(row)">
+                            <button class="dropdown-item d-flex align-items-center"
+                              @click="openModalUpdateDateInvoice(row)">
+                              <i class="fa-regular fa-calendar-days text-success me-2"></i> Reprogramar
+                            </button>
+                          </li>
+
+                          <li v-if="row.estado === 'espera'">
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item d-flex align-items-center text-danger"
+                              :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
+                              <i class="fa fa-ban me-2"></i> Rechazar Pedido
+                            </button>
+                          </li>
+
+                        </ul>
+
 
 
                         <!-- dropdown -->
@@ -896,18 +895,19 @@ async function rechazarPedidoEstadoEspera(id) {
 <style scoped>
 /* Alineación de iconos */
 .dropdown-menu .dropdown-item i {
-  width: 20px; /* Un poco más ancho para que todos los iconos se alineen igual */
+  width: 20px;
+  /* Un poco más ancho para que todos los iconos se alineen igual */
   text-align: center;
 }
 
 /* BLINDAJE VISUAL */
 .dropdown-menu {
   /* Asegura que el fondo sea sólido y no transparente */
-  background-color: #262b34 !important; 
-  
+  background-color: #262b34 !important;
+
   /* Asegura que el menú flote por encima de las otras filas de la tabla */
-  z-index: 9999 !important; 
-  
+  z-index: 9999 !important;
+
   /* Borde sutil */
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
