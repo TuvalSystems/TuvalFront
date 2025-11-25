@@ -127,14 +127,6 @@ async function procesar() {
                             <div class="fw-semibold">{{ infoReserva.usuario_ingreso.USERID }}</div>
                         </div>
                     </div>
-
-                    <div class="col-6 col-lg-4">
-                        <div class="kv">
-                            <small class="text-muted">Fecha Solicitud</small>
-                            <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
-                        </div>
-                    </div>
-
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">% Descuento</small>
@@ -147,13 +139,19 @@ async function procesar() {
                     </div>
                     <div class="col-6 col-lg-4">
                         <div class="kv">
+                            <small class="text-muted">Fecha Solicitud</small>
+                            <div class="fw-semibold">{{ infoReserva.fe_solicitud_reserva }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-4">
+                        <div class="kv">
                             <small class="text-muted">Tipo Reserva</small>
                             <div class="fw-semibold">
                                 <div class="fw-semibold">{{ infoReserva.tipo_reserva.descripcion }}</div>
                             </div>
                         </div>
                     </div>
-                      <div class="col-6 col-lg-4"></div>
+                    <div class="col-6 col-lg-4"></div>
                     <div class="col-6 col-lg-4">
                         <div class="kv">
                             <small class="text-muted">Observación</small>
@@ -319,21 +317,21 @@ async function procesar() {
 }
 
 .kv small {
-  display: block;
-  line-height: 1;
+    display: block;
+    line-height: 1;
 }
 
 .kv .badge2 {
-  white-space: normal;
-  /* CLAVE: Permite que el texto haga salto de línea */
-  text-align: left;
-  /* Alinea el texto a la izquierda para leer mejor párrafos */
-  display: block;
-  /* Hace que ocupe el ancho disponible de la columna */
-  line-height: 1.4;
-  /* Da un poco de aire entre las líneas de texto */
-  font-weight: 12px;
-  /* Opcional: quita la negrita si el texto es muy largo */
+    white-space: normal;
+    /* CLAVE: Permite que el texto haga salto de línea */
+    text-align: left;
+    /* Alinea el texto a la izquierda para leer mejor párrafos */
+    display: block;
+    /* Hace que ocupe el ancho disponible de la columna */
+    line-height: 1.4;
+    /* Da un poco de aire entre las líneas de texto */
+    font-weight: 12px;
+    /* Opcional: quita la negrita si el texto es muy largo */
 }
 
 .kv .fw-semibold {
