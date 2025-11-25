@@ -213,48 +213,90 @@
                           @click="confirmfacturar(row)">
                           <i class="fa fa-file-invoice-dollar"></i>
                         </button>
-                        <!-- <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-warning btn-sm mx-1"
-                          @click="imprimirpedidoimagenes(row)">
-                          <i class="fa fa-print"></i>
-                        </button> -->
-                        <!-- dropdown -->
-                        <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
-                          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          <i class="fa fa-angle-down ms-1"></i>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropOptions">
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoimagenes(row)"><i class="fa-solid fa-file-pdf"></i> Generar
-                              Pedido</button></li>
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoride(row)"><i class="fa-solid fa-file-pdf"></i> Generar
-                              RIDE</button></li>
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoridesinimagen(row)"><i class="fa-solid fa-file-pdf"></i> Generar
-                              RIDE(sin imagen)</button></li>
+                        <div class="btn-group btn-group-sm">
+                          <button type="button" class="btn btn-alt-secondary btn-sm" id="dropOptions"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-angle-down ms-1"></i>
+                          </button>
 
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print"></i> Generar XML</button>
-                          </li>
-                          <li><button class="dropdown-item"
-                              v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)"
-                              @click="operModalActualizarDatosPedido(row)"><i class="fa-solid fa-user"></i> Actualizar
-                              Datos</button>
-                          </li>
-                          <li>
-                            <button
-                              v-if="row.origen === 'reserva' && !['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)"
-                              class="dropdown-item" @click="openModalUpdateDateInvoice(row)">
-                              <i class="fa fa-calendar-days"></i> Reprogramar Facturación
-                            </button>
-                          </li>
-                        </ul>
+                          <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropOptions">
+                            <!-- Sección: Documentos -->
+                            <li>
+                              <h6 class="dropdown-header text-muted text-uppercase small">
+                                Documentos
+                              </h6>
+                            </li>
+
+                            <template v-if="row.imprimir === 'yes'">
+                              <li>
+                                <button class="dropdown-item" @click="imprimirpedidoimagenes(row)">
+                                  <i class="fa-solid fa-file-pdf me-2"></i>
+                                  Generar Pedido
+                                </button>
+                              </li>
+                              <li>
+                                <button class="dropdown-item" @click="imprimirpedidoride(row)">
+                                  <i class="fa-solid fa-file-pdf me-2"></i>
+                                  Generar RIDE
+                                </button>
+                              </li>
+                              <li>
+                                <button class="dropdown-item" @click="imprimirpedidoridesinimagen(row)">
+                                  <i class="fa-solid fa-file-pdf me-2"></i>
+                                  RIDE (sin imagen)
+                                </button>
+                              </li>
+                              <li>
+                                <button class="dropdown-item" @click="imprimirpedidoxml(row)">
+                                  <i class="fa-solid fa-print me-2"></i>
+                                  Generar XML
+                                </button>
+                              </li>
+                              <li>
+                                <hr class="dropdown-divider" />
+                              </li>
+                            </template>
+
+                            <!-- Sección: Gestión -->
+                            <li>
+                              <h6 class="dropdown-header text-muted text-uppercase small">
+                                Gestión
+                              </h6>
+                            </li>
+
+                            <li>
+                              <button class="dropdown-item"
+                                v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)"
+                                @click="operModalActualizarDatosPedido(row)">
+                                <i class="fa-solid fa-user me-2"></i>
+                                Actualizar Datos
+                              </button>
+                            </li>
+
+                            <li>
+                              <button v-if="canRescheduleInvoice(row)" class="dropdown-item"
+                                @click="openModalUpdateDateInvoice(row)">
+                                <i class="fa fa-calendar-days me-2"></i>
+                                Reprogramar Facturación
+                              </button>
+                            </li>
+
+                            <li>
+                              <button v-if="row.estado === 'espera'" :disabled="loadingChange"
+                                class="dropdown-item text-danger" @click="rechazarPedidoEstadoEspera(row.id)">
+                                <i class="fa fa-ban me-2"></i>
+                                Rechazar Pedido
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+
 
                         <!-- dropdown -->
-                        <button v-if="row.estado === 'espera'" type="button" class="btn btn-danger btn-sm mx-1"
+                        <!-- <button v-if="row.estado === 'espera'" type="button" class="btn btn-danger btn-sm mx-1"
                           :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
-                          <i class="fa fa-ban"></i>
-                        </button>
+                         
+                        </button> -->
                       </td>
                     </tr>
                   </template>
@@ -807,6 +849,11 @@ function closeModalActualizarDatosPedido() {
 let verModalUpdateDateInvoice = ref(null);
 let verModalUpdateDateInvoiceObj = null;
 let datosModalPedidoAcDate = ref({});
+
+const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
+function canRescheduleInvoice(row) {
+  return row.origen === 'reserva' && !BLOCKED_STATES.includes(row.estado);
+}
 async function openModalUpdateDateInvoice(pedido) {
   if (pedido.origen !== 'reserva') {
     swalWarning('Solo se puede reprogramar la facturación de pedidos de origen reserva')

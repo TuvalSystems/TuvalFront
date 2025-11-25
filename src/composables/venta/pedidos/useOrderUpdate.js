@@ -72,9 +72,7 @@ export function useOrderUpdate() {
     fe_facturacion_reserva: null,
   });
 
-  function insertDataInvoice(ord) {
-    console.log(ord);
-    
+  function insertDataInvoice(ord) {    
     dataUpddateDateInvoice.id = ord.id;
     dataUpddateDateInvoice.fe_facturacion_reserva = ord.fe_facturacion_reserva;
   }
