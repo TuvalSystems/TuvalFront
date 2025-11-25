@@ -28,10 +28,12 @@
         <template #options>
           <div class="block-options-item"><span class="badge bg-warning">Peso total: {{
             formatPrice(transferencias_reposicion[route.params.id].peso_total / 1000) }} Tn</span></div>
-          <div class="block-options-item">
+          <div class="block-options-item space-x-2">
             <button type="button" class="btn btn-sm btn-primary"
               @click="seleccionartodos(transferencias_reposicion[route.params.id].traslados)"><i
                 class="fa fa-hand-pointer"></i> Seleccionar hasta {{ maxItems }} items</button>
+            <button type="button" class="btn btn-sm btn-secondary"
+              @click="seleccionarPicking(transferencias_reposicion[route.params.id].traslados)">Picking</button>
           </div>
           <div class="block-options-item">
             <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i
@@ -428,7 +430,7 @@ function aplicartraslado(traslado) {
   checkgenerarguia();
 }
 
-const  maxItems = 100;
+const maxItems = 100;
 function seleccionartodos(traslados) {
   let count = 0;
   for (const t of traslados) {
@@ -441,6 +443,14 @@ function seleccionartodos(traslados) {
       t.aplicar_todo = false;
     }
   }
+  checkgenerarguia();
+}
+
+function seleccionarPicking(traslados){
+   traslados.map(traslado => {
+    traslado.seleccionado = traslado.pendiente;
+    traslado.aplicar_todo = true;
+  });
   checkgenerarguia();
 }
 
