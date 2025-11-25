@@ -193,10 +193,6 @@
                         </span>
                       </td>
                       <td class="fs-sm text-end nowrap">
-                        <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-primary btn-sm mx-1"
-                          @click="imprimirpedido(row)">
-                          <i class="fa fa-print"></i>
-                        </button>
                         <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir"
                           @click="recuperarpedido(row)">
                           <i class="far fa-copy"></i>
@@ -225,7 +221,12 @@
 
                           <template v-if="row.imprimir === 'yes'">
                             <li class="dropdown-header text-uppercase">Exportar</li>
-
+                            <li>
+                              <button  class="dropdown-item d-flex align-items-center"
+                                @click="imprimirpedido(row)">
+                                <i class="fa fa-print text-white me-2"></i> Pedido
+                              </button>
+                            </li>
                             <li>
                               <button class="dropdown-item d-flex align-items-center"
                                 @click="imprimirpedidoimagenes(row)">
