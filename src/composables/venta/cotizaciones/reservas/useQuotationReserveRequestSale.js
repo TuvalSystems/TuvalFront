@@ -77,7 +77,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
     () => {
       const { invalid, message } = validateTypeReserveHasItemLOrService();
       isInvalid.value = invalid;
-      
+
       if (invalid) {
         reserva.tipo_reserva_id = null;
         isInvalid.value = true;
@@ -150,11 +150,39 @@ export function useQuotationReserveRequestSale(datoReserva) {
     }
   });
 
+
+
+
+  /**proceso de verificacion de stock disponible antes de generar la solicitud de reserva */
+  const apiVerificarStock = "/reservas/verificar-stock-actual-reserva";
+  const loadingStockValidation = ref(false);
+
+
+  async function verifyStockBeforeRequestReserve(cotizacionId) {
+    return await run(() => axiosClient.post(apiVerificarStock, { id: cotizacionId }), {
+      loadingRef: loadingStockValidation,
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener la información"
+        );
+      },
+    });
+
+  }
+
+
   return {
     reserva,
     solicitarReserva,
     reservedValidation,
     isInvalid,
     resetForm,
+
+    // verificacion de stock
+    verifyStockBeforeRequestReserve,
+    loadingStockValidation,
   };
 }

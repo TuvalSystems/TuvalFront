@@ -362,12 +362,14 @@ import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/useP
 import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitudReservaModal.vue";
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 import { useUpdateQuotationStatus } from "@/composables/aprobaciones/cotizaciones/useUpdateQuotationStatus";
+import { useQuotationReserveRequestSale } from '@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale';
 
 const { loadingChange, changeStatusQuoteBeenWaiting } = useUpdateQuotationStatus();
 const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
 const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits()
 const { checkExistingReserve } = useValidatesReserved()
+const { verifyStockBeforeRequestReserve, loadingStockValidation } = useQuotationReserveRequestSale()
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -522,6 +524,12 @@ async function verModalReserva(row) {
   }
 
   /** proceso de verificacion de stock antes de que se abra el modal de reserva */
+  // const respStock = await verifyStockBeforeRequestReserve(row.id);
+
+  // if (!respStock?.ok) {
+  //   swalWarning(respStock.message || 'No se puede procesar la solicitud de reserva por falta de stock.');
+  //   return;
+  // }
 
   const payload = {
     cotizacion_id: row.id,
