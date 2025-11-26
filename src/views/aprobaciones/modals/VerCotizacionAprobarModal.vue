@@ -129,8 +129,10 @@
               <template v-for="(articulo, index) in detallecotizacion.data" :key="index">
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
-                  <td class="fs-sm text" @click="verPorcentajesDeCambio(articulo)">
-                    <span class="text-danger">{{ articulo.ART_CODIGO }}</span>
+                  <td class="fs-sm">
+                    <span v-if="articulo.priceChange > 0.00 || articulo.discountChange > 0.00"
+                      @click="verPorcentajesDeCambio(articulo)" class="text-danger">{{ articulo.ART_CODIGO }}</span>
+                    <span v-else>{{ articulo.ART_CODIGO }}</span>
 
                   </td>
                   <td class="fs-sm">
@@ -297,8 +299,8 @@ function verPorcentajesDeCambio(articulo) {
   const price = Number(articulo.priceChange ?? 0);
 
   // Si quieres 2 decimales siempre
-  const discountLabel = `${discount.toFixed(2)}%`;
-  const priceLabel = `${price.toFixed(2)}%`;
+  const discountLabel = `${discount.toFixed(4)}%`;
+  const priceLabel = `${price.toFixed(4)}%`;
 
   const html = `
     <p>
