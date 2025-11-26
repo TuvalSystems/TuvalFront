@@ -275,7 +275,7 @@ function rechazarCotizacion(cotizacion) {
   cotizacion.chao = true;
   vercotizacionModalObj.hide();
   store.dispatch('rechazarCotizacion', cotizacion).then(() => {
-    swalError('Cotización: ' + cotizacion.cotizacion + ' rechazada');
+    swalSuccess('Cotización: ' + cotizacion.cotizacion + ' rechazada');
   }).catch(err => {
     errorMsg.value = err.response.data.error
     swalError(errorMsg.value);
