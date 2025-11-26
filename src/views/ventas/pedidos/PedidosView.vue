@@ -193,14 +193,14 @@
                         </span>
                       </td>
                       <td class="fs-sm text-end nowrap">
-                        <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir"
+                        <!-- <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir"
                           @click="recuperarpedido(row)">
                           <i class="far fa-copy"></i>
-                        </button>
-                        <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido"
+                        </button> -->
+                        <!-- <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido"
                           @click="levantarcliente(row)">
                           <i class="fa fa-copy"></i>
-                        </button>
+                        </button> -->
                         <button
                           v-if="((row.estado === 'espera' && (row.factura_posterior_despacho === 1 && row.factura_a_demanda === 1 && row.despachado === 1))
                             || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 1))
@@ -220,32 +220,34 @@
                           aria-labelledby="dropOptions">
 
                           <template v-if="row.imprimir === 'yes'">
-                            <li class="dropdown-header text-uppercase">Exportar</li>
+                            <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Exportar</li>
                             <li>
-                              <button  class="dropdown-item d-flex align-items-center"
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                                 @click="imprimirpedido(row)">
                                 <i class="fa fa-print text-white me-2"></i> Pedido
                               </button>
                             </li>
                             <li>
-                              <button class="dropdown-item d-flex align-items-center"
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                                 @click="imprimirpedidoimagenes(row)">
                                 <i class="fa-solid fa-file-pdf text-danger me-2"></i> Pedido
                               </button>
                             </li>
                             <li>
-                              <button class="dropdown-item d-flex align-items-center" @click="imprimirpedidoride(row)">
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimirpedidoride(row)">
                                 <i class="fa-solid fa-file-invoice text-primary me-2"></i> RIDE
                               </button>
                             </li>
                             <li>
-                              <button class="dropdown-item d-flex align-items-center"
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                                 @click="imprimirpedidoridesinimagen(row)">
                                 <i class="fa-regular fa-file-pdf text-muted me-2"></i> RIDE (Sin img)
                               </button>
                             </li>
                             <li>
-                              <button class="dropdown-item d-flex align-items-center" @click="imprimirpedidoxml(row)">
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimirpedidoxml(row)">
                                 <i class="fa-solid fa-code text-warning me-2"></i> XML
                               </button>
                             </li>
@@ -253,27 +255,44 @@
                             <li class="dropdown-divider"></li>
                           </template>
 
-                          <li class="dropdown-header text-uppercase">Gestión</li>
+                          <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Gestión</li>
+
+                          <!-- volver a pedir -->
+                          <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="recuperarpedido(row)">
+                              <i class="fa-solid fa-cart-plus fa-fw text-warning"></i> <span>Volver a pedir</span>
+                            </button>
+                          </li>
+
+                          <!-- copiar pedido -->
+                          <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="levantarcliente(row)">
+                              <i class="fa-regular fa-clone fa-fw text-success"></i> 
+                              <span>Copiar</span>
+                            </button>
+                          </li>
 
                           <li v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)">
-                            <button class="dropdown-item d-flex align-items-center"
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                               @click="operModalActualizarDatosPedido(row)">
                               <i class="fa-solid fa-user-pen text-info me-2"></i> Actualizar Datos
                             </button>
                           </li>
 
                           <li v-if="canRescheduleInvoice(row)">
-                            <button class="dropdown-item d-flex align-items-center"
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                               @click="openModalUpdateDateInvoice(row)">
                               <i class="fa-regular fa-calendar-days text-success me-2"></i> Reprogramar
                             </button>
                           </li>
 
                           <li v-if="row.estado === 'espera'">
-                            <div class="dropdown-divider"></div>
-                            <button class="dropdown-item d-flex align-items-center text-danger"
+                            <div class="dropdown-divider my-2"></div>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
                               :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
-                              <i class="fa fa-ban me-2"></i> Rechazar Pedido
+                              <i class="fa-solid fa-ban fa-fw"></i> <span class="fw-semibold">Rechazar</span>
                             </button>
                           </li>
 

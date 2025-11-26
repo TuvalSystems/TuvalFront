@@ -170,7 +170,7 @@
                             row.estado }}
                         </span>
                       </td>
-                      <td>
+                      <td class="fs-sm text-center">
                         <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1"
                           :class="getReminderClass(row)"
                           @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''">
@@ -192,51 +192,87 @@
                         </button>
                       </td>
                       <td v-else class="fs-sm nowrap text-end">
-                        <button v-if="
-                          row.recuperar == 'yes' &&
-                          row.estado != 'caducado' &&
-                          row.estado != 'procesado'
-                        " type="button" class="btn btn-success btn-sm mx-2" title="Recuperar Cotización"
-                          @click="recuperarcotizacion(row)">
-                          <i class="fa fa-upload"></i>
-                        </button>
-                        <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir"
-                          @click="volverapedir(row)">
-                          <i class="far fa-copy"></i>
-                        </button>
-                        <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido"
-                          @click="levantarcliente(row)">
-                          <i class="fa fa-copy"></i>
-                        </button>
+                        <!-- dropdown -->
+                        <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
+                          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="fa fa-fw fa-ellipsis-v"></i> </button>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                          aria-labelledby="dropOptions">
 
-                        <button v-if="['espera', 'aprobado'].includes(row.estado)" type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
-                          @click="verModalReserva(row)">
-                          <i class="fa fa fa-box-archive"></i>
-                        </button>
-                        <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button"
-                          class="btn btn-sm btn-alt-secondary" id="dropOptions" data-bs-toggle="dropdown"
-                          aria-haspopup="true" aria-expanded="false">
-                          <i class="fa fa-angle-down ms-1"></i>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropOptions">
-                          <li>
-                            <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" class="dropdown-item"
-                              title="Imprimir Cotización" @click="imprimircotizacion(row)"><i class="fa fa-print"></i>
-                              Imprimir
+                          <!-- exportaciones -->
+                          <template v-if="row.imprimir === 'yes' && row.estado != 'caducado'">
+                            <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Exportar</li>
+
+                            <!-- imprimir cotizacion sin imagenes -->
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimircotizacion(row)">
+                                <i class="fa-solid fa-file-pdf fa-fw text-light"></i>
+                                <span>Cotización PDF</span>
+                              </button>
+                            </li>
+
+                            <!-- imprimir cotizaciones con imagenes -->
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimircotizacionimagenes(row)">
+                                <i class="fa-solid fa-file-image fa-fw text-info"></i>
+                                <span>Cotización (Img)</span>
+                              </button>
+                            </li>
+                            <li class="dropdown-divider my-2"></li>
+                          </template>
+                          <!-- gestios de cotizaciones -->
+                          <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Gestión</li>
+
+                          <!-- recuperar cotizacion -->
+                          <li v-if="row.recuperar == 'yes' && canVolverAPedir(row.estado)">
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="recuperarcotizacion(row)">
+                              <i class="fa-solid fa-rotate-left fa-fw text-primary"></i>
+                              <span>Recuperar</span>
                             </button>
                           </li>
+
+                          <!-- volver a pedir  -->
                           <li>
-                            <button v-if="row.imprimir == 'yes' && row.estado != 'caducado'" type="button"
-                              class="dropdown-item" title="Imprimir Cotización Imágenes"
-                              @click="imprimircotizacionimagenes(row)"><i class="fa fa-print"></i>
-                              Imprimir (Imagen)</button>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="volverapedir(row)">
+                              <i class="fa-solid fa-cart-plus fa-fw text-warning"></i>
+                              <span>Volver a pedir</span>
+                            </button>
+                          </li>
+
+                          <!-- copiar cotizacion  -->
+                          <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="levantarcliente(row)">
+                              <i class="fa-regular fa-clone fa-fw text-success"></i>
+                              <span>Copiar</span>
+                            </button>
+                          </li>
+
+                          <!-- solicitud de reserva -->
+                          <li v-if="['espera', 'aprobado'].includes(row.estado)">
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="verModalReserva(row)">
+                              <i class="fa-solid fa-calendar-check fa-fw text-white"></i> <span>Solicitar Reserva</span>
+                            </button>
+                          </li>
+
+
+                          <!-- rechazar una cotizacion en estado espera -->
+                          <li v-if="row.estado === 'espera'">
+                            <div class="dropdown-divider my-2"></div>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                              :disabled="loadingChange" @click="rechazarCotizacionEstadoEspera(row.id)">
+                              <i class="fa-solid fa-ban fa-fw"></i>
+                              <span class="fw-semibold">Rechazar</span>
+                            </button>
                           </li>
                         </ul>
-                      </td>
-                      <td v-if="row.estado === 'espera'">
-                        <button type="button" class="btn btn-danger btn-sm" :disabled="loadingChange"
-                          title="Rechazar Cotizacion" @click="rechazarCotizacionEstadoEspera(row.id)"><i
-                            class="fa fa-ban"></i></button>
+
+                        <!-- dropdown -->
                       </td>
                     </tr>
                   </template>
@@ -794,4 +830,30 @@ async function rechazarCotizacionEstadoEspera(id) {
 }
 
 
+const BLOCKED_VOLVER_A_PEDIR_STATUSES = ['procesado', 'caducado'];
+const canVolverAPedir = (estado) => {
+  return !BLOCKED_VOLVER_A_PEDIR_STATUSES.includes(estado);
+};
+
 </script>
+
+<style scoped>
+/* Alineación de iconos */
+.dropdown-menu .dropdown-item i {
+  width: 20px;
+  /* Un poco más ancho para que todos los iconos se alineen igual */
+  text-align: center;
+}
+
+/* BLINDAJE VISUAL */
+.dropdown-menu {
+  /* Asegura que el fondo sea sólido y no transparente */
+  background-color: #262b34 !important;
+
+  /* Asegura que el menú flote por encima de las otras filas de la tabla */
+  z-index: 9999 !important;
+
+  /* Borde sutil */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>
