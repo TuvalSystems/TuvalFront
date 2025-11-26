@@ -74,8 +74,8 @@
               </tr>
             </tbody>
           </table>
-          <p v-if="vercotizacion.motivo_aprobacion_comercial && vercotizacion.motivo_aprobacion_comercial.startsWith('Cotización desde')"
-            class="alert alert-danger">{{ vercotizacion.motivo_aprobacion_comercial }}</p>
+          <p v-if="vercotizacion.msg_registro_copia && vercotizacion.msg_registro_copia.startsWith('Cotización desde')"
+            class="alert alert-danger">{{ vercotizacion.msg_registro_copia }}</p>
           <table v-if="estadodecuenta.data && !estadodecuenta.loading && estadodecuenta.data.cupoDisponible"
             class="table table-sm table-bordered">
             <thead>

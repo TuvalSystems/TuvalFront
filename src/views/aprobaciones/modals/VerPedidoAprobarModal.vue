@@ -8,8 +8,8 @@
     <template #content>
       <div class="block-content fs-sm ">
         <div class="table-responsive">
-          <p v-if="verpedido.motivo_aprobacion_comercial && verpedido.motivo_aprobacion_comercial.startsWith('Requiere aprobación')"
-            class="alert alert-danger">{{ verpedido.motivo_aprobacion_comercial }}</p>
+          <p v-if="verpedido.msg_registro_copia && verpedido.msg_registro_copia.startsWith('Requiere aprobación')"
+            class="alert alert-danger">{{ verpedido.msg_registro_copia }}</p>
           <table class="table table-striped table-sm table-vcenter">
             <tbody>
               <tr>
