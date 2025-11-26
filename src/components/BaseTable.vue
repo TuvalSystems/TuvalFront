@@ -327,4 +327,22 @@ th.sortable:hover {
     background-color: rgba(0, 0, 0, 0.05); /* Gris muy suave */
     color: var(--bs-primary);
 }
+
+:global(.dark-mode) .block,
+:global(.dark-mode) .card,
+:global([data-bs-theme="dark"]) .block,
+:global([data-bs-theme="dark"]) .card {
+    background-color: #262c35 !important; /* El color oscuro estándar de OneUI */
+    color: #dfe3ea !important;            /* Texto gris claro */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; /* Ajuste opcional de sombra */
+}
+
+/* Si el bloque tiene un header específico, también lo oscurecemos */
+:global(.dark-mode) .block-header,
+:global([data-bs-theme="dark"]) .block-header {
+    background-color: #21262d !important; /* Un tono ligeramente más oscuro para el título */
+    color: #fff !important;
+}
+
+
 </style>
