@@ -209,7 +209,7 @@
                           <i class="fa fa-copy"></i>
                         </button>
 
-                        <button type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
+                        <button v-if="['espera', 'aprobado'].includes(row.estado)" type="button" class="btn btn-dark btn-sm mx-1" title="Solicitar Reserva"
                           @click="verModalReserva(row)">
                           <i class="fa fa fa-box-archive"></i>
                         </button>
