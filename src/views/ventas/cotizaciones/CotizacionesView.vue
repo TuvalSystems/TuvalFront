@@ -55,7 +55,7 @@
               Filtrar
               <i class="fa fa-angle-down ms-1"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-md dropdown-menu-end fs-sm"
+            <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
               aria-labelledby="dropdown-recent-orders-filters">
               <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
                 @click="llenarcotizaciones('pendientes')" href="javascript:void(0)">
