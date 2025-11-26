@@ -915,7 +915,7 @@ async function rechazarPedidoEstadoEspera(id) {
 <style scoped>
 /* Alineación de iconos */
 .dropdown-menu .dropdown-item i {
-  width: 20px;
+  width: 10px;
   /* Un poco más ancho para que todos los iconos se alineen igual */
   text-align: center;
 }

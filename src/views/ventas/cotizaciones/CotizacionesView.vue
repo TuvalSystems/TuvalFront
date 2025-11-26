@@ -520,6 +520,9 @@ async function verModalReserva(row) {
     swalWarning('No puede realizar la reserva: la cotización no tiene cantidades seleccionadas.')
     return;
   }
+
+  /** proceso de verificacion de stock antes de que se abra el modal de reserva */
+
   const payload = {
     cotizacion_id: row.id,
     cotizacion: row.cotizacion,
@@ -840,7 +843,7 @@ const canVolverAPedir = (estado) => {
 <style scoped>
 /* Alineación de iconos */
 .dropdown-menu .dropdown-item i {
-  width: 20px;
+  width: 10px;
   /* Un poco más ancho para que todos los iconos se alineen igual */
   text-align: center;
 }
