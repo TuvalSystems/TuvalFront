@@ -86,9 +86,9 @@ const isDisabledRow = (row) => (props.isRowDisabled ? !!props.isRowDisabled(row)
 const isCellClickable = (row, col) => col.clickable && !props.processing && !isDisabledRow(row);
 
 const handleRowClick = (event, row, col) => {
-   event.preventDefault();
-  if (!isCellClickable(row, col)) return; // ⛔ bloquea si está en procesamiento o fila deshabilitada
-  emit('onClick', { row, col });
+    event.preventDefault();
+    if (!isCellClickable(row, col)) return; // ⛔ bloquea si está en procesamiento o fila deshabilitada
+    emit('onClick', { row, col });
 };
 
 
@@ -129,8 +129,10 @@ const getTdClass = (col, row) => {
                         <tr>
                             <th v-for="col in columns" :key="col.key" @click="col.sortable ? handleSort(col.key) : null"
                                 :class="getThClass(col)" :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
-                                {{ col.label }}
-                                <i :class="getSortIcon(col.key)" class="ms-0"></i>
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <span>{{ col.label }}</span>
+                                    <i v-if="col.sortable" :class="getSortIcon(col.key)"></i>
+                                </div>
                             </th>
                             <!-- Si hay acciones, se añade una columna adicional -->
                             <th v-if="$slots.actions" class="text-center nowrap" style="font-size: 12px">
@@ -140,7 +142,7 @@ const getTdClass = (col, row) => {
                     </thead>
                     <tbody v-if="loading">
                         <tr>
-                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-4">
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-5">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Cargando...</span>
                                 </div>
@@ -149,7 +151,8 @@ const getTdClass = (col, row) => {
                     </tbody>
                     <tbody v-else-if="!data || !data.length">
                         <tr>
-                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-6">
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
+                                <!-- <i class="fa fa-folder-open fa-2x mb-2 d-block opacity-50"></i> -->
                                 <slot name="empty">Sin registros para mostrar.</slot>
                             </td>
                         </tr>
@@ -159,7 +162,7 @@ const getTdClass = (col, row) => {
                     <transition-group name="fade" tag="tbody" class="fs-sm" v-else>
                         <tr v-for="(row, index) in data" :key="row.id ?? index">
                             <td v-for="col in columns" :key="col.key" :class="getTdClass(col, row)"
-                                style="font-size: 12px; overflow: hidden; text-overflow: ellipsis ">
+                                style="font-size: 12px;">
 
                                 <!-- 👇 slot específico por columna -->
                                 <template v-if="$slots[`cell-${col.key}`]">
@@ -197,9 +200,9 @@ const getTdClass = (col, row) => {
                 </table>
 
                 <!-- Paginacion Integrada -->
-                <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-                    <div>
-                        <p class="mb-0 text-secondary" style="font-size: 14px">
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-3 px-2">
+                    <div class="d-none d-sm-block">
+                        <p class="mb-0 fs-sm">
                             Mostrando
                             <strong>{{ (currentPage - 1) * perPage + 1 }}</strong> a
                             <strong>{{ Math.min(currentPage * perPage, totalItems) }}</strong>
@@ -246,14 +249,15 @@ const getTdClass = (col, row) => {
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.5s;
-}
+/* Transiciones */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter, .fade-leave-to { opacity: 0; }
 
-.fade-enter,
-.fade-leave-to {
-    opacity: 0;
+
+/* Estilos de tabla base */
+.table-responsive {
+    max-height: 700px;
+    overflow-y: auto;
 }
 
 .overlay-loading {
@@ -269,25 +273,34 @@ const getTdClass = (col, row) => {
     z-index: 10;
 }
 
+
+
 /* icono de ordenamiento */
 .sortable {
     cursor: pointer;
     user-select: none;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .sortable:hover {
     color: #0d6efd;
 }
-
+/* Links clickeables */
 .clickable {
     cursor: pointer;
-    color: #0d6efd;
+    color: var(--bs-primary); /* Usa la variable de Bootstrap */
+    text-decoration: none;
+    font-weight: 500;
+}
+.clickable:hover {
+    text-decoration: underline;
 }
 
 .clickable.is-disabled {
     pointer-events: none;
     opacity: 0.6;
     cursor: not-allowed;
+    color: inherit;
 }
 
 /* table */
@@ -309,8 +322,9 @@ td {
     vertical-align: middle;
 }
 
+/* Modo Light (Por defecto) */
 th.sortable:hover {
-    background-color: #1e293b;
-    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.05); /* Gris muy suave */
+    color: var(--bs-primary);
 }
 </style>
