@@ -270,7 +270,7 @@ onBeforeUnmount(() => {
                         <option value="">Todos</option>
                         <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA"
                             :value="p.PTO_VTA_BOD_PUNTO_VENTA">
-                            {{ p.PTO_VTA_BOD_BODEGA }}
+                            {{ p.PTO_VTA_DESCRIPCION }}
                         </option>
                     </select>
                 </div>
