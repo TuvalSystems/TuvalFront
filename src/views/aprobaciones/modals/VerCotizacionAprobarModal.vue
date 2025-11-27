@@ -299,8 +299,8 @@ function verPorcentajesDeCambio(articulo) {
   const price = Number(articulo.priceChange ?? 0);
 
   // Si quieres 2 decimales siempre
-  const discountLabel = `${discount.toFixed(4)}%`;
-  const priceLabel = `${price.toFixed(4)}%`;
+  const discountLabel = `${discount.toFixed(3)}%`;
+  const priceLabel = `${price.toFixed(3)}%`;
 
   const html = `
     <p>
