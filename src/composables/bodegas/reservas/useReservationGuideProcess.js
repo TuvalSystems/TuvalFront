@@ -1,8 +1,10 @@
 import { ref, reactive } from "vue";
 import axiosClient from "@/axios";
-import { swalError } from "@/functions/swal-alert.js";
 import { formatJm } from "@/functions";
 import { useApiAction } from "@/composables/core/useApiAction";
+import {
+  swalWarning
+} from "@/functions/swal-alert.js";
 export const useReservationGuideProcess = () => {
   //instancia general para apis 
   const { run } = useApiAction();
@@ -25,7 +27,7 @@ export const useReservationGuideProcess = () => {
     transporte_id: null,
 
     // externo
-    transporte: null,
+    // transporte: null,
     nombre_transporte: null,
     tipo_identificacion: null,
     identificacion: null,
@@ -73,7 +75,7 @@ export const useReservationGuideProcess = () => {
 
   /** limpiar cambio de modos */
   function clearChangeModeLocal() {
-    data.transporte = null;
+    // data.transporte = null;
     data.nombre_transporte = null;
     data.tipo_identificacion = null;
     data.identificacion = null;
@@ -110,40 +112,44 @@ export const useReservationGuideProcess = () => {
   function validationModo() {
     if (modo.value === "local") {
       if (isBlank(data.vehiculo_id) || isBlank(data.transporte_id)) {
-        return { ok: false, message: "Selecciona el vehículo y el transportista" };
+        swalWarning("Selecciona el vehículo y el transportista");
+        return false;
       }
     } else {
       if (isBlank(data.nombre_transporte)) {
-        return { ok: false, message: "Ingresa el nombre del transportista externo" };
+        swalWarning("ngresa el nombre del transportista externo");
+        return false;
       }
       if (isBlank(data.identificacion)) {
-        return { ok: false, message: "Ingresa la identificación del transportista externo" };
+        swalWarning("Ingresa la identificación del transportista externo");
+        return false;
       }
       if (isBlank(data.tipo_identificacion)) {
-        return { ok: false, message: "Selecciona el tipo de identificación" };
+        swalWarning("Selecciona el tipo de identificación");
+        return false;
       }
       if (!validarPlacaEC(data.placa)) {
-        return { ok: false, message: "Placa inválida" };
+        swalWarning("Placa inválida");
+        return false;
       }
     }
     if (isBlank(data.ruta)) {
-      return { ok: false, message: "Ingresa la ruta" };
+      swalWarning("Ingresa la ruta");
+      return false;
     }
     if (isBlank(data.fecha_llegada) || !isValidDateStr(data.fecha_llegada)) {
-       return { ok: false, message: "Fecha/Hora de llegada inválida" };
-      
+      swalWarning("Fecha/Hora de llegada inválida");
+      return false;
+
     }
     if (toDate(data.fecha_salida) > toDate(data.fecha_llegada)) {
-       return { ok: false, message: "La salida no puede ser posterior a la llegada" };
+      swalWarning("La salida no puede ser posterior a la llegada");
+      return false;
     }
-    return { ok: true };
+    return true;
   }
 
   async function generarGuiaRemision() {
-    let validate = validationModo();
-    if (!validate?.ok) {
-      return { ok: false, message: validate?.message };
-    }
     const observacion = (data.observacion || "").trim().slice(0, 350);
     const ruta = (data.ruta || "").trim();
 
@@ -170,7 +176,7 @@ export const useReservationGuideProcess = () => {
           transporte_id: data.transporte_id,
         }
         : {
-          transporte: (data.transporte || "").trim(), // empresa/razón social si aplica
+          // transporte: (data.transporte || "").trim(), // empresa/razón social si aplica
           nombre_transporte: (data.nombre_transporte || "").trim(),
           tipo_identificacion: data.tipo_identificacion,
           identificacion: String(data.identificacion || "").trim(),
@@ -201,5 +207,6 @@ export const useReservationGuideProcess = () => {
     assignDetail,
     clearChangeModeLocal,
     clearChangeModeExterno,
+    validationModo
   };
 };

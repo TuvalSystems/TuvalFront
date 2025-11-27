@@ -3,14 +3,9 @@ import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice } from "@/functions";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
-
 import {
-  swalSimple,
-  swalInfo,
   swalSuccess,
-  swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 /** modales */

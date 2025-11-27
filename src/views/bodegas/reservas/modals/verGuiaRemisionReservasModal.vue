@@ -1,7 +1,6 @@
 <script setup>
 import { storeToRefs } from "pinia";
 import { onMounted, reactive, watch, toRef, computed } from 'vue';
-import { useFetchTransportAndVehicle } from '@/composables/bodegas/reservas/useFetchTransportAndVehicle';
 import { useReservationGuideProcess } from '@/composables/bodegas/reservas/useReservationGuideProcess';
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
@@ -29,14 +28,14 @@ const {
   assignDetail,
   clearChangeModeLocal,
   clearChangeModeExterno,
+  validationModo
 } = useReservationGuideProcess();
 const {
   printGuidePdf,
   dispatchGuideReservedPending
 } = useReservationTransferByWarehouse();
 const vehicles = useVehiclesStore();
-const { list: vehiculos, loading: loadingVehiculos } = storeToRefs(vehicles);
-const { transportes, loadingTransportes, fetchPersonalTransport } = useFetchTransportAndVehicle();
+const { vehicles: vehiculos, transporters: transportes, loading: loadingVehiculos } = storeToRefs(vehicles);
 const emit = defineEmits(["refresh", "closeModal"]);
 const flatPickrState = reactive({
   horaInicio: addMinutes(new Date(), 20), // Date
@@ -67,14 +66,15 @@ const activeItemsCount = computed(() => Array.isArray(detalleRef.value) ? detall
 
 
 async function storeGuideRemision() {
-  const resp = await generarGuiaRemision();
-  if (!resp.ok) {
-    swalError(resp.message);
+  const isValid = validationModo();
+  if (!isValid) {
     return;
   }
-
-
-
+  const resp = await generarGuiaRemision();
+  if (!resp?.ok) {
+    swalError(resp?.message);
+    return;
+  }
   const id = resp?.data?.id;
   const resD = await dispatchGuideReservedPending(id);
   if (!resD?.ok) {
@@ -82,7 +82,6 @@ async function storeGuideRemision() {
     return
   }
   swalSuccess(resD?.message ?? 'Guía procesada correctamente.');
-  // emit("refresh");
   const respdf = await printGuidePdf({ 'id': id });
   if (!respdf.ok) {
     swalError(respdf?.message || 'No se pudo generar el PDF.');
@@ -103,6 +102,20 @@ watch(() => [props.header, props.detalle], ([h, d]) => {
 },
   { immediate: true });
 
+
+
+function changeVehicleTransport() {
+  const selectedVehicle = vehiculos.value.find((item) => item.id === data.vehiculo_id);
+  if (selectedVehicle?.transportista_id) {
+    const existeTransportista = transportes.value.some(t => t.id === selectedVehicle.transportista_id);
+    if (existeTransportista) {
+      data.transporte_id = selectedVehicle.transportista_id;
+    }
+    else {
+      data.transporte_id = '';
+    }
+  }
+};
 
 onMounted(() => {
 });
@@ -190,7 +203,7 @@ onMounted(() => {
             <div class="col-12">
               <div class="label-sm mb-1">Vehículo</div>
               <select class="form-select form-select-sm" :required="modo === 'local'"
-                @change="fetchPersonalTransport($event.target.value)" :disabled="loadingVehiculos"
+                @change="changeVehicleTransport($event.target.value)" :disabled="loadingVehiculos"
                 v-model="data.vehiculo_id">
                 <option value="">Selecciona vehículo…</option>
                 <option v-for="v in vehiculos" :key="v.id" :value="v.id">{{ v.nombre }} - {{ v.placa }}</option>
@@ -198,8 +211,8 @@ onMounted(() => {
             </div>
             <div class="col-12">
               <div class="label-sm mb-1">Transportista</div>
-              <select class="form-select form-select-sm" :required="modo === 'local'"
-                :disabled="loadingVehiculos || loadingTransportes" v-model="data.transporte_id">
+              <select class="form-select form-select-sm" :required="modo === 'local'" :disabled="loadingVehiculos"
+                v-model="data.transporte_id">
                 <option value="">Selecciona transportista…</option>
                 <option v-for="t in transportes" :key="t.id" :value="t.id">{{ t.nombre }} - {{ t.identificacion }}
                 </option>
@@ -209,11 +222,6 @@ onMounted(() => {
           </div>
           <!-- externo -->
           <div class="row g-3 mb-3" v-show="modo === 'externo'">
-            <div class="col-12">
-              <div class="label-sm mb-1">Transporte</div>
-              <input type="text" class="form-control form-control-sm" placeholder="Transporte" v-model="data.transporte"
-                :required="modo === 'externo'">
-            </div>
             <div class="col-12">
               <div class="label-sm mb-1">Nombre Transportista</div>
               <input type="text" class="form-control form-control-sm" placeholder="Nombre"
@@ -228,7 +236,7 @@ onMounted(() => {
               </select>
             </div>
             <div class="col-12 col-md-6">
-              <div class="label-sm mb-1">Identificación</div>
+              <div class="label-sm mb-1">#Identificación</div>
               <input type="text" class="form-control form-control-sm" placeholder="Identificación"
                 v-model="data.identificacion">
             </div>
@@ -275,7 +283,7 @@ onMounted(() => {
             <div class="d-flex justify-content-between mini "><span>Ítems</span><strong>{{ activeItemsCount }}</strong>
             </div>
             <div class="d-flex justify-content-between mini "><span>Peso total</span><strong>{{ pesoTotalItemsFmt
-                }}kg</strong></div>
+            }}kg</strong></div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-3">
             <button class="btn btn-dark btn-sm" data-bs-dismiss="modal">
