@@ -291,12 +291,11 @@ onBeforeUnmount(() => {
       </template>
       <div class="row g-3 align-items-center px-2 pt-2 pb-1 mb-4">
         <!-- sucursal -->
-        <div class="col-12 col-sm-6 col-lg-2">
+        <div class="col-12 col-sm-6 col-lg-3">
           <small class="text-muted d-block mb-1">Sucursal</small>
-          <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
-            <option value="">Todos</option>
+          <select  class="form-control form-control-sm"  v-model="table.ptovta">
             <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
-              {{ p.PTO_VTA_BOD_BODEGA }}
+              {{ p.PTO_VTA_DESCRIPCION }}
             </option>
           </select>
         </div>
@@ -336,7 +335,7 @@ onBeforeUnmount(() => {
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
         :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
         @onPageChange="fetchReservationRequests" @onSearch="table.searchTerm" @onClick="handleClick"
-        :is-row-disabled="isRowDisabled">
+        @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">
         <!-- Slot específico para la columna 'estado' -->
         <template #cell-estado="{ value, row }">
           <span :class="estadoClass(value)" style="font-size:12px">{{
