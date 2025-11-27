@@ -294,6 +294,7 @@ onBeforeUnmount(() => {
         <div class="col-12 col-sm-6 col-lg-3">
           <small class="text-muted d-block mb-1">Sucursal</small>
           <select  class="form-control form-control-sm"  v-model="table.ptovta">
+            <option value="">Todas</option>
             <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
               {{ p.PTO_VTA_DESCRIPCION }}
             </option>
