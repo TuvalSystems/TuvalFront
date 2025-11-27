@@ -22,7 +22,7 @@ export function useApiAction() {
         try {
             const response = await requestFn();
             const data = response?.data ?? {};
-            const ok = data.success === true;
+            const ok = data.success === true || data.exists === true;
             const info = data.data ?? {};
             const msg = data.message || (ok ? successMessage || "Operación realizada correctamente" : "No se pudo completar la operación.");
 

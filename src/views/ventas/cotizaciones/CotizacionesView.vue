@@ -524,12 +524,12 @@ async function verModalReserva(row) {
   }
 
   /** proceso de verificacion de stock antes de que se abra el modal de reserva */
-  // const respStock = await verifyStockBeforeRequestReserve(row.id);
+  const respStock = await verifyStockBeforeRequestReserve(row.id);
 
-  // if (!respStock?.ok) {
-  //   swalWarning(respStock.message || 'No se puede procesar la solicitud de reserva por falta de stock.');
-  //   return;
-  // }
+  if (!respStock?.ok) {
+    swalWarning(respStock.message || 'No se puede procesar la solicitud de reserva por falta de stock.');
+    return;
+  }
 
   const payload = {
     cotizacion_id: row.id,
@@ -542,8 +542,7 @@ async function verModalReserva(row) {
     has_l_items: row.has_l_items ?? null,
     has_service_items: row.has_service_items ?? null
   };
-  // datosModalReserva.value = null;
-  // await nextTick();
+
   datosModalReserva.value = payload;
   await nextTick();
   verReservaModalObj?.show();
