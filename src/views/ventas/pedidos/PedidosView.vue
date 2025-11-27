@@ -203,7 +203,9 @@
                         </button> -->
                         <button
                           v-if="((row.estado === 'espera' && (row.factura_posterior_despacho === 1 && row.factura_a_demanda === 1 && row.despachado === 1))
-                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 1))
+                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 1)
+                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 0 && row.origen === 'reserva'))
+
                             && !((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))"
                           type="button" class="btn btn-danger btn-sm mx-1" title="Enviar a facturar"
                           @click="confirmfacturar(row)">
