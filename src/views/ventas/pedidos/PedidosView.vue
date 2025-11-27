@@ -269,11 +269,11 @@
                           <li>
                             <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                               @click="levantarcliente(row)">
-                              <i class="fa-regular fa-clone fa-fw text-success"></i> 
+                              <i class="fa-regular fa-clone fa-fw text-success"></i>
                               <span>Copiar</span>
                             </button>
                           </li>
-
+                          <!-- actualizar datos de orden de compra y nota clientes antes de facturar un pedido -->
                           <li v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)">
                             <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                               @click="operModalActualizarDatosPedido(row)">
@@ -281,12 +281,13 @@
                             </button>
                           </li>
 
-                          <li v-if="canRescheduleInvoice(row)">
+                          <!-- reprogramar pedido que nace de reserva -->
+                          <!-- <li v-if="canRescheduleInvoice(row)">
                             <button class="dropdown-item d-flex align-items-center gap-2 py-2"
                               @click="openModalUpdateDateInvoice(row)">
                               <i class="fa-regular fa-calendar-days text-success me-2"></i> Reprogramar
                             </button>
-                          </li>
+                          </li> -->
 
                           <li v-if="row.estado === 'espera'">
                             <div class="dropdown-divider my-2"></div>
