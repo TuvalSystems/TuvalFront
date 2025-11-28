@@ -156,7 +156,7 @@ onMounted(async () => {
 
     <!-- END Page Content -->
     <div class="content">
-        <BaseBlock title="Recibir Reservas" content-full rounded transparent>
+        <BaseBlock title="Recibir Reservas" content-full rounded>
             <template #options>
                 <div class="block-options-item">
                     <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading"
