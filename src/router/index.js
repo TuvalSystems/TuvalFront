@@ -95,7 +95,7 @@ const TransferenciaReservaIndex = () =>
 import Login from "../views/Login.vue";
 import AuthLayout from "../components/AuthLayout.vue";
 import store from "../store";
-
+import Maintenance from '@/views/errors/Page503.vue';
 const routes = [
   {
     path: "/",
@@ -487,6 +487,17 @@ const routes = [
         component: Login,
       },
     ],
+  },
+
+  /** mantenimiento  */
+    {
+    path: '/mantenimiento',
+    name: 'Maintenance',
+    component: Maintenance,
+    meta: {
+      layout: 'simple', // Si usas layouts, usa uno limpio (sin sidebar/header)
+      public: true      // Marca para que no requiera auth (si usas middleware de auth)
+    }
   },
 ];
 
