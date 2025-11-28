@@ -522,6 +522,10 @@ async function verModalReserva(row) {
     swalWarning('No puede realizar la reserva: la cotización no tiene cantidades seleccionadas.')
     return;
   }
+  if (row.has_duplicate_items === true) {
+    swalWarning('No puede realizar la reserva: la cotización tiene items duplicados.')
+    return;
+  }
 
   /** proceso de verificacion de stock antes de que se abra el modal de reserva */
   const respStock = await verifyStockBeforeRequestReserve(row.id);
