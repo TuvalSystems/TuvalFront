@@ -15,7 +15,7 @@ const props = defineProps({
   ptovtaId: { type: String, required: true },  //ptovta destino
 });
 const { ptovtaId } = toRefs(props);
-
+import { toNum } from "@/functions";
 const {
   //cabecera
   dataHeaderTransfer,
@@ -116,7 +116,7 @@ async function closeGuiaRemisionModal() {
 /*** procesos de guias de remisiones pendientes */
 
 async function printPdfGuiaRemision(id) {
-  const res = await printGuidePdf({'id': id});
+  const res = await printGuidePdf({ 'id': id });
   if (res?.ok) {
     await nextTick()
     swalSuccess('Documento generado correctamente.');
@@ -261,7 +261,8 @@ onMounted(async () => {
                     </thead>
                     <DatasetItem tag="tbody" class="fs-sm">
                       <template #default="{ row }">
-                        <tr>
+                        <tr
+                          :class="(row.check_disable_button_picking === true && row.pending_transfer > 0 ? 'table-warning' : '')">
                           <td class="fs-sm text-center">{{ row.art_code }}</td>
                           <td class="fs-sm text-center">{{ row.art_cod_tres_letras }}</td>
                           <td class="fs-sm text-center">{{ row.art_descripcion }}</td>
@@ -272,7 +273,7 @@ onMounted(async () => {
                           <td class="fs-sm text-end">{{ row.cantidad }}</td>
                           <td class="fs-sm text-end">{{ row.reservado }}</td>
                           <td class="fs-sm text-end">{{ row.trasladado }}</td>
-                          <td class="fs-sm text-end">{{ row.pending_transfer }}</td>
+                          <td class="fs-sm text-end">{{ (toNum(row.pending_transfer)).toFixed(2) }}</td>
                           <td class="fs-sm text-end">{{ row.art_peso }}</td>
                           <td style="width: 20px;" class="fs-sm text-center">
                             <input v-if="(row.pending_transfer > 0)" type="checkbox" class="form-check-input"
@@ -284,8 +285,9 @@ onMounted(async () => {
                               @change="applyTransfer(row)" />
                           </td>
                           <td class="fs-sm" style="width:30px">
-                            <button v-if="row.picking" class="btn btn-sm btn-danger" title="Cancelar Picking"
-                              @click="cancelarPicking(row)" :disabled="loadingCancelPicking">
+                            <button v-if="row.picking && row.check_disable_button_picking === false"
+                              class="btn btn-sm btn-danger" title="Cancelar Picking" @click="cancelarPicking(row)"
+                              :disabled="loadingCancelPicking">
                               <i class="fa fa-xmark"></i>
                             </button>
                           </td>
