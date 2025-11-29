@@ -15,7 +15,7 @@ const flatPickrState = reactive({
         locale: Spanish,
     },
 });
-const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm } = useQuotationReserveApproval();
+const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm , ptoVtaReservation} = useQuotationReserveApproval();
 const infoResponse = computed(() => props.reserva);
 
 const infoReserva = infoResponse.value.reserva;
@@ -54,6 +54,18 @@ function hydrateApprovalForm(row) {
 watch(
     infoReserva,
     (row) => hydrateApprovalForm(row),
+    { immediate: true }
+);
+
+watch(
+    () => infoReserva,
+    (newVal) => {
+        if (newVal) {
+            ptoVtaReservation.value = newVal.cotizacion.PTO_VTA_ID;
+            // Aquí puedes manejar los cambios en ptoVtaReservation si es necesario
+            console.log('Punto de Venta para Reserva actualizado:', ptoVtaReservation);
+        }
+    },
     { immediate: true }
 );
 

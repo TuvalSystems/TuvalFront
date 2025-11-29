@@ -24,6 +24,7 @@ import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
 import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
 import { formatPriceJm, formatJm } from "@/functions";
+import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits'
 const { columns, listPerpage, table, refresh, fetchReservationRequests, onSort, estadoClass,
   totalClass } =
   useQuotationReserveRequests();
@@ -35,7 +36,7 @@ const {
   fetchQuotationWithDetialAndStock,
   fetchQuotationWithDetialAndStockActive
 } = useQuotationReserveApproval();
-
+const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits();
 
 
 
@@ -260,9 +261,14 @@ onMounted(async () => {
     // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
   })
 
+   if (puntosVentaReservaLimitsStore.puntosVentaReservaLimits.length == 0) {
+    puntosVentaReservaLimitsStore.fetchPuntosVentaReservaLimits()
+  }
+
 });
 onBeforeUnmount(() => {
   stopGridSocket?.()
+ 
 });
 </script>
 <template>

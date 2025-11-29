@@ -1,12 +1,15 @@
 import axiosClient from "@/axios";
-import { swalError } from "@/functions/swal-alert.js";
-import { watch, reactive, ref } from "vue";
+import { swalWarning } from "@/functions/swal-alert.js";
+import { watch, reactive, ref, unref, computed } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
+import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
+import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
 
 export function useQuotationReserveApproval() {
   const { run } = useApiAction();
   const data = ref(null);
-
+  const ptoVtaReservation = ref(null);
+  const ptoStore = usePuntosVentaReservaLimits();
   const dataQuotationDetailStock = ref(null);
   const loadingQ = ref(false);
   const loadingQ1 = ref(false);
@@ -29,6 +32,8 @@ export function useQuotationReserveApproval() {
     fe_autorizacion_reserva: null,
     obs_autorizacion_reserva: null,
   });
+
+
 
   const resetForm = () => {
     dataSendApproval.id = null;
@@ -70,21 +75,58 @@ export function useQuotationReserveApproval() {
 
   /** denegar solicitud */
   async function denyReservation() {
-    return await run(()=> axiosClient.post(apiDenyReservation, { data: dataSendApproval }), {
+    return await run(() => axiosClient.post(apiDenyReservation, { data: dataSendApproval }), {
       loadingRef: loadingDeny,
       successMessage: "Proceso realizado exitosamente.",
-      onSuccess: () => { resetForm();}
+      onSuccess: () => { resetForm(); }
     });
   }
 
   /** aprobar solicitud */
   async function approveReservation() {
-    return await run(()=> axiosClient.post(apiApproveReservation, { data: dataSendApproval }), {
+    return await run(() => axiosClient.post(apiApproveReservation, { data: dataSendApproval }), {
       loadingRef: loadingApproval,
       successMessage: "Proceso realizado exitosamente.",
-      onSuccess: () => { resetForm();}
+      onSuccess: () => { resetForm(); }
     });
   }
+
+
+
+  // validacion para limite de fecha para aprobar reservas segun punto de venta
+  const limitsForPto = computed(() => {
+    if (!ptoVtaReservation.value) return [];
+    return ptoStore.byPunto(ptoVtaReservation.value);
+  });
+
+
+  function validateDateApproval() {
+    const pvLimit = limitsForPto.value[0]?.pto_vta_max_dias_autorizacion_reserva ?? 0;
+
+    const numDay = Math.max(0, daysUntil(dataSendApproval.fe_autorizacion_reserva));
+    const d = pvLimit === 1 ? "dia" : "dias";
+    const limitStr = `${pvLimit} ${d}`;
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + pvLimit);
+    const maxStr = maxDate.toLocaleDateString("es-EC");
+    const invalid = numDay > pvLimit;
+    return {
+      invalid,
+      message: `La fecha de aprobación de reserva excede el límite de ${limitStr}. Elija hasta ${maxStr}.`,
+    };
+  }
+
+
+  watch(() => dataSendApproval.fe_autorizacion_reserva, (fecha) => {
+    if (!fecha) { return; }
+    const { invalid, message } = validateDateApproval();
+    if (invalid) {
+      swalWarning(message);
+      dataSendApproval.fe_autorizacion_reserva = null;
+      return;
+    }
+  },
+    { immediate: false });
 
   return {
     fetchQuotationWithDetial,
@@ -96,6 +138,7 @@ export function useQuotationReserveApproval() {
     loadingApproval,
     approveReservation,
     fetchQuotationWithDetialAndStockActive,
-    resetForm
+    resetForm,
+    ptoVtaReservation
   };
 }
