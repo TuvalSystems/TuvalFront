@@ -26,7 +26,7 @@ const flatPickrState = reactive({
   },
 
 });
-const emit = defineEmits(["llenarPedidos", "closeModal"]);
+const emit = defineEmits(["closeModal"]);
 const props = defineProps({
   'pedido': Object
 });
@@ -50,7 +50,6 @@ async function updateForm() {
   }
 
   emit('closeModal');
-  emit('llenarPedidos');
   await swalSuccess(resp.message || 'Fecha de factura de reserva actualizada correctamente');
 
 }
