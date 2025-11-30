@@ -25,6 +25,7 @@ const VentasCotizacionProspecto = () =>
 const VentasCotizaciones = () =>
   import("@/views/ventas/cotizaciones/CotizacionesView.vue");
 const VentasPedidos = () => import("@/views/ventas/pedidos/PedidosView.vue");
+const ventaPedidosReservas = () => import("@/views/ventas/pedidos/PedidosReservasIndex.vue");
 const VentasReservas = () =>
   import("@/views/ventas/reservas/ReservasIndex.vue");
 const VentasConsultas = () => import("@/views/ventas/ConsultasView.vue");
@@ -91,6 +92,8 @@ const PasswordChange = () => import("@/views/auth/PasswordChange.vue");
 /** bodegas reservas */
 const TransferenciaReservaIndex = () =>
   import("@/views/bodegas/reservas/TransferenciaReservaIndex.vue");
+
+
 
 import Login from "../views/Login.vue";
 import AuthLayout from "../components/AuthLayout.vue";
@@ -194,6 +197,14 @@ const routes = [
         component: VentasPedidos,
         meta: {
           title: "Ventas - Pedidos",
+        },
+      },
+      {
+        path: "pedidos-reservas",
+        name: "ventas-pedidos-reservas",
+        component: ventaPedidosReservas,
+        meta: {
+          title: "Ventas - Pedidos- Reservas",
         },
       },
 
