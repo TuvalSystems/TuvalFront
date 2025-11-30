@@ -54,6 +54,21 @@ export function useQuotationReserveRequestSale(datoReserva) {
     };
   }
 
+
+  watch(
+    [() => reserva.tipo_reserva_id, () => reserva.fe_solicitud_reserva],
+    ([typeR, fecha]) => {
+      if (!typeR || !fecha) {
+        isInvalid.value = false;
+        return;
+      }
+      const { invalid, message } = validateSolicitudReserveDate();
+      isInvalid.value = invalid;
+      if (invalid) swalWarning(message);
+    },
+    { immediate: false } // pon true si quieres validar también al cargar si ya hay valores
+  );
+
   function validateTypeReserveHasItemLOrService() {
     const dataCot = unref(datoReserva) ?? {};
     const isType1 = Number(reserva.tipo_reserva_id) === 1;
@@ -87,19 +102,35 @@ export function useQuotationReserveRequestSale(datoReserva) {
     { immediate: true }
   );
 
+  function validateHasDuplicateItems() {
+    const dataCot = unref(datoReserva) ?? {};
+    const isType1 = Number(reserva.tipo_reserva_id) === 1;
+    const hasDuplicateItems = !!dataCot.has_duplicate_items;
+    const invalid = isType1 && hasDuplicateItems;
+    return {
+      invalid,
+      message:
+        "No puede generar una solicitud de Reserva si la cotización tiene items duplicados",
+    }
+  }
+
   watch(
-    [() => reserva.tipo_reserva_id, () => reserva.fe_solicitud_reserva],
-    ([typeR, fecha]) => {
-      if (!typeR || !fecha) {
-        isInvalid.value = false;
-        return;
-      }
-      const { invalid, message } = validateSolicitudReserveDate();
+    [
+      () => Number(reserva.tipo_reserva_id)
+    ],
+    () => {
+      const { invalid, message } = validateHasDuplicateItems();
       isInvalid.value = invalid;
-      if (invalid) swalWarning(message);
+
+      if (invalid) {
+        reserva.tipo_reserva_id = null;
+        isInvalid.value = true;
+        swalWarning(message);
+      }
     },
-    { immediate: false } // pon true si quieres validar también al cargar si ya hay valores
+    { immediate: true }
   );
+
 
   async function solicitarReserva() {
     if (isInvalid.value) {
