@@ -13,7 +13,6 @@ const props = defineProps({
         required: true
     },
 });
-const { loadingFacturaDemanda, procesarReservaFacturaDemanda } = useReservationProcessor();
 const emit = defineEmits(['closeModalUsoFacturaDemanda']);
 const flatPickrState = reactive({
     fecha: {
@@ -26,6 +25,7 @@ const infoResponse = computed(() => props.reserva);
 const infoReserva = infoResponse.value.reserva;
 const segmento = infoResponse.value.segmento;
 const router = useRouter();
+const { loadingFacturaDemanda, procesarReservaFacturaDemanda, ptoVtaReservation } = useReservationProcessor(infoReserva);
 
 // Formateadores (USD y cantidades)
 const nf2 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -60,6 +60,18 @@ async function procesar() {
     }
 
 };
+
+watch(
+    () => infoReserva,
+    (newVal) => {
+        if (newVal) {
+            ptoVtaReservation.value = newVal.cotizacion.PTO_VTA_ID;
+            console.log(ptoVtaReservation.value);
+            
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <template>

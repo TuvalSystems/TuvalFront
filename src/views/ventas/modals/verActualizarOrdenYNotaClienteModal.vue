@@ -11,6 +11,7 @@ import {
 import { useOrderUpdate } from '@/composables/venta/pedidos/useOrderUpdate'
 
 const max_length_nota = ref(300);
+const max_length_orden = ref(20);
 const {  //state
     data,
     loadingUpdate,
@@ -25,8 +26,8 @@ const props = defineProps({
 });
 
 async function updateForm() {
-  const ok = await updateOrder();  
-  if (!ok) return;    
+    const ok = await updateOrder();
+    if (!ok) return;
     emit('closeModal');
     emit('llenarPedidos');
     swalSuccess('Pedido actualizado correctamente');
@@ -53,10 +54,14 @@ onMounted(() => { });
         </template>
         <template #content>
             <div class="block-content fs-sm pb-0">
-                <div class="mb-3">
                     <label for="orden_de_compra" class="form-label">Orden de Compra</label>
-                    <input type="text" class="form-control form-control-sm" id="orden_de_compra"
-                        v-model="data.orden_de_compra">
+               <div class="input-group input-group">
+                    <input type="text" class="form-control" id="orden_de_compra" v-model="data.orden_de_compra"
+                        :maxlength="max_length_orden">
+
+                    <span v-if="data.orden_de_compra" class="input-group-text text-muted">
+                        {{ max_length_orden - data.orden_de_compra.length }}
+                    </span>
                 </div>
                 <div class="mb-3">
                     <label for="cliente" class="form-label">Nota Cliente</label>

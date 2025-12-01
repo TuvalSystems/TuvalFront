@@ -1,9 +1,12 @@
 import axiosClient from "@/axios";
 import { toNum } from "@/functions";
-import { ref, nextTick } from "vue";
+import { ref, nextTick, unref, computed, onMounted, watch } from "vue";
 import { swalSuccess, swalError, swalWarning, swalInfo } from "@/functions/swal-alert.js";
 import { useApiAction } from "@/composables/core/useApiAction";
 
+
+import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
+import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
 export function useReservationProcessor(infoReserva) {
   const { run } = useApiAction();
 
@@ -16,6 +19,8 @@ export function useReservationProcessor(infoReserva) {
   const selectAllRelease = ref(false);
   const selectAllInvoice = ref(false);
 
+  const ptoStore = usePuntosVentaReservaLimits();
+  const ptoVtaReservation = ref(null);
   function getPendingBase(stock) {
     const autorizado = toNum(getAuthorized(stock));
     const facturado = toNum(stock.cantidad_facturada ?? 0); // histórico
@@ -72,7 +77,7 @@ export function useReservationProcessor(infoReserva) {
     }
   }
 
- 
+
   async function applySelectAllRelease() {
     if (selectAllRelease.value) {
       selectAllInvoice.value = false; // Desmarcar el check de cabecera opuesto
@@ -135,6 +140,65 @@ export function useReservationProcessor(infoReserva) {
     })
   }
 
+
+  /** proceso de validacion de fecha de autorizacion */
+  // validacion para limite de fecha para aprobar reservas segun punto de venta
+  const limitsForPto = computed(() => {
+    if (!ptoVtaReservation.value) return [];
+    return ptoStore.byPunto(ptoVtaReservation.value);
+  });
+
+  // limites por punto de venta ( array de objetos )
+
+  console.log(infoReserva.fe_autorizacion_reserva);
+  function validateDateApproval() {
+    if (!limitsForPto.value || limitsForPto.value.length === 0) {
+      return { invalid: false, message: '' };
+    }
+
+    const config = limitsForPto.value[0];
+
+    const pvLimit = config?.pto_vta_max_dias_autorizacion_reserva ?? 0;
+    // Si la fecha es null, no validamos
+    if (!infoReserva.fe_autorizacion_reserva) return { invalid: false, message: '' };
+
+    const numDay = Math.max(0, daysUntil(infoReserva.fe_autorizacion_reserva));
+    const invalid = numDay > pvLimit;
+
+    // Formateo de mensajes
+    const d = pvLimit === 1 ? "día" : "días";
+    const limitStr = `${pvLimit} ${d}`;
+
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + pvLimit);
+    const maxStr = maxDate.toLocaleDateString("es-EC");
+
+    return {
+      invalid,
+      message: `La fecha de aprobación excede el límite de ${limitStr}. Elija hasta ${maxStr}.`,
+    };
+  }
+
+
+  watch(() => infoReserva?.fe_autorizacion_reserva, (fecha) => {
+    if (!fecha) { return; }
+    const { invalid, message } = validateDateApproval();
+    if (invalid) {
+      swalWarning(message);
+      if (infoReserva && infoReserva.cotizacion) {
+        infoReserva.fe_autorizacion_reserva = null;
+      }
+      return;
+    }
+  },
+    { immediate: false });
+
+  onMounted(async () => {
+    if (!unref(ptoStore).puntosVentaReservaLimits) {
+      await ptoStore.fetchPuntosVentaReservaLimits();
+    }
+  });
+
   return {
     getPendingBase,
     updateReleaseReserved,
@@ -152,5 +216,6 @@ export function useReservationProcessor(infoReserva) {
     applySelectAllRelease,
     applySelectAllInvoice,
     procesarReservaFacturaDemanda,
+    ptoVtaReservation
   };
 }
