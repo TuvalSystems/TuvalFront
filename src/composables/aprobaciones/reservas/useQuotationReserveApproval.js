@@ -101,18 +101,40 @@ export function useQuotationReserveApproval() {
 
 
   function validateDateApproval() {
-    const pvLimit = limitsForPto.value[0]?.pto_vta_max_dias_autorizacion_reserva ?? 0;
+
+    // 1. VALIDACIÓN DE SEGURIDAD:
+    // Si no hay datos en el array, asumimos que están cargando y no mostramos error aún.
+    if (!limitsForPto.value || limitsForPto.value.length === 0) {
+      return { invalid: false, message: '' };
+    }
+
+    // OJO: Aquí estás tomando siempre el índice [0] (California).
+    // Asegúrate de que eso sea lo que quieres. Si el usuario está en QUITO, 
+    // deberías filtrar por ID.
+    const config = limitsForPto.value[0];
+
+    const pvLimit = config?.pto_vta_max_dias_autorizacion_reserva ?? 0;
+
+    // Si la fecha es null, no validamos
+    if (!dataSendApproval.fe_autorizacion_reserva) return { invalid: false, message: '' };
 
     const numDay = Math.max(0, daysUntil(dataSendApproval.fe_autorizacion_reserva));
-    const d = pvLimit === 1 ? "dia" : "dias";
+
+    // Si pvLimit llega a ser 0 (porque la config vino mal), bloqueamos.
+    // Pero con tus datos actuales de 150, esto funcionará bien.
+    const invalid = numDay > pvLimit;
+
+    // Formateo de mensajes
+    const d = pvLimit === 1 ? "día" : "días";
     const limitStr = `${pvLimit} ${d}`;
+
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + pvLimit);
     const maxStr = maxDate.toLocaleDateString("es-EC");
-    const invalid = numDay > pvLimit;
+
     return {
       invalid,
-      message: `La fecha de aprobación de reserva excede el límite de ${limitStr}. Elija hasta ${maxStr}.`,
+      message: `La fecha de aprobación excede el límite de ${limitStr}. Elija hasta ${maxStr}.`,
     };
   }
 
