@@ -1,3 +1,5 @@
+<script setup>
+</script>
 <template>
   <RouterView />
 </template>
@@ -23,6 +25,7 @@
 // Vue Select + Custom overrides
 @import "vue-select/src/scss/vue-select";
 @import "@/assets/scss/vendor/vue-select";
+// @import "@/assets/scss/vendor/vue-select";
 
 // Vue Form Slider + Custom overrides
 @import "@vueform/slider/themes/default.css";

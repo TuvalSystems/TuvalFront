@@ -74,7 +74,7 @@ export function useGenericPagination({ cacheKey, endpoint }) {
     table.searchTerm = "";
     table.perPage = 10; // Reset to default perPage value
     table.sortField = "";
-    table.sortOrder = "asc";
+    table.sortOrder = "desc";
     table.currentPage = 1; // Reset to first page
     table.cliente = null; // Reset cliente filter
     table.ptovta = null;

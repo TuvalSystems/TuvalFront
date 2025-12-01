@@ -60,7 +60,7 @@
               Estado
               <i class="fa fa-angle-down ms-1"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-md dropdown-menu-end fs-sm"
+            <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
               aria-labelledby="dropdown-recent-orders-filters">
               <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
                 @click="llenarpedidos('todos');" href="javascript:void(0)">
@@ -193,52 +193,121 @@
                         </span>
                       </td>
                       <td class="fs-sm text-end nowrap">
-                        <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-primary btn-sm mx-1"
-                          @click="imprimirpedido(row)">
-                          <i class="fa fa-print"></i>
-                        </button>
-                        <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir"
+                        <!-- <button type="button" class="btn btn-warning btn-sm mx-1" title="Volver a pedir"
                           @click="recuperarpedido(row)">
                           <i class="far fa-copy"></i>
-                        </button>
-                        <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido"
+                        </button> -->
+                        <!-- <button type="button" class="btn btn-info btn-sm mx-1" title="Copiar pedido"
                           @click="levantarcliente(row)">
                           <i class="fa fa-copy"></i>
-                        </button>
+                        </button> -->
                         <button
                           v-if="((row.estado === 'espera' && (row.factura_posterior_despacho === 1 && row.factura_a_demanda === 1 && row.despachado === 1))
-                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 1))
+                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 1)
+                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 0 && row.origen === 'reserva'))
+
                             && !((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))"
                           type="button" class="btn btn-danger btn-sm mx-1" title="Enviar a facturar"
                           @click="confirmfacturar(row)">
                           <i class="fa fa-file-invoice-dollar"></i>
                         </button>
-                        <!-- <button v-if="row.imprimir === 'yes'" type="button" class="btn btn-warning btn-sm mx-1"
-                          @click="imprimirpedidoimagenes(row)">
-                          <i class="fa fa-print"></i>
-                        </button> -->
                         <!-- dropdown -->
+
+
                         <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          <i class="fa fa-angle-down ms-1"></i>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropOptions">
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoimagenes(row)"><i class="fa-solid fa-file-pdf"></i> Generar
-                              Pedido</button></li>
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoride(row)"><i class="fa-solid fa-file-pdf"></i> Generar
-                              RIDE</button></li>
-                              <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoridesinimagen(row)"><i class="fa-solid fa-file-pdf"></i> Generar
-                              RIDE(sin imagen)</button></li>
-                              
-                          <li><button class="dropdown-item" v-if="row.imprimir === 'yes'"
-                              @click="imprimirpedidoxml(row)"><i class="fa-solid fa-print"></i> Generar XML</button>
+                          <i class="fa fa-fw fa-ellipsis-v"></i> </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                          aria-labelledby="dropOptions">
+
+                          <template v-if="row.imprimir === 'yes'">
+                            <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Exportar</li>
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimirpedido(row)">
+                                <i class="fa fa-print text-white me-2"></i> Pedido
+                              </button>
+                            </li>
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimirpedidoimagenes(row)">
+                                <i class="fa-solid fa-file-pdf text-danger me-2"></i> Pedido
+                              </button>
+                            </li>
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimirpedidoride(row)">
+                                <i class="fa-solid fa-file-invoice text-primary me-2"></i> RIDE
+                              </button>
+                            </li>
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimirpedidoridesinimagen(row)">
+                                <i class="fa-regular fa-file-pdf text-muted me-2"></i> RIDE (Sin img)
+                              </button>
+                            </li>
+                            <li>
+                              <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="imprimirpedidoxml(row)">
+                                <i class="fa-solid fa-code text-warning me-2"></i> XML
+                              </button>
+                            </li>
+
+                            <li class="dropdown-divider"></li>
+                          </template>
+
+                          <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Gestión</li>
+
+                          <!-- volver a pedir -->
+                          <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="recuperarpedido(row)">
+                              <i class="fa-solid fa-cart-plus fa-fw text-warning"></i> <span>Volver a pedir</span>
+                            </button>
                           </li>
+
+                          <!-- copiar pedido -->
+                          <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="levantarcliente(row)">
+                              <i class="fa-regular fa-clone fa-fw text-success"></i>
+                              <span>Copiar</span>
+                            </button>
+                          </li>
+                          <!-- actualizar datos de orden de compra y nota clientes antes de facturar un pedido -->
+                          <li v-if="!['facturado', 'rechazado', 'anulada', 'eliminado'].includes(row.estado)">
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="operModalActualizarDatosPedido(row)">
+                              <i class="fa-solid fa-user-pen text-info me-2"></i> Actualizar Datos
+                            </button>
+                          </li>
+
+                          <!-- reprogramar pedido que nace de reserva -->
+                          <!-- <li v-if="canRescheduleInvoice(row)">
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                              @click="openModalUpdateDateInvoice(row)">
+                              <i class="fa-regular fa-calendar-days text-success me-2"></i> Reprogramar
+                            </button>
+                          </li> -->
+
+                          <li v-if="row.estado === 'espera' && ((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))">
+                            <div class="dropdown-divider my-2"></div>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                              :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
+                              <i class="fa-solid fa-ban fa-fw"></i> <span class="fw-semibold">Rechazar</span>
+                            </button>
+                          </li>
+
                         </ul>
 
+
+
                         <!-- dropdown -->
+                        <!-- <button v-if="row.estado === 'espera'" type="button" class="btn btn-danger btn-sm mx-1"
+                          :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
+                         
+                        </button> -->
                       </td>
                     </tr>
                   </template>
@@ -299,14 +368,40 @@
       </div>
     </div>
   </div>
+
+  <!-- modal de actualizacion de datos de orden y nota cliente -->
+  <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
+    ref="verActualizarDatos">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verActualizarOrdYNotaModalComponent v-if="datosModalAcPedido && datosModalAcPedido.id"
+          :pedido="datosModalAcPedido" @llenarPedidos="llenarpedidos('todos')"
+          @closeModal="closeModalActualizarDatosPedido">
+        </verActualizarOrdYNotaModalComponent>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal de actualizacion de fecha de facturacion de reserva -->
+
+  <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
+    ref="verModalUpdateDateInvoice">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verActualizarFechaFacturaReserva v-if="datosModalPedidoAcDate && datosModalPedidoAcDate.id"
+          :pedido="datosModalPedidoAcDate" @llenarPedidos="llenarpedidos('todos')"
+          @closeModal="closeModalUpdateDateInvoice">
+        </verActualizarFechaFacturaReserva>
+      </div>
+    </div>
+  </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useStore } from 'vuex'
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
-import { swalError, swalWarning, toast } from "@/functions/swal-alert.js";
 import VerPedidoModal from "../modals/VerPedidoModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import FiltrarCliente from "../modals/FiltrarCliente.vue";
@@ -315,7 +410,18 @@ import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { formatPrice, format } from "@/functions";
-
+import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
+import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
+import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
+import {
+  swalSimple,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+  swalError,
+  toast,
+} from "@/functions/swal-alert.js";
+const { loadingChange, changeStatusOrderBeenWaiting } = useUpdateOrderStatus();
 const flatPickrState = reactive({
   fecha_desde: {
     maxDate: Date.now(),
@@ -443,7 +549,7 @@ function refrescarFecha() {
 
 }
 async function funcionverpedido(pedido) {
-  store.dispatch('despachoenproceso', pedido.id).then((res) => {  
+  store.dispatch('despachoenproceso', pedido.id).then((res) => {
     pedido.despacho_en_proceso = res.data.despacho_en_proceso;
     pedido.transferencia_en_proceso = res.data.transferencia_en_proceso;
     pedido.item_l_recibido = res.data.item_l_recibido;
@@ -731,6 +837,49 @@ function motivoEspera(pedido) {
   swalWarning(msg);
 }
 
+
+let verActualizarDatos = ref(null);
+let verActualizarDatosObj = null;
+let datosModalAcPedido = ref({});
+
+async function operModalActualizarDatosPedido(pedido) {
+  if (pedido.estado === 'facturado') {
+    swalWarning('No se puede actualizar la orden de compra y nota cliente de un pedido facturado')
+    return;
+  }
+  datosModalAcPedido.value = pedido;
+  await nextTick();
+  verActualizarDatosObj.show();
+}
+
+function closeModalActualizarDatosPedido() {
+  datosModalAcPedido.value = {};
+  verActualizarDatosObj.hide();
+}
+
+let verModalUpdateDateInvoice = ref(null);
+let verModalUpdateDateInvoiceObj = null;
+let datosModalPedidoAcDate = ref({});
+
+const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
+function canRescheduleInvoice(row) {
+  return row.origen === 'reserva' && !BLOCKED_STATES.includes(row.estado);
+}
+async function openModalUpdateDateInvoice(pedido) {
+  if (pedido.origen !== 'reserva') {
+    swalWarning('Solo se puede reprogramar la facturación de pedidos de origen reserva')
+    return;
+  }
+  datosModalPedidoAcDate.value = pedido;
+  await nextTick();
+  verModalUpdateDateInvoiceObj.show();
+}
+
+function closeModalUpdateDateInvoice() {
+  datosModalPedidoAcDate.value = {};
+  verModalUpdateDateInvoiceObj.hide();
+}
+
 onMounted(() => {
 
   verpedidoModalObj = new Modal(verpedidoModal.value);
@@ -738,6 +887,8 @@ onMounted(() => {
   filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
   facturarexistenteModalObj = new Modal(facturarexistenteModal.value);
   facturardespachadoModalObj = new Modal(facturardespachadoModal.value);
+  verActualizarDatosObj = new Modal(verActualizarDatos.value);
+  verModalUpdateDateInvoiceObj = new Modal(verModalUpdateDateInvoice.value);
   // Remove labels from
   document.querySelectorAll("#datasetLength label").forEach((el) => {
     el.remove();
@@ -751,4 +902,36 @@ onMounted(() => {
   selectLength.style.width = "80px";
 });
 
+
+async function rechazarPedidoEstadoEspera(id) {
+  const res = await changeStatusOrderBeenWaiting(id);
+  if (!res?.ok) {
+    return swalError("No se pudo rechazar el pedido");
+  }
+  swalSuccess("Cotización rechazada");
+  llenarpedidos('todos');
+}
+
+
 </script>
+
+<style scoped>
+/* Alineación de iconos */
+.dropdown-menu .dropdown-item i {
+  width: 20px;
+  /* Un poco más ancho para que todos los iconos se alineen igual */
+  text-align: center;
+}
+
+/* BLINDAJE VISUAL */
+.dropdown-menu {
+  /* Asegura que el fondo sea sólido y no transparente */
+  background-color: #262b34 !important;
+
+  /* Asegura que el menú flote por encima de las otras filas de la tabla */
+  z-index: 9999 !important;
+
+  /* Borde sutil */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>

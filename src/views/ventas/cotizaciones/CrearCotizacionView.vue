@@ -981,7 +981,8 @@ async function actualizarStockPorLote() {
       const consulta = {
         articulo: item,
         bodega: store.state.puntodeventaselect,
-        'tipo': 'LOTE'
+        'tipo': 'LOTE',
+        'cotizacion_id': store.state.cotizacion_id
       }
       const res = await store.dispatch('getArticuloStockPorBodega', consulta);
 

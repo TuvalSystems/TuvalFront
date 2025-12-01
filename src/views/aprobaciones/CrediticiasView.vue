@@ -229,7 +229,7 @@ const store = useStore();
 const pedidos = computed(() => store.state.pedidos_crediticios);
 
 store.dispatch('llenarpedidosporaprobarcrediticios');
-store.dispatch('llenarpedidosporaprobarcrediticiosInterval');
+// store.dispatch('llenarpedidosporaprobarcrediticiosInterval');
 
 function confirmAprobar(pedido, estadodecuenta = false) {
   toast

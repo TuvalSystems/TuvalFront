@@ -46,7 +46,7 @@
                     vercotizacion.porcentage_descuento !=
                     vercotizacion.porcentage_descuentooriginal
                   " @click="verdiferenciaporcentaje(vercotizacion)" href="javascript:void(0);">{{
-                      vercotizacion.porcentage_descuento }}</a>
+                    vercotizacion.porcentage_descuento }}</a>
                   <span v-else>{{ vercotizacion.porcentage_descuento }}</span>
                 </td>
 
@@ -66,7 +66,7 @@
                 <th class="fs-sm">Usuario</th>
                 <td class="fs-sm" colspan="5">{{ vercotizacion.USERID }}</td>
               </tr>
-              <tr v-if="segmentocliente &&  segmentocliente.data &&
+              <tr v-if="segmentocliente && segmentocliente.data &&
                 Object.keys(segmentocliente.data).length">
                 <th>Segmento</th>
                 <td>{{ segmentocliente.data.segmento }}</td>
@@ -115,7 +115,7 @@
                       articulo.ART_DESCRIPCION_ORIGINAL &&
                       articulo.ART_TIPO_COMPRA !== 'L'
                     " @click="verdiferenciadescripcion(articulo)" href="javascript:void(0);">{{
-                        articulo.ART_DESCRIPCION }}</a>
+                      articulo.ART_DESCRIPCION }}</a>
                     <span v-else>{{ articulo.ART_DESCRIPCION }}</span>
                   </td>
                   <td class="fs-sm">
@@ -133,7 +133,7 @@
                       articulo.ART_VALOR != articulo.ART_VALOR_ORIGINAL &&
                       articulo.ART_TIPO_COMPRA != 'L'
                     " @click="verdiferenciavalor(articulo)" href="javascript:void(0);">{{
-                        format4(parseFloat(articulo.ART_VALOR)) }}</a>
+                      format4(parseFloat(articulo.ART_VALOR)) }}</a>
                     <span v-else>{{
                       format4(parseFloat(articulo.ART_VALOR))
                     }}</span>
@@ -247,11 +247,12 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-3 text-end">
+      <div class="col-sm-3 text-end space-y-2">
         <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">
           Cerrar
         </button>
       </div>
+      
     </div>
   </div>
 </template>
@@ -280,7 +281,6 @@ const { vercotizacion, indexCotizacion, tipo } = defineProps({
   indexCotizacion: Number,
   tipo: String,
 });
-
 const store = useStore();
 const detallecotizacion = computed(() => store.state.detallecotizacion);
 const segmentocliente = computed(() => store.state.segmentocliente);
@@ -335,6 +335,8 @@ function verdiferenciavalor(articulo) {
 function guardarOrdenDeCompra(cotizacion) {
   store.dispatch("guardarOrdenDeCompra", cotizacion);
 }
+
+
 
 onMounted(() => { });
 onBeforeUnmount(() => { });

@@ -74,8 +74,8 @@
               </tr>
             </tbody>
           </table>
-          <p v-if="vercotizacion.motivo_aprobacion_comercial && vercotizacion.motivo_aprobacion_comercial.startsWith('Cotización desde')"
-            class="alert alert-danger">{{ vercotizacion.motivo_aprobacion_comercial }}</p>
+          <p v-if="vercotizacion.msg_registro_copia && vercotizacion.msg_registro_copia.startsWith('Cotización desde')"
+            class="alert alert-danger">{{ vercotizacion.msg_registro_copia }}</p>
           <table v-if="estadodecuenta.data && !estadodecuenta.loading && estadodecuenta.data.cupoDisponible"
             class="table table-sm table-bordered">
             <thead>
@@ -130,7 +130,9 @@
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
                   <td class="fs-sm">
-                    {{ articulo.ART_CODIGO }}
+                    <span v-if="articulo.priceChange !== 0.00 || articulo.discountChange !== 0.00"
+                      @click="verPorcentajesDeCambio(articulo)" class="text-danger">{{ articulo.ART_CODIGO }}</span>
+                    <span v-else>{{ articulo.ART_CODIGO }}</span>
 
                   </td>
                   <td class="fs-sm">
@@ -291,6 +293,28 @@ function verdiferenciadescuento(articulo) {
   let msg = 'simon';
   swalInfo('Cambio de descuento de artículo', 'de <b>' + articulo.descuento_original + '%</b> a <b>$' + articulo.descuento + '%</b>');
 }
+
+function verPorcentajesDeCambio(articulo) {
+  const discount = Number(articulo.discountChange ?? 0);
+  const price = Number(articulo.priceChange ?? 0);
+
+  // Si quieres 2 decimales siempre
+  const discountLabel = `${discount.toFixed(3)}%`;
+  const priceLabel = `${price.toFixed(3)}%`;
+
+  const html = `
+    <p>
+      <strong>Descuento:</strong> ${discountLabel}<br>
+      <strong>Precio:</strong> ${priceLabel}
+    </p>
+  `;
+
+  swalInfo(
+    'Porcentajes de cambio del artículo',
+    html
+  );
+}
+
 onMounted(() => {
 });
 onBeforeUnmount(() => {

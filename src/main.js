@@ -4,6 +4,7 @@ import store from './store'
 import router from './router'
 import App from './App.vue'
 import Maska from 'maska'
+import { echo } from './resources/echo'
 import {
   Dataset,
   DatasetItem,
@@ -13,6 +14,9 @@ import {
   DatasetShow,
 } from "vue-dataset";
 
+// Bootstrap framework
+import * as bootstrap from "bootstrap";
+window.bootstrap = bootstrap;
 
 // Template components
 import BaseBlock from "@/components/BaseBlock.vue";
@@ -22,10 +26,13 @@ import BasePageHeading from "@/components/BasePageHeading.vue";
 // Template directives
 import clickRipple from "@/directives/clickRipple";
 
-// Bootstrap framework
-import * as bootstrap from "bootstrap";
-window.bootstrap = bootstrap;
+// directiva para manejar decimales
+import zeroDecimals from "@/directives/zeroDecimals";
+import { bsTooltip } from '@/directives/bsTooltip'
 
+
+// import echo-subscriptions para notificaciones
+import initNotifications from '@/plugins/initNotifications'
 // Craft new application
 const app = createApp(App);
 
@@ -43,12 +50,15 @@ app.component("BasePageHeading", BasePageHeading);
 
 // Register global directives
 app.directive("click-ripple", clickRipple);
-
+app.directive("zero-decimals", zeroDecimals);
+app.directive('bstooltip', bsTooltip)
 // Use Pinia and Vue Router
 app.use(createPinia());
 app.use(store);
 app.use(Maska);
 app.use(router);
+app.use(initNotifications)
 
 // ..and finally mount it!
+app.provide('echo', echo)  
 app.mount("#app");

@@ -89,6 +89,6 @@ const pedidos = computed(() => store.state.pedidos);
 store.commit('encerapedidosycotizaciones');
 
 store.dispatch('llenarpedidosporaprobar');
-store.dispatch('llenarpedidosporaprobarInterval');
+// store.dispatch('llenarpedidosporaprobarInterval');
 
 </script>

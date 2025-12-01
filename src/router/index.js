@@ -25,6 +25,9 @@ const VentasCotizacionProspecto = () =>
 const VentasCotizaciones = () =>
   import("@/views/ventas/cotizaciones/CotizacionesView.vue");
 const VentasPedidos = () => import("@/views/ventas/pedidos/PedidosView.vue");
+const ventaPedidosReservas = () => import("@/views/ventas/pedidos/PedidosReservasIndex.vue");
+const VentasReservas = () =>
+  import("@/views/ventas/reservas/ReservasIndex.vue");
 const VentasConsultas = () => import("@/views/ventas/ConsultasView.vue");
 const VentasCrearCliente = () =>
   import("@/views/ventas/cotizaciones/CrearClienteView.vue");
@@ -55,6 +58,8 @@ const AprobacionesCrediticias = () =>
 const AprobacionesDevoluciones = () =>
   import("@/views/aprobaciones/DevolucionesView.vue");
 
+const AprobacionesReservas = () =>
+  import("@/views/aprobaciones/ReservasView.vue");
 // Devoluciones
 
 const DevolucionesPedidos = () =>
@@ -81,12 +86,19 @@ const BodegasConsultas = () => import("@/views/bodegas/BodegasConsultas.vue");
 const DevolucionesBodegas = () =>
   import("@/views/bodegas/DevolucionesBodegas.vue");
 
-const Notificaciones = () => import("@/views/Notificaciones.vue");
+const Notificaciones = () => import("@/views/notificaciones/index.vue");
 const PasswordChange = () => import("@/views/auth/PasswordChange.vue");
+
+/** bodegas reservas */
+const TransferenciaReservaIndex = () =>
+  import("@/views/bodegas/reservas/TransferenciaReservaIndex.vue");
+
+
+
 import Login from "../views/Login.vue";
 import AuthLayout from "../components/AuthLayout.vue";
 import store from "../store";
-
+import Maintenance from '@/views/errors/Page503.vue';
 const routes = [
   {
     path: "/",
@@ -187,14 +199,23 @@ const routes = [
           title: "Ventas - Pedidos",
         },
       },
-    //  {
-    //     path: "reservas",
-    //     name: "ventas-reservas",
-    //     component: "",
-    //     meta: {
-    //       title: "Ventas - Reservas",
-    //     },
-    //   },
+      {
+        path: "pedidos-reservas",
+        name: "ventas-pedidos-reservas",
+        component: ventaPedidosReservas,
+        meta: {
+          title: "Ventas - Pedidos- Reservas",
+        },
+      },
+
+      {
+        path: "reservas",
+        name: "ventas-reservas",
+        component: VentasReservas,
+        meta: {
+          title: "Ventas - Reservas",
+        },
+      },
       {
         path: "consultas",
         name: "ventas-consultas",
@@ -297,14 +318,14 @@ const routes = [
           title: "Aprobaciones - Devoluciones",
         },
       },
-      // {
-      //   path: "reservas",
-      //   name: "aprobaciones-reservas",
-      //   component: "",
-      //   meta: {
-      //     title: "Aprobaciones - Reservas",
-      //   },
-      // },
+      {
+        path: "reservas",
+        name: "aprobaciones-reservas",
+        component: AprobacionesReservas,
+        meta: {
+          title: "Aprobaciones - Reservas",
+        },
+      },
     ],
   },
   {
@@ -438,6 +459,26 @@ const routes = [
           title: "Bodegas - Devoluciones",
         },
       },
+      {
+        path: "reservas/transferencias",
+        name: "bodegas-reservas-transferencias",
+        component: TransferenciaReservaIndex,
+        meta: {
+          title: "Bodegas - Reservas - Transferencias",
+        },
+      },
+      {
+        path: "/bodegas/transferencias/reserva/:ptovtaId",
+        name: "bodegas-reservas-transferencias-detalle",
+        component: () => import("@/views/bodegas/reservas/TransferenciaReservaDetalleBodega.vue"),
+        props: true,
+      },
+      {
+        path: "/bodegas/transferencias/reservas/recibir",
+        name: "bodegas-reservas-transferencias-recibir",
+        component: () => import("@/views/bodegas/reservas/RecibirReservasIndex.vue"),
+        props: true,
+      },
     ],
   },
 
@@ -457,6 +498,17 @@ const routes = [
         component: Login,
       },
     ],
+  },
+
+  /** mantenimiento  */
+    {
+    path: '/mantenimiento',
+    name: 'Maintenance',
+    component: Maintenance,
+    meta: {
+      layout: 'simple', // Si usas layouts, usa uno limpio (sin sidebar/header)
+      public: true      // Marca para que no requiera auth (si usas middleware de auth)
+    }
   },
 ];
 

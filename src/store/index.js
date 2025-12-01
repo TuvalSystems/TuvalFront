@@ -423,8 +423,8 @@ const store = createStore({
   actions: {
     login({ commit }, user) {
       return axiosClient.post("/login", user).then(({ data }) => {
-        commit("setUser", data);
-        return data;
+        commit("setUser", data.data);
+        return data.data;
       });
     },
     logout({ commit }) {
@@ -433,11 +433,11 @@ const store = createStore({
         return data;
       });
     },
-    notificaciones() {
-      return axiosClient.get("/notificaciones").then((res) => {
-        return res.data;
-      });
-    },
+    // notificaciones() {
+      // return axiosClient.get("/notificaciones").then((res) => {
+      //   return res.data;
+      // });
+    // },
     sincronizaDataGP({ commit }, path) {
       return axiosClient.get(path).then((response) => {
         return response;
@@ -878,8 +878,8 @@ const store = createStore({
       return axiosClient
         .post("/verpedidosycotizacionesporaprobar", consulta)
         .then((res) => {
-          commit("getPedidos", res.data.pedidos);
-          commit("getVercotizaciones", res.data.cotizaciones);
+          commit("getPedidos", res.data.data.pedidos);
+          commit("getVercotizaciones", res.data.data.cotizaciones);
           return res;
         });
     },
@@ -888,7 +888,7 @@ const store = createStore({
        commit(
         "setIntervalPedidosporAprobarCrediticios",
          setInterval(() => {
-          dispatch("llenarpedidosporaprobarcrediticios");
+          dispatch("llenarpedidosporaprobarcrediticios")
         }, 10000)
        );
     },
