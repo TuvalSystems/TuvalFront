@@ -21,8 +21,8 @@ export const echo = new Echo({
   wsPort: port,
   wssPort: port,
   forceTLS: isTLS,
-  encrypted: false,
-  enabledTransports: ["ws"],
+  encrypted: isTLS,
+  enabledTransports: ['ws', 'wss'],
   disableStats: true,
   wsPath: '/ws-soketi',
   // ⚡ Authorizer personalizado con Bearer desde tu store
