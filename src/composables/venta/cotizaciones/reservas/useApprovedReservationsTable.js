@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-export function useApprovedReservations() {
+export function useApprovedReservationsTable() {
   const { run } = useApiAction();
   const ctrl = ref(null); // AbortController actual
   let debounceId;

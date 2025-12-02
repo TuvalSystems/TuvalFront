@@ -3,7 +3,7 @@ import BaseTable from "@/components/BaseTable.vue";
 import { onMounted, reactive, ref, onBeforeUnmount, nextTick } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { useApprovedReservations } from "@/composables/venta/cotizaciones/reservas/useApprovedReservations";
+import { useApprovedReservationsTable } from "@/composables/venta/cotizaciones/reservas/useApprovedReservationsTable";
 import { usePtoVtaStore } from "../../../stores/bodegas/utils/useListPuntoVentaStore";
 import { formatPriceJm } from "@/functions";
 import { Modal } from "bootstrap";
@@ -11,6 +11,7 @@ import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas
 import {
     swalWarning,
     swalError,
+    swalSuccess
 } from "@/functions/swal-alert.js";
 //modales
 import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
@@ -32,11 +33,12 @@ const flatPickrState = reactive({
     },
 });
 
-const { columns, listPerpage, listStatus, table, fetchList, onSort, refresh, estadoClass, totalClass } = useApprovedReservations();
+const { columns, listPerpage, listStatus, table, fetchList, onSort, refresh, estadoClass, totalClass } = useApprovedReservationsTable();
 const ptoVta = usePtoVtaStore();
 const {
     fetchQuotationWithDetial,
-    fetchQuotationWithDetialAndStockActive
+    fetchQuotationWithDetialAndStockActive,
+    cancelReservation
 } = useQuotationReserveApproval();
 
 
@@ -155,6 +157,17 @@ async function closeModalUsoFacturaDemanda() {
     refresh();
 }
 
+
+
+async function cancelarReserva(id) {
+    const resp = await cancelReservation(id);
+    if (!resp?.ok) {
+        await swalError(resp?.message);
+        return;
+    }
+    await swalSuccess(resp?.message || "Reserva cancelada exitosamente.");
+    refresh();
+}
 
 
 
@@ -324,13 +337,32 @@ onBeforeUnmount(() => {
     </code>
                 </template>
                 <template #actions="{ row }">
-                    <button type="button" class="btn btn-primary btn-sm mx-1" title="Usar Reserva"
+                    <!-- <button type="button" class="btn btn-primary btn-sm mx-1" title="Usar Reserva"
                         @click="crearReserva(row)" :disabled="isTestLocked(row)">
                         <span v-if="isTestLocked(row)" class="spinner-border spinner-border-sm" role="status"
                             aria-hidden="true"></span>
                         <i v-else class="far fa-circle-right"></i>
-                        <!-- <span>{{ isTestLocked(row) ? 'Cargando…' : 'Ver' }}</span> -->
-                    </button>
+                    </button> -->
+                    <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-fw fa-ellipsis-v"></i> </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                        aria-labelledby="dropOptions">
+                        <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Gestión</li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="crearReserva(row)">
+                                <i class="fa-solid fa-calendar-plus fa-fw text-warning"></i><span>Reserva</span>
+                            </button>
+                        </li>
+                        <li v-if="row.estado === 'pendiente'">
+                            <div class="dropdown-divider my-2"></div>
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                                    @click="cancelarReserva(row.id)">
+                                    <i class="fa-solid fa-ban fa-fw"></i> <span class="fw-semibold">Cancelar</span>
+                                </button>
+                        </li>
+                    </ul>
                 </template>
                 <!-- Slot de vacío -->
                 <template #empty>
