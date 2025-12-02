@@ -20,10 +20,11 @@ export const echo = new Echo({
   wsHost: import.meta.env.VITE_PUSHER_HOST || window.location.hostname,
   wsPort: port,
   wssPort: port,
-  forceTLS: isTLS,
-  enabledTransports: ["ws", "wss"],
+  forceTLS: false,
+  encrypted: false,
+  enabledTransports: ["ws"],
   disableStats: true,
-
+  
   // ⚡ Authorizer personalizado con Bearer desde tu store
   // (evita depender de cookies/CSRF y funciona aunque el token cambie)
 
@@ -55,5 +56,5 @@ if (echo?.connector?.pusher && !window.__ECHO_CONN_BOUND__) {
 window.addEventListener("beforeunload", () => {
   try {
     echo.disconnect();
-  } catch {}
+  } catch { }
 });
