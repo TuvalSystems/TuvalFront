@@ -63,7 +63,7 @@ watch(
         if (newVal) {
             ptoVtaReservation.value = newVal.cotizacion.PTO_VTA_ID;
             // Aquí puedes manejar los cambios en ptoVtaReservation si es necesario
-            console.log('Punto de Venta para Reserva actualizado:', ptoVtaReservation);
+            // console.log('Punto de Venta para Reserva actualizado:', ptoVtaReservation);
         }
     },
     { immediate: true }
