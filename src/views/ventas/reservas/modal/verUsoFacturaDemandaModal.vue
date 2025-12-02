@@ -197,7 +197,7 @@ watch(
                                 <th class="fs-sm">CTL</th>
                                 <th class="fs-sm">UDM</th>
                                 <th class="fs-sm text-end">Cantidad</th>
-                                <th class="fs-sm text-end">Peso</th>
+                                <!-- <th class="fs-sm text-end">Peso</th> -->
                                 <th class="fs-sm text-end">Descuento</th>
                                 <th class="fs-sm text-end">Precio</th>
                                 <th class="fs-sm text-end">Total</th>
@@ -220,8 +220,8 @@ watch(
                                 </td>
                                 <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ toInt(item.ART_CANTIDAD) }}
                                 </td>
-                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_PESO }}</td>
-                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_DESCUENTO }}</td>
+                                <!-- <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.ART_PESO }}</td> -->
+                                <td class="fs-sm text-end nums fw-semibold text-nowrap">{{ item.descuento }}%</td>
                                 <td class="fs-sm text-end nums fw-semibold text-nowrap">${{
                                     formatJm(parseFloat(item.ART_VALOR)) }}
                                 </td>
@@ -234,27 +234,27 @@ watch(
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="9" class="fw-semibold text-end">Subtotal</td>
+                                <td colspan="8" class="fw-semibold text-end">Subtotal</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.subtotal)) }}
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="9" class="fw-semibold text-end">Iva</td>
+                                <td colspan="8" class="fw-semibold text-end">Iva</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.iva))
                                     }}
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="9" class="fw-semibold text-end">Descuento</td>
+                                <td colspan="8" class="fw-semibold text-end">Descuento</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.descuento))
                                     }}
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="9" class="fw-semibold text-end">Total</td>
+                                <td colspan="8" class="fw-semibold text-end">Total</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.total)) }}
                                 </td>
