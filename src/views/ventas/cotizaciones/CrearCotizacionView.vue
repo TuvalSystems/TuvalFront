@@ -597,7 +597,7 @@
   <!-- Large Block Modal -->
   <div class="modal" id="modal-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-cliente" aria-hidden="true"
     ref="articuloModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 90vw;">
       <div class="modal-content">
 
         <ArticulosModal @verificarProveedores="verificarProveedores()" @verificarStock="verificarStock()"
