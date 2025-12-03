@@ -46,7 +46,7 @@ onMounted(() => {
                 class="block-content block-content-full flex-grow-1 d-flex justify-content-between align-items-center">
                 <dl class="mb-0">
                   <dt class="fs-3 fw-bold"
-                    :class="{ 'text-danger': bodega.totalItems === 0 && bodega.totalGuidePending > 0 }">
+                    :class="{ 'text-warning': bodega.totalItems === 0 && bodega.totalGuidePending > 0 }">
                     {{ bodega.totalItems > 0 ? bodega.totalItems : bodega.totalGuidePending }}
                   </dt>
 
@@ -68,7 +68,7 @@ onMounted(() => {
                 <router-link
                   :to="{ name: 'bodegas-reservas-transferencias-detalle', params: { ptovtaId: bodega.ptovtaId } }">
                   <div class="item item-rounded-lg"
-                    :class="bodega.totalItems === 0 && bodega.totalGuidePending > 0 ? 'bg-danger-light text-danger' : 'bg-body-light text-primary'">
+                    :class="bodega.totalItems === 0 && bodega.totalGuidePending > 0 ? 'bg-body-light text-warning' : 'bg-body-light text-primary'">
                     <i class="fs-3"
                       :class="bodega.totalItems === 0 && bodega.totalGuidePending > 0 ? 'fa fa-file-invoice' : 'fa fa-warehouse'"></i>
                   </div>
@@ -89,7 +89,7 @@ onMounted(() => {
                     </span>
 
                     <span v-else-if="bodega.totalGuidePending > 0"
-                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-danger mx-1"
+                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-warning mx-1"
                       title="Guías por gestionar">
                       <i class="fa fa-file-invoice"></i> {{ bodega.totalGuidePending }} Guías
                     </span>
