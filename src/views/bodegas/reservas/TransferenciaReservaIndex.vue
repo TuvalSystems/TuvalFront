@@ -45,32 +45,55 @@ onMounted(() => {
               <div
                 class="block-content block-content-full flex-grow-1 d-flex justify-content-between align-items-center">
                 <dl class="mb-0">
-                  <dt class="fs-3 fw-bold"> {{ bodega.totalItems }}</dt>
-                  <dd class="fs-sm fw-medium  text-muted mb-0">
+                  <dt class="fs-3 fw-bold"
+                    :class="{ 'text-danger': bodega.totalItems === 0 && bodega.totalGuidePending > 0 }">
+                    {{ bodega.totalItems > 0 ? bodega.totalItems : bodega.totalGuidePending }}
+                  </dt>
+
+                  <dd class="fs-sm fw-medium text-muted mb-0">
                     <router-link
                       :to="{ name: 'bodegas-reservas-transferencias-detalle', params: { ptovtaId: bodega.ptovtaId } }">
-                      {{ bodega.bodega
-                      }}</router-link><br>
+                      {{ bodega.bodega }}
+                    </router-link>
+                    <br>
+
+                    <span v-if="bodega.totalItems > 0" class="fs-xs text-muted">Items pendientes</span>
+                    <span v-else-if="bodega.totalGuidePending > 0" class="fs-xs fw-bold text-warning">
+                      <i class="fa fa-exclamation-circle"></i> Guías pendientes
+                    </span>
+                    <span v-else class="fs-xs text-success">Completado</span>
                   </dd>
                 </dl>
+
                 <router-link
                   :to="{ name: 'bodegas-reservas-transferencias-detalle', params: { ptovtaId: bodega.ptovtaId } }">
-                  <div class="item item-rounded-lg bg-body-light">
-                    <i class=" fs-3 text-primary fa fa-warehouse"></i>
+                  <div class="item item-rounded-lg"
+                    :class="bodega.totalItems === 0 && bodega.totalGuidePending > 0 ? 'bg-danger-light text-danger' : 'bg-body-light text-primary'">
+                    <i class="fs-3"
+                      :class="bodega.totalItems === 0 && bodega.totalGuidePending > 0 ? 'fa fa-file-invoice' : 'fa fa-warehouse'"></i>
                   </div>
                 </router-link>
               </div>
+
               <div class="bg-body-light rounded-bottom">
                 <router-link
                   :to="{ name: 'bodegas-reservas-transferencias-detalle', params: { ptovtaId: bodega.ptovtaId } }">
                   <a class="block-content block-content-full block-content-sm fs-sm fw-medium d-flex align-items-center justify-content-between"
                     href="javascript:void(0)">
                     <span>Ver más</span>
-                    <span
-                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-danger mx-1"
-                      title="No despachada">
+
+                    <span v-if="bodega.totalItems > 0"
+                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-warning mx-1"
+                      title="Peso pendiente">
                       <i class="fa fa-weight-hanging"></i> {{ formatPrice(bodega.pesoTon) }} Tn
                     </span>
+
+                    <span v-else-if="bodega.totalGuidePending > 0"
+                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-danger mx-1"
+                      title="Guías por gestionar">
+                      <i class="fa fa-file-invoice"></i> {{ bodega.totalGuidePending }} Guías
+                    </span>
+
                     <i class="fa fa-arrow-alt-circle-right ms-1 opacity-25 fs-base"></i>
                   </a>
                 </router-link>
