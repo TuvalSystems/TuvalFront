@@ -234,6 +234,15 @@ export function useApprovedReservationsTable() {
     () => [table.sortField, table.sortOrder],
     () => fetchList(1)
   );
+
+    watch(
+        () => [table.fecha_desde, table.fecha_hasta],
+        () => {
+            if (table.fecha_desde && table.fecha_hasta) {
+                fetchList(1)
+            }
+        }
+    );
   return {
     columns,
     listPerpage,
