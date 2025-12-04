@@ -266,7 +266,7 @@ onMounted(async () => {
           @onSearch="table.searchTerm" @onClick="handleClick">
           <template #actions="{ row }">
             <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
-              <i class="fa fa-print"></i> Imprimir
+              <i class="fa fa-print"></i>
             </button>
           </template>
           <!-- Slot de vacío -->
@@ -377,7 +377,7 @@ onMounted(async () => {
         </div>
         <div style="text-align: right;">
           <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guiaSeleccionada)">
-            <i class="fa fa-print"></i> Imprimir
+            <i class="fa fa-print"></i>
           </button>
         </div>
       </div>

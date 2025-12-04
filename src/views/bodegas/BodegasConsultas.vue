@@ -58,6 +58,24 @@
               Reposiciones Recibidas
             </button>
           </li>
+          <li class="nav-item">
+            <button @click="setActiveTab('reservas-enviadas')"
+              :class="{ 'active': activeTab === 'reservas-enviadas' }" class="nav-link"
+              id="btabs-alt-static-reservas-enviadas-tab" data-bs-toggle="tab"
+              data-bs-target="#btabs-alt-static-reservas-enviadas" role="tab"
+              aria-controls="btabs-alt-static-reservas-enviadas" aria-selected="true">
+              Reservas Enviadas
+            </button>
+          </li>
+           <li class="nav-item">
+            <button @click="setActiveTab('reservas-recibidas')"
+              :class="{ 'active': activeTab === 'reservas-recibidas' }" class="nav-link"
+              id="btabs-alt-static-reservas-recibidas-tab" data-bs-toggle="tab"
+              data-bs-target="#btabs-alt-static-reservas-recibidas" role="tab"
+              aria-controls="btabs-alt-static-reservas-recibidas" aria-selected="true">
+              Reservas Recibidas
+            </button>
+          </li>
         </ul>
 
         <div class="tab-content">
@@ -66,6 +84,8 @@
           <TransferenciasRecibidas v-if="activeTab === 'transferencias-recibidas'"></TransferenciasRecibidas>
           <ReposicionesEnviadas v-if="activeTab === 'reposiciones-enviadas'"></ReposicionesEnviadas>
           <ReposicionesRecibidas v-if="activeTab === 'reposiciones-recibidas'"></ReposicionesRecibidas>
+          <ReservasEnviadas v-if="activeTab === 'reservas-enviadas'"></ReservasEnviadas>
+          <ReservasRecibidas v-if="activeTab === 'reservas-recibidas'"></ReservasRecibidas>
         </div>
       </template>
     </BaseBlock>
@@ -79,6 +99,9 @@ import TransferenciasEnviadas from "./consultas/TransferenciasEnviadas.vue";
 import TransferenciasRecibidas from "./consultas/TransferenciasRecibidas.vue";
 import ReposicionesEnviadas from "./consultas/ReposicionesEnviadas.vue";
 import ReposicionesRecibidas from "./consultas/ReposicionesRecibidas.vue";
+import ReservasEnviadas from "@/views/bodegas/consultas/ReservasEnviadas.vue";
+import ReservasRecibidas from "@/views/bodegas/consultas/ReservasRecibidas.vue";
+
 
 const activeTab = ref("despacho");
 
