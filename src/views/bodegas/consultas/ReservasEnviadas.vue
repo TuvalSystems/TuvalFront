@@ -6,7 +6,11 @@ import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
 import BaseTable from "@/components/BaseTable.vue";
 import { useSendReservationTable } from '@/composables/bodegas/consultas/useSendReservationTable.js'
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
-
+import {
+    swalWarning,
+    swalError,
+    swalSuccess
+} from "@/functions/swal-alert.js";
 const { table,
     columns,
     listPerpage,
