@@ -116,7 +116,7 @@ const columns = [
     thClass: "d-none d-md-table-cell",
     tdClass: "d-none d-md-table-cell",
   },
-    {
+  {
     label: "generado por",
     key: "USERID",
     sortable: true,
@@ -129,45 +129,6 @@ const columns = [
   },
 ];
 
-
-//esto queda de prueba para ver si funciona las ejecuciones de funciones para los diferentes estados
-// cuando quiero manejar el badge para los pedidos tengo que hacer una funcion que retorne la clase del badge
-//ya esta configurado en la tabla, solo tengo que definir la funcion que retorna la clase
-// const pedidoClass = (pedido) => {
-//   switch ((pedido || '').toLowerCase()) {
-//     case 'PED00289953': return 'badge bg-warning text-dark';
-//     case 'PED00289937': return 'badge bg-info';
-//     case 'PED00289895': return 'badge bg-success';
-//     case 'PED00289729': return 'badge bg-danger';
-//     default: return 'badge bg-secondary';
-//   }
-// };
-
-// column base de ejemplooooooo
-// const columns = [
-//   {
-//     label: "#Guia",
-//     key: "GUI_REM_GUIA_REMISION",
-//     sortable: true,
-//     clickable: false,
-//     width: "8.460rem",
-//     thClass: ["text-center", "text-uppercase"],
-//     tdClass: (row) => ["text-center", row.estado === "pendiente" ? "text-warning fw-bold" : null],
-//   },
-//   { label: "#Pedido", key: "pedido", sortable: true, clickable: false, width: "3rem",
-//     thClass: "text-center", tdClass: "text-center" },
-//   { label: "#Factura", key: "GUI_REM_NUME_DOCU_SUSTENTO", sortable: true, clickable: false },
-//   { label: "#Orden", key: "orden", sortable: true, clickable: true, tdClass: "text-primary" },
-//   { label: "Cliente", key: "GUI_REM_RAZON_SOCIAL_DESTINATARIO", sortable: true, clickable: false,
-//     tdClass: "text-truncate" },
-//   { label: "Dirección", key: "GUI_REM_DIRECCION_DESTINATARIO", sortable: true, clickable: false,
-//     tdClass: "text-truncate" },
-//   { label: "Fecha/Hora", key: "GUI_REM_FECHA_INICIO", sortable: true, clickable: false,
-//     thClass: "text-center", tdClass: "text-center" },
-//   { label: "Transportista", key: "GUI_REM_RAZON_SOCIAL_TRANSPORTISTA", sortable: true, clickable: false },
-//   { label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false, width: "4rem",
-//     tdClass: "text-uppercase text-center" },
-// ];
 
 // Funciones de impresión
 async function imprimirGuia(guia) {
@@ -305,58 +266,42 @@ onMounted(() => {
     <BaseBlock title="Despachos Pedidos" rounded>
       <template #options>
         <div class="block-options-item">
-          <div class="block-options-item">
-            <div class="row g-2 align-items-center">
-              <div class="col-auto">
-                <label for="fecha_desde" class="col-form-label fs-sm">Cliente</label>
-              </div>
-              <div class="col-auto">
-                <button type="button" title="Refrescar tabla" @click="levantarFiltrocliente()"
-                  class="btn btn-info btn-sm mx-1">
-                  <i class="fa fa-user"></i> Cliente
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="block-options-item">
-            <div class="row g-3 align-items-center">
-              <div class="col-auto">
-                <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
-              </div>
-              <div class="col-auto">
-                <flat-pickr style="width: 120px" id="fecha_desde" class="form-control form-control-sm"
-                  v-model="table.fecha_desde" :config="flatPickrState.fecha_desde" />
-              </div>
-              <div class="col-auto">
-                <label for="fecha_desde" class="col-form-label fs-sm">hasta</label>
-              </div>
-              <div class="col-auto">
-                <flat-pickr style="width: 120px" id="fecha_hasta" class="form-control form-control-sm"
-                  v-model="table.fecha_hasta" :config="flatPickrState.fecha_hasta" />
-              </div>
-              <!-- <div class="col-auto">
-                <button class="btn btn-sm btn-primary" @click="limpiarFecha()">
-                  <i class="fa fa-eraser"></i>
-                </button>
-              </div> -->
-            </div>
-          </div>
-          <div class="block-options-item">
-            <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
-              aria-label="Refrescar">
-              <i v-if="!table.loading" class="fa fa-refresh"></i>
-              <span v-else class="spinner-border spinner-border-sm"></span>
-            </button>
-          </div>
-          <div class="block-options-item">
-            <button type="button" class="btn-block-option" @click="optionShowTable">
-              <i :class="['fa', showTable ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
-            </button>
-          </div>
+          <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
+            aria-label="Refrescar">
+            <i v-if="!table.loading" class="fa fa-refresh"></i>
+            <span v-else class="spinner-border spinner-border-sm"></span>
+          </button>
+        </div>
+        <div class="block-options-item">
+          <button type="button" class="btn-block-option" @click="optionShowTable">
+            <i :class="['fa', showTable ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
+          </button>
         </div>
       </template>
 
       <div v-show="showTable">
+        <div class="row g-3 align-items-end px-2 pt-2 pb-1 mb-4">
+          <!-- fecha -->
+          <div class="col-12 col-lg-4">
+            <small class="text-muted d-block mb-1">Fecha</small>
+            <div class="d-flex align-items-center">
+              <flat-pickr id="fecha_desde" class="form-control form-control-sm" v-model="table.fecha_desde"
+                :config="flatPickrState.fecha_desde" />
+              <span class="text-muted">—</span>
+              <flat-pickr id="fecha_hasta" class="form-control form-control-sm" v-model="table.fecha_hasta"
+                :config="flatPickrState.fecha_hasta" />
+            </div>
+          </div>
+          <!-- cliente -->
+          <div class="col-12 col-sm-6 col-lg-2">
+            <small class="text-muted d-block mb-1">Cliente</small>
+            <button type="button" title="Seleccionar cliente" @click="levantarFiltrocliente()"
+              class="btn btn-outline-info btn-sm w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-2">
+              <i class="fa fa-user"></i>
+              <span>Cliente</span>
+            </button>
+          </div>
+        </div>
         <div class="row justify-content-between align-items-center mb-3">
           <div class="col-md-1">
             <select v-model="table.perPage" class="form-select">
@@ -374,13 +319,9 @@ onMounted(() => {
           :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
           :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
           @onSearch="table.searchTerm" @onClick="handleClick">
-          <!-- Slot específico para la columna 'estado' -->
-          <!-- <template #cell-GUI_REM_RAZON_SOCIAL_DESTINATARIO="{ value, row }">
-            <span :class="pedidoClass(value)">{{ row.pedido ?? 'N/A' }}</span>
-          </template> -->
           <template #actions="{ row }">
             <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
-              <i class="fa fa-print"></i> 
+              <i class="fa fa-print"></i>
             </button>
           </template>
           <!-- Slot de vacío -->
@@ -395,7 +336,7 @@ onMounted(() => {
     </BaseBlock>
 
     <!-- seccion del informacion  de la guia -->
-    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
+    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia"  class="mb-3">
       <template #options>
         <div class="block-options-item">
           <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">

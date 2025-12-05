@@ -182,7 +182,6 @@ const optionShowDetalleGuia = () => {
       loadindDetalleGuia.value.statusNormal();
     }, 2000);
   }
-
 };
 
 
@@ -197,59 +196,45 @@ onMounted(async () => {
   <div class="block-content">
     <BaseBlock title="Reposiciones Enviadas" rounded>
       <template #options>
-        <div class="space-x-1">
-          <div class="block-options-item">
-            <div class="row g-2 align-items-center">
-              <div class="col-auto">
-                <label for="fecha_desde" class="col-form-label fs-sm">Bodega</label>
-              </div>
-              <div class="col-auto">
-                <select v-if="!ptoVta.loading" v-model="table.ptovta" class="form-select fs-sm mx-0">
-                  <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
-                    {{ p.PTO_VTA_BOD_BODEGA }}
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="block-options-item">
-            <div class="row g-3 align-items-center">
-              <div class="col-auto">
-                <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
-              </div>
-              <div class="col-auto">
-                <flat-pickr style="width: 120px" id="fecha_desde" class="form-control form-control-sm"
-                  v-model="table.fecha_desde" :config="flatPickrState.fecha_desde" />
-              </div>
-              <div class="col-auto">
-                <label for="fecha_desde" class="col-form-label fs-sm">hasta</label>
-              </div>
-              <div class="col-auto">
-                <flat-pickr style="width: 120px" id="fecha_hasta" class="form-control form-control-sm"
-                  v-model="table.fecha_hasta" :config="flatPickrState.fecha_hasta" />
-              </div>
-              <!-- <div class="col-auto">
-                <button class="btn btn-sm btn-primary" @click="limpiarFecha()">
-                  <i class="fa fa-eraser"></i>
-                </button>
-              </div> -->
-            </div>
-          </div>
-          <div class="block-options-item">
-            <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
-              aria-label="Refrescar">
-              <i v-if="!table.loading" class="fa fa-refresh"></i>
-              <span v-else class="spinner-border spinner-border-sm"></span>
-            </button>
-          </div>
-          <div class="block-options-item">
-            <button type="button" class="btn-block-option" @click="optionShowTable">
-              <i :class="['fa', showTable ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
-            </button>
-          </div>
+
+
+        <div class="block-options-item">
+          <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
+            aria-label="Refrescar">
+            <i v-if="!table.loading" class="fa fa-refresh"></i>
+            <span v-else class="spinner-border spinner-border-sm"></span>
+          </button>
+        </div>
+        <div class="block-options-item">
+          <button type="button" class="btn-block-option" @click="optionShowTable">
+            <i :class="['fa', showTable ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
+          </button>
         </div>
       </template>
       <div v-show="showTable">
+        <div class="row g-3 align-items-end px-2 pt-2 pb-1 mb-4">
+          <!-- fecha -->
+          <div class="col-12 col-lg-4">
+            <small class="text-muted d-block mb-1">Fecha</small>
+            <div class="d-flex align-items-center">
+              <flat-pickr id="fecha_desde" class="form-control form-control-sm" v-model="table.fecha_desde"
+                :config="flatPickrState.fecha_desde" />
+              <span class="text-muted">—</span>
+              <flat-pickr id="fecha_hasta" class="form-control form-control-sm" v-model="table.fecha_hasta"
+                :config="flatPickrState.fecha_hasta" />
+            </div>
+          </div>
+          <!-- bodega -->
+          <div class="col-12 col-sm-6 col-lg-2">
+            <small class="text-muted d-block mb-1">Bodega</small>
+            <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
+              <option value="">Todos</option>
+              <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
+                {{ p.PTO_VTA_BOD_BODEGA }}
+              </option>
+            </select>
+          </div>
+        </div>
         <div class="row justify-content-between align-items-center mb-3">
           <div class="col-md-1">
             <select v-model="table.perPage" class="form-select">
@@ -269,7 +254,7 @@ onMounted(async () => {
           @onSearch="table.searchTerm" @onClick="handleClick">
           <template #actions="{ row }">
             <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
-              <i class="fa fa-print"></i> 
+              <i class="fa fa-print"></i>
             </button>
           </template>
           <!-- Slot de vacío -->

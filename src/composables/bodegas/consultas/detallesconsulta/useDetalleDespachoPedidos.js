@@ -1,9 +1,11 @@
 import axiosClient from "@/axios";
 import { watch, ref } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
+import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useDetalleDespachoPedidos() {
-  //   const detalleGuia = ref(null);
+  const { run } = useApiAction();
+
   const loading = ref(false);
   const errorDetalle = ref(null);
 
@@ -30,6 +32,16 @@ export function useDetalleDespachoPedidos() {
   }
 
 
+  const loadingDetailGuideR = ref(false);
+  const apiDetailReservation = "bodegas/guia-remision-reserva/detalle";
 
-  return { loading, fetchDetailGuides };
+  async function fetchDetailGuideReservation(id){
+    return await run(() => axiosClient.post(apiDetailReservation, { id }), {
+      loadingRef: loadingDetailGuideR,
+      successMessage: "Proceso realizado exitosamente.",
+    })
+  }
+
+
+  return { loading, fetchDetailGuides , loadingDetailGuideR, fetchDetailGuideReservation };
 }
