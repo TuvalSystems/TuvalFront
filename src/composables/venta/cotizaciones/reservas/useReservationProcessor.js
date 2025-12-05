@@ -150,7 +150,6 @@ export function useReservationProcessor(infoReserva) {
 
   // limites por punto de venta ( array de objetos )
 
-  console.log(infoReserva.fe_autorizacion_reserva);
   function validateDateApproval() {
     if (!limitsForPto.value || limitsForPto.value.length === 0) {
       return { invalid: false, message: '' };
