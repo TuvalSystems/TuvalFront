@@ -13,7 +13,7 @@ export function useReceivedReservationTable() {
     const columns = reactive([
         { label: "Guia", key: "numero_guia", sortable: true,  clickable: true },
         { label: "Origen", key: "bodega_origen", sortable: true },
-        { label: "Cliente", key: "razon_social_transportista", sortable: true },
+        { label: "Cliente", key: "razon_social_destinatario", sortable: true },
         { label: "Dirección", key: "direccion_destinatario", sortable: true },
         { label: "Fecha/Hora", key: "fecha_salida", sortable: true },
         { label: "Transportista", key: "razon_social_transportista", sortable: true },
