@@ -112,10 +112,10 @@ async function crearReserva(row) {
 }
 
 async function openModalUsoReserva(row) {
+    dataModal.value = null;
     if (!row || row.id == null) return
     const id = row.id
     if (isTestLocked(id)) return
-    dataModal.value = null;
     lockTest(id);
     const resp = await fetchQuotationWithDetialAndStockActive(row.id);
     if (!resp?.ok) {
@@ -123,16 +123,16 @@ async function openModalUsoReserva(row) {
         return swalError(resp?.message);
     }
     dataModal.value = resp.data;
-    verCrearEditarReservaModalObj.show();
     await nextTick();
+    verCrearEditarReservaModalObj.show();
     unlockTest(id);
 }
 
 async function openModalUsoFacturaDemanda(row) {
+    dataDemandaModal.value = null;
     if (!row || row.id == null) return
     const id = row.id
     if (isTestLocked(id)) return
-    dataDemandaModal.value = null;
     lockTest(id);
     const resp = await fetchQuotationWithDetialAndStockActive(row.id);
     if (!resp?.ok) {
@@ -140,8 +140,8 @@ async function openModalUsoFacturaDemanda(row) {
         return swalError(resp?.message);
     }
     dataDemandaModal.value = resp.data;
-    verUsoFacturaDemandaModalObj.show();
     await nextTick();
+    verUsoFacturaDemandaModalObj.show();
     unlockTest(id);
 }
 
