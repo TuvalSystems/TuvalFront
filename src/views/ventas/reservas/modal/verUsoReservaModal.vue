@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, ref } from "vue";
 import { toNum } from "@/functions";
 import {
   swalWarning,
@@ -7,7 +7,7 @@ import {
   swalSuccess
 } from "@/functions/swal-alert.js";
 import { useReservationProcessor } from "@/composables/venta/cotizaciones/reservas/useReservationProcessor";
-import verTabTrasladosReservas  from "@/views/ventas/reservas/modal/tab/verTabTrasladosReservas.vue";
+import verTabTrasladosReservas from "@/views/ventas/reservas/modal/tab/verTabTrasladosReservas.vue";
 import { useRouter } from "vue-router";
 import { Modal } from "bootstrap";
 
@@ -27,7 +27,7 @@ const listaContizaciones = infoResponse.value.quoteList;
 const { getPendingBase, updateReleaseReserved, updateInvoiceReserved, getAuthorized, loadingReservedProcess, processReservation, selectAllRelease,
   selectAllInvoice, applySelectAllRelease, applySelectAllInvoice } = useReservationProcessor(infoReserva);
 
-
+const tabActual = ref('detalle');
 
 
 
@@ -103,16 +103,13 @@ async function procesar() {
       <!-- prueba de nav start -->
       <ul class="nav nav-tabs nav-tabs-alt" role="tablist">
         <li class="nav-item">
-          <button class="nav-link active" id="btabs-alt-static-detalle-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-detalle" role="tab" aria-controls="btabs-alt-static-detalle"
-            aria-selected="true">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'detalle' }"
+            @click="tabActual = 'detalle'">
             Detalle
           </button>
         </li>
         <li v-if="infoTraslados.length > 0" class="nav-item">
-          <button class="nav-link" id="btabs-alt-static-traslados-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-traslados" role="tab" aria-controls="btabs-alt-static-traslados"
-            aria-selected="false">
+          <button type="button" class="nav-link" :class="{ 'active' : tabActual === 'traslados'}" @click="tabActual = 'traslados'">
             Traslados
           </button>
         </li>
@@ -120,8 +117,7 @@ async function procesar() {
 
       <div class="block-content tab-content fs-sm">
         <!-- manejo de detalle -->
-        <div class="tab-pane active" id="btabs-alt-static-detalle" role="tabpanel"
-          aria-labelledby="btabs-alt-static-detalle-tab">
+        <div  class="tab-pane fade" :class="{'active show' : tabActual === 'detalle'}">
           <div class="content-fluid">
             <div class="row g-2 mb-2">
               <div class="col-12 col-lg-4">
@@ -340,10 +336,9 @@ async function procesar() {
         </div>
 
         <!-- manejo de traslados -->
-        <div class="tab-pane" id="btabs-alt-static-traslados" role="tabpanel"
-          aria-labelledby="btabs-alt-static-traslados-tab">
+        <div class="tab-pane fade" :class="{ 'active show': tabActual === 'traslados' }">
           <verTabTrasladosReservas :traslados="infoTraslados"></verTabTrasladosReservas>
-          </div>
+        </div>
       </div>
 
       <!-- prueba de nav end -->
