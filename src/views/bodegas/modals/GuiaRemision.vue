@@ -411,7 +411,7 @@ async function generarGuia(verpedido) {
 
   try {
     await store.dispatch("generarGuiaVenta", data);
-    emit("generarGuia");
+    // emit("generarGuia");
   } catch (err) {
     console.log(err, "error");
     const msg =
