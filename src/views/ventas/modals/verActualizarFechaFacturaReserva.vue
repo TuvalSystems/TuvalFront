@@ -78,7 +78,7 @@ onMounted(() => { });
   <div class="block-content block-content-full bg-body">
     <div class="d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">Cerrar</button>
-      <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal" :disabled="loadingDateInvoice"
+      <button type="button" class="btn btn-primary btn-sm"  :disabled="loadingDateInvoice"
         @click="updateForm">Actualizar</button>
     </div>
   </div>

@@ -72,7 +72,7 @@ export function useOrderUpdate() {
     fe_facturacion_reserva: null,
   });
 
-  function insertDataInvoice(ord) {    
+  function insertDataInvoice(ord) {
     dataUpddateDateInvoice.id = ord.id;
     dataUpddateDateInvoice.fe_facturacion_reserva = ord.fe_facturacion_reserva;
   }
@@ -99,6 +99,37 @@ export function useOrderUpdate() {
     });
   }
 
+
+
+  /** funcion para actualizar el estado de pendiente de salida para pedidos de factura demanda - (reserva)  */
+  const formUpdateStateEgress = reactive({
+    id: null,
+    pendiente_salida: null,
+  });
+  const loadingPending = ref(false);
+  const apiUpdatePendingEgress = '/pedidos/bloquear-despacho-pedido';
+  async function updateStatePendingEgress() {
+    return await run(() => axiosClient.post(apiUpdatePendingEgress, formUpdateStateEgress), {
+      loadingRef: loadingPending,
+      successMessage: "Proceso realizado exitosamente.",
+      onSuccess: () => {
+        resetFormPendingEgress();
+      }
+    });
+  }
+
+  function resetFormPendingEgress() {
+    formUpdateStateEgress.id = null;
+    formUpdateStateEgress.pendiente_salida = null;
+  }
+
+
+  function insertDataPendingEgress(pedido) {
+    formUpdateStateEgress.id = pedido.id;
+    formUpdateStateEgress.pendiente_salida = pedido.pendiente_salida
+  }
+
+
   return {
     //state
     data,
@@ -115,5 +146,13 @@ export function useOrderUpdate() {
     updateDateInvoiceReserved,
     insertDataInvoice,
     resetFormDateInvoice,
+
+
+    //para actualizar pendiente de salida de un pedido
+    formUpdateStateEgress,
+    loadingPending,
+    updateStatePendingEgress,
+    resetFormPendingEgress,
+    insertDataPendingEgress
   };
 }

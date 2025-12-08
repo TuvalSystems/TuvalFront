@@ -45,6 +45,13 @@ export function useOrderReservationTable() {
             sortable: true,
             thClass: " text-center d-none d-md-table-cell",
             tdClass: " text-center d-none d-md-table-cell",
+        }, {
+            label: "F. Factura",
+            key: "fe_facturacion_reserva",
+            clickable: false,
+            sortable: true,
+            thClass: "d-none d-md-table-cell",
+            tdClass: "d-none d-md-table-cell",
         },
         {
             label: 'Factura',
@@ -59,16 +66,16 @@ export function useOrderReservationTable() {
             key: 'estado',
             clickable: false,
             sortable: true,
-            thClass: " text-center",
-            tdClass: " text-center",
+            thClass: "text-center",
+            tdClass: "text-center",
         },
         {
             label: "Cliente",
             key: "razon_social_cliente",
             clickable: false,
             sortable: true,
-            thClass: "text-center",
-            tdClass: "text-center",
+            thClass: "text-start",
+            tdClass: "text-start",
         },
         {
             label: "Ruc",
@@ -92,8 +99,8 @@ export function useOrderReservationTable() {
             key: "COND_ID",
             clickable: false,
             sortable: true,
-            thClass: "text-center d-none d-md-table-cell",
-            tdClass: "text-center d-none d-md-table-cell",
+            thClass: "text-start d-none d-md-table-cell",
+            tdClass: "text-start d-none d-md-table-cell",
         },
         {
             label: "Total",
@@ -101,7 +108,7 @@ export function useOrderReservationTable() {
             clickable: false,
             sortable: false,
             render: (value) => value,
-            thClass: "text-end ",
+            thClass: "text-end",
             tdClass: "text-end",
         },
         {
@@ -111,7 +118,8 @@ export function useOrderReservationTable() {
             sortable: true,
             thClass: "d-none d-md-table-cell",
             tdClass: "d-none d-md-table-cell",
-        }
+        },
+
     ]);
 
 
@@ -132,15 +140,15 @@ export function useOrderReservationTable() {
     const estadoClass = (st) => {
         switch (st || "") {
             case "espera":
-                return "badge bg-danger text-light fw-semibold";
+                return "badge bg-danger text-light fw-semibold text-center";
             case "facturado":
-                return "badge bg-success  fw-semibold";
+                return "badge bg-success  fw-semibold text-center";
             case "order_de_compra":
-                return "badge bg-primary  fw-semibold";
+                return "badge bg-primary  fw-semibold text-center";
             case "traslado":
-                return "badge bg-light  text-danger fw-semibold";
+                return "badge bg-light  text-danger fw-semibold text-center";
             default:
-                return "badge bg-secondary";
+                return "badge bg-secondary text-center";
         }
     };
 
