@@ -101,12 +101,12 @@
                             <i class="fa fa-search"></i>
                           </a>
                         </td>
-                        <td class="fs-sm">
+                        <td class="fs-sm" style="width: 7.5rem;justify-content: center;">
                           <a v-if="(row.ART_TIPO_COMPRA === 'L') || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO }}</a>
                           <span v-else>{{ row.ART_CODIGO }}</span>
                         </td>
-                        <td class="fs-sm"  style="width: 5rem;justify-content: center;">
+                        <td class="fs-sm"  style="width: 7.5rem;justify-content: center;">
                           <a v-if="(row.ART_TIPO_COMPRA === 'L') || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO }}</a>
                           <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
