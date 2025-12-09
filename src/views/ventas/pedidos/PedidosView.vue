@@ -291,7 +291,8 @@
                             </button>
                           </li> -->
 
-                          <li v-if="row.estado === 'espera' && ((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))">
+                          <li
+                            v-if="row.estado === 'espera' && ((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))">
                             <div class="dropdown-divider my-2"></div>
                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
                               :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
@@ -594,6 +595,13 @@ function consultarExistente(verpedido) {
   verpedidoModalObj.hide();
   store.dispatch('consultarExistente', verpedido).then(() => {
     facturarexistenteModalObj.show();
+  }).catch((error) => {
+    let status = error.response.status || 500;
+    if (status === 409) {
+      swalWarning(error.response.data.error);
+      return;
+    }
+    swalError(error.response.data.error);
   })
 }
 function consultarDespachado(verpedido) {

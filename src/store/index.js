@@ -2329,7 +2329,7 @@ const store = createStore({
       state.despacho_parcial_item = !!data.items_devueltos;
     },
     setFacturarExistente: (state, data) => {
-      state.facturar_existente = data.facturar_existente;
+      state.facturar_existente = data.data;
     },
     setFacturarDespachado: (state, data) => {
       state.facturar_despachado = data.facturar_despachado;
