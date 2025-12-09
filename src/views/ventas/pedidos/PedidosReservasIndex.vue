@@ -137,24 +137,24 @@ function initialModal() {
     }
 }
 
-function motivoEspera(pedido){
+function motivoEspera(pedido) {
     let msg = 'Pedido ';
-  if (pedido.factura_siguiente_mes) {
-    msg += 'factura a siguiente mes';
-  }
-  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
-    msg += ' requiere aprobación comercial ';
-  }
-  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no' && pedido.requiere_aprobacion_crediticia === 'yes') {
-    msg += ' y ';
-  }
-  if (pedido.requiere_aprobacion_crediticia === 'yes' && pedido.aprobado_crediticio === 'no') {
-    msg += ' requiere aprobación crediticia ';
-  }
-  if (pedido.factura_a_demanda) {
-    msg += 'requiere factura a demanda posterior al despacho ';
-  }
-  swalWarning(msg);
+    if (pedido.factura_siguiente_mes) {
+        msg += 'factura a siguiente mes';
+    }
+    if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
+        msg += ' requiere aprobación comercial ';
+    }
+    if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no' && pedido.requiere_aprobacion_crediticia === 'yes') {
+        msg += ' y ';
+    }
+    if (pedido.requiere_aprobacion_crediticia === 'yes' && pedido.aprobado_crediticio === 'no') {
+        msg += ' requiere aprobación crediticia ';
+    }
+    if (pedido.factura_a_demanda) {
+        msg += 'requiere factura a demanda posterior al despacho ';
+    }
+    swalWarning(msg);
 }
 
 onMounted(async () => {
@@ -209,7 +209,10 @@ onMounted(async () => {
                 @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
 
                 <template #cell-estado="{ value, row }">
-                    <span :class="estadoClass(value)" style="font-size:12px;" @click="motivoEspera(row)">{{
+                    <span v-if="row.estado === 'espera'" :class="estadoClass(value)" style="font-size:12px;"
+                        @click="motivoEspera(row)">
+                        {{ row.estado ?? "N/A" }}</span>
+                    <span v-else :class="estadoClass(value)" style="font-size:12px;">{{
                         row.estado ?? "N/A"
                     }}</span>
                 </template>
@@ -234,7 +237,7 @@ onMounted(async () => {
                         </li>
                         <li>
                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-warning"
-                            @click="openModalUpdatePendienteDespacho(row)">
+                                @click="openModalUpdatePendienteDespacho(row)">
                                 <i class="fa-solid fa-clipboard-check me-2 "></i> Bloquear Despacho
                             </button>
                         </li>
@@ -277,11 +280,12 @@ onMounted(async () => {
     </div>
 
     <!-- modal para actualizar el pendiente de despacho de pedidos de factura demanda -->
-      <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
+    <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
         ref="verModalUpdatePendienteDespacho">
         <div class="modal-dialog modal-md modal-dialog-centered" role="document">
             <div class="modal-content">
-                <verActualizarPendienteDespachoPedidosModal v-if="datosModalPendienteDespacho && datosModalPendienteDespacho.id"
+                <verActualizarPendienteDespachoPedidosModal
+                    v-if="datosModalPendienteDespacho && datosModalPendienteDespacho.id"
                     :pedido="datosModalPendienteDespacho" @closeModal="closeModalUpdatePendienteDespacho">
                 </verActualizarPendienteDespachoPedidosModal>
             </div>
