@@ -1428,15 +1428,15 @@ function calcTotales() {
 
     //calcular descuento unitario
     const descuentoUnitario = precioParaCalculo * (descuentoPorcentaje / 100);
-    art.ART_DESCUENTO = redondear(descuentoUnitario, 4);
+    art.ART_DESCUENTO = descuentoUnitario;
 
     //calcular SUBTOTAL de la linea (precio - descuento) * cantidad
     const precioConDescuento = precioParaCalculo - descuentoUnitario;
-    const subtotalLinea = precioConDescuento * cantidad;
+    const subtotalLinea = redondear(precioConDescuento * cantidad, 2);
 
     //guardamos el valor numerico crudo para calculos
-    art.subTotalRaw = subtotalLinea;
-    art.subtotal = format(subtotalLinea);
+    // art.subTotalRaw = subtotalLinea;
+    art.subtotal = subtotalLinea;
 
     //Acumuladores Globales
     tempSubtotal += subtotalLinea;
@@ -1446,7 +1446,7 @@ function calcTotales() {
     const ivaPorcentaje = parseFloat(art.ART_IMP_VTA) || 0;
     const ivaLinea = subtotalLinea * (ivaPorcentaje / 100);
 
-    art.ART_IVA = redondear(ivaLinea, 2);
+    art.ART_IVA = ivaLinea;
     tempIva += ivaLinea;
     //calculo del peso
     tempPeso += (parseFloat(art.ART_PESO) || 0) * cantidad;
