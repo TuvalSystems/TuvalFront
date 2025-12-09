@@ -816,13 +816,30 @@ function confirmfacturar(pedido) {
     });
 }
 
-function facturarpedido(pedido) {
-  store.dispatch('facturarPedido', pedido).then(() => {
+async function facturarpedido(pedido) {
+  try {
+    await store.dispatch('facturarPedido', pedido);
+    
     llenarpedidos('todos');
-  }).catch(err => {
-    errorMsg.value = err.response.data.error
-    swalError(errorMsg.value);
-  });
+
+  } catch (err) {
+    const status = err.response?.status || 500;
+    const message = err.response?.data?.error || err.message || 'Error de conexión o servidor';
+    const warningCodes = [404, 409, 422];
+
+    // CASO 1: Advertencias de Negocio (Ya facturado, no encontrado, etc.)
+    if (warningCodes.includes(status)) {
+      swalWarning(message);
+      return; 
+    }
+    // CASO 2: Error Crítico (500, Red, etc.)
+    // Actualizamos la variable reactiva si la usas en el template
+    if (typeof errorMsg !== 'undefined') {
+        errorMsg.value = message;
+    }
+    
+    swalError(message);
+  }
 }
 
 function motivoEspera(pedido) {
