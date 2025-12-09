@@ -1080,10 +1080,24 @@ function selectformapago() {
 }
 
 function selectcondicionpago(event) {
-  store.commit('setDescuentoArticulo', currentCliente.value.CLI_DSTO_COMERCIAL);
-  store.commit('setDescuentoOriginal', currentCliente.value.CLI_DSTO_COMERCIAL);
   store.commit('llenaformadepago', condiciondepago_id);
-  formadepago_id.value = formadepago.value[0].DESC_FORMA_PAGO_CODIGO;
+  const primeraFormaPago = formadepago.value[0];
+  formadepago_id.value = primeraFormaPago?.DESC_FORMA_PAGO_CODIGO;
+
+  const rebaja = parseFloat(primeraFormaPago.DESC_FORMA_PAGO_PORCENTAJE_REBAJAR) || 0;
+  const descuentoBase = parseFloat(currentCliente.value.CLI_DSTO_COMERCIAL) || 0;
+  const nuevoDescuentoTotal = descuentoBase + rebaja;
+
+  store.commit('setDescuentoArticulo', nuevoDescuentoTotal);
+  store.commit('setDescuentoOriginal', nuevoDescuentoTotal);
+
+  cotizacion.value.data.forEach(articulo => {
+    articulo.descuento = nuevoDescuentoTotal;
+    articulo.descuento_original = nuevoDescuentoTotal;
+  });
+
+  // 6. Recalcular
+  calcTotales();
 }
 
 let articuloModal = ref(null);
@@ -1325,7 +1339,7 @@ let validaCantidad = ref(true);
 let validaPrecio = ref(true);
 let validaDescripcion = ref(true);
 
-function calcTotales() {
+function calcTotales1() {
   subtotal.value = 0;
   descuento.value = 0;
   iva.value = 0;
@@ -1364,6 +1378,97 @@ function calcTotales() {
   total.value = formatPrice(subtotal.value + iva.value);
   verificarProveedores(false);
   verificarStock();
+}
+
+function calcTotales() {
+  // 1.- Reiniciar acumuladores
+  let tempSubtotal = 0;
+  let tempDescuento = 0;
+  let tempIva = 0;
+  let tempPeso = 0;
+
+  // 2.- Reiniciar validaciones
+  validaCantidad.value = true;
+  validaPrecio.value = true;
+  validaDescripcion.value = true;
+
+  // 3 .- usar foreach para iterar
+  cotizacion.value.data.forEach(art => {
+
+    // logica de validaciones
+    if (art.ART_TIPO_COMPRA == 'L' && (art.ART_DESCRIPCION == art.ART_DESCRIPCION_ORIGINAL)) {
+      validaDescripcion.value = false;
+    }
+
+    if (art.ART_CANTIDAD <= 0) {
+      validaCantidad.value = false;
+    }
+
+    // logica de precios
+    let valorUnitario = parseFloat(art.ART_VALOR_ORIGINAL);
+
+    // Si no es tipo 'L', aplicamos modificador al precio original
+    if (art.ART_TIPO_COMPRA !== 'L') {
+      const modificador = parseFloat(art.modificador) || 0;
+      valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
+      art.ART_VALOR = redondear(valorUnitario, 4);
+    } else {
+      art.ART_VALOR = redondear(valorUnitario, 4);
+    }
+
+    if (art.ART_VALOR === 0) {
+      validaPrecio.value = false;
+    }
+
+
+    // --- Cálculos Matemáticos (Todo Numérico) ---
+    const precioParaCalculo = art.ART_VALOR;
+    const descuentoPorcentaje = parseFloat(art.descuento) || 0;
+    const cantidad = parseFloat(art.ART_CANTIDAD) || 0;
+
+    //calcular descuento unitario
+    const descuentoUnitario = precioParaCalculo * (descuentoPorcentaje / 100);
+    art.ART_DESCUENTO = redondear(descuentoUnitario, 4);
+
+    //calcular SUBTOTAL de la linea (precio - descuento) * cantidad
+    const precioConDescuento = precioParaCalculo - descuentoUnitario;
+    const subtotalLinea = precioConDescuento * cantidad;
+
+    //guardamos el valor numerico crudo para calculos
+    art.subTotalRaw = subtotalLinea;
+    art.subtotal = format(subtotalLinea);
+
+    //Acumuladores Globales
+    tempSubtotal += subtotalLinea;
+    tempDescuento += (descuentoUnitario * cantidad);
+
+    //calculo del IVA
+    const ivaPorcentaje = parseFloat(art.ART_IMP_VTA) || 0;
+    const ivaLinea = subtotalLinea * (ivaPorcentaje / 100);
+
+    art.ART_IVA = redondear(ivaLinea, 2);
+    tempIva += ivaLinea;
+    //calculo del peso
+    tempPeso += (parseFloat(art.ART_PESO) || 0) * cantidad;
+  });
+
+  subtotal.value = redondear(tempSubtotal, 2);
+  descuento.value = redondear(tempDescuento, 2);
+  iva.value = redondear(tempIva, 2);
+  peso.value = redondear(tempPeso, 2);
+
+  total.value = redondear(subtotal.value + iva.value, 2);
+
+
+  // 4. Verificaciones externas
+  verificarProveedores(false);
+  verificarStock();
+
+}
+
+function redondear(num, decimales = 2) {
+  const factor = Math.pow(10, decimales);
+  return Math.round((num + Number.EPSILON) * factor) / factor;
 }
 
 async function openModalProveedor(index, element) {
@@ -1483,7 +1588,7 @@ function verificarStock() {
     })
   });
   if (stockDoble) {
-    swalError('El producto ' + stockDoble + ' supera el stock disponible');
+    swalWarning('El producto ' + stockDoble + ' supera el stock disponible');
     validaStock.value = false;
   }
 }
