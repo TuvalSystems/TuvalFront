@@ -237,6 +237,11 @@ function facturarExistente() {
       swalError(res.message);
     }
   }).catch(err => {  
+    let status = err.response.status || 500;
+    if (status  === 422 || status === 409) {
+      swalWarning(err.response.data.error);
+      return ;
+    }
     swalError(err.response.data.error);
   });
   emit('cerrarFacturarExistente');
