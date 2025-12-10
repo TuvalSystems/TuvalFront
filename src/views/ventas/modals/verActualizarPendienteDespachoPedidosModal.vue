@@ -54,11 +54,11 @@ onMounted(() => { });
                 <div class="d-flex justify-content-between align-items-center border p-3 rounded bg-body-light">
                     <div>
                         <label class="form-check-label fw-semibold mb-0" for="pendiente_salida">
-                            <i class="fa fa-truck-loading me-1 text-muted"></i> Bloquedar Despacho
+                            <i class="fa fa-truck-loading me-1 text-muted"></i> Bloquear Despacho
                         </label>
                         <div class="text-muted fs-xs">
                             {{ formUpdateStateEgress.pendiente_salida === 1
-                                ? 'El pedido tiene bloqueo de despacho.'
+                                ? 'El pedido tiene bloqueo de despacho activo.'
                                 : 'El pedido puede ser despachado.' }}
                         </div>
                     </div>
