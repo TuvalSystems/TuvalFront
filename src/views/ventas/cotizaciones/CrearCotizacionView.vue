@@ -1084,7 +1084,7 @@ function selectcondicionpago(event) {
   const primeraFormaPago = formadepago.value[0];
   formadepago_id.value = primeraFormaPago?.DESC_FORMA_PAGO_CODIGO;
 
-  const rebaja = parseFloat(primeraFormaPago.DESC_FORMA_PAGO_PORCENTAJE_REBAJAR) || 0;
+  const rebaja = parseFloat(primeraFormaPago?.DESC_FORMA_PAGO_PORCENTAJE_REBAJAR) || 0;
   const descuentoBase = parseFloat(currentCliente.value.CLI_DSTO_COMERCIAL) || 0;
   const nuevoDescuentoTotal = descuentoBase + rebaja;
 
@@ -1405,15 +1405,15 @@ function calcTotales() {
     }
 
     // logica de precios
-    let valorUnitario = parseFloat(art.ART_VALOR_ORIGINAL);
 
     // Si no es tipo 'L', aplicamos modificador al precio original
     if (art.ART_TIPO_COMPRA !== 'L') {
+      let valorUnitario = parseFloat(art.ART_VALOR_ORIGINAL);
       const modificador = parseFloat(art.modificador) || 0;
       valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
       art.ART_VALOR = redondear(valorUnitario, 4);
     } else {
-      art.ART_VALOR = redondear(valorUnitario, 4);
+      art.ART_VALOR = redondear(parseFloat(art.ART_VALOR), 4);
     }
 
     if (art.ART_VALOR === 0) {
