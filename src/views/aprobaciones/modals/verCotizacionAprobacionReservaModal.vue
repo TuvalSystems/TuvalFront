@@ -11,11 +11,11 @@ const emit = defineEmits(['closeModalAprobacionReserva']);
 
 const flatPickrState = reactive({
     fecha: {
-        minDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+        minDate: Date.now(),
         locale: Spanish,
     },
 });
-const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm , ptoVtaReservation} = useQuotationReserveApproval();
+const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm, ptoVtaReservation } = useQuotationReserveApproval();
 const infoResponse = computed(() => props.reserva);
 
 const infoReserva = infoResponse.value.reserva;
@@ -105,7 +105,7 @@ watch(
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
                                 infoReserva.cotizacion.CLI_RAZON_SOCIAL
-                                }}</div>
+                            }}</div>
                         </div>
                     </div>
 
@@ -169,7 +169,7 @@ watch(
                             <small class="text-muted">Observación Solicitud</small>
                             <span class="badge bg-dark text-white text-wrap text-start mt-1">{{
                                 infoReserva.obs_solicitud_reserva
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                     <div class="col-12" v-if="infoSegmento.segmento || infoSegmento.subsegmento">
@@ -177,7 +177,7 @@ watch(
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="infoSegmento.segmento" class="badge bg-info">{{ infoSegmento.segmento }}</span>
                             <span v-if="infoSegmento.subsegmento" class="badge bg-primary">{{ infoSegmento.subsegmento
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -235,7 +235,7 @@ watch(
                             placeholder="Detalles adicionales (opcional)"></textarea>
                     </div>
                     <div class="text-end text-muted fs-xs">{{ (dataSendApproval.obs_autorizacion_reserva || '').length
-                    }}/400
+                        }}/400
                     </div>
                 </div>
             </div>
