@@ -398,7 +398,7 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from "vue";
+import { ref, reactive, computed, onMounted, nextTick, onUnmounted } from "vue";
 import { useStore } from 'vuex'
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
@@ -819,7 +819,7 @@ function confirmfacturar(pedido) {
 async function facturarpedido(pedido) {
   try {
     await store.dispatch('facturarPedido', pedido);
-    
+
     llenarpedidos('todos');
 
   } catch (err) {
@@ -830,14 +830,14 @@ async function facturarpedido(pedido) {
     // CASO 1: Advertencias de Negocio (Ya facturado, no encontrado, etc.)
     if (warningCodes.includes(status)) {
       swalWarning(message);
-      return; 
+      return;
     }
     // CASO 2: Error Crítico (500, Red, etc.)
     // Actualizamos la variable reactiva si la usas en el template
     if (typeof errorMsg !== 'undefined') {
-        errorMsg.value = message;
+      errorMsg.value = message;
     }
-    
+
     swalError(message);
   }
 }
@@ -925,6 +925,15 @@ onMounted(() => {
   selectLength.classList = "";
   selectLength.classList.add("form-select");
   selectLength.style.width = "80px";
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+
+});
+
+onUnmounted(() => {
+  // IMPORTANTE: Limpiar el evento cuando el componente se destruye
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
 });
 
 
@@ -936,6 +945,22 @@ async function rechazarPedidoEstadoEspera(id) {
   swalSuccess("Cotización rechazada");
   llenarpedidos('todos');
 }
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    //cerrar modales
+    verpedidoModalObj.hide();
+    facturarexistenteModalObj.hide();
+    facturardespachadoModalObj.hide();
+    verModalUpdateDateInvoiceObj.hide();
+    verActualizarDatosObj.hide();
+    filtrarClienteModalObj.hide();
+    llenarpedidos('todos');
+
+  }
+};
+
+
 
 
 </script>
