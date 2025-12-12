@@ -71,7 +71,7 @@ export function useOrderReservationTable() {
         },
         {
             label: "AGENCIA",
-            key: "BOD_BODEGA",
+            key: "pto_vta",
             clickable: false,
             sortable: true,
             thClass: "text-start",
