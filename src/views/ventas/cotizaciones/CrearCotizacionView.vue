@@ -1339,7 +1339,7 @@ let validaCantidad = ref(true);
 let validaPrecio = ref(true);
 let validaDescripcion = ref(true);
 
-function calcTotales1() {
+function calcTotales() {
   subtotal.value = 0;
   descuento.value = 0;
   iva.value = 0;
@@ -1380,7 +1380,10 @@ function calcTotales1() {
   verificarStock();
 }
 
-function calcTotales() {
+/** sale el 2026 porque este calculo es el correcto pero hasta que se inicie e nuevo año se usa el antiguo que es el
+ * que esta arriba
+ */
+function calcTotales1() {
   // 1.- Reiniciar acumuladores
   let tempSubtotal = 0;
   let tempDescuento = 0;
