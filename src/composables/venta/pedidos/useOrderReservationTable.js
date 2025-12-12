@@ -70,6 +70,13 @@ export function useOrderReservationTable() {
             tdClass: "text-center",
         },
         {
+            label: "AGENCIA",
+            key: "BOD_BODEGA",
+            clickable: false,
+            sortable: true,
+            thClass: "text-start",
+            tdClass: "text-start",
+        }, {
             label: "Cliente",
             key: "razon_social_cliente",
             clickable: false,
