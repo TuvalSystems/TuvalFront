@@ -151,7 +151,7 @@ const getTdClass = (col, row) => {
                     </tbody>
                     <tbody v-else-if="!data || !data.length">
                         <tr>
-                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-4 text-muted">
                                 <!-- <i class="fa fa-folder-open fa-2x mb-2 d-block opacity-50"></i> -->
                                 <slot name="empty">Sin registros para mostrar.</slot>
                             </td>
@@ -192,7 +192,7 @@ const getTdClass = (col, row) => {
                             </td>
 
                             <!-- Slot para acciones -->
-                            <td v-if="$slots.actions" class="text-center text-nowrap" style="width: 150px">
+                            <td v-if="$slots.actions" class="text-center text-nowrap" style="width:1%;">
                                 <slot name="actions" :row="row"></slot>
                             </td>
                         </tr>

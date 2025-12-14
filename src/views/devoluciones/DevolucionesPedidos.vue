@@ -1,8 +1,6 @@
 <template>
   <!-- Hero -->
-  <BasePageHeading
-    title="Devolución de pedidos"
-  >
+  <BasePageHeading title="Devolución de pedidos">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
@@ -16,130 +14,126 @@
   </BasePageHeading>
   <!-- END Hero -->
 
-   <!-- Page Content -->
+  <!-- Page Content -->
   <div class="content">
     <!-- Full Table -->
     <BaseBlock title="Cliente" class="pb-4">
-      <form
-          class="row row-cols-lg-auto g-3 align-items-center"
-          @submit.prevent=""
-          >
-          <div class="col-12">
-              <label class="visually-hidden" for="buscar-cliente"
-                  >Buscar cliente...</label
-              >
-              <input
-                  type="text"
-                  class="form-control"
-                  :class="errorbuscarcliente ? 'is-invalid':''"
-                  id="buscar-cliente"
-                  name="buscar-cliente"
-                  placeholder="Buscar cliente..."
-                  @keyup.enter="buscarclientes"
-                  v-model="buscarcliente.busqueda"
-              />
-          </div>
-          <div>
-              <button type="button" v-on:click="buscarclientes" class="btn btn-primary">Buscar</button>
-          </div>
-          
+      <form class="row row-cols-lg-auto g-3 align-items-center" @submit.prevent="">
+        <div class="col-12">
+          <label class="visually-hidden" for="buscar-cliente">Buscar cliente...</label>
+          <input type="text" class="form-control" :class="errorbuscarcliente ? 'is-invalid' : ''" id="buscar-cliente"
+            name="buscar-cliente" placeholder="Buscar cliente..." @keyup.enter="buscarclientes"
+            v-model="buscarcliente.busqueda" />
+        </div>
+        <div>
+          <button type="button" v-on:click="buscarclientes" class="btn btn-primary">Buscar</button>
+        </div>
+
       </form>
-      
+
       <div v-if="clientes.loading" class="text-center">
-        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+        </div>
       </div>
       <BaseBlock v-if="verclientes && (!clientes.loading && clientes.data.length)" class="mb-0">
         <div class="table-responsive">
           <table class="table table-hover table-sm table-vcenter">
             <thead>
-            <tr>
-              <th>RUC</th>
-              <th>Razón Social</th>
-              <th>Contacto</th>
-              <th>Ciudad</th>
-              <th>Provincia</th>
-              <th>Teléfono</th>
-              <th>Correo</th>
-            </tr>
+              <tr>
+                <th>RUC</th>
+                <th>Razón Social</th>
+                <th>Contacto</th>
+                <th>Ciudad</th>
+                <th>Provincia</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="(cliente, index) in clientes.data" :key="index">
+              <tr v-for="(cliente, index) in clientes.data" :key="index">
                 <td class="">
-                    <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RUC }} </a>
+                  <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RUC }} </a>
                 </td>
                 <td class="fs-sm">
-                    <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{  cliente.CLI_RAZON_SOCIAL }} </a>
+                  <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RAZON_SOCIAL }} </a>
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_CONTACTO }}
+                  {{ cliente.CLI_CONTACTO }}
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_CIUDAD }}
+                  {{ cliente.CLI_CIUDAD }}
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_PROVINCIA }}
+                  {{ cliente.CLI_PROVINCIA }}
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_TELEFONO_1 }}
+                  {{ cliente.CLI_TELEFONO_1 }}
                 </td>
                 <td class="fs-sm">
-                    <a :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{cliente.CLI_CORREO_ELECT_SRI}}</a>
+                  <a :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{ cliente.CLI_CORREO_ELECT_SRI }}</a>
                 </td>
-                
-            </tr>
+
+              </tr>
             </tbody>
           </table>
         </div>
       </BaseBlock>
-      <BaseBlock  v-if="currentClienteDevolucion && !verclientes" class="mt-4 mb-0">
+      <BaseBlock v-if="currentClienteDevolucion && !verclientes" class="mt-4 mb-0">
         <template #content>
           <div class="table-responsive">
             <table class="table table-striped table-sm table-vcenter">
               <tbody>
                 <tr>
-                    <th class="fs-sm">RUC</th>
-                    <td class="fs-sm">{{currentClienteDevolucion.CLI_RUC}}</td>
-                    <th class="fs-sm">Razón Social</th>
-                    <td class="fs-sm">{{currentClienteDevolucion.CLI_RAZON_SOCIAL}}</td>
-                    <th class="fs-sm">Descuento Comercial</th>
-                    <td class="fs-sm">{{currentClienteDevolucion.CLI_DSTO_COMERCIAL}}%</td>
-                    
+                  <th class="fs-sm">RUC</th>
+                  <td class="fs-sm">{{ currentClienteDevolucion.CLI_RUC }}</td>
+                  <th class="fs-sm">Razón Social</th>
+                  <td class="fs-sm">{{ currentClienteDevolucion.CLI_RAZON_SOCIAL }}</td>
+                  <th class="fs-sm">Descuento Comercial</th>
+                  <td class="fs-sm">{{ currentClienteDevolucion.CLI_DSTO_COMERCIAL }}%</td>
+
                 </tr>
                 <tr>
-                    <th class="fs-sm">Ciudad</th>
-                    <td class="fs-sm">{{currentClienteDevolucion.CLI_CIUDAD}}</td>
-                
-                    <th class="fs-sm">Provincia</th>
-                    <td class="fs-sm">{{currentClienteDevolucion.CLI_PROVINCIA}}</td>
-                
-                    <th class="fs-sm">Condición de pago</th>
-                    <td class="fs-sm" >
-                      {{currentClienteDevolucion.CLI_CONDICION_PAGO}}
-                      <span class="badge bg-info" v-if="currentClienteDevolucion.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{ currentClienteDevolucion.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span>
-                    </td>
+                  <th class="fs-sm">Ciudad</th>
+                  <td class="fs-sm">{{ currentClienteDevolucion.CLI_CIUDAD }}</td>
+
+                  <th class="fs-sm">Provincia</th>
+                  <td class="fs-sm">{{ currentClienteDevolucion.CLI_PROVINCIA }}</td>
+
+                  <th class="fs-sm">Condición de pago</th>
+                  <td class="fs-sm">
+                    {{ currentClienteDevolucion.CLI_CONDICION_PAGO }}
+                    <span class="badge bg-info" v-if="currentClienteDevolucion.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
+                      currentClienteDevolucion.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span>
+                  </td>
                 </tr>
                 <tr>
-                
-                    <th class="fs-sm">Suspendido</th>
-                    <td class="fs-sm">
-                      <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                        :class="currentClienteDevolucion.suspendido == 0 ? 'bg-success-light text-success' : 'bg-danger-light text-danger'"
-                        >{{currentClienteDevolucion.suspendido == 1 ? 'Si':'No'}}</span>
-                      
-                    </td>
-                    <th class="fs-sm">Cupo Asignado</th>
-                    <td class="fs-sm" >${{currentClienteDevolucion.cupo_asignado}}</td>
-                    <th class="fs-sm">Cupo Disponible</th>
-                    <td class="fs-sm" :class="parseFloat(currentClienteDevolucion.cupo_disponible) < 0 ? 'text-danger':''">${{currentClienteDevolucion.cupo_disponible}}</td>
+
+                  <th class="fs-sm">Suspendido</th>
+                  <td class="fs-sm">
+                    <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
+                      :class="currentClienteDevolucion.suspendido == 0 ? 'bg-success-light text-success' : 'bg-danger-light text-danger'">{{
+                        currentClienteDevolucion.suspendido
+                      == 1 ? 'Si':'No'}}</span>
+
+                  </td>
+                  <th class="fs-sm">Cupo Asignado</th>
+                  <td class="fs-sm">${{ currentClienteDevolucion.cupo_asignado }}</td>
+                  <th class="fs-sm">Cupo Disponible</th>
+                  <td class="fs-sm"
+                    :class="parseFloat(currentClienteDevolucion.cupo_disponible) < 0 ? 'text-danger' : ''">
+                    ${{ currentClienteDevolucion.cupo_disponible }}</td>
                 </tr>
-                
+
               </tbody>
             </table>
           </div>
           <div class="text-end mb-2">
-            <button class="btn btn-sm btn-primary mx-1" @click="imprimirEstadodeCuentaExcel()"><i class="fa fa-file-excel"></i> Estado de cuenta EXCEL</button>
-            <button class="btn btn-sm btn-success mx-1" @click="imprimirEstadodeCuenta()"><i class="fa fa-print"></i> Estado de cuenta PDF</button>
-            <button class="btn btn-sm btn-warning mx-1" @click="actualizar()"><i class="si si-refresh"></i> Actualizar</button>
+            <button class="btn btn-sm btn-primary mx-1" @click="imprimirEstadodeCuentaExcel()"><i
+                class="fa fa-file-excel"></i> Estado de cuenta EXCEL</button>
+            <button class="btn btn-sm btn-success mx-1" @click="imprimirEstadodeCuenta()"><i class="fa fa-print"></i>
+              Estado de cuenta PDF</button>
+            <button class="btn btn-sm btn-warning mx-1" @click="actualizar()"><i class="si si-refresh"></i>
+              Actualizar</button>
           </div>
         </template>
       </BaseBlock>
@@ -147,59 +141,47 @@
     </BaseBlock>
     <BaseBlock v-if="currentClienteDevolucion && !verclientes" class="row g-0">
       <template #content>
-        <ul
-          class="nav nav-tabs nav-tabs-block flex-md-column col-md-2"
-          role="tablist"
-          >
+        <div class="alert alert-info alert-dismissible fade show d-flex align-items-center" role="alert">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+            class="bi bi-info-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
+            <path
+              d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+          </svg>
+
+          <div>
+            <strong>Importante:</strong> Para anular una factura, esta debe estar autorizada por el SRI.
+            <!-- <a href="javascript:void(0)" class="alert-link text-decoration-underline">Ver documento relacionado</a> -->
+          </div>
+
+          <!-- <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> -->
+        </div>
+
+        <ul class="nav nav-tabs nav-tabs-block flex-md-column col-md-2" role="tablist">
           <li class="nav-item d-md-flex flex-md-column">
-            <button
-                class="nav-link text-md-start active"
-                id="btabs-vertical-facturas-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#btabs-vertical-facturas"
-                role="tab"
-                aria-controls="btabs-vertical-facturas"
-                aria-selected="false"
-            >
-              <i
-                  class="fa fa-fw fa-user-circle opacity-50 me-1 d-none d-sm-inline-block"
-              ></i>
+            <button class="nav-link text-md-start active" id="btabs-vertical-facturas-tab" data-bs-toggle="tab"
+              data-bs-target="#btabs-vertical-facturas" role="tab" aria-controls="btabs-vertical-facturas"
+              aria-selected="false">
+              <i class="fa fa-fw fa-user-circle opacity-50 me-1 d-none d-sm-inline-block"></i>
               Facturas
             </button>
           </li>
           <li class="nav-item d-md-flex flex-md-column">
-            <button
-                class="nav-link text-md-start"
-                id="btabs-vertical-devoluciones-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#btabs-vertical-devoluciones"
-                role="tab"
-                aria-controls="btabs-vertical-devoluciones"
-                aria-selected="false"
-            >
-              <i
-                  class="fa fa-fw fa-cog opacity-50 me-1 d-none d-sm-inline-block"
-              ></i>
+            <button class="nav-link text-md-start" id="btabs-vertical-devoluciones-tab" data-bs-toggle="tab"
+              data-bs-target="#btabs-vertical-devoluciones" role="tab" aria-controls="btabs-vertical-devoluciones"
+              aria-selected="false">
+              <i class="fa fa-fw fa-cog opacity-50 me-1 d-none d-sm-inline-block"></i>
               Devoluciones
             </button>
           </li>
         </ul>
         <div class="tab-content col-md-10">
-          <div
-            class="block-content tab-pane active"
-            id="btabs-vertical-facturas"
-            role="tabpanel"
-            aria-labelledby="btabs-vertical-home-tab"
-            >
+          <div class="block-content tab-pane active" id="btabs-vertical-facturas" role="tabpanel"
+            aria-labelledby="btabs-vertical-home-tab">
             <Pedidos @recargarCliente="selectcliente(currentClienteDevolucion)"></Pedidos>
           </div>
 
-          <div
-            class="block-content tab-pane"
-            id="btabs-vertical-devoluciones"
-            role="tabpanel"
-            aria-labelledby="btabs-vertical-devoluciones-tab"
-            >
+          <div class="block-content tab-pane" id="btabs-vertical-devoluciones" role="tabpanel"
+            aria-labelledby="btabs-vertical-devoluciones-tab">
             <Devoluciones></Devoluciones>
           </div>
         </div>
@@ -211,7 +193,7 @@
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import SolicitarDevolucion from "./modals/SolicitarDevolucion.vue"
@@ -239,30 +221,30 @@ const verpedidos = ref(false);
 
 
 
-async function buscarclientes(ev){
-  if(buscarcliente.busqueda.length < 3){
+async function buscarclientes(ev) {
+  if (buscarcliente.busqueda.length < 3) {
     errorbuscarcliente.value = true;
     return;
   }
-  
+
   errorbuscarcliente.value = false;
   verclientes.value = true;
   ev.preventDefault();
   store.dispatch('buscarclientes', buscarcliente)
-  .catch(err => {
+    .catch(err => {
       verclientes.value = false;
       swalError(err.response.data.error);
-  });
+    });
 }
 
-if(!verpedidos.value && currentClienteDevolucion.value){
+if (!verpedidos.value && currentClienteDevolucion.value) {
   actualizar();
   //selectcliente(currentClienteDevolucion.value);
 }
 
-function selectcliente(cliente){
+function selectcliente(cliente) {
   verclientes.value = false;
-  store.dispatch('cupoDisponible', cliente.CLI_RUC).then( (cupo) => {
+  store.dispatch('cupoDisponible', cliente.CLI_RUC).then((cupo) => {
     store.dispatch('estadodecuenta', cliente).then((res) => {
       cliente.suspendido = cupo.suspendido;
       cliente.cupo_disponible = cupo.cupo_disponible;
@@ -270,34 +252,34 @@ function selectcliente(cliente){
       store.commit('setCurrentclienteDevolucion', cliente);
       actualizar();
     })
-        .catch(err => {
-          swalError(err.response.data.error);
-        });
+      .catch(err => {
+        swalError(err.response.data.error);
+      });
   });
 
 }
 
-function actualizar(){
+function actualizar() {
   store.commit('setPedidosLoading', true);
   store.commit('setDevolucionesLoading', true);
   // store.dispatch('procesardevoluciones').then( () => {
-    store.dispatch('pedidoscliente', currentClienteDevolucion.value.id).then( () => {
-      verpedidos.value = true;
+  store.dispatch('pedidoscliente', currentClienteDevolucion.value.id).then(() => {
+    verpedidos.value = true;
 
-      // Remove labels from
-      document.querySelectorAll("#datasetLength label").forEach((el) => {
-        el.remove();
-      });
+    // Remove labels from
+    document.querySelectorAll("#datasetLength label").forEach((el) => {
+      el.remove();
+    });
 
-      // Replace select classes
-      let selectLength = document.querySelector("#datasetLength select");
+    // Replace select classes
+    let selectLength = document.querySelector("#datasetLength select");
 
-      selectLength.classList = "";
-      selectLength.classList.add("form-select");
-      selectLength.style.width = "80px";
+    selectLength.classList = "";
+    selectLength.classList.add("form-select");
+    selectLength.style.width = "80px";
 
-      document.querySelectorAll("#datasetDevolucionesLength label").forEach((el) => {
-        el.remove();
+    document.querySelectorAll("#datasetDevolucionesLength label").forEach((el) => {
+      el.remove();
       // });
 
       // Replace select classes
@@ -315,31 +297,31 @@ function actualizar(){
 
 }
 
-function imprimirEstadodeCuenta(){
-  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuval/'+currentClienteDevolucion.value.CLI_RUC)
-  .then((response) => {
-    if(response.status == 200){
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'estadodecuenta-'+currentClienteDevolucion.value.CLI_RUC+'.pdf');
-      document.body.appendChild(link);
-      link.click();
-    }
-  });
+function imprimirEstadodeCuenta() {
+  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuval/' + currentClienteDevolucion.value.CLI_RUC)
+    .then((response) => {
+      if (response.status == 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'estadodecuenta-' + currentClienteDevolucion.value.CLI_RUC + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
 }
 
-function imprimirEstadodeCuentaExcel(){
-  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuvalexcel/'+currentClienteDevolucion.value.CLI_RUC)
-      .then((response) => {
-        if(response.status == 200){
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'estadodecuenta-'+currentClienteDevolucion.value.CLI_RUC+'.xlsx');
-          document.body.appendChild(link);
-          link.click();
-        }
-      });
+function imprimirEstadodeCuentaExcel() {
+  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuvalexcel/' + currentClienteDevolucion.value.CLI_RUC)
+    .then((response) => {
+      if (response.status == 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'estadodecuenta-' + currentClienteDevolucion.value.CLI_RUC + '.xlsx');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
 }
 </script>

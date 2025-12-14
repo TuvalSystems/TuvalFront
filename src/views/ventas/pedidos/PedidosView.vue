@@ -1,3 +1,571 @@
+
+<script setup>
+import { ref, reactive, computed, onMounted, nextTick, onUnmounted } from "vue";
+import { useStore } from 'vuex'
+import { useRouter } from "vue-router";
+import { useTemplateStore } from "@/stores/template";
+import { Modal } from "bootstrap";
+import VerPedidoModal from "../modals/VerPedidoModal.vue";
+import LevantarClienteModal from "../modals/LevantarCliente.vue";
+import FiltrarCliente from "../modals/FiltrarCliente.vue";
+import FacturarExistenteModal from "../modals/FacturarExistenteModal.vue";
+import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
+import flatPickr from 'vue-flatpickr-component';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import { formatPrice, format } from "@/functions";
+import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
+import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
+import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
+import {
+  swalSimple,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+  swalError,
+  toast,
+} from "@/functions/swal-alert.js";
+const { loadingChange, changeStatusOrderBeenWaiting } = useUpdateOrderStatus();
+const flatPickrState = reactive({
+  fecha_desde: {
+    maxDate: Date.now(),
+    locale: Spanish,
+  },
+  fecha_hasta: {
+    maxDate: Date.now(),
+    locale: Spanish,
+  },
+});
+
+// Helper variables
+const cols = reactive([
+  {
+    name: "Pedido",
+    field: "pedido",
+    sort: "",
+  },
+  {
+    name: "Cot.",
+    field: "cotizacion",
+    sort: "",
+  },
+  {
+    name: "Factura",
+    field: "factura",
+    sort: "",
+  },
+  {
+    name: "Cliente",
+    field: "CLI_RAZON_SOCIAL",
+    sort: "",
+  },
+  {
+    name: "RUC",
+    field: "CLI_RUC",
+    sort: "",
+  },
+  {
+    name: "Usr.",
+    field: "USERID",
+    sort: "",
+  },
+  {
+    name: "Cond.",
+    field: "COND_ID",
+    sort: "",
+  },
+  {
+    name: "Fecha",
+    field: "created_at",
+    sort: "",
+  },
+  {
+    name: "Total",
+    field: "total",
+    sort: "",
+  },
+  {
+    name: "Estado",
+    field: "estado",
+    sort: "",
+  },
+]);
+
+// Sort by functionality
+const sortBy = computed(() => {
+  return cols.reduce((acc, o) => {
+    if (o.sort) {
+      o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
+    }
+    return acc;
+  }, []);
+});
+
+// On sort th click
+function onSort(event, i) {
+  let toset;
+  const sortEl = cols[i];
+
+  if (!event.shiftKey) {
+    cols.forEach((o) => {
+      if (o.field !== sortEl.field) {
+        o.sort = "";
+      }
+    });
+  }
+  if (!sortEl.sort) {
+    toset = "asc";
+  }
+  if (sortEl.sort === "desc") {
+    toset = event.shiftKey ? "" : "asc";
+  }
+  if (sortEl.sort === "asc") {
+    toset = "desc";
+  }
+  sortEl.sort = toset;
+}
+
+const store = useStore();
+const templateStore = useTemplateStore();
+const router = useRouter();
+const verpedido = ref({});
+const indexPedido = ref(null);
+const tipo = ref(null);
+const fecha_desde = ref(null);
+const fecha_hasta = ref(null);
+const estado_filtro = ref(null);
+const filtrar_cliente = computed(() => store.state.filtrar_cliente);
+
+function limpiarFecha() {
+  fecha_desde.value = null;
+  fecha_hasta.value = null;
+  store.commit('resetFiltrarCliente');
+  llenarpedidos('todos');
+}
+
+function refrescarFecha() {
+  if (!fecha_desde.value)
+    return;
+  if (!fecha_hasta.value)
+    return;
+
+  llenarpedidos(estado_filtro.value);
+
+}
+async function funcionverpedido(pedido) {
+  store.dispatch('despachoenproceso', pedido.id).then((res) => {
+    pedido.despacho_en_proceso = res.data.despacho_en_proceso;
+    pedido.transferencia_en_proceso = res.data.transferencia_en_proceso;
+    pedido.item_l_recibido = res.data.item_l_recibido;
+    verpedidoModalObj.show();
+    verpedido.value = pedido;
+    tipo.value = 'pedido';
+    store.dispatch('detallepedido', pedido).then(() => {
+      const elem = document.getElementById('btabs-alt-static-detalle-tab');
+      if (elem)
+        elem.click();
+    });
+  })
+}
+
+function levantarcliente(pedido) {
+  store.commit('resetCotizacion');
+  levantarClienteModalObj.show();
+  verpedido.value = pedido;
+  tipo.value = 'pedido';
+}
+
+let verpedidoModal = ref(null);
+let verpedidoModalObj = null;
+
+let facturarexistenteModal = ref(null);
+let facturarexistenteModalObj = null;
+
+let facturardespachadoModal = ref(null);
+let facturardespachadoModalObj = null;
+
+let levantarClienteModal = ref(null);
+let levantarClienteModalObj = null;
+
+let filtrarClienteModal = ref(null);
+let filtrarClienteModalObj = null;
+
+function levantarFiltrocliente() {
+  store.commit('resetClientes');
+  filtrarClienteModalObj.show();
+}
+function consultarExistente(verpedido) {
+  verpedidoModalObj.hide();
+  store.dispatch('consultarExistente', verpedido).then(() => {
+    facturarexistenteModalObj.show();
+  }).catch((error) => {
+    let status = error.response.status || 500;
+    if (status === 409) {
+      swalWarning(error.response.data.error);
+      return;
+    }
+    swalError(error.response.data.error);
+  })
+}
+function consultarDespachado(verpedido) {
+  verpedidoModalObj.hide();
+  store.dispatch('consultarDespachado', verpedido).then(() => {
+    facturardespachadoModalObj.show();
+  })
+}
+
+function cancelarPedido() {
+  verpedidoModalObj.hide();
+  llenarpedidos('todos');
+}
+function cerrarFacturarExistente() {
+  facturarexistenteModalObj.hide();
+  llenarpedidos('todos');
+}
+function cerrarFacturarDespachado() {
+  facturardespachadoModalObj.hide();
+  llenarpedidos('todos');
+}
+
+let errorMsg = ref('');
+const pedidos = computed(() => store.state.pedidos);
+const verpedidos = ref(false);
+
+llenarpedidos('todos');
+
+async function llenarpedidos(estado) {
+  estado_filtro.value = estado;
+  const consulta = reactive({
+    puntodeventa_id: store.state.puntodeventaselect,
+    estado: estado,
+    fecha_desde: fecha_desde.value,
+    fecha_hasta: fecha_hasta.value,
+    cliente: filtrar_cliente.value,
+  })
+  store.dispatch('llenarpedidos', consulta).then(() => {
+    verpedidos.value = true;
+  }).catch(err => {
+    verpedidos.value = false;
+    swalError(err.response.data.error);
+  });
+}
+
+function filtrarCliente() {
+  filtrarClienteModalObj.hide();
+  llenarpedidos(estado_filtro.value);
+}
+
+function refreshllenarpedidos() {
+  // store.dispatch('sendfacturasgp').then(() => {
+  //   verpedidos.value = true;
+  //   llenarpedidos('todos');
+  // }).catch(err => {
+  //     verpedidos.value = false;
+  //     errorMsg.value = err.response.data.error
+  // });
+  llenarpedidos('todos');
+}
+
+function recuperarpedido(pedido) {
+  templateStore.pageLoader({ mode: "on" });
+  store.dispatch('recuperarPedido', pedido).then(() => {
+    templateStore.pageLoader({ mode: "off" });
+    router.push({
+      name: 'ventas-crearcotizacion'
+    })
+  }).catch(err => {
+    console.log(err);
+  });
+}
+
+async function imprimirpedido(pedido) {
+  store.dispatch('imprimir', '/pedidos/imprimirpedido/' + pedido.id)
+    .then((response) => {
+      if (response.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'pedido-' + pedido.pedido + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
+}
+
+async function imprimirpedidoimagenes(pedido) {
+  store.dispatch('imprimir', '/pedidos/imprimirpedidoimagenes/' + pedido.id)
+    .then((response) => {
+      if (response.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'pedido-' + pedido.pedido + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
+}
+
+async function imprimirpedidoride(pedido) {
+  try {
+    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoride/' + pedido.id);
+    if (response.status === 200) {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'RIDE-' + pedido.pedido + '.pdf');
+      document.body.appendChild(link);
+      link.click();
+    } else if (response.success === false) {
+      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
+      swalError(errorMsg.value);
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMsg.value = error.response.data.message;
+    } else {
+      errorMsg.value = 'No se pudo generar el RIDE. Inténtalo más tarde.';
+    }
+
+    swalError(errorMsg.value);
+  }
+}
+
+async function imprimirpedidoridesinimagen(pedido) {
+  try {
+    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoride-sin-imagen/' + pedido.id);
+    if (response.status === 200) {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'RIDE-' + pedido.pedido + '.pdf');
+      document.body.appendChild(link);
+      link.click();
+    } else if (response.success === false) {
+      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
+      swalError(errorMsg.value);
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMsg.value = error.response.data.message;
+    } else {
+      errorMsg.value = 'No se pudo generar el RIDE. Inténtalo más tarde.';
+    }
+
+    swalError(errorMsg.value);
+  }
+}
+
+async function imprimirpedidoxml(pedido) {
+  try {
+    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoxml/' + pedido.id);
+
+    if (response.status === 200) {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'xml-' + pedido.pedido + '.xml');
+      document.body.appendChild(link);
+      link.click();
+    } else {
+      errorMsg.value = 'Error al generar el XML.';
+      swalError(errorMsg.value);
+    }
+  } catch (err) {
+    const blob = err.response?.data;
+
+    if (blob instanceof Blob) {
+      const text = await blob.text();
+      try {
+        const json = JSON.parse(text);
+        errorMsg.value = json.message || 'Error desconocido al generar el XML.';
+      } catch {
+        errorMsg.value = text || 'Error inesperado al generar el XML.';
+      }
+    } else {
+      errorMsg.value = 'No se pudo generar el XML.';
+    }
+
+    swalError(errorMsg.value);
+  }
+}
+
+function confirmfacturar(pedido) {
+  toast
+    .fire({
+      title: "Estás seguro?",
+      text: "De facturar el pedido " + pedido.pedido + "",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+        confirmButton: "btn btn-success m-1",
+        cancelButton: "btn btn-secondary m-1",
+      },
+      confirmButtonText: "Si, facturar",
+      cancelButtonText: "Cancelar",
+      html: false,
+      preConfirm: () => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 50);
+        });
+      },
+    })
+    .then((result) => {
+      if (result.value) {
+        facturarpedido(pedido);
+      }
+    });
+}
+
+async function facturarpedido(pedido) {
+  try {
+    await store.dispatch('facturarPedido', pedido);
+
+    llenarpedidos('todos');
+
+  } catch (err) {
+    const status = err.response?.status || 500;
+    const message = err.response?.data?.error || err.message || 'Error de conexión o servidor';
+    const warningCodes = [404, 409, 422];
+
+    // CASO 1: Advertencias de Negocio (Ya facturado, no encontrado, etc.)
+    if (warningCodes.includes(status)) {
+      swalWarning(message);
+      return;
+    }
+    // CASO 2: Error Crítico (500, Red, etc.)
+    // Actualizamos la variable reactiva si la usas en el template
+    if (typeof errorMsg !== 'undefined') {
+      errorMsg.value = message;
+    }
+
+    swalError(message);
+  }
+}
+
+function motivoEspera(pedido) {
+  let msg = 'Pedido ';
+  if (pedido.factura_siguiente_mes) {
+    msg += 'factura a siguiente mes';
+  }
+  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
+    msg += ' requiere aprobación comercial ';
+  }
+  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no' && pedido.requiere_aprobacion_crediticia === 'yes') {
+    msg += ' y ';
+  }
+  if (pedido.requiere_aprobacion_crediticia === 'yes' && pedido.aprobado_crediticio === 'no') {
+    msg += ' requiere aprobación crediticia ';
+  }
+  if (pedido.factura_a_demanda) {
+    msg += 'requiere factura a demanda posterior al despacho ';
+  }
+  swalWarning(msg);
+}
+
+
+let verActualizarDatos = ref(null);
+let verActualizarDatosObj = null;
+let datosModalAcPedido = ref({});
+
+async function operModalActualizarDatosPedido(pedido) {
+  if (pedido.estado === 'facturado') {
+    swalWarning('No se puede actualizar la orden de compra y nota cliente de un pedido facturado')
+    return;
+  }
+  datosModalAcPedido.value = pedido;
+  await nextTick();
+  verActualizarDatosObj.show();
+}
+
+function closeModalActualizarDatosPedido() {
+  datosModalAcPedido.value = {};
+  verActualizarDatosObj.hide();
+}
+
+let verModalUpdateDateInvoice = ref(null);
+let verModalUpdateDateInvoiceObj = null;
+let datosModalPedidoAcDate = ref({});
+
+const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
+function canRescheduleInvoice(row) {
+  return row.origen === 'reserva' && !BLOCKED_STATES.includes(row.estado);
+}
+async function openModalUpdateDateInvoice(pedido) {
+  if (pedido.origen !== 'reserva') {
+    swalWarning('Solo se puede reprogramar la facturación de pedidos de origen reserva')
+    return;
+  }
+  datosModalPedidoAcDate.value = pedido;
+  await nextTick();
+  verModalUpdateDateInvoiceObj.show();
+}
+
+function closeModalUpdateDateInvoice() {
+  datosModalPedidoAcDate.value = {};
+  verModalUpdateDateInvoiceObj.hide();
+}
+
+onMounted(() => {
+
+  verpedidoModalObj = new Modal(verpedidoModal.value);
+  levantarClienteModalObj = new Modal(levantarClienteModal.value);
+  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
+  facturarexistenteModalObj = new Modal(facturarexistenteModal.value);
+  facturardespachadoModalObj = new Modal(facturardespachadoModal.value);
+  verActualizarDatosObj = new Modal(verActualizarDatos.value);
+  verModalUpdateDateInvoiceObj = new Modal(verModalUpdateDateInvoice.value);
+  // Remove labels from
+  document.querySelectorAll("#datasetLength label").forEach((el) => {
+    el.remove();
+  });
+
+  // Replace select classes
+  let selectLength = document.querySelector("#datasetLength select");
+
+  selectLength.classList = "";
+  selectLength.classList.add("form-select");
+  selectLength.style.width = "80px";
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+
+});
+
+onUnmounted(() => {
+  // IMPORTANTE: Limpiar el evento cuando el componente se destruye
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
+});
+
+
+async function rechazarPedidoEstadoEspera(id) {
+  const res = await changeStatusOrderBeenWaiting(id);
+  if (!res?.ok) {
+    return swalError("No se pudo rechazar el pedido");
+  }
+  swalSuccess("Cotización rechazada");
+  llenarpedidos('todos');
+}
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    //cerrar modales
+    verpedidoModalObj.hide();
+    facturarexistenteModalObj.hide();
+    facturardespachadoModalObj.hide();
+    verModalUpdateDateInvoiceObj.hide();
+    verActualizarDatosObj.hide();
+    filtrarClienteModalObj.hide();
+    llenarpedidos('todos');
+
+  }
+};
+
+
+
+
+</script>
 <template>
   <!-- Hero -->
   <BasePageHeading title="Pedidos">
@@ -291,7 +859,8 @@
                             </button>
                           </li> -->
 
-                          <li v-if="row.estado === 'espera' && ((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))">
+                          <li
+                            v-if="row.estado === 'espera' && ((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))">
                             <div class="dropdown-divider my-2"></div>
                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
                               :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
@@ -396,525 +965,6 @@
     </div>
   </div>
 </template>
-<script setup>
-import { ref, reactive, computed, onMounted, nextTick } from "vue";
-import { useStore } from 'vuex'
-import { useRouter } from "vue-router";
-import { useTemplateStore } from "@/stores/template";
-import { Modal } from "bootstrap";
-import VerPedidoModal from "../modals/VerPedidoModal.vue";
-import LevantarClienteModal from "../modals/LevantarCliente.vue";
-import FiltrarCliente from "../modals/FiltrarCliente.vue";
-import FacturarExistenteModal from "../modals/FacturarExistenteModal.vue";
-import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
-import flatPickr from 'vue-flatpickr-component';
-import { Spanish } from "flatpickr/dist/l10n/es.js"
-import { formatPrice, format } from "@/functions";
-import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
-import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
-import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
-import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
-  swalError,
-  toast,
-} from "@/functions/swal-alert.js";
-const { loadingChange, changeStatusOrderBeenWaiting } = useUpdateOrderStatus();
-const flatPickrState = reactive({
-  fecha_desde: {
-    maxDate: Date.now(),
-    locale: Spanish,
-  },
-  fecha_hasta: {
-    maxDate: Date.now(),
-    locale: Spanish,
-  },
-});
-
-// Helper variables
-const cols = reactive([
-  {
-    name: "Pedido",
-    field: "pedido",
-    sort: "",
-  },
-  {
-    name: "Cot.",
-    field: "cotizacion",
-    sort: "",
-  },
-  {
-    name: "Factura",
-    field: "factura",
-    sort: "",
-  },
-  {
-    name: "Cliente",
-    field: "CLI_RAZON_SOCIAL",
-    sort: "",
-  },
-  {
-    name: "RUC",
-    field: "CLI_RUC",
-    sort: "",
-  },
-  {
-    name: "Usr.",
-    field: "USERID",
-    sort: "",
-  },
-  {
-    name: "Cond.",
-    field: "COND_ID",
-    sort: "",
-  },
-  {
-    name: "Fecha",
-    field: "created_at",
-    sort: "",
-  },
-  {
-    name: "Total",
-    field: "total",
-    sort: "",
-  },
-  {
-    name: "Estado",
-    field: "estado",
-    sort: "",
-  },
-]);
-
-// Sort by functionality
-const sortBy = computed(() => {
-  return cols.reduce((acc, o) => {
-    if (o.sort) {
-      o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
-    }
-    return acc;
-  }, []);
-});
-
-// On sort th click
-function onSort(event, i) {
-  let toset;
-  const sortEl = cols[i];
-
-  if (!event.shiftKey) {
-    cols.forEach((o) => {
-      if (o.field !== sortEl.field) {
-        o.sort = "";
-      }
-    });
-  }
-  if (!sortEl.sort) {
-    toset = "asc";
-  }
-  if (sortEl.sort === "desc") {
-    toset = event.shiftKey ? "" : "asc";
-  }
-  if (sortEl.sort === "asc") {
-    toset = "desc";
-  }
-  sortEl.sort = toset;
-}
-
-const store = useStore();
-const templateStore = useTemplateStore();
-const router = useRouter();
-const verpedido = ref({});
-const indexPedido = ref(null);
-const tipo = ref(null);
-const fecha_desde = ref(null);
-const fecha_hasta = ref(null);
-const estado_filtro = ref(null);
-const filtrar_cliente = computed(() => store.state.filtrar_cliente);
-
-function limpiarFecha() {
-  fecha_desde.value = null;
-  fecha_hasta.value = null;
-  store.commit('resetFiltrarCliente');
-  llenarpedidos('todos');
-}
-
-function refrescarFecha() {
-  if (!fecha_desde.value)
-    return;
-  if (!fecha_hasta.value)
-    return;
-
-  llenarpedidos(estado_filtro.value);
-
-}
-async function funcionverpedido(pedido) {
-  store.dispatch('despachoenproceso', pedido.id).then((res) => {
-    pedido.despacho_en_proceso = res.data.despacho_en_proceso;
-    pedido.transferencia_en_proceso = res.data.transferencia_en_proceso;
-    pedido.item_l_recibido = res.data.item_l_recibido;
-    verpedidoModalObj.show();
-    verpedido.value = pedido;
-    tipo.value = 'pedido';
-    store.dispatch('detallepedido', pedido).then(() => {
-      const elem = document.getElementById('btabs-alt-static-detalle-tab');
-      if (elem)
-        elem.click();
-    });
-  })
-}
-
-function levantarcliente(pedido) {
-  store.commit('resetCotizacion');
-  levantarClienteModalObj.show();
-  verpedido.value = pedido;
-  tipo.value = 'pedido';
-}
-
-let verpedidoModal = ref(null);
-let verpedidoModalObj = null;
-
-let facturarexistenteModal = ref(null);
-let facturarexistenteModalObj = null;
-
-let facturardespachadoModal = ref(null);
-let facturardespachadoModalObj = null;
-
-let levantarClienteModal = ref(null);
-let levantarClienteModalObj = null;
-
-let filtrarClienteModal = ref(null);
-let filtrarClienteModalObj = null;
-
-function levantarFiltrocliente() {
-  store.commit('resetClientes');
-  filtrarClienteModalObj.show();
-}
-function consultarExistente(verpedido) {
-  verpedidoModalObj.hide();
-  store.dispatch('consultarExistente', verpedido).then(() => {
-    facturarexistenteModalObj.show();
-  })
-}
-function consultarDespachado(verpedido) {
-  verpedidoModalObj.hide();
-  store.dispatch('consultarDespachado', verpedido).then(() => {
-    facturardespachadoModalObj.show();
-  })
-}
-
-function cancelarPedido() {
-  verpedidoModalObj.hide();
-  llenarpedidos('todos');
-}
-function cerrarFacturarExistente() {
-  facturarexistenteModalObj.hide();
-  llenarpedidos('todos');
-}
-function cerrarFacturarDespachado() {
-  facturardespachadoModalObj.hide();
-  llenarpedidos('todos');
-}
-
-let errorMsg = ref('');
-const pedidos = computed(() => store.state.pedidos);
-const verpedidos = ref(false);
-
-llenarpedidos('todos');
-
-async function llenarpedidos(estado) {
-  estado_filtro.value = estado;
-  const consulta = reactive({
-    puntodeventa_id: store.state.puntodeventaselect,
-    estado: estado,
-    fecha_desde: fecha_desde.value,
-    fecha_hasta: fecha_hasta.value,
-    cliente: filtrar_cliente.value,
-  })
-  store.dispatch('llenarpedidos', consulta).then(() => {
-    verpedidos.value = true;
-  }).catch(err => {
-    verpedidos.value = false;
-    swalError(err.response.data.error);
-  });
-}
-
-function filtrarCliente() {
-  filtrarClienteModalObj.hide();
-  llenarpedidos(estado_filtro.value);
-}
-
-function refreshllenarpedidos() {
-  // store.dispatch('sendfacturasgp').then(() => {
-  //   verpedidos.value = true;
-  //   llenarpedidos('todos');
-  // }).catch(err => {
-  //     verpedidos.value = false;
-  //     errorMsg.value = err.response.data.error
-  // });
-  llenarpedidos('todos');
-}
-
-function recuperarpedido(pedido) {
-  templateStore.pageLoader({ mode: "on" });
-  store.dispatch('recuperarPedido', pedido).then(() => {
-    templateStore.pageLoader({ mode: "off" });
-    router.push({
-      name: 'ventas-crearcotizacion'
-    })
-  }).catch(err => {
-    console.log(err);
-  });
-}
-
-async function imprimirpedido(pedido) {
-  store.dispatch('imprimir', '/pedidos/imprimirpedido/' + pedido.id)
-    .then((response) => {
-      if (response.status === 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'pedido-' + pedido.pedido + '.pdf');
-        document.body.appendChild(link);
-        link.click();
-      }
-    });
-}
-
-async function imprimirpedidoimagenes(pedido) {
-  store.dispatch('imprimir', '/pedidos/imprimirpedidoimagenes/' + pedido.id)
-    .then((response) => {
-      if (response.status === 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'pedido-' + pedido.pedido + '.pdf');
-        document.body.appendChild(link);
-        link.click();
-      }
-    });
-}
-
-async function imprimirpedidoride(pedido) {
-  try {
-    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoride/' + pedido.id);
-    if (response.status === 200) {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'RIDE-' + pedido.pedido + '.pdf');
-      document.body.appendChild(link);
-      link.click();
-    } else if (response.success === false) {
-      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
-      swalError(errorMsg.value);
-    }
-  } catch (error) {
-    if (error.response && error.response.data && error.response.data.message) {
-      errorMsg.value = error.response.data.message;
-    } else {
-      errorMsg.value = 'No se pudo generar el RIDE. Inténtalo más tarde.';
-    }
-
-    swalError(errorMsg.value);
-  }
-}
-
-async function imprimirpedidoridesinimagen(pedido) {
-  try {
-    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoride-sin-imagen/' + pedido.id);
-    if (response.status === 200) {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'RIDE-' + pedido.pedido + '.pdf');
-      document.body.appendChild(link);
-      link.click();
-    } else if (response.success === false) {
-      errorMsg.value = response.error || 'Ocurrió un error al generar el RIDE.';
-      swalError(errorMsg.value);
-    }
-  } catch (error) {
-    if (error.response && error.response.data && error.response.data.message) {
-      errorMsg.value = error.response.data.message;
-    } else {
-      errorMsg.value = 'No se pudo generar el RIDE. Inténtalo más tarde.';
-    }
-
-    swalError(errorMsg.value);
-  }
-}
-
-async function imprimirpedidoxml(pedido) {
-  try {
-    const response = await store.dispatch('imprimir', '/pedidos/imprimirpedidoxml/' + pedido.id);
-
-    if (response.status === 200) {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'xml-' + pedido.pedido + '.xml');
-      document.body.appendChild(link);
-      link.click();
-    } else {
-      errorMsg.value = 'Error al generar el XML.';
-      swalError(errorMsg.value);
-    }
-  } catch (err) {
-    const blob = err.response?.data;
-
-    if (blob instanceof Blob) {
-      const text = await blob.text();
-      try {
-        const json = JSON.parse(text);
-        errorMsg.value = json.message || 'Error desconocido al generar el XML.';
-      } catch {
-        errorMsg.value = text || 'Error inesperado al generar el XML.';
-      }
-    } else {
-      errorMsg.value = 'No se pudo generar el XML.';
-    }
-
-    swalError(errorMsg.value);
-  }
-}
-
-function confirmfacturar(pedido) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De facturar el pedido " + pedido.pedido + "",
-      icon: "question",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, facturar",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        facturarpedido(pedido);
-      }
-    });
-}
-
-function facturarpedido(pedido) {
-  store.dispatch('facturarPedido', pedido).then(() => {
-    llenarpedidos('todos');
-  }).catch(err => {
-    errorMsg.value = err.response.data.error
-    swalError(errorMsg.value);
-  });
-}
-
-function motivoEspera(pedido) {
-  let msg = 'Pedido ';
-  if (pedido.factura_siguiente_mes) {
-    msg += 'factura a siguiente mes';
-  }
-  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
-    msg += ' requiere aprobación comercial ';
-  }
-  if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no' && pedido.requiere_aprobacion_crediticia === 'yes') {
-    msg += ' y ';
-  }
-  if (pedido.requiere_aprobacion_crediticia === 'yes' && pedido.aprobado_crediticio === 'no') {
-    msg += ' requiere aprobación crediticia ';
-  }
-  if (pedido.factura_a_demanda) {
-    msg += 'requiere factura a demanda posterior al despacho ';
-  }
-  swalWarning(msg);
-}
-
-
-let verActualizarDatos = ref(null);
-let verActualizarDatosObj = null;
-let datosModalAcPedido = ref({});
-
-async function operModalActualizarDatosPedido(pedido) {
-  if (pedido.estado === 'facturado') {
-    swalWarning('No se puede actualizar la orden de compra y nota cliente de un pedido facturado')
-    return;
-  }
-  datosModalAcPedido.value = pedido;
-  await nextTick();
-  verActualizarDatosObj.show();
-}
-
-function closeModalActualizarDatosPedido() {
-  datosModalAcPedido.value = {};
-  verActualizarDatosObj.hide();
-}
-
-let verModalUpdateDateInvoice = ref(null);
-let verModalUpdateDateInvoiceObj = null;
-let datosModalPedidoAcDate = ref({});
-
-const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
-function canRescheduleInvoice(row) {
-  return row.origen === 'reserva' && !BLOCKED_STATES.includes(row.estado);
-}
-async function openModalUpdateDateInvoice(pedido) {
-  if (pedido.origen !== 'reserva') {
-    swalWarning('Solo se puede reprogramar la facturación de pedidos de origen reserva')
-    return;
-  }
-  datosModalPedidoAcDate.value = pedido;
-  await nextTick();
-  verModalUpdateDateInvoiceObj.show();
-}
-
-function closeModalUpdateDateInvoice() {
-  datosModalPedidoAcDate.value = {};
-  verModalUpdateDateInvoiceObj.hide();
-}
-
-onMounted(() => {
-
-  verpedidoModalObj = new Modal(verpedidoModal.value);
-  levantarClienteModalObj = new Modal(levantarClienteModal.value);
-  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
-  facturarexistenteModalObj = new Modal(facturarexistenteModal.value);
-  facturardespachadoModalObj = new Modal(facturardespachadoModal.value);
-  verActualizarDatosObj = new Modal(verActualizarDatos.value);
-  verModalUpdateDateInvoiceObj = new Modal(verModalUpdateDateInvoice.value);
-  // Remove labels from
-  document.querySelectorAll("#datasetLength label").forEach((el) => {
-    el.remove();
-  });
-
-  // Replace select classes
-  let selectLength = document.querySelector("#datasetLength select");
-
-  selectLength.classList = "";
-  selectLength.classList.add("form-select");
-  selectLength.style.width = "80px";
-});
-
-
-async function rechazarPedidoEstadoEspera(id) {
-  const res = await changeStatusOrderBeenWaiting(id);
-  if (!res?.ok) {
-    return swalError("No se pudo rechazar el pedido");
-  }
-  swalSuccess("Cotización rechazada");
-  llenarpedidos('todos');
-}
-
-
-</script>
-
 <style scoped>
 /* Alineación de iconos */
 .dropdown-menu .dropdown-item i {

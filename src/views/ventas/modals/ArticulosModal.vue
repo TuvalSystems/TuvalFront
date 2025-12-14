@@ -101,12 +101,12 @@
                             <i class="fa fa-search"></i>
                           </a>
                         </td>
-                        <td class="fs-sm">
+                        <td class="fs-sm" style="width: 7.5rem;justify-content: center;">
                           <a v-if="(row.ART_TIPO_COMPRA === 'L') || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO }}</a>
                           <span v-else>{{ row.ART_CODIGO }}</span>
                         </td>
-                        <td class="fs-sm">
+                        <td class="fs-sm"  style="width: 7.5rem;justify-content: center;">
                           <a v-if="(row.ART_TIPO_COMPRA === 'L') || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO }}</a>
                           <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
@@ -116,29 +116,28 @@
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_DESCRIPCION }}</a>
                           <span v-else>{{ row.ART_DESCRIPCION }}</span>
                         </td>
-                        <td class="fs-sm">
+                        <td class="fs-sm"  style="width: 4rem;justify-content: center;">
                           {{ row.ART_CODIGO_TRES_LETRAS }}
                         </td>
-                        <td class="fs-sm">
+                        <td class="fs-sm"  style="width: 4rem;justify-content: center;">
                           {{ row.ART_PLAN_UMEDIDA }}
                         </td>
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
+                        <td class="fs-sm fw-medium text-muted mb-0 text-center"
                           style="width: 7rem;justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockTransito)">
                             <code>{{ row.stockTransito.bodega }} - {{ row.stockTransito.pendiente }}<br></code>
-                            <!-- <code v-for="stock in row.stockTransito"
-                              :key="stock.STO_ART_BODEGA">{{ stock.bodega }} - {{ stock.pendiente }}<br></code> -->
+
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockTransito & !row.loading2)">
                             <button class="btn btn-sm btn-warning" @click="consultarStockTransito(row)"><i
-                                class="fa fa-magnifying-glass"></i> Transito</button>
+                                class="fa fa-magnifying-glass"></i></button>
                           </div>
                           <div v-if="row.loading2" class="text-center">
                             <div class="spinner-border spinner-border-sm text-primary" role="status"><span
                                 class="visually-hidden">Loading...</span></div>
                           </div>
                         </td>
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
+                        <td class="fs-sm fw-medium text-muted mb-0 text-center"
                           style="width: 7rem; justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stock)">
                             <code v-for="stock in row.stock"
@@ -146,7 +145,7 @@
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stock & !row.loading)">
                             <button class="btn btn-sm btn-primary" @click="consultarStock(row)"><i
-                                class="fa fa-magnifying-glass"></i> Ver stock</button>
+                                class="fa fa-magnifying-glass"></i> </button>
                           </div>
                           <div v-if="row.loading" class="text-center">
                             <div class="spinner-border spinner-border-sm text-primary" role="status"><span
@@ -155,7 +154,7 @@
                         </td>
 
 
-                        <td class="fs-sm fw-medium text-muted mb-0 text-right"
+                        <td class="fs-sm fw-medium text-muted mb-0 text-center"
                           style="width: 7rem;justify-content: center;">
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockImport)">
                             <code v-for="stock in row.stockImport"
@@ -163,7 +162,7 @@
                           </div>
                           <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockImport & !row.loading1)">
                             <button class="btn btn-sm btn-primary" @click="consultOtherStocksImports(row)"><i
-                                class="fa fa-magnifying-glass"></i> Ver stock</button>
+                                class="fa fa-magnifying-glass"></i></button>
                           </div>
                           <div v-if="row.loading1" class="text-center">
                             <div class="spinner-border spinner-border-sm text-primary" role="status"><span
@@ -172,13 +171,13 @@
                         </td>
 
 
-                        <td class="text-end">
+                        <td class="text-end"  style="width: 4rem;">
                           ${{ formatPrice(row.ART_VALOR) }}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end" style="width: 4rem;">
                           ${{ formatPrice((row.ART_VALOR - (row.ART_VALOR * 0.25)) * (1 + (row.ART_IMP_VTA / 100))) }}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end" style="width: 4rem;">
                           {{ formatPrice(row.ART_PESO) }}Kg
                         </td>
                       </tr>
@@ -303,12 +302,12 @@ function buscarArticulo() {
 const cols = reactive([
 
   {
-    name: "Código GP",
+    name: "COD. GP",
     field: "ART_CODIGO",
     sort: "",
   },
   {
-    name: "Código Zafiro",
+    name: "COD. Zafiro",
     field: "ART_CODIGO_ZAFIRO",
     sort: "",
   },
@@ -329,17 +328,17 @@ const cols = reactive([
     sort: "",
   },
   {
-    name: "Transito",
+    name: "Trans.",
     field: "ART_TRANSITO",
     sort: "",
   },
   {
-    name: "Stock bodega",
+    name: "Bodega",
     field: "ART_STOCK",
     sort: "",
   },
   {
-    name: "Otros Stock",
+    name: "Import.",
     field: "ART_STOCK_IMPORT",
     sort: "",
   },

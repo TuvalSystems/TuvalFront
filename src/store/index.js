@@ -1049,11 +1049,11 @@ const store = createStore({
         .post("/cotizaciones/detallecotizacion", cotizacion)
         .then((res) => {
           commit("setDetalleCotizacionLoading", false);
-          commit("setDetalleCotizacion", res.data.detalle);
+          commit("setDetalleCotizacion", res.data.data.detalle);
           commit("setEstadoDeCuentaLoading", false);
-          commit("setEstadoDeCuenta", res.data.estadodecuenta);
+          commit("setEstadoDeCuenta", res.data.data.estadodecuenta);
           commit("setSegmentoClienteLoading", false);
-          commit("setSegmentoCliente", res.data.segmento);
+          commit("setSegmentoCliente", res.data.data.segmento);
           return res;
         });
     },
@@ -2329,7 +2329,7 @@ const store = createStore({
       state.despacho_parcial_item = !!data.items_devueltos;
     },
     setFacturarExistente: (state, data) => {
-      state.facturar_existente = data.facturar_existente;
+      state.facturar_existente = data.data;
     },
     setFacturarDespachado: (state, data) => {
       state.facturar_despachado = data.facturar_despachado;

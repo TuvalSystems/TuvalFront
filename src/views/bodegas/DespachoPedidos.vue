@@ -604,6 +604,12 @@ function despacharguiaGuia(guia) {
       templateStore.pageLoader({ mode: "off" });
     }
   }).catch(err => {
+  let status = err.response.status || 500;
+   if (status  === 422) {
+    swalWarning(err.response.data.error);
+    templateStore.pageLoader({ mode: "off" });
+    return ;
+   }
     swalError(err.response.data.error);
     templateStore.pageLoader({ mode: "off" });
   });

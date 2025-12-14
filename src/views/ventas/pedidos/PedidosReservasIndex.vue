@@ -7,6 +7,7 @@ import { Modal } from "bootstrap";
 import { formatPriceJm } from "@/functions";
 import { useOrderReservationTable } from "@/composables/venta/pedidos/useOrderReservationTable.js";
 import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
+import verActualizarPendienteDespachoPedidosModal from "@/views/ventas/modals/verActualizarPendienteDespachoPedidosModal.vue";
 
 import {
     swalWarning,
@@ -107,12 +108,53 @@ async function closeModalUpdateDateInvoice() {
     refresh();
 }
 
+/** funciones para actualizar el estado pendientde de pedidos */
+let verModalUpdatePendienteDespacho = ref(null);
+let verModalUpdatePendienteDespachoObj = null;
+let datosModalPendienteDespacho = ref({});
+
+async function openModalUpdatePendienteDespacho(pedido) {
+    datosModalPendienteDespacho.value = pedido;
+    await nextTick();
+    verModalUpdatePendienteDespachoObj = Modal.getOrCreateInstance(verModalUpdatePendienteDespacho.value, { backdrop: true })
+    verModalUpdatePendienteDespachoObj.show();
+}
+
+async function closeModalUpdatePendienteDespacho() {
+    await nextTick();
+    datosModalPendienteDespacho.value = {};
+    verModalUpdatePendienteDespachoObj.hide();
+    refresh();
+}
+
 
 function initialModal() {
     if (verModalUpdateDateInvoice.value) {
         verModalUpdateDateInvoiceObj = Modal.getOrCreateInstance(verModalUpdateDateInvoice.value, { backdrop: true })
     }
+    if (verModalUpdatePendienteDespacho.value) {
+        verModalUpdatePendienteDespachoObj = Modal.getOrCreateInstance(verModalUpdatePendienteDespacho.value, { backdrop: true })
+    }
+}
 
+function motivoEspera(pedido) {
+    let msg = 'Pedido ';
+    if (pedido.factura_siguiente_mes) {
+        msg += 'factura a siguiente mes';
+    }
+    if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
+        msg += ' requiere aprobación comercial ';
+    }
+    if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no' && pedido.requiere_aprobacion_crediticia === 'yes') {
+        msg += ' y ';
+    }
+    if (pedido.requiere_aprobacion_crediticia === 'yes' && pedido.aprobado_crediticio === 'no') {
+        msg += ' requiere aprobación crediticia ';
+    }
+    if (pedido.factura_a_demanda) {
+        msg += 'requiere factura a demanda posterior al despacho ';
+    }
+    swalWarning(msg);
 }
 
 onMounted(async () => {
@@ -167,9 +209,12 @@ onMounted(async () => {
                 @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
 
                 <template #cell-estado="{ value, row }">
-                    <span :class="estadoClass(value)" style="font-size:12px">{{
+                    <span v-if="row.estado === 'espera'" :class="estadoClass(value)" style="font-size:12px;"
+                        @click="motivoEspera(row)">
+                        {{ row.estado ?? "N/A" }}</span>
+                    <span v-else :class="estadoClass(value)" style="font-size:12px;">{{
                         row.estado ?? "N/A"
-                        }}</span>
+                    }}</span>
                 </template>
                 <template #cell-total="{ value, row }">
                     <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
@@ -177,13 +222,35 @@ onMounted(async () => {
                 <!-- slot para cambiar el diseño y estilo de la columna para listar las bodegas usadas por la cotizacion -->
 
                 <template #actions="{ row }">
-                    <button v-if="canRescheduleInvoice(row)" type="button" class="btn btn-secondary btn-sm mx-1"
+                    <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-fw fa-ellipsis-v"></i> </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                        aria-labelledby="dropOptions">
+                        <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Gestión</li>
+                        <li v-if="canRescheduleInvoice(row)">
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="openModalUpdateDateInvoice(row)">
+                                <i class="fa-regular fa-calendar-days me-2"></i>Reprogramar Fecha
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-warning"
+                                @click="openModalUpdatePendienteDespacho(row)">
+                                <i class="fa-solid fa-clipboard-check me-2 "></i> Bloquear Despacho
+                            </button>
+                        </li>
+                    </ul>
+
+
+                    <!-- <button v-if="canRescheduleInvoice(row)" type="button" class="btn btn-secondary btn-sm mx-1"
                         title="Reprogramar Fecha Factura" @click="openModalUpdateDateInvoice(row)"
                         :disabled="isTestLocked(row)">
                         <span v-if="isTestLocked(row)" class="spinner-border spinner-border-sm" role="status"
                             aria-hidden="true"></span>
                         <i v-else class="fa-regular fa-calendar-days"></i>
-                    </button>
+                    </button> -->
                 </template>
                 <!-- Slot de vacío -->
                 <template #empty>
@@ -206,9 +273,21 @@ onMounted(async () => {
         <div class="modal-dialog modal-md modal-dialog-centered" role="document">
             <div class="modal-content">
                 <verActualizarFechaFacturaReserva v-if="datosModalPedidoAcDate && datosModalPedidoAcDate.id"
-                    :pedido="datosModalPedidoAcDate" 
-                    @closeModal="closeModalUpdateDateInvoice">
+                    :pedido="datosModalPedidoAcDate" @closeModal="closeModalUpdateDateInvoice">
                 </verActualizarFechaFacturaReserva>
+            </div>
+        </div>
+    </div>
+
+    <!-- modal para actualizar el pendiente de despacho de pedidos de factura demanda -->
+    <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
+        ref="verModalUpdatePendienteDespacho">
+        <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <verActualizarPendienteDespachoPedidosModal
+                    v-if="datosModalPendienteDespacho && datosModalPendienteDespacho.id"
+                    :pedido="datosModalPendienteDespacho" @closeModal="closeModalUpdatePendienteDespacho">
+                </verActualizarPendienteDespachoPedidosModal>
             </div>
         </div>
     </div>

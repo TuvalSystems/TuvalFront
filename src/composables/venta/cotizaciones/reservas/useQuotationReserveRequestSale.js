@@ -192,14 +192,14 @@ export function useQuotationReserveRequestSale(datoReserva) {
   async function verifyStockBeforeRequestReserve(cotizacionId) {
     return await run(() => axiosClient.post(apiVerificarStock, { id: cotizacionId }), {
       loadingRef: loadingStockValidation,
-      onError: (backend, error) => {
-        swalError(
-          backend?.error ||
-          backend?.message ||
-          error?.message ||
-          "Error al obtener la información"
-        );
-      },
+      // onError: (backend, error) => {
+      //   swalError(
+      //     backend?.error ||
+      //     backend?.message ||
+      //     error?.message ||
+      //     "Error al obtener la información"
+      //   );
+      // },
     });
 
   }

@@ -91,6 +91,14 @@ export function useQuotationReserveApproval() {
     });
   }
 
+  const apiCancelReservation = '/reservas/cancelar-solicitud-reserva'
+  const loadingCancelReservation = ref(false)
+  async function cancelReservation(id) {
+    return await run(() => axiosClient.post(apiCancelReservation, { id }), {
+       loadingRef: loadingCancelReservation,
+       successMessage: "Proceso realizado exitosamente.",
+    });
+  }
 
 
   // validacion para limite de fecha para aprobar reservas segun punto de venta
@@ -161,6 +169,8 @@ export function useQuotationReserveApproval() {
     approveReservation,
     fetchQuotationWithDetialAndStockActive,
     resetForm,
-    ptoVtaReservation
+    ptoVtaReservation,
+
+    cancelReservation
   };
 }

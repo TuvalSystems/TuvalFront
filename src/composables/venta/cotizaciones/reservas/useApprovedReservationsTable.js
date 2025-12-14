@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-export function useApprovedReservations() {
+export function useApprovedReservationsTable() {
   const { run } = useApiAction();
   const ctrl = ref(null); // AbortController actual
   let debounceId;
@@ -234,6 +234,15 @@ export function useApprovedReservations() {
     () => [table.sortField, table.sortOrder],
     () => fetchList(1)
   );
+
+    watch(
+        () => [table.fecha_desde, table.fecha_hasta],
+        () => {
+            if (table.fecha_desde && table.fecha_hasta) {
+                fetchList(1)
+            }
+        }
+    );
   return {
     columns,
     listPerpage,

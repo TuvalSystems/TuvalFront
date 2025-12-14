@@ -522,11 +522,11 @@ async function verModalReserva(row) {
     swalWarning('No puede realizar la reserva: la cotización no tiene cantidades seleccionadas.')
     return;
   }
- 
+
   /** proceso de verificacion de stock antes de que se abra el modal de reserva */
   const respStock = await verifyStockBeforeRequestReserve(row.id);
 
-  if (!respStock?.ok) {
+  if (!respStock?.ok && (row.has_l_items == false && row.has_service_items == false)) {
     swalWarning(respStock.message || 'No se puede procesar la solicitud de reserva por falta de stock.');
     return;
   }

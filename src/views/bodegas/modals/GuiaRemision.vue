@@ -413,7 +413,6 @@ async function generarGuia(verpedido) {
     await store.dispatch("generarGuiaVenta", data);
     emit("generarGuia");
   } catch (err) {
-    console.log(err, "error");
     const msg =
       err?.response?.data?.error ||
       err?.message ||

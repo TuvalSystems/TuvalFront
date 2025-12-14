@@ -37,14 +37,19 @@ export function useApiAction() {
             if (isAbortError(error)) {
                 return { ok: false, canceled: true, raw: error, message: "Cancelado" };
             }
+            const status = error.response?.status || 500;
             const backend = error?.response?.data ?? {};
-            const msg =
-                backend.error ||
-                backend.message ||
-                error?.message ||
-                "Ocurrió un error al procesar la solicitud.";
+            const msg = backend.error || backend.message || error?.message || "Ocurrió un error al procesar la solicitud.";
+
+            if (backend.errors && typeof backend.errors === 'object') {
+                const firstValidationError = Object.values(backend.errors).flat().shift();
+                if (firstValidationError) {
+                    msg = firstValidationError;
+                }
+            }
+
             onError && onError(backend, error);
-            return { ok: false, data: backend, raw: error, message: msg };
+            return { ok: false, data: backend, raw: error, message: msg , status: status };
         } finally {
             if (dec(targetLoading) === 0) targetLoading.value = false;
         }

@@ -20,11 +20,11 @@ export const echo = new Echo({
   wsHost: import.meta.env.VITE_PUSHER_HOST || window.location.hostname,
   wsPort: port,
   wssPort: port,
-  forceTLS: false,
-  encrypted: false,
-  enabledTransports: ["ws"],
+  forceTLS: isTLS,
+  encrypted: isTLS,
+  enabledTransports: ['ws', 'wss'],
   disableStats: true,
-  
+  wsPath: '/ws-soketi',
   // ⚡ Authorizer personalizado con Bearer desde tu store
   // (evita depender de cookies/CSRF y funciona aunque el token cambie)
 
