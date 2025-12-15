@@ -1,55 +1,54 @@
-import axiosClient from "../../../axios";
+import axiosClient from "@/axios";
 import { ref } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
+import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useGetSegmentClients() {
+  const { run } = useApiAction();
+  const apiSegments = "/cotizaciones/obtener-segmentos";
+  const apiSubSegments = "/cotizaciones/obtener-subsegmentos";
   const segmentos = ref([]);
   const subsegmentos = ref([]);
   const loadingSegmentos = ref(false);
   const loadingSubSegmentos = ref(false);
 
   async function fetchSegmentos() {
-    loadingSegmentos.value = true;
-    try {
-      const response = await axiosClient.post(
-        "/cotizaciones/obtener-segmentos"
-      );
-      const res = response.data;
-      loadingSegmentos.value = false;
-      segmentos.value = res.data;
-    } catch (error) {
-      console.log("Error al obtener los segmentos", error);
-      swalError(error.response.data.error);
-      return;
-    } finally {
-      loadingSegmentos.value = false;
-    }
+
+    return await run(() => axiosClient.post(apiSegments), {
+      loadingRef: loadingSegmentos,
+      onSuccess: (data) => {
+        segmentos.value = data ?? []
+      },
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener la información"
+        );
+      }
+    });
   }
 
   async function fetchSubSegmentos(segmentoTxt) {
-    {
-      loadingSubSegmentos.value = true;
-      try {
-        const response = await axiosClient.post(
-          "/cotizaciones/obtener-subsegmentos",
-          { segmento: segmentoTxt },
-          { headers: { "Content-Type": "application/json" } }
+    return await run(() => axiosClient.post(apiSubSegments, { segmento: segmentoTxt }), {
+      loadingRef: loadingSubSegmentos,
+      onSuccess: (data) => {
+        subsegmentos.value = data ?? []
+      },
+      onError: (backend, error) => {
+        swalError(
+          backend?.error ||
+          backend?.message ||
+          error?.message ||
+          "Error al obtener la información"
         );
-        const res = response.data;
-        loadingSubSegmentos.value = false;
-        subsegmentos.value = res.data;
-      } catch (error) {
-        console.log("Error al obtener los subsegmentos", error);
-        swalError(error.response.data.error);
-        return;
-      } finally {
-        loadingSubSegmentos.value = false;
       }
-    }
+    });
   }
 
 
-  
+
 
 
   return {

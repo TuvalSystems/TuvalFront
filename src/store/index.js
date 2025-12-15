@@ -1079,7 +1079,7 @@ const store = createStore({
         .post("/cotizaciones/guardarcliente", direccion)
         .then((res) => {
           commit("resetNuevoCliente");
-          return res;
+          return res.data;
         });
     },
     recuperarCotizacion({ commit }, cotizacion) {

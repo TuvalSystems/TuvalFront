@@ -1,3 +1,258 @@
+<script setup>
+import {
+  ref,
+  reactive,
+  computed,
+  onMounted,
+  onUnmounted,
+  onBeforeUnmount,
+  watch,
+} from "vue";
+import { useRouter } from "vue-router";
+import { useTemplateStore } from "@/stores/template";
+import { useStore } from "vuex";
+import {
+  swalSimple,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+  swalError,
+  toast,
+} from "@/functions/swal-alert.js";
+import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
+import useVuelidate from "@vuelidate/core";
+import { required, maxLength, email } from "@vuelidate/validators";
+
+const store = useStore();
+const templateStore = useTemplateStore();
+const territorios = computed(() => store.state.territorios);
+const provincias_ciudades = computed(() => store.state.provincias_ciudades);
+const grupos_subgrupos = computed(() => store.state.grupos_subgrupos);
+const nuevoCliente = computed(() => store.state.nuevoCliente);
+const cotizacion_id = ref(store.state.cotizacion_id);
+const router = useRouter();
+const {
+  segmentos,
+  subsegmentos,
+  loadingSegmentos,
+  loadingSubSegmentos,
+  fetchSegmentos,
+  fetchSubSegmentos,
+} = useGetSegmentClients();
+
+store.dispatch("territorios");
+
+const tipos = reactive([
+  { tipo: "04", nombre: "RUC" },
+  { tipo: "05", nombre: "CÉDULA" },
+  { tipo: "06", nombre: "PASAPORTE" },
+  { tipo: "08", nombre: "IDENTIFICACIÓN DEL EXTERIOR" },
+]);
+
+const rules = computed(() => {
+  return {
+    CLI_RUC: {
+      required,
+      maxLength: maxLength(15),
+    },
+    CLI_RAZON_SOCIAL: {
+      required,
+      maxLength: maxLength(65),
+    },
+    CLI_NOMBRE_CORTO: {
+      required,
+      maxLength: maxLength(30),
+    },
+    CLI_CONTACTO: {
+      required,
+      maxLength: maxLength(30),
+    },
+    CLI_DIRECCION: {
+      required,
+      maxLength: maxLength(122),
+    },
+    CLI_TERRITORIO: {
+      required,
+    },
+    CLI_PROVINCIA: {
+      required,
+    },
+    CLI_CIUDAD: {
+      required,
+    },
+    CLI_TELEFONO_1: {
+      required,
+      maxLength: maxLength(21),
+    },
+    CLI_TELEFONO_2: {
+      maxLength: maxLength(21),
+    },
+    CLI_TELEFONO_3: {
+      maxLength: maxLength(21),
+    },
+    CLI_TELEFONO_4: {
+      maxLength: maxLength(21),
+    },
+    CLI_CORREO_ELECT_SRI: {
+      required,
+      //email,
+      maxLength: maxLength(200),
+    },
+    CLI_CORREO_ELECT_NOTIFICACION_INTERNA: {
+      //email,
+      maxLength: maxLength(200),
+    },
+    CLI_SEGMENTO_ID: {
+      required,
+    },
+    CLI_SUBSEGMENTO_ID: {
+      required,
+    },
+  };
+});
+
+// Use vuelidate
+const v$ = useVuelidate(rules, nuevoCliente);
+
+let noprospecto = ref(true);
+
+function checkRuc() {
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "04" &&
+    nuevoCliente.value.CLI_RUC.length !== 13
+  ) {
+    swalError("El RUC debe tener 13 dígitos");
+    return;
+  }
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "05" &&
+    nuevoCliente.value.CLI_RUC.length !== 10
+  ) {
+    swalError("La CÉDULA debe tener 10 dígitos");
+    return;
+  }
+
+  store
+    .dispatch("checkRucProspecto", nuevoCliente.value)
+    .then((res) => {
+      if (res.prospecto) {
+        nuevoCliente.value.CLI_RAZON_SOCIAL = res.prospecto.CLI_RAZON_SOCIAL;
+        nuevoCliente.value.CLI_CORREO_ELECT_SRI =
+          res.prospecto.CLI_CORREO_ELECT_SRI;
+        nuevoCliente.value.CLI_DIRECCION = res.prospecto.CLI_DIRECCION;
+        nuevoCliente.value.CLI_TELEFONO_1 = res.prospecto.CLI_TELEFONO_1;
+      } else if (res.cliente) {
+        confirmCliente(res.cliente);
+      } else {
+        return;
+      }
+    })
+    .catch((err) => {
+      swalError(err.response.data.error);
+    });
+}
+
+function confirmCliente(cliente) {
+  swalInfo(
+    "El cliente " +
+    cliente.CLI_RAZON_SOCIAL +
+    " ya existe, se ha cargado la ventana de pedido regular"
+  );
+  cargarCliente(cliente);
+}
+
+function cargarCliente(cliente) {
+  store.commit("setCurrentcliente", cliente);
+  store.commit("setCurrentSucursal", cliente.sucursales[0].id);
+  setTimeout(() => {
+    location.href = "/ventas/crearcotizacion";
+  }, 1000);
+}
+
+async function onSubmit() {
+  const result = await v$.value.$validate();
+
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "04" &&
+    nuevoCliente.value.CLI_RUC.length !== 13
+  ) {
+    swalError("El RUC debe tener 13 dígitos");
+    return;
+  }
+  if (
+    nuevoCliente.value.CLI_TIPO_ID === "05" &&
+    nuevoCliente.value.CLI_RUC.length !== 10
+  ) {
+    swalError("La CÉDULA debe tener 10 dígitos");
+    return;
+  }
+
+  if (!result) {
+    return;
+  }
+
+  templateStore.pageLoader({ mode: "on" });
+  nuevoCliente.value.CLI_PROVINCIA_NOMBRE =
+    provincias_ciudades.value[nuevoCliente.value.CLI_PROVINCIA].provincia;
+  nuevoCliente.value.CLI_GRUPO_NOMBRE = "";
+
+
+  if (nuevoCliente.value.CLI_GRUPO)
+    nuevoCliente.value.CLI_GRUPO_NOMBRE =
+      grupos_subgrupos.value[nuevoCliente.value.CLI_GRUPO].GRUPO_CODIGO;
+
+  try {
+    // 4. Guarda cliente
+    const res = await store.dispatch('guardarCliente', { ...nuevoCliente.value })
+
+    // 5. Actualiza sesión y estado
+    const cliente = res.data
+
+    sessionStorage.setItem('CURRENTCLIENTE', JSON.stringify(cliente))
+    store.commit('setCurrentcliente', cliente)
+    // 6. llena prospecto si aplica
+    if (store.state.cotizacion_serial) {
+      noprospecto.value = false
+      // Usa un objeto plano; el action debe hacer commit antes de resolverse
+      const payloadProspecto = {
+        cliente_id: cliente.id,
+        PTO_VTA_ID: store.state.puntodeventaselect,
+        id: store.state.cotizacion_id,
+      }
+
+      await store.dispatch('llenarcotizacionProspecto', payloadProspecto)
+    }
+    // 7. Apaga loader y redirige
+    templateStore.pageLoader({ mode: 'off' })
+
+    // console.log('Navegando a crear cotización…')
+    await router.push({ name: 'ventas-crearcotizacion' })
+    // console.log('¡Redirección completada!')
+
+  } catch (error) {
+    templateStore.pageLoader({ mode: 'off' })
+
+    if (error.name === 'NavigationDuplicated') {
+      console.log('Ya estabas en ventas-crearcotizacion, nada mal.')
+    } else {
+      // console.error('Error en onSubmit:', error)
+      swalError(error.response?.data?.error || error.message)
+    }
+  }
+}
+
+let errorMsg = ref("");
+
+onMounted(() => {
+  fetchSegmentos();
+}),
+  onBeforeUnmount(() => {
+    if (noprospecto) {
+      store.commit("resetNuevoCliente");
+      store.commit("resetCotizacion");
+    }
+  });
+</script>
 <template>
   <!-- Hero -->
   <BasePageHeading title="Crear Cliente">
@@ -278,11 +533,10 @@
                 <div class="col-sm-9" v-if="segmentos.length">
                   <select class="form-select" id="select-CLI_SEGMENTO" name="select-CLI_SEGMENTO"
                     v-model="nuevoCliente.CLI_SEGMENTO_ID" @change="fetchSubSegmentos($event.target.value)"
-                    :disabled="loadingSegmentos" 
-                    :class="{
+                    :disabled="loadingSegmentos" :class="{
                       'is-invalid': v$.CLI_SEGMENTO_ID.$errors.length,
                     }" @blur="v$.CLI_SEGMENTO_ID.$touch">
-                    <option v-for="(seg, index) in segmentos" :key="index" :value="seg.cot_artPadre">
+                    <option v-for="(seg, index) in segmentos" :key="index" :value="seg.coAtrPadre">
                       {{ seg.segmento }}
                     </option>
                   </select>
@@ -294,11 +548,10 @@
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_SUBSEGMENTO">SubSegmento</label>
                 <div class="col-sm-9" v-if="subsegmentos.length">
                   <select class="form-select" id="select-CLI_SUBSEGMENTO" name="select-CLI_SUBSEGMENTO"
-                    v-model="nuevoCliente.CLI_SUBSEGMENTO_ID" :disabled="loadingSubSegmentos"
-                      :class="{
+                    v-model="nuevoCliente.CLI_SUBSEGMENTO_ID" :disabled="loadingSubSegmentos" :class="{
                       'is-invalid': v$.CLI_SUBSEGMENTO_ID.$errors.length,
                     }" @blur="v$.CLI_SUBSEGMENTO_ID.$touch">
-                    <option v-for="(seg, index) in subsegmentos" :key="index" :value="seg.co_atrHijo">
+                    <option v-for="(seg, index) in subsegmentos" :key="index" :value="seg.coAtrHijo">
                       {{ seg.subsegmento }}
                     </option>
                   </select>
@@ -324,256 +577,3 @@
   </div>
   <!-- END Page Content -->
 </template>
-<script setup>
-import {
-  ref,
-  reactive,
-  computed,
-  onMounted,
-  onUnmounted,
-  onBeforeUnmount,
-  watch,
-} from "vue";
-import { useRouter } from "vue-router";
-import { useTemplateStore } from "@/stores/template";
-import { useStore } from "vuex";
-import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
-  swalError,
-  toast,
-} from "@/functions/swal-alert.js";
-import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
-import useVuelidate from "@vuelidate/core";
-import { required, maxLength, email } from "@vuelidate/validators";
-
-const store = useStore();
-const templateStore = useTemplateStore();
-const territorios = computed(() => store.state.territorios);
-const provincias_ciudades = computed(() => store.state.provincias_ciudades);
-const grupos_subgrupos = computed(() => store.state.grupos_subgrupos);
-const nuevoCliente = computed(() => store.state.nuevoCliente);
-const cotizacion_id = ref(store.state.cotizacion_id);
-const router = useRouter();
-const {
-  segmentos,
-  subsegmentos,
-  loadingSegmentos,
-  loadingSubSegmentos,
-  fetchSegmentos,
-  fetchSubSegmentos,
-} = useGetSegmentClients();
-
-store.dispatch("territorios");
-
-const tipos = reactive([
-  { tipo: "04", nombre: "RUC" },
-  { tipo: "05", nombre: "CÉDULA" },
-  { tipo: "06", nombre: "PASAPORTE" },
-  { tipo: "08", nombre: "IDENTIFICACIÓN DEL EXTERIOR" },
-]);
-
-const rules = computed(() => {
-  return {
-    CLI_RUC: {
-      required,
-      maxLength: maxLength(15),
-    },
-    CLI_RAZON_SOCIAL: {
-      required,
-      maxLength: maxLength(65),
-    },
-    CLI_NOMBRE_CORTO: {
-      required,
-      maxLength: maxLength(30),
-    },
-    CLI_CONTACTO: {
-      required,
-      maxLength: maxLength(30),
-    },
-    CLI_DIRECCION: {
-      required,
-      maxLength: maxLength(122),
-    },
-    CLI_TERRITORIO: {
-      required,
-    },
-    CLI_PROVINCIA: {
-      required,
-    },
-    CLI_CIUDAD: {
-      required,
-    },
-    CLI_TELEFONO_1: {
-      required,
-      maxLength: maxLength(21),
-    },
-    CLI_TELEFONO_2: {
-      maxLength: maxLength(21),
-    },
-    CLI_TELEFONO_3: {
-      maxLength: maxLength(21),
-    },
-    CLI_TELEFONO_4: {
-      maxLength: maxLength(21),
-    },
-    CLI_CORREO_ELECT_SRI: {
-      required,
-      //email,
-      maxLength: maxLength(200),
-    },
-    CLI_CORREO_ELECT_NOTIFICACION_INTERNA: {
-      //email,
-      maxLength: maxLength(200),
-    },
-    CLI_SEGMENTO_ID: {
-      required,
-    },
-    CLI_SUBSEGMENTO_ID: {
-      required,
-    },
-  };
-});
-
-// Use vuelidate
-const v$ = useVuelidate(rules, nuevoCliente);
-
-let noprospecto = ref(true);
-
-function checkRuc() {
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "04" &&
-    nuevoCliente.value.CLI_RUC.length !== 13
-  ) {
-    swalError("El RUC debe tener 13 dígitos");
-    return;
-  }
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "05" &&
-    nuevoCliente.value.CLI_RUC.length !== 10
-  ) {
-    swalError("La CÉDULA debe tener 10 dígitos");
-    return;
-  }
-
-  store
-    .dispatch("checkRucProspecto", nuevoCliente.value)
-    .then((res) => {
-      if (res.prospecto) {
-        nuevoCliente.value.CLI_RAZON_SOCIAL = res.prospecto.CLI_RAZON_SOCIAL;
-        nuevoCliente.value.CLI_CORREO_ELECT_SRI =
-          res.prospecto.CLI_CORREO_ELECT_SRI;
-        nuevoCliente.value.CLI_DIRECCION = res.prospecto.CLI_DIRECCION;
-        nuevoCliente.value.CLI_TELEFONO_1 = res.prospecto.CLI_TELEFONO_1;
-      } else if (res.cliente) {
-        confirmCliente(res.cliente);
-      } else {
-        return;
-      }
-    })
-    .catch((err) => {
-      swalError(err.response.data.error);
-    });
-}
-
-function confirmCliente(cliente) {
-  swalInfo(
-    "El cliente " +
-    cliente.CLI_RAZON_SOCIAL +
-    " ya existe, se ha cargado la ventana de pedido regular"
-  );
-  cargarCliente(cliente);
-}
-
-function cargarCliente(cliente) {
-  store.commit("setCurrentcliente", cliente);
-  store.commit("setCurrentSucursal", cliente.sucursales[0].id);
-  setTimeout(() => {
-    location.href = "/ventas/crearcotizacion";
-  }, 1000);
-}
-
-async function onSubmit() {
-  const result = await v$.value.$validate();
-
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "04" &&
-    nuevoCliente.value.CLI_RUC.length !== 13
-  ) {
-    swalError("El RUC debe tener 13 dígitos");
-    return;
-  }
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "05" &&
-    nuevoCliente.value.CLI_RUC.length !== 10
-  ) {
-    swalError("La CÉDULA debe tener 10 dígitos");
-    return;
-  }
-
-  if (!result) {
-    return;
-  }
-
-  templateStore.pageLoader({ mode: "on" });
-  nuevoCliente.value.CLI_PROVINCIA_NOMBRE =
-    provincias_ciudades.value[nuevoCliente.value.CLI_PROVINCIA].provincia;
-  nuevoCliente.value.CLI_GRUPO_NOMBRE = "";
-
-
-  if (nuevoCliente.value.CLI_GRUPO)
-    nuevoCliente.value.CLI_GRUPO_NOMBRE =
-      grupos_subgrupos.value[nuevoCliente.value.CLI_GRUPO].GRUPO_CODIGO;
-
-  try {
-    // 4. Guarda cliente
-    const res = await store.dispatch('guardarCliente', { ...nuevoCliente.value })
-    // 5. Actualiza sesión y estado
-    const cliente = res.data.cliente
-    sessionStorage.setItem('CURRENTCLIENTE', JSON.stringify(cliente))
-    store.commit('setCurrentcliente', cliente)
-    // 6. llena prospecto si aplica
-    if (store.state.cotizacion_serial) {
-      noprospecto.value = false
-      // Usa un objeto plano; el action debe hacer commit antes de resolverse
-      const payloadProspecto = {
-        cliente_id: cliente.id,
-        PTO_VTA_ID: store.state.puntodeventaselect,
-        id: store.state.cotizacion_id,
-      }
-
-      await store.dispatch('llenarcotizacionProspecto', payloadProspecto)
-    }
-    // 7. Apaga loader y redirige
-    templateStore.pageLoader({ mode: 'off' })
-
-    // console.log('Navegando a crear cotización…')
-    await router.push({ name: 'ventas-crearcotizacion' })
-    // console.log('¡Redirección completada!')
-
-  } catch (error) {
-    templateStore.pageLoader({ mode: 'off' })
-
-    if (error.name === 'NavigationDuplicated') {
-      console.log('Ya estabas en ventas-crearcotizacion, nada mal.')
-    } else {
-      // console.error('Error en onSubmit:', error)
-      swalError(error.response?.data?.error || error.message)
-    }
-  }
-}
-
-let errorMsg = ref("");
-
-onMounted(() => {
-  fetchSegmentos();
-}),
-  onBeforeUnmount(() => {
-    if (noprospecto) {
-      store.commit("resetNuevoCliente");
-      store.commit("resetCotizacion");
-    }
-  });
-</script>
