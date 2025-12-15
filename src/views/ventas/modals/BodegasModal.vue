@@ -70,10 +70,11 @@ function isInt(value) {
 }
 
 function updateStock(event, indexbodegas, index) {
-  if (event.target.value == "") {
+  let valor = event.target.value;
+  if (valor == "") {
     cotizacion.value.data[indexbodegas].stock[index].seleccionado = 0;
   } else if (
-    !isInt(event.target.value) &&
+    !isInt(valor) &&
     cotizacion.value.data[indexbodegas].ART_DECIMAL_CANTIDAD == 0
   ) {
     cotizacion.value.data[indexbodegas].stock[index].error = true;
@@ -81,17 +82,22 @@ function updateStock(event, indexbodegas, index) {
     return false;
   } else if (
     cotizacion.value.data[indexbodegas].ART_DECIMAL_CANTIDAD > 0 &&
-    isNaN(event.target.value)
+    isNaN(valor)
   ) {
     cotizacion.value.data[indexbodegas].stock[index].error = true;
     swalError("Ingresar un número");
+    return false;
+  }
+  else if (parseFloat(valor) < 0) {
+    cotizacion.value.data[indexbodegas].stock[index].error = true;
+    swalError("No se permiten cantidades negativas");
     return false;
   }
 
   if (
     parseFloat(
       cotizacion.value.data[indexbodegas].stock[index].STO_ART_STOCK_DISPONIBLE
-    ) < parseFloat(event.target.value)
+    ) < parseFloat(valor)
   ) {
     cotizacion.value.data[indexbodegas].stock[index].error = true;
     swalError("No hay stock suficiente");
@@ -99,7 +105,7 @@ function updateStock(event, indexbodegas, index) {
   }
 
   if (cotizacion.value.data[indexbodegas].ART_DECIMAL_CANTIDAD > 0) {
-    event.target.value = parseFloat(event.target.value).toFixed(2);
+    event.target.value = parseFloat(valor).toFixed(2);
   }
   cotizacion.value.data[indexbodegas].stock[index].error = false;
   guardarBodegas(indexbodegas, false);
