@@ -6,6 +6,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { Modal } from "bootstrap";
 import { formatPriceJm } from "@/functions";
 import { useOrderReservationTable } from "@/composables/venta/pedidos/useOrderReservationTable.js";
+import { useApiValidatesOrdersReservation } from "@/composables/venta/pedidos/useApiValidatesOrdersReservation.js";
 import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
 import verActualizarPendienteDespachoPedidosModal from "@/views/ventas/modals/verActualizarPendienteDespachoPedidosModal.vue";
 
@@ -35,6 +36,8 @@ const {
     totalClass,
     estadoClass,
 } = useOrderReservationTable();
+
+const { validateExistingGuidesWithAjustment } = useApiValidatesOrdersReservation();
 
 // functiones de locked para tabla
 const lockedIds = ref(new Set())
@@ -114,6 +117,11 @@ let verModalUpdatePendienteDespachoObj = null;
 let datosModalPendienteDespacho = ref({});
 
 async function openModalUpdatePendienteDespacho(pedido) {
+    const resp = await validateExistingGuidesWithAjustment(pedido.id);
+    if (resp.ok) {
+        swalWarning('No puede realizar el bloque de despacho en este pedido: ' + resp.message);
+        return;
+    }
     datosModalPendienteDespacho.value = pedido;
     await nextTick();
     verModalUpdatePendienteDespachoObj = Modal.getOrCreateInstance(verModalUpdatePendienteDespacho.value, { backdrop: true })
