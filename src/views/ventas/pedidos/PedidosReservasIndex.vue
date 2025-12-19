@@ -119,7 +119,7 @@ let datosModalPendienteDespacho = ref({});
 async function openModalUpdatePendienteDespacho(pedido) {
     const resp = await validateExistingGuidesWithAjustment(pedido.id);
     if (resp.ok) {
-        swalWarning('No puede realizar el bloque de despacho en este pedido: ' + resp.message);
+        swalWarning('No puede realizar el bloqueo de despacho en este pedido: ' + resp.message);
         return;
     }
     datosModalPendienteDespacho.value = pedido;
