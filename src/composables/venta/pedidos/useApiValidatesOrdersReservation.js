@@ -15,14 +15,6 @@ export function useApiValidatesOrdersReservation() {
        return await run(() => axiosClient.post(apiValidateGuides, { id: id }), {
             loadingRef: loadingValidateGuides,
             successMessage: "Proceso realizado exitosamente.",
-            onError(backend, error) {
-                swalError(
-                    backend?.error ||
-                    backend?.message ||
-                    error?.message ||
-                    "Error al obtener la información"
-                );
-            }
         });
     }
 
