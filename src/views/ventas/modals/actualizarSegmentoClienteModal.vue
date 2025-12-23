@@ -64,7 +64,7 @@ onMounted(() => {
                             class="spinner-border spinner-border-sm"></span></div>
                     <select class="form-select" v-model="data.segmento" @change="fetchSubSegmentos($event.target.value)"
                         v-else>
-                        <option v-for="(seg, index) in segmentos" :key="index" :value="seg.cot_artPadre">
+                        <option v-for="(seg, index) in segmentos" :key="index" :value="seg.coAtrPadre">
                             {{ seg.segmento }}
                         </option>
                     </select>
@@ -74,7 +74,7 @@ onMounted(() => {
                     <div v-if="loadingSegmentos && loadingSubSegmentos" class="text-center"> <span
                             class="spinner-border spinner-border-sm"></span></div>
                     <select class="form-select" v-model="data.subsegmento" v-else>
-                        <option v-for="(seg, index) in subsegmentos" :key="index" :value="seg.co_atrHijo">
+                        <option v-for="(seg, index) in subsegmentos" :key="index" :value="seg.coAtrHijo">
                             {{ seg.subsegmento }}
                         </option>
                     </select>
