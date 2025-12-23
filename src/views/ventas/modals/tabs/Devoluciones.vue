@@ -25,8 +25,9 @@
                 devolucion.estado === 'solicitado' ? 'bg-info-light text-info': '' ||
                 devolucion.estado === 'recibido' ? 'bg-info-light text-info': '' ||
                 devolucion.estado === 'espera' ? 'bg-warning-light text-warning': '' ||
-                devolucion.estado === 'rechazado' ? 'bg-danger-light text-danger': ''
-                ">
+                devolucion.estado === 'rechazado' ? 'bg-danger-light text-danger': '' ||
+                devolucion.estado === 'anulada' ? 'bg-danger-light text-danger': '' ||
+                devolucion.estado === 'no_procesado' ? 'bg-light text-secondary': ''">
                         {{ devolucion.estado }}</span>
           </td>
           <td>{{ devolucion.created_at }}</td>

@@ -55,7 +55,8 @@
                     <span class="badge rounded-pill fw-semibold d-inline-block py-2 px-3 mx-1 fs-xs"
 
                       @click="row.estado == 'rechazado' && row.aprobado_mensaje ? swalWarning(row.aprobado_mensaje) : ''||
-                        row.estado === 'solicitado' && row.NC_VTA_MENSAJE ? swalWarning(row.NC_VTA_MENSAJE) : ''"
+                        row.estado === 'solicitado' && row.NC_VTA_MENSAJE ? swalWarning(row.NC_VTA_MENSAJE) : ''||
+                        row.estado ==='no_procesado' && row.motivo_no_anulada ? swalWarning(row.motivo_no_anulada) : ''"
                       :class="
                       row.aprobado_mensaje ? 'pointer bg-danger-light text-danger':'' ||
                       row.estado == 'procesado' ? 'bg-success-light text-success': '' ||
@@ -64,7 +65,8 @@
                       row.estado == 'espera' ? 'bg-warning-light text-warning': '' ||
                       row.estado == 'rechazado' ? 'bg-danger-light text-danger': '' ||
                       row.estado == 'anulada' ? 'bg-danger-light text-danger': '' ||
-                      row.estado == 'recibido' ? 'bg-success-light text-info': ''"
+                      row.estado == 'recibido' ? 'bg-success-light text-info': '' ||
+                      row.estado == 'no_procesado' ? 'bg-light text-secondary': ''"
                       >
                         {{ row.estado }}</span>
                   </td>
