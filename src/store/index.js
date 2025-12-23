@@ -571,7 +571,7 @@ const store = createStore({
         .post("/cotizaciones/llenarcotizacion", data)
         .then((res) => {
           commit("setCotizacionLoading", false);
-          commit("getCotizacion", res.data.articulos);
+          commit("getCotizacion", res.data.data);
           return res;
         });
     },
@@ -1079,7 +1079,7 @@ const store = createStore({
         .post("/cotizaciones/guardarcliente", direccion)
         .then((res) => {
           commit("resetNuevoCliente");
-          return res;
+          return res.data;
         });
     },
     recuperarCotizacion({ commit }, cotizacion) {
@@ -1200,15 +1200,15 @@ const store = createStore({
           this.state.factura_posterior_despacho = 0;
           this.state.alerta_facturar = null;
 
-          if (res.data.cliente.CLI_FACTURA_POSTERIOR_AL_DESPACHO === "SI") {
-            if (res.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION === 1) {
+          if (res.data.data.cliente.CLI_FACTURA_POSTERIOR_AL_DESPACHO === "SI") {
+            if (res.data.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION === 1) {
               this.state.factura_posterior_despacho = 1;
               this.state.factura_a_demanda = 1;
               this.state.alerta_facturar =
                 "Factura a demanda posterior al despacho";
             } else if (
               this.state.today.getDate() <=
-              res.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION
+              res.data.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION
             ) {
               this.state.factura_posterior_despacho = 1;
             } else {
@@ -1236,12 +1236,12 @@ const store = createStore({
             this.state.pregunta_facturar
           );
 
-          commit("setCurrentcliente", res.data.cliente);
-          commit("setCurrentSucursal", res.data.currentSucursal);
-          commit("setRegistroCopia", res.data.registro_copia);
+          commit("setCurrentcliente", res.data.data.cliente);
+          commit("setCurrentSucursal", res.data.data.currentSucursal);
+          commit("setRegistroCopia", res.data.data.registro_copia);
           commit("setCondicionPago", cotizacion);
-          commit("setCurrentTest", res.data.test);
-          commit("setSegmentoCliente", res.data.segmento);
+          commit("setCurrentTest", res.data.data.test);
+          commit("setSegmentoCliente", res.data.data.segmento);
         });
     },
     llenarcotizacionProspecto({ commit }, cotizacion) {
