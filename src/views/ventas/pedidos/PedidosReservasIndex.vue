@@ -217,7 +217,7 @@ onMounted(async () => {
                 @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
 
                 <template #cell-estado="{ value, row }">
-                    <span v-if="row.estado === 'espera'" :class="estadoClass(value)" style="font-size:12px;"
+                    <span v-if="row.estado === 'espera'" :class="estadoClass(value)" style="font-size:0.75rem;"
                         @click="motivoEspera(row)">
                         {{ row.estado ?? "N/A" }}</span>
                     <span v-else :class="estadoClass(value)" style="font-size:12px;">{{
