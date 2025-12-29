@@ -179,9 +179,9 @@
                       >{{ articulo.compartimientos }}
                       <option
                         v-for="(compartimiento, index) in articulo.compartimientos" :key="index"
-                        :value="compartimiento.bin"
+                        :value="compartimiento.compartimento"
 
-                        >{{ compartimiento.bin }}</option>
+                        >{{ compartimiento.compartimento }}</option>
                     </select>
                   </td>
                   <td class="text-end">
@@ -390,7 +390,7 @@ function verGuia(bodega) {
   store.dispatch('detalleReciboReposicion', bodega.id).then((res) => {
     currentGuia.value = bodega;
     res.detalle.map( articulo => {
-        articulo.compartimiento = articulo.compartimientos[0]?.bin || '';
+        articulo.compartimiento = articulo.compartimientos[0]?.compartimento || '';
     });
 
     currentGuia.value.detalle = res.detalle;
