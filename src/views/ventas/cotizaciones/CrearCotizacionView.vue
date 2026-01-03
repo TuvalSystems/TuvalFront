@@ -1414,9 +1414,9 @@ function calcTotales() {
       let valorUnitario = parseFloat(art.ART_VALOR_ORIGINAL);
       const modificador = parseFloat(art.modificador) || 0;
       valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
-      art.ART_VALOR = redondear(valorUnitario, 4);
+      art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
     } else {
-      art.ART_VALOR = redondear(parseFloat(art.ART_VALOR), 4);
+      art.ART_VALOR = redondear(parseFloat(art.ART_VALOR) + 0.000001, 4);
     }
 
     if (art.ART_VALOR === 0) {
@@ -1435,7 +1435,7 @@ function calcTotales() {
 
     //calcular SUBTOTAL de la linea (precio - descuento) * cantidad
     const precioConDescuento = precioParaCalculo - descuentoUnitario;
-    const subtotalLinea = redondear(precioConDescuento * cantidad, 2);
+    const subtotalLinea = redondear((precioConDescuento * cantidad) + 0.000001, 2);
 
     //guardamos el valor numerico crudo para calculos
     // art.subTotalRaw = subtotalLinea;
