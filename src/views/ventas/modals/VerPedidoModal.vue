@@ -155,7 +155,7 @@
                         ${{ format4(parseFloat(articulo.ART_DESCUENTO)) }}
                     </td>
                     <td class="fs-sm text-end">
-                      ${{ format(parseFloat((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD))  }}
+                     ${{ format(calcularTotalLinea(articulo)) }}
                     </td>
                   </tr>
                   <tr v-if="articulo.proveedores.length">
@@ -427,6 +427,17 @@ function confirmcancelarPedido(pedido) {
         }
       });
 }
+
+const calcularTotalLinea = (articulo) => {
+  const valor = parseFloat(articulo.ART_VALOR) || 0;
+  const descuento = parseFloat(articulo.ART_DESCUENTO) || 0;
+  const cantidad = parseFloat(articulo.ART_CANTIDAD) || 0;
+
+  // Aplicamos la misma lógica "antibugs" que en el backend
+  const totalRaw = ((valor - descuento) * cantidad) + 0.000001;
+  
+  return totalRaw; // El 'format' del template se encargará de redondearlo visualmente
+};
 function cancelarPedido(pedido){
   store.dispatch("cancelarPedido", pedido).then( (res) => {
     emit('cancelarPedido');
