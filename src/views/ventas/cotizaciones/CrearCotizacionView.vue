@@ -1385,10 +1385,10 @@ function calcTotales0() {
  */
 function calcTotales() {
   // 1.- Reiniciar acumuladores
-  let tempSubtotal = 0;
-  let tempDescuento = 0;
-  let tempIva = 0;
-  let tempPeso = 0;
+  let tempSubtotal = 0.00;
+  let tempDescuento = 0.00;
+  let tempIva = 0.00;
+  let tempPeso = 0.00;
 
   // 2.- Reiniciar validaciones
   validaCantidad.value = true;
@@ -1455,12 +1455,12 @@ function calcTotales() {
     tempPeso += (parseFloat(art.ART_PESO) || 0) * cantidad;
   });
 
-  subtotal.value = redondear(tempSubtotal, 2);
-  descuento.value = redondear(tempDescuento, 2);
-  iva.value = redondear(tempIva, 2);
+  subtotal.value = redondear(tempSubtotal+ 0.000001, 2);
+  descuento.value = redondear(tempDescuento+ 0.000001, 2);
+  iva.value = redondear(tempIva+ 0.000001, 2);
   peso.value = redondear(tempPeso, 2);
 
-  total.value = redondear(subtotal.value + iva.value, 2);
+  total.value = redondear((subtotal.value + iva.value)+ 0.000001, 2);
 
 
   // 4. Verificaciones externas
