@@ -24,42 +24,12 @@ export function useReceiveReservationTransfers() {
   });
   const loadingRef = toRef(table, "loading");
   const columns = reactive([
-    {
-      'label': 'Guia Remisión',
-      'key': 'numero_guia',
-      clickable: false,
-      sortable: true,
-      render: (value) => value,
-      thClass: " text-center",
-      tdClass: " text-center",
-    },
-    {
-      'label': 'Origen',
-      'key': 'bodega_origen',
-      clickable: false,
-      sortable: true,
-      render: (value) => value,
-      thClass: " text-center ",
-      tdClass: " text-center ",
-    },
-    {
-      'label': 'Cotizaciones',
-      'key': 'quotesText',
-      sortable: true,
-      render: (value) => value,
-      thClass: " text-start d-none d-md-table-cell",
-      tdClass: " text-start d-none d-md-table-cell",
-    },
-    {
-      'label': 'Placa',
-      'key': 'placa',
-      clickable: false,
-      sortable: true,
-      render: (value) => value,
-      thClass: " text-center d-none d-md-table-cell",
-      tdClass: " text-center d-none d-md-table-cell",
-    }]);
-  const listPerpage = ref([
+    {label:'Guia Remisión', key: 'numero_guia',  clickable: false, sortable: true},
+    {label: 'Origen', key: 'bodega_origen', clickable: false, sortable: true},
+    {label: 'Cotizaciones',key: 'quotesText',sortable: true,thClass: "d-none d-md-table-cell",tdClass: "d-none d-md-table-cell"},
+    {label: 'Placa',key: 'placa', clickable: false,sortable: true, thClass: "d-none d-md-table-cell", tdClass: "d-none d-md-table-cell"}]);
+ 
+    const listPerpage = ref([
     { label: "5", value: "5" },
     { label: "10", value: "10" },
     { label: "20", value: "20" },

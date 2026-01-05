@@ -89,6 +89,10 @@ const DevolucionesBodegas = () =>
 const Notificaciones = () => import("@/views/notificaciones/index.vue");
 const PasswordChange = () => import("@/views/auth/PasswordChange.vue");
 
+/** devoluciones bodegas index */
+
+const recibirDevolucionesIndex = () => import("@/views/bodegas/devoluciones/RecibirDevolucionesIndex.vue");
+
 /** bodegas reservas */
 const TransferenciaReservaIndex = () =>
   import("@/views/bodegas/reservas/TransferenciaReservaIndex.vue");
@@ -454,7 +458,7 @@ const routes = [
       {
         path: "devoluciones",
         name: "bodegas-devoluciones",
-        component: DevolucionesBodegas,
+        component: recibirDevolucionesIndex,
         meta: {
           title: "Bodegas - Devoluciones",
         },

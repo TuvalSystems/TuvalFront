@@ -1339,7 +1339,7 @@ let validaCantidad = ref(true);
 let validaPrecio = ref(true);
 let validaDescripcion = ref(true);
 
-function calcTotales() {
+function calcTotales0() {
   subtotal.value = 0;
   descuento.value = 0;
   iva.value = 0;
@@ -1383,12 +1383,12 @@ function calcTotales() {
 /** sale el 2026 porque este calculo es el correcto pero hasta que se inicie e nuevo año se usa el antiguo que es el
  * que esta arriba
  */
-function calcTotales1() {
+function calcTotales() {
   // 1.- Reiniciar acumuladores
-  let tempSubtotal = 0;
-  let tempDescuento = 0;
-  let tempIva = 0;
-  let tempPeso = 0;
+  let tempSubtotal = 0.00;
+  let tempDescuento = 0.00;
+  let tempIva = 0.00;
+  let tempPeso = 0.00;
 
   // 2.- Reiniciar validaciones
   validaCantidad.value = true;
@@ -1414,9 +1414,9 @@ function calcTotales1() {
       let valorUnitario = parseFloat(art.ART_VALOR_ORIGINAL);
       const modificador = parseFloat(art.modificador) || 0;
       valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
-      art.ART_VALOR = redondear(valorUnitario, 4);
+      art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
     } else {
-      art.ART_VALOR = redondear(parseFloat(art.ART_VALOR), 4);
+      art.ART_VALOR = redondear(parseFloat(art.ART_VALOR) + 0.000001, 4);
     }
 
     if (art.ART_VALOR === 0) {
@@ -1435,7 +1435,7 @@ function calcTotales1() {
 
     //calcular SUBTOTAL de la linea (precio - descuento) * cantidad
     const precioConDescuento = precioParaCalculo - descuentoUnitario;
-    const subtotalLinea = redondear(precioConDescuento * cantidad, 2);
+    const subtotalLinea = redondear((precioConDescuento * cantidad) + 0.000001, 2);
 
     //guardamos el valor numerico crudo para calculos
     // art.subTotalRaw = subtotalLinea;
@@ -1455,12 +1455,12 @@ function calcTotales1() {
     tempPeso += (parseFloat(art.ART_PESO) || 0) * cantidad;
   });
 
-  subtotal.value = redondear(tempSubtotal, 2);
-  descuento.value = redondear(tempDescuento, 2);
-  iva.value = redondear(tempIva, 2);
+  subtotal.value = redondear(tempSubtotal+ 0.000001, 2);
+  descuento.value = redondear(tempDescuento+ 0.000001, 2);
+  iva.value = redondear(tempIva+ 0.000001, 2);
   peso.value = redondear(tempPeso, 2);
 
-  total.value = redondear(subtotal.value + iva.value, 2);
+  total.value = redondear((subtotal.value + iva.value)+ 0.000001, 2);
 
 
   // 4. Verificaciones externas
