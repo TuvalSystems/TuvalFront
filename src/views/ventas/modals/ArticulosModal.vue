@@ -106,7 +106,7 @@
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO }}</a>
                           <span v-else>{{ row.ART_CODIGO }}</span>
                         </td>
-                        <td class="fs-sm"  style="width: 7.5rem;justify-content: center;">
+                        <td class="fs-sm" style="width: 7.5rem;justify-content: center;">
                           <a v-if="(row.ART_TIPO_COMPRA === 'L') || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)"
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO }}</a>
                           <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
@@ -116,10 +116,10 @@
                             @click="selectArticulo(row)" href="javascript:void(0)">{{ row.ART_DESCRIPCION }}</a>
                           <span v-else>{{ row.ART_DESCRIPCION }}</span>
                         </td>
-                        <td class="fs-sm"  style="width: 4rem;justify-content: center;">
+                        <td class="fs-sm" style="width: 4rem;justify-content: center;">
                           {{ row.ART_CODIGO_TRES_LETRAS }}
                         </td>
-                        <td class="fs-sm"  style="width: 4rem;justify-content: center;">
+                        <td class="fs-sm" style="width: 4rem;justify-content: center;">
                           {{ row.ART_PLAN_UMEDIDA }}
                         </td>
                         <td class="fs-sm fw-medium text-muted mb-0 text-center"
@@ -160,7 +160,7 @@
                             <code v-for="stock in row.stockImport"
                               :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
                           </div>
-                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && !row.stockImport & !row.loading1)">
+                          <div v-if="row.ART_TIPO_COMPRA != 'L' && !row.stockImport && !row.loading1">
                             <button class="btn btn-sm btn-primary" @click="consultOtherStocksImports(row)"><i
                                 class="fa fa-magnifying-glass"></i></button>
                           </div>
@@ -168,10 +168,14 @@
                             <div class="spinner-border spinner-border-sm text-primary" role="status"><span
                                 class="visually-hidden">Loading...</span></div>
                           </div>
+                          <div
+                            v-if="row.ART_TIPO_COMPRA != 'L' && Array.isArray(row.stockImport) && row.stockImport.length === 0 && !row.loading1">
+                            <code> - </code>
+                          </div>
                         </td>
 
 
-                        <td class="text-end"  style="width: 4rem;">
+                        <td class="text-end" style="width: 4rem;">
                           ${{ formatPrice(row.ART_VALOR) }}
                         </td>
                         <td class="text-end" style="width: 4rem;">
@@ -395,10 +399,22 @@ function consultOtherStocksImports(articulo) {
     puntodeventa_id: store.state.puntodeventaselect,
   })
   store.dispatch('consultaStockOthers', consulta).then(res => {
-    articulo.stockImport = res.stock;
+    articulo.stockImport = res.stock || [];
     articulo.ART_STOCK_IMPORT = res.ART_STOCK;
-    articulo.loading1 = false;
-  });
+    // articulo.stockImport = res.stock;
+    // articulo.ART_STOCK_IMPORT = res.ART_STOCK;
+    // articulo.loading1 = false;
+  }).catch(error => {
+    // ERROR
+    console.error("Error consultando stock:", error);
+    // Importante: Si falla, definimos stockImport como array vacío para que salga el guion "-"
+    articulo.stockImport = [];
+  })
+    .finally(() => {
+      // SIEMPRE SE EJECUTA (Éxito o Error)
+      // Aquí apagamos el spinner garantizado
+      articulo.loading1 = false;
+    });
 }
 
 function consultarStockTransito(articulo) {
