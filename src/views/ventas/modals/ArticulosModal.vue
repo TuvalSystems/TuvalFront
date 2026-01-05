@@ -399,10 +399,22 @@ function consultOtherStocksImports(articulo) {
     puntodeventa_id: store.state.puntodeventaselect,
   })
   store.dispatch('consultaStockOthers', consulta).then(res => {
-    articulo.stockImport = res.stock;
+    articulo.stockImport = res.stock || [];
     articulo.ART_STOCK_IMPORT = res.ART_STOCK;
-    articulo.loading1 = false;
-  });
+    // articulo.stockImport = res.stock;
+    // articulo.ART_STOCK_IMPORT = res.ART_STOCK;
+    // articulo.loading1 = false;
+  }).catch(error => {
+    // ERROR
+    console.error("Error consultando stock:", error);
+    // Importante: Si falla, definimos stockImport como array vacío para que salga el guion "-"
+    articulo.stockImport = [];
+  })
+    .finally(() => {
+      // SIEMPRE SE EJECUTA (Éxito o Error)
+      // Aquí apagamos el spinner garantizado
+      articulo.loading1 = false;
+    });
 }
 
 function consultarStockTransito(articulo) {
