@@ -133,10 +133,10 @@ export const useReservationGuideProcess = () => {
         return false;
       }
     }
-    if (isBlank(data.ruta)) {
-      swalWarning("Ingresa la ruta");
-      return false;
-    }
+    // if (isBlank(data.ruta)) {
+    //   swalWarning("Ingresa la ruta");
+    //   return false;
+    // }
     if (isBlank(data.fecha_llegada) || !isValidDateStr(data.fecha_llegada)) {
       swalWarning("Fecha/Hora de llegada inválida");
       return false;
