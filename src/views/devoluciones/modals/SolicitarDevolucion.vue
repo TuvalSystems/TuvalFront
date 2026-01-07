@@ -103,8 +103,15 @@
               <div class="row">
                 <label for="orden-de-compra" class="col-sm-3 col-form-label text-left fs-sm">Orden de compra:</label>
                 <div class="col-sm-5">
-                  <input v-model="verpedido.orden_de_compra" type="text" id="orden-de-compra"
-                    class="form-control form-control-sm" placeholder="Orden de compra" />
+                  <div class="input-group">
+
+                    <input v-model="verpedido.orden_de_compra" type="text" id="orden-de-compra"  :maxlength="max_length_orden_compra"
+                      class="form-control form-control-sm" placeholder="Orden de compra" />
+                    <span v-if="verpedido.orden_de_compra" class="input-group-text input-group-text-alt">{{ max_length_orden_compra
+                      -
+                      verpedido.orden_de_compra.length
+                      }}</span>
+                  </div>
                 </div>
               </div>
               <div class="row">
@@ -112,11 +119,12 @@
                 <div class="col-sm-5">
                   <div class="input-group">
 
-                  <textarea id="nota-cliente" class="form-control" rows="4" :maxlength="max_length_nota"
-                    v-model.trim="verpedido.nota_cliente"></textarea>
-                  <span v-if="verpedido.nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota -
-                    verpedido.nota_cliente.length
-                  }}</span>
+                    <textarea id="nota-cliente" class="form-control" rows="4" :maxlength="max_length_nota"
+                      v-model.trim="verpedido.nota_cliente"></textarea>
+                    <span v-if="verpedido.nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota
+                      -
+                      verpedido.nota_cliente.length
+                      }}</span>
                   </div>
                 </div>
               </div>
@@ -243,6 +251,7 @@ const devolucion_anterior = computed(() => store.state.devolucion_anterior);
 const despacho_parcial = computed(() => store.state.despacho_parcial);
 const despacho_parcial_item = computed(() => store.state.despacho_parcial_item);
 const max_length_nota = ref(300);
+const max_length_orden_compra = ref(20);
 function aplicatodo(articulo) {
   if (articulo.aplicar_todo == false) {
     articulo.seleccionado = "";
