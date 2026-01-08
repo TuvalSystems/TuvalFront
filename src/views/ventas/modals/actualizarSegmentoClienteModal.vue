@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted } from 'vue'
-import { swalError } from "@/functions/swal-alert.js";
+import { swalError , swalSuccess, swalWarning} from "@/functions/swal-alert.js";
 import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
-import { useUpdateSegmentClient } from "../../../composables/venta/cotizaciones/useUpdateSegmentClient";
+import { useUpdateSegmentClient } from "@/composables/venta/cotizaciones/useUpdateSegmentClient";
 
 const props = defineProps({
     cliente: { type: Object, required: true }
@@ -18,6 +18,7 @@ const {
     fetchSubSegmentos
 } = useGetSegmentClients();
 const {
+    loadingUpdate,
     updateClientWithSegment,
     data,
     resetForm
@@ -25,14 +26,17 @@ const {
 
 async function sendinfo() {
     if (!data.segmento || !data.subsegmento) {
-        swalError('Debe seleccionar segmento y subsegmento');
+        swalWarning('Debe seleccionar segmento y subsegmento');
         return
     }
-    /** proceso para ejecutar la funcion del componente padre */
-    const ok = await updateClientWithSegment(props.cliente);
-    if (ok) {
-        emit('updated', props.cliente);
+    const resp = await updateClientWithSegment(props.cliente.CLI_RUC);
+    if (!resp?.ok) {
+        swalError(resp?.message);
+        return;
     }
+    await swalSuccess(resp?.message);
+    emit('updated', props.cliente);
+    await resetForm();
 }
 
 
@@ -86,8 +90,8 @@ onMounted(() => {
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cerrar</button>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal"
-                @click="sendinfo">Actualizar</button>
+            <button type="button" class="btn btn-primary btn-sm"
+                @click="sendinfo" :disabled="loadingUpdate">Actualizar</button>
         </div>
     </div>
 </template>

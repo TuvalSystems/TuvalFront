@@ -1,30 +1,30 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref , reactive, watch} from "vue";
+import { ref, reactive, watch } from "vue";
+import { swalError } from "@/functions/swal-alert";
 
 
 export function useClientSearch() {
-
     const { run } = useApiAction();
-    const apiSearchClients = 'cnsultas/busqueda-clientes';
+    const apiSearchClients = 'consultas/buscar-clientes';
     const loadingSearch = ref(false);
     const dataSearch = reactive({
         search: null,
         tipo: null
     });
+    const clients = ref([]);
     const errorSearchClient = ref(false);
 
-    async function verifySearchClient(){
-        if(dataSearch.search.lenght < 3){
-            errorSearchClient.value = true;
-            return false;
-        }
-    }
 
-    async function searchClients(payload) {
-        return await run(() => axiosClient.post(apiSearchClients, payload), {
+
+
+    async function searchClients() {
+        return await run(() => axiosClient.post(apiSearchClients, dataSearch), {
             loadingRef: loadingSearch,
             successMessage: 'Proceso realizado exitosamente',
+            onSuccess: (list) => {
+                clients.value = list ?? [];
+            },
             onError: (backend, error) => {
                 swalError(
                     backend?.error ||
@@ -36,16 +36,66 @@ export function useClientSearch() {
         });
     }
 
+    const loadingAvailableCredit = ref(false);
+    const infoClient = ref({});
+    const infoSegmento = ref({});
+    const apiAvailableCreditCustomer = '/consultas/cliente/cupo-disponible/';
+    async function fetchAvailableCreditCustomer(ruc) {
+        return await run(() => axiosClient.get(apiAvailableCreditCustomer + ruc), {
+            loadingRef: loadingAvailableCredit,
+            onSuccess: (res) => {
+                infoClient.value = res.cliente
+                infoSegmento.value = res.segmentos
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        });
+    }
 
 
-    watch(dataSearch, () => {
-        verifySearchClient();
-    });
+    const loadingSucursales = ref(false);
+    const sucursales = ref([]);
+    const apiCustomerBranches = '/consultas/cliente/sucursales/';
+
+    async function fetchCustomerBranches(ruc) {
+        return await run(() => axiosClient.get(apiCustomerBranches + ruc), {
+            loadingRef: loadingSucursales,
+            onSuccess: (res) => {
+                sucursales.value = res;
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        })
+    }
+
+
+
+    // watch(
+    //     () => dataSearch.search,
+    //     (newValue) => {
+    //         clearTimeout(debounceId);
+    //         debounceId = setTimeout(() => {
+    //             if (newValue.length > 4) {
+    //                 searchClients();
+    //             }
+    //         }, 300);
+    //     }
+    // )
 
     return {
+        clients,
         errorSearchClient,
         dataSearch,
         loadingSearch,
-        searchClients
+        searchClients,
+
+        // customer 
+        infoClient,
+        infoSegmento,
+        loadingAvailableCredit,
+        fetchAvailableCreditCustomer,
+
+        //sucursales
+        loadingSucursales,
+        sucursales,
+        fetchCustomerBranches
     };
 }
