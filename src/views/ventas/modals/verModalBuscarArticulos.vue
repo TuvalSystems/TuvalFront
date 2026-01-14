@@ -3,6 +3,8 @@ import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizaci
 import { onMounted, watch } from 'vue';
 import { swalError } from "@/functions/swal-alert";
 import VueEasyLightbox from "vue-easy-lightbox";
+import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4 } from "@/functions";
+
 const props = defineProps({
     'form': Object
 });
@@ -57,8 +59,8 @@ const {
 watch(
     () => props.form?.cliente?.CLI_NIVEL_PRECIO,
     (newVal) => {
-        if(newVal) {
-             payload.nivel_precio = newVal ;
+        if (newVal) {
+            payload.nivel_precio = newVal;
         }
     },
     { immediate: true, deep: true }
@@ -124,7 +126,7 @@ onMounted(() => { });
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_codigo">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                                }}</option>
+                            }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_codigo"
                             @keyup.enter="buscarArticulo" />
@@ -141,7 +143,7 @@ onMounted(() => { });
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_nombre">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                                }}</option>
+                            }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_nombre"
                             @keyup.enter="buscarArticulo" />
@@ -214,12 +216,12 @@ onMounted(() => { });
                                     </td>
                                     <td class="fs-sm text-center" style="width: 7.5rem;justify-content: center;">
                                         <a v-if="isSelectable(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO
-                                            }}</a>
+                                        }}</a>
                                         <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
                                     </td>
                                     <td class="fs-sm">
                                         <a v-if="isSelectable(row)" href="javascript:void(0)">{{ row.ART_DESCRIPCION
-                                        }}</a>
+                                            }}</a>
                                         <span v-else>{{ row.ART_DESCRIPCION }}</span>
                                     </td>
                                     <td class="fs-sm" style="width: 4rem;justify-content: center;">{{
@@ -293,7 +295,13 @@ onMounted(() => { });
                                         </div>
                                     </td>
                                     <td class="text-end" style="width: 3.5rem;">
-                                        ${{ row.ART_VALOR }}
+                                        ${{ formatPrice(row.ART_VALOR) }}
+                                    </td>
+                                    <td class="text-end" style="width: 4rem;">
+                                        ${{ formatPrice(getFinlaPrice(row)) }}
+                                    </td>
+                                    <td class="text-end" style="width: 4rem;">
+                                        {{ formatPrice(row.ART_PESO) }}Kg
                                     </td>
 
                                 </tr>

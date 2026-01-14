@@ -162,10 +162,11 @@ export function useSearchArticle() {
     }
 
     const getFinlaPrice = (row) => {
-        const precioBase = row.ART_VALOR;
-        const descuento = precioBase * 0.25; //25% de descuento
-        const impuesto = 1 + (row.ART_IVA / 100);
-        return (precioBase - descuento) * impuesto
+        const precioBase = parseFloat(Number(row.ART_VALOR)) || 0;
+        const porcentajeIva = parseFloat(Number(row.ART_IMP_VTA)) || 0;
+        const descuento = precioBase * 0.25;
+        const impuesto = 1 + (porcentajeIva / 100);
+        return (precioBase - descuento) * impuesto;
     }
 
 
