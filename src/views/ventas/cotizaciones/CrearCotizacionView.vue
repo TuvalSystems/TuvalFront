@@ -1,11 +1,17 @@
 <script setup>
-import { Modal } from "bootstrap";
-import { onMounted, ref, computed, watch } from "vue";
+import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError } from "@/functions/swal-alert.js";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
+import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import actualizarSegmentoClienteComponent from "@/views/ventas/modals/actualizarSegmentoClienteModal.vue";
+import flatPickr from 'vue-flatpickr-component';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 
+// imports modales
+import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
+import verModalBuscarArticulos from "@/views/ventas/modals/verModalBuscarArticulos.vue";
 const {
   clients,
   errorSearchClient,
@@ -22,18 +28,42 @@ const {
   //sucursales
   loadingSucursales,
   sucursales,
-  fetchCustomerBranches
+  fetchCustomerBranches,
+
+  //bodegas por punto de venta
+  loadingWarehouseByUser,
+  warehouseByUser,
+  fetchWarehouseByPtoVtaUser,
+
+  //validations
+  getClientStatus,
 
 } = useClientSearch();
+const { form, clearForm } = useProcessCreateQuote();
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
+const flatPickrState = reactive({
+  minDate: Date.now(),
+  monthSelectorType: "static",
+  locale: Spanish,
+});
+
+
+//variables de modales 
+const verModalActualizarSegmento = ref(null)
+const verModalCrearDireccionModal = ref(null)
+const verSearchItemModal = ref(null);
+
+const verModalActualizarSegmentoObj = useBootstrapModal(verModalActualizarSegmento)
+const verModalCrearDireccionModalObj = useBootstrapModal(verModalCrearDireccionModal)
+const verSearchItemModalObj = useBootstrapModal(verSearchItemModal)
+
 
 // variables para mostrar las busquedas
 const showResultClients = ref(false);
 const showInfoClient = ref(false);
-let debounceId;
 
 async function searchFilterClientes() {
-
+  clearForm();//limpia el formulario 
   showResultClients.value = true;
   showInfoClient.value = false;
   if (dataSearch.search == null || dataSearch.search.length >= 0 && dataSearch.search.length < 4) {
@@ -50,13 +80,12 @@ async function searchFilterClientes() {
     showInfoClient.value = false;
 
     swalError(resp?.message);
+    return;
   }
   errorSearchClient.value = false;
 }
 
 const datosCliente = ref(null);
-const verModalActualizarSegmento = ref(null)
-let verModalActualizarSegmentoObj = null
 async function selectClient(client) {
   if (loadingCheck.value) return;
   const respSeg = await fetchCheckSegmentoClient(client.CLI_RUC);
@@ -101,94 +130,135 @@ async function processSelectClient(client) {
 
   //asignacion de sucursal 
   if (sucursales.value.length > 0) {
-    form.value.direccion_facturacion_id = sucursales.value[0].id
+    if (!form.value.direccion_facturacion_id) {
+      form.value.direccion_facturacion_id = sucursales.value[0].id
+    }
   }
+
+  if (warehouseByUser.value.length > 0) {
+    if (!form.value.bodega_facturacion) {
+      form.value.bodega_facturacion = warehouseByUser.value[0].relacion_bodega.BOD_BODEGA
+    }
+  }
+
 }
 
 
-// funciones de validaciones check etc
-const getClientStatus = (isSuspended) => {
-  const status = Number(isSuspended);
-  if (status === 0) {
-    return {
-      text: 'NO',
-      class: 'bg-success-light text-success'
-    }
-  } else {
-    return {
-      text: 'SI',
-      class: 'bg-danger-light text-danger'
-    }
-  }
-}
+const checkCoords = (idSucursal) => {
+  if (!idSucursal) return false;
+  const sucursal = sucursales.value.find(s => s.id === idSucursal);
+  // Aquí podrías agregar validaciones extra si las coordenadas vienen como JSON o string raro
+  return sucursal && sucursal.coordenadas;
+};
 
-//validador para verificar si la sucursal tiene coordenadas
-const hasCoordinates = computed(() => {
-  const direccionSeleccionada = sucursales.value.find(sucursal => sucursal.id === form.value.direccion_facturacion_id);
-  return direccionSeleccionada && direccionSeleccionada.coordenadas !== null && direccionSeleccionada.coordenadas !== '';
+// Tus computadas quedan más limpias
+const hasCoordinates = computed(() => checkCoords(form.value.direccion_facturacion_id));
+const hasCoordinates2 = computed(() => checkCoords(form.value.direccion_entrega_id));
+
+const hasDispatch = computed(() => {
+  const warehouse = warehouseByUser.value.find(w => w.relacion_bodega.BOD_BODEGA === form.value.bodega_facturacion);
+  return !!warehouse?.relacion_bodega.PERMITE_DESPACHO;
 });
 
 
-function InitialModal() {
-  if (verModalActualizarSegmento.value) {
-    verModalActualizarSegmentoObj = Modal.getOrCreateInstance(verModalActualizarSegmento.value, { backdrop: true })
-  }
+// proceso de crear direccion nueva para un cliente 
+let dataClient = ref({});
+async function openModalCreateAddress() {
+  dataClient.value = infoClient.value;
+  await nextTick();
+  verModalCrearDireccionModalObj.show()
+
 }
 
-const form = ref({
-  tipo_entrega: 'retiro',
-  bodega: null,
-  fecha_entrega: '',
-  cliente: null,
-  sucursal: null,
-  segmento: null,
-  cliente: null,
-  direccion_facturacion_id: null,
-  direccion_entrega_id: null,
-});
+async function closeModalCreateAddress(client) {
+  verModalCrearDireccionModalObj.hide();
+  if (client && client.CLI_RUC) {
+    await fetchCustomerBranches(client.CLI_RUC);
+  }
+  dataClient.value = {};
 
+}
 
-//watch para que al poner 4 letras se haga la busqueda automaticamente
 watch(
-  () => dataSearch.search,
+  () => infoClient.value,
   (newValue) => {
-    clearTimeout(debounceId);
-    debounceId = setTimeout(() => {
-      if (newValue.length > 4) {
-        searchFilterClientes();
-      }
-    }, 300);
+    if (newValue) {
+      form.value.cliente = newValue
+    }
   }
 )
 
 
+
+
+
+/** apertura de modal de consulta de items */
+const dataSearchItem = ref({});
+const openModalSearchItem = () => {
+  dataSearchItem.value = form.value;
+  verSearchItemModalObj.show();
+}
+
+const closeModalSearchItem = () => {
+  dataSearchItem.value = {};
+  verSearchItemModalObj.hide();
+}
+
+
+
+
 onMounted(async () => {
-  InitialModal();
+  await fetchWarehouseByPtoVtaUser();
+
+  //logica para recuperar datos en memoria
+  if (form.value.cliente && form.value.cliente.CLI_RUC) {
+    loadingSearch.value = true;
+    loadingAvailableCredit.value = false;
+    infoClient.value = form.value.cliente;
+    showInfoClient.value = true;
+    showResultClients.value = false;
+    await nextTick();
+    try {
+     
+      await Promise.all([
+        fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC),
+        fetchCustomerBranches(form.value.cliente.CLI_RUC)
+      ]);
+    } catch (e) {
+      console.error("Error cargando datos del cliente recuperado", e);
+    } finally {
+      loadingSearch.value = false;
+      showInfoClient.value = true;
+      loadingAvailableCredit.value = false;
+
+    }
+  }
+
 });
+
 </script>
 <template>
   <div class="content">
-    <BaseBlock title="Crear Cotización" content-full rounded>
-      <div class="row row-cols-lg-auto g-3 align-items-center">
-        <div class="col-12">
-          <label class="visually-hidden" for="buscar-cliente">Buscar cliente...</label>
-          <input type="text" class="form-control" :class="errorSearchClient ? 'is-invalid' : ''" id="buscar-cliente"
-            name="buscar-cliente" placeholder="Buscar cliente..." @keyup.enter="searchFilterClientes"
-            v-model="dataSearch.search" />
-        </div>
-
-        <div class="col-12">
-          <button type="button" @click="searchFilterClientes" class="btn btn-primary" :disabled="loadingSearch">
-            Buscar
-          </button>
-
-          <router-link :to="{ name: 'ventas-crearcliente' }">
-            <button type="button" class="mx-4 btn btn-success float-end" :disabled="loadingSearch">
-              Crear cliente
+    <BaseBlock title="Cliente" content-full rounded>
+      <div class="row g-2">
+        <div class="col">
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" :class="errorSearchClient ? 'is-invalid' : ''"
+              placeholder="Buscar cliente..." autocomplete="no" @keyup.enter="searchFilterClientes"
+              v-model="dataSearch.search" />
+            <button class="btn btn-primary" type="button" @click="searchFilterClientes" :disabled="loadingSearch">
+              <i class="fa fa-search"></i>
             </button>
+          </div>
+        </div>
+        <div class="col-auto">
+          <router-link :to="{ name: 'ventas-crearcliente' }" class="btn btn-success btn-sm"
+            :class="{ 'disabled': loadingSearch }">
+            <i class="fa fa-plus me-1"></i> Crear
           </router-link>
         </div>
       </div>
+
       <!-- loading de carga de clientes -->
       <div v-if="loadingSearch" class="text-center py-4">
         <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
@@ -245,9 +315,9 @@ onMounted(async () => {
         <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
         </div>
       </div>
-      <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" class="mb-2">
+      <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" class="mb-0">
         <div class="content-fluid">
-          <div class="row g-3 mb-2">
+          <div class="row g-1 mb-2">
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Ruc</small>
@@ -324,9 +394,10 @@ onMounted(async () => {
             <div class="col-12 col-lg-4">
               <div class="kv space-y-2">
                 <small class="text-muted">Bodegas</small>
-                <select class="form-select " v-model="form.bodega">
-                  <option value="CALIFORNIA">AGENCIA CALIFORNIA</option>
-                  <option value="CALIFORNIA">AGENCIA INMACONSA</option>
+                <select class="form-select form-select-sm" v-model="form.bodega_facturacion">
+                  <option v-for="(bod, index) in warehouseByUser" :key="index" :value="bod.relacion_bodega.BOD_BODEGA">
+                    {{ bod.relacion_bodega.BOD_BODEGA }}
+                  </option>
                 </select>
               </div>
             </div>
@@ -334,7 +405,7 @@ onMounted(async () => {
             <div class="col-12 col-lg-8">
               <div class="kv space-y-2">
                 <small class="text-muted">Dirección de Facturación</small>
-                <div class="input-group">
+                <div class="input-group input-group-sm">
                   <select class="form-select" v-model="form.direccion_facturacion_id">
                     <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
                       {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
@@ -344,11 +415,11 @@ onMounted(async () => {
                     :title="hasCoordinates ? 'Ver ubicación en mapa' : 'Dirección sin coordenadas'"
                     :class="{ 'opacity-50': !hasCoordinates }">
                     <img v-if="hasCoordinates" src="/assets/images/earth.png" alt="Tiene coordenadas" class="img-fluid"
-                      style="max-width: 25px;">
+                      style="max-width: 18px;">
                     <img v-else src="/assets/images/earth2.png" alt="No tiene coordenadas" class="img-fluid"
-                      style="max-width: 25px;">
+                      style="max-width: 18px;">
                   </button>
-                  <button class="btn btn-primary" type="button" @click="abrirModal">
+                  <button class="btn btn-primary" type="button" @click="openModalCreateAddress">
                     <i class="fa fa-plus"></i>
                   </button>
                 </div>
@@ -357,18 +428,49 @@ onMounted(async () => {
             <div class="col-12 col-lg-4">
               <div class="kv space-y-2">
                 <small class="text-muted">Modalidad de Entrega</small>
-                <div class="btn-group " role="group">
+                <div class="btn-group btn-group-sm" role="group">
                   <input type="radio" class="btn-check" name="tipoEntrega" id="retiro" value="retiro"
                     v-model="form.tipo_entrega" autocomplete="off">
                   <label class="btn btn-outline-primary" for="retiro">
                     <i class="fa fa-box me-2"></i>Retiro en Bodega
                   </label>
 
-                  <input type="radio" class="btn-check" name="tipoEntrega" id="despacho" value="despacho"
-                    v-model="form.tipo_entrega" autocomplete="off">
-                  <label class="btn btn-outline-primary" for="despacho">
+                  <input v-if="hasDispatch" type="radio" class="btn-check" name="tipoEntrega" id="despacho"
+                    value="despacho" v-model="form.tipo_entrega" autocomplete="off">
+                  <label v-if="hasDispatch" class="btn btn-outline-primary" for="despacho">
                     <i class="fa fa-truck me-2"></i>Despacho en Ruta
                   </label>
+                </div>
+              </div>
+            </div>
+            <div v-show="form.tipo_entrega === 'retiro'"></div>
+            <div v-show="form.tipo_entrega === 'despacho'" class="row g-1 mb-2">
+              <div class="col-12 col-lg-6">
+                <div class="kv space-y-2">
+                  <small class="text-muted">Dirección de Entrega</small>
+                  <div class="input-group input-group-sm">
+                    <select class="form-select form-select-sm" v-model="form.direccion_entrega_id">
+                      <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
+                        {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
+                      </option>
+                    </select>
+                    <button class="btn btn-outline-secondary btn-sm" type="button"
+                      :title="hasCoordinates2 ? 'Ver ubicación en mapa' : 'Dirección sin coordenadas'"
+                      :class="{ 'opacity-50': !hasCoordinates2 }">
+                      <img v-if="hasCoordinates2" src="/assets/images/earth.png" alt="Tiene coordenadas"
+                        class="img-fluid" style="max-width: 18px;">
+                      <img v-else src="/assets/images/earth2.png" alt="No tiene coordenadas" class="img-fluid"
+                        style="max-width: 18px;">
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-lg-6">
+                <div class="kv space-y-2">
+                  <small class="text-muted">Fecha de Entrega</small>
+                  <flat-pickr id="fecha_entrega" class="form-control form-control-sm" v-model="form.fecha_entrega"
+                    :config="flatPickrState" />
                 </div>
               </div>
             </div>
@@ -376,60 +478,19 @@ onMounted(async () => {
           </div>
         </div>
       </BaseBlock>
-      <!-- <BaseBlock title="Logística y Despacho" content-full rounded>
-        <div class="row g-3 align-items-end">
-          <div class="col-12 mb-2">
-            <label class="form-label d-block text-muted fs-sm mb-2">Modalidad de entrega</label>
-            <div class="btn-group w-100 w-md-50" role="group">
-              <input type="radio" class="btn-check" name="tipoEntrega" id="retiro" value="retiro"
-                v-model="form.tipo_entrega" autocomplete="off">
-              <label class="btn btn-outline-secondary" for="retiro">
-                <i class="fa fa-box me-2"></i>Retiro en Bodega
-              </label>
-
-              <input type="radio" class="btn-check" name="tipoEntrega" id="despacho" value="despacho"
-                v-model="form.tipo_entrega" autocomplete="off">
-              <label class="btn btn-outline-secondary" for="despacho">
-                <i class="fa fa-truck me-2"></i>Despacho en Ruta
-              </label>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label text-muted fs-sm">Bodega de Origen</label>
-            <select class="form-select bg-dark text-light border-secondary" v-model="form.bodega">
-              <option value="CALIFORNIA">AGENCIA CALIFORNIA</option>
-            </select>
-          </div>
-
-          <div class="col-md-3" v-if="form.tipo_entrega === 'despacho'">
-            <label class="form-label text-muted fs-sm">Fecha Entrega</label>
-            <input type="date" class="form-control bg-dark text-light border-secondary" v-model="form.fecha_entrega">
-          </div>
-
-          <div :class="form.tipo_entrega === 'despacho' ? 'col-md-5' : 'col-md-8'">
-            <label class="form-label text-muted fs-sm">
-              {{ form.tipo_entrega === 'despacho' ? 'Dirección Destino' : 'Dirección Facturación' }}
-            </label>
-
-            <div class="input-group">
-              <select class="form-select bg-dark text-light border-secondary" v-model="form.direccion_id">
-                <option value="1">PRINCIPAL - Km. 5 1/2 Via Daule</option>
-              </select>
-
-              <button class="btn btn-secondary" type="button" title="Ver mapa">
-                <i class="fa fa-map-marker-alt text-danger"></i>
-              </button>
-              <button class="btn btn-secondary" type="button" @click="abrirModal">
-                <i class="fa fa-plus"></i>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </BaseBlock> -->
-
     </BaseBlock>
+    <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" title="Cotización">
+      <div class="d-flex align-items-center mb-4">
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-primary" @click="openModalSearchItem"><i
+              class="fa fa-search me-1"></i> Buscar
+            Articulo</button>
+          <button type="button" class="btn btn-outline-success"> <i class="fa fa-rotate me-1"></i>Stock</button>
+        </div>
+      </div>
+    </BaseBlock>
+    <!-- {{ form }} -->
+
   </div>
 
 
@@ -442,6 +503,27 @@ onMounted(async () => {
       <div class="modal-content">
         <actualizarSegmentoClienteComponent v-if="datosCliente" :cliente="datosCliente" @updated="processSelectClient">
         </actualizarSegmentoClienteComponent>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal para la creacion de una nueva direccion -->
+  <div class="modal" id="modal-crear-direccion" tabindex="-1" role="dialog" aria-labelledby="modal-crear-direccion"
+    aria-hidden="true" ref="verModalCrearDireccionModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verModalCrearNuevaDireccion v-if="dataClient" :cliente="dataClient" @closeModal="closeModalCreateAddress">
+        </verModalCrearNuevaDireccion>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal de busqueda de articulos -->
+  <div class="modal" id="modal-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-cliente" aria-hidden="true"
+    ref="verSearchItemModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 90vw;">
+      <div class="modal-content">
+        <verModalBuscarArticulos v-if="dataSearchItem" :form="dataSearchItem" @closeModal="closeModalSearchItem"></verModalBuscarArticulos>
       </div>
     </div>
   </div>
@@ -471,13 +553,13 @@ onMounted(async () => {
   /* Hace que ocupe el ancho disponible de la columna */
   line-height: 1.4;
   /* Da un poco de aire entre las líneas de texto */
-  font-weight: 12px;
+  font-weight: 10px;
   /* Opcional: quita la negrita si el texto es muy largo */
 }
 
 
 .kv .fw-semibold {
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .text-monospace {
@@ -496,5 +578,13 @@ onMounted(async () => {
 .code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
   font-size: 14px;
+}
+
+.form-control-sm.flatpickr-input {
+  height: calc(1.5em + 0.5rem + 2px);
+  /* Altura estándar de sm en BS5 */
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.875rem;
 }
 </style>

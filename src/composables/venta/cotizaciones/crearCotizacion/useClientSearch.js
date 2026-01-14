@@ -1,10 +1,12 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref, reactive, watch } from "vue";
+import { ref, reactive, watch, computed } from "vue";
 import { swalError } from "@/functions/swal-alert";
-
+import { useStore } from 'vuex'
 
 export function useClientSearch() {
+    const store = useStore();
+    const ptoVtaSelect = store.state.puntodeventaselect;
     const { run } = useApiAction();
     const apiSearchClients = 'consultas/buscar-clientes';
     const loadingSearch = ref(false);
@@ -67,18 +69,52 @@ export function useClientSearch() {
     }
 
 
+    const loadingWarehouseByUser = ref(false);
+    const warehouseByUser = ref([]);
+    const apiWarehouseByUser = '/usuario/obtener-bodegas-por-punto-de-venta';
 
-    // watch(
-    //     () => dataSearch.search,
-    //     (newValue) => {
-    //         clearTimeout(debounceId);
-    //         debounceId = setTimeout(() => {
-    //             if (newValue.length > 4) {
-    //                 searchClients();
-    //             }
-    //         }, 300);
-    //     }
-    // )
+    async function fetchWarehouseByPtoVtaUser() {
+        return await run(() => axiosClient.post(apiWarehouseByUser, { ptoVta: ptoVtaSelect }), {
+            loadingRef: loadingWarehouseByUser,
+            onSuccess: (res) => {
+                warehouseByUser.value = res;
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        })
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // funciones de validaciones check etc
+    const getClientStatus = (isSuspended) => {
+        const status = Number(isSuspended);
+        if (status === 0) {
+            return {
+                text: 'NO',
+                class: 'bg-success-light text-success'
+            }
+        } else {
+            return {
+                text: 'SI',
+                class: 'bg-danger-light text-danger'
+            }
+        }
+    }
+
+
+
 
     return {
         clients,
@@ -96,6 +132,15 @@ export function useClientSearch() {
         //sucursales
         loadingSucursales,
         sucursales,
-        fetchCustomerBranches
+        fetchCustomerBranches,
+
+        //bodegas por punto de venta
+        loadingWarehouseByUser,
+        warehouseByUser,
+        fetchWarehouseByPtoVtaUser,
+
+
+        //validations
+        getClientStatus,
     };
 }
