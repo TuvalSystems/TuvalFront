@@ -147,23 +147,21 @@
               <table class="table table-sm table-bordered table-striped fs-sm">
                 <thead>
                   <tr class="table-success">
-                    <th colspan="5">Documentos sin soporte</th>
+                    <th colspan="4">Documentos sin soporte</th>
                   </tr>
                   <tr>
                     <th>Factura</th>
                     <th class="text-end">Saldo pendiente</th>
-                    <th class="text-end">Días vencidos</th>
                     <th class="text-end">Fecha emisión</th>
                     <th class="text-end">Fecha vencimiento</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(documento, index) in estadodecuenta.data.documentosSinSoporte" :key="index">
-                    <td>{{ documento.factura }}</td>
-                    <td class="text-end">${{ format(parseFloat(documento.saldoPendiente)) }}</td>
-                    <!-- <td class="text-end">{{ documento.DS_DIAS_VENCIDOS }}</td> -->
-                    <td class="text-end">{{ documento.fEmision.date}}</td>
-                    <td class="text-end">{{ documento.fVencimiento }}</td>
+                  <tr v-for="(doc, index) in estadodecuenta.data.documentosSinSoporte" :key="index">
+                    <td>{{ doc.factura }}</td>
+                    <td class="text-end">${{ format(parseFloat(doc.saldoPendiente)) }}</td>
+                    <td class="text-end">{{ doc.fEmision}}</td>
+                    <td class="text-end">{{ doc.fVencimiento }}</td>
                   </tr>
                 </tbody>
               </table>
