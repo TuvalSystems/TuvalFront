@@ -229,7 +229,7 @@ export function useSearchArticle() {
         return await run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             onSuccess: (res) => {
-                row.stockWarehouse = Array.isArray(res.stock) ? res.stock : [];
+                row.stock = Array.isArray(res.stock) ? res.stock : [];
                 row.ART_STOCK = res.ART_STOCK
             },
             successMessage: 'Proceso realizado exitosamente',
@@ -238,20 +238,20 @@ export function useSearchArticle() {
 
     const isShowStock = (row) => {
         return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stockWarehouse)
-            && row.stockWarehouse.length > 0;
+            && Array.isArray(row.stock)
+            && row.stock.length > 0;
     }
 
     const isButtonStockWarehouse = (row) => {
         return row.ART_TIPO_COMPRA !== 'L'
             && !row.loadingStockWarehouse
-            && !row.stockWarehouse;
+            && !row.stock;
     }
 
     const isEmptyStockWarehouse = (row) => {
         return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stockWarehouse)
-            && row.stockWarehouse.length === 0
+            && Array.isArray(row.stock)
+            && row.stock.length === 0
             && !row.loadingStockWarehouse;
     }
 

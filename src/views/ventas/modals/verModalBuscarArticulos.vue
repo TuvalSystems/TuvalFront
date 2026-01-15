@@ -8,7 +8,7 @@ import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, form
 const props = defineProps({
     'form': Object
 });
-const emit = defineEmits(['closeModal']);
+const emit = defineEmits(['closeModal', 'select-item']);
 
 const {
     payload,
@@ -102,8 +102,13 @@ async function searchStockImport(row) {
     }
 }
 
+async function addItemToQuote(row){
+    await searchStockWarehouse(row);
+    emit('select-item', row);
+}
+
 async function closeModal() {
-    await resetForm();
+    await resetSearch();
     emit('closeModal');
 }
 
@@ -113,7 +118,7 @@ onMounted(() => { });
 <template>
     <BaseBlock title="Seleccionar artículo" class="mb-0" transparent>
         <template #options>
-            <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+            <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close"  @click="closeModal">
                 <i class="fa fa-fw fa-times"></i>
             </button>
         </template>
@@ -126,7 +131,7 @@ onMounted(() => { });
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_codigo">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                            }}</option>
+                                }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_codigo"
                             @keyup.enter="buscarArticulo" />
@@ -134,7 +139,7 @@ onMounted(() => { });
                 </div>
                 <div class="col-12 col-md-1">
                     <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">Codigo 3L</small>
-                    <input type="text" class="form-control form-control-sm border-1 shadow-sm"
+                    <input type="text" class="form-control form-control-sm border-1 shadow-sm" id="codigo3l"
                         v-model="payload.codigo3l" @keyup.enter="buscarArticulo" />
                 </div>
                 <div class="col-md-5">
@@ -143,7 +148,7 @@ onMounted(() => { });
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_nombre">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                            }}</option>
+                                }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_nombre"
                             @keyup.enter="buscarArticulo" />
@@ -176,16 +181,16 @@ onMounted(() => { });
             <Dataset v-slot="{ ds }" :ds-data="articles" :ds-sortby="sortBy"
                 :ds-search-in="['ART_CODIGO', 'ART_DESCRIPCION', 'ART_CODIGO_TRES_LETRAS', 'ART_PLAN_UMEDIDA', 'ART_STOCK', 'ART_VALOR']">
                 <div class="row" :data-page-count="ds.dsPagecount">
-                    <div id="datasetLengthPedidos" class="col-md-8 py-2">
+                    <div id="datasetLengthPedidos" class="col-md-8 py-1">
                         <DatasetShow :ds-show-entries="100" />
                     </div>
-                    <div class="col-md-4 py-2">
+                    <div class="col-md-4 py-0">
                         <DatasetSearch ds-search-placeholder="Buscar..." />
                     </div>
                 </div>
                 <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
                     <DatasetInfo class="py-3 fs-sm" />
-                    <DatasetPager class="flex-wrap py-3 fs-sm" />
+                    <DatasetPager class="flex-wrap py-1 fs-sm" />
                 </div>
                 <hr />
 
@@ -210,18 +215,18 @@ onMounted(() => { });
                                             <i class="fa fa-search"></i>
                                         </a>
                                     </td>
-                                    <td class="fs-sm text-center" style="width: 7.5rem;justify-content: center;">
-                                        <a v-if="isSelectable(row)" href="javascript:void(0)">{{ row.ART_CODIGO }}</a>
+                                    <td class="fs-sm " style="width: 7.5rem;justify-content: center;">
+                                        <a v-if="isSelectable(row)" href="javascript:void(0)" @click="addItemToQuote(row)">{{ row.ART_CODIGO }}</a>
                                         <span v-else>{{ row.ART_CODIGO }}</span>
                                     </td>
-                                    <td class="fs-sm text-center" style="width: 7.5rem;justify-content: center;">
-                                        <a v-if="isSelectable(row)" href="javascript:void(0)">{{ row.ART_CODIGO_ZAFIRO
-                                        }}</a>
+                                    <td class="fs-sm " style="width: 7.5rem;justify-content: center;">
+                                        <a v-if="isSelectable(row)" href="javascript:void(0)"  @click="addItemToQuote(row)">{{ row.ART_CODIGO_ZAFIRO
+                                            }}</a>
                                         <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
                                     </td>
                                     <td class="fs-sm">
-                                        <a v-if="isSelectable(row)" href="javascript:void(0)">{{ row.ART_DESCRIPCION
-                                            }}</a>
+                                        <a v-if="isSelectable(row)" href="javascript:void(0)"  @click="addItemToQuote(row)">{{ row.ART_DESCRIPCION
+                                        }}</a>
                                         <span v-else>{{ row.ART_DESCRIPCION }}</span>
                                     </td>
                                     <td class="fs-sm" style="width: 4rem;justify-content: center;">{{
@@ -258,7 +263,7 @@ onMounted(() => { });
                                             </div>
                                         </div>
                                         <div v-else-if="isShowStock(row)">
-                                            <code v-for="stock in row.stockWarehouse"
+                                            <code v-for="stock in row.stock"
                                                 class="d-block mb-0 fs-xs text-nowrap"
                                                 :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}</code>
                                         </div>
@@ -311,6 +316,12 @@ onMounted(() => { });
                 </div>
             </Dataset>
 
+        </div>
+        <div v-if="articles.length === 0 && !loadingArt" class="text-center py-4">
+            <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">
+                No se encontraron registros para mostrar
+            </p>
         </div>
     </BaseBlock>
     <div class="content text-end mb-2 space-x-2">

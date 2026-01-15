@@ -696,7 +696,7 @@ import PesoModal from "../modals/PesoModal.vue";
 import ArticulosModal from "../modals/ArticulosModal.vue";
 import ProveedorModal from "../modals/ProveedorModal.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
-import ItemAlternativoComponent from "../modals/ItemAlternativoModal.vue";
+import ItemAlternativoComponent from "../modals/verModalItemAlternativo.vue";
 import { useCheckClientSegment } from "../../../composables/venta/cotizaciones/useCheckClientSegment";
 import actualizarSegmentoClienteComponent from "../modals/actualizarSegmentoClienteModal.vue";
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();

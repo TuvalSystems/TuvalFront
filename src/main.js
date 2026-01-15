@@ -52,6 +52,11 @@ app.component("BasePageHeading", BasePageHeading);
 app.directive("click-ripple", clickRipple);
 app.directive("zero-decimals", zeroDecimals);
 app.directive('bstooltip', bsTooltip)
+
+app.directive('focus', {
+  mounted: (el) => el.focus()
+})
+
 // Use Pinia and Vue Router
 app.use(createPinia());
 app.use(store);

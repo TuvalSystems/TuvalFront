@@ -8,10 +8,11 @@ import actualizarSegmentoClienteComponent from "@/views/ventas/modals/actualizar
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
-
+import draggable from 'vuedraggable'
 // imports modales
 import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
 import verModalBuscarArticulos from "@/views/ventas/modals/verModalBuscarArticulos.vue";
+import verModalItemAlternativo from "@/views/ventas/modals/verModalItemAlternativo.vue";
 const {
   clients,
   errorSearchClient,
@@ -39,7 +40,22 @@ const {
   getClientStatus,
 
 } = useClientSearch();
-const { form, clearForm } = useProcessCreateQuote();
+const {
+  form,
+  clearForm,
+  addItems,
+  removeItem,
+  //proceso de descripcion de item 
+  getDescriptionClass,
+  updateDescripcion,
+  isDescriptionEditable,
+  enableEditModeDescription,
+
+  //proceso de checkbox alternativos
+  itemUpdateCheckbox,
+  loadingUpdateCheckAlternative,
+  updateCheckAlternative
+} = useProcessCreateQuote();
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 const flatPickrState = reactive({
   minDate: Date.now(),
@@ -52,11 +68,11 @@ const flatPickrState = reactive({
 const verModalActualizarSegmento = ref(null)
 const verModalCrearDireccionModal = ref(null)
 const verSearchItemModal = ref(null);
-
+const verItemAltRef = ref(null)
 const verModalActualizarSegmentoObj = useBootstrapModal(verModalActualizarSegmento)
 const verModalCrearDireccionModalObj = useBootstrapModal(verModalCrearDireccionModal)
 const verSearchItemModalObj = useBootstrapModal(verSearchItemModal)
-
+const verItemAltObj = useBootstrapModal(verItemAltRef)
 
 // variables para mostrar las busquedas
 const showResultClients = ref(false);
@@ -205,7 +221,50 @@ const closeModalSearchItem = () => {
 }
 
 
+//proceso de seleccion de items para llenar el form-items 
+const handleItemSelected = (row) => {
+  addItems(row);
+}
 
+
+
+
+//proceso de items alternativos
+
+const itemAlternativo = reactive({
+  index: 0,
+  item: ''
+});
+async function openModalListItemAlternatives(item, i) {
+  itemAlternativo.index = i;
+  itemAlternativo.item = item.ART_CODIGO;
+  verItemAltObj.show();
+}
+
+async function onSelectItemAlternativo(descripcion, i) {
+  const formItem = form.value.items[i];
+  formItem.cambiar_descripcion = false;
+  formItem.ART_DESCRIPCION = descripcion;
+  formItem.ART_DESCRIPCION_ORIGINAL = descripcion;
+  itemAlternativo.item = '';
+  itemAlternativo.index = 0;
+  verItemAltObj.hide();
+}
+
+
+//proceso de checkAlternative
+async function actualizarCheckAlternative(event, art, i) {
+  let valEvent = event.target.checked ? 1 : 0;
+  itemUpdateCheckbox.articulo = art.id;
+  itemUpdateCheckbox.CHECK_ALTERNATIVO = valEvent;
+  const respCheck = await updateCheckAlternative(itemUpdateCheckbox);
+  if (!respCheck?.ok) {
+    swalError(respCheck?.message || 'Error consultando sucursales');
+    return;
+  }
+
+  form.value.items[i].CHECK_ALTERNATIVO = valEvent;
+}
 
 onMounted(async () => {
   await fetchWarehouseByPtoVtaUser();
@@ -219,7 +278,7 @@ onMounted(async () => {
     showResultClients.value = false;
     await nextTick();
     try {
-     
+
       await Promise.all([
         fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC),
         fetchCustomerBranches(form.value.cliente.CLI_RUC)
@@ -488,6 +547,82 @@ onMounted(async () => {
           <button type="button" class="btn btn-outline-success"> <i class="fa fa-rotate me-1"></i>Stock</button>
         </div>
       </div>
+      <div class="table-responsive mt-1">
+        <table v-if="form.items.length > 0" class="table table-hover table-sm table-vcenter mt-0">
+          <thead>
+            <tr>
+              <th style="width:0.313rem">#</th>
+              <th style="width:7.25rem">Código</th>
+              <th style="width:15.625rem">Descripción</th>
+              <th style="width:3.125rem"></th>
+              <th style="width:3.125rem;text-align: center">ALT</th>
+              <th>CTL</th>
+              <th>UDM</th>
+              <th></th>
+              <th>Cantidad</th>
+              <th></th>
+              <th>Stock</th>
+              <th>Mod %</th>
+              <th class="text-end">Precio</th>
+              <th class="text-end">% Desc.</th>
+              <th class="text-end">T. con Desc.</th>
+            </tr>
+          </thead>
+          <draggable v-model="form.items" tag="tbody" items-key="orden" handle=".handle">
+            <template #item="{ element, index }">
+              <tr>
+                <td class="fs-sm" style="width:0.313rem"> {{ index + 1 }}</td>
+                <td class="fs-sm code" style="width:7.25rem">{{ element.ART_CODIGO }}</td>
+                <!-- descripcion -->
+                <td class="fs-sm">
+                  <div v-if="!isDescriptionEditable(index)" @click="enableEditModeDescription(index)"
+                    class="d-flex align-items-center justify-content-between" style="cursor:pointer"
+                    title="Click para editar">
+                    <span :class="getDescriptionClass(element)">
+                      {{ element.ART_DESCRIPCION }}
+                    </span>
+
+                    <span v-if="element.CHECK_ALTERNATIVO == 1" class="text-warning">
+                      (Alternativa)</span>
+                  </div>
+                  <input v-else type="text" :id="`updatedescripcion-${element.id}`" class="form-control form-control-sm"
+                    :class="{ 'is-invalid': element.errorDescripcion }" placeholder="Descripción del artículo"
+                    v-model="element.ART_DESCRIPCION" v-focus @blur="updateDescripcion($event, element, index)"
+                    @keyup.enter="updateDescripcion($event, element, index)">
+                </td>
+                <!-- obtener listado de descripciones -->
+                <td>
+                  <button type="button" class="btn btn-sm btn-info"
+                    @click="openModalListItemAlternatives(element, index)">
+                    <i class="fa fa-search"></i>
+                  </button>
+                </td>
+                <!-- check alternativo -->
+                <td>
+                  <input type="checkbox" class="form-check-input" :id="`checkAlternativo-${element.id}`"
+                    v-model="element.CHECK_ALTERNATIVO" :true-value="1" :false-value="0">
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <!-- botones -->
+                <td>
+                  <button type="button " class="btn btn-danger btn-sm mx-1" @click="removeItem(element, index)" :disabled="element.disabled_delete">
+                    <i class="fa fa-trash-can"></i>
+                  </button>
+                </td>
+              </tr>
+            </template>
+          </draggable>
+        </table>
+      </div>
     </BaseBlock>
     <!-- {{ form }} -->
 
@@ -523,11 +658,23 @@ onMounted(async () => {
     ref="verSearchItemModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 90vw;">
       <div class="modal-content">
-        <verModalBuscarArticulos v-if="dataSearchItem" :form="dataSearchItem" @closeModal="closeModalSearchItem"></verModalBuscarArticulos>
+        <verModalBuscarArticulos v-if="dataSearchItem" :form="dataSearchItem" @closeModal="closeModalSearchItem"
+          @select-item="handleItemSelected"></verModalBuscarArticulos>
       </div>
     </div>
   </div>
 
+  <!-- Modal para listar y asignar item alternativo -->
+  <div class="modal" id="modal-item-alternativo" tabindex="-1" role="dialog" aria-labelledby="modal-item-alternativo"
+    aria-hidden="true" ref="verItemAltRef">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document" style="max-width: 400px">
+      <div class="modal-content">
+        <verModalItemAlternativo v-if="itemAlternativo" :item="itemAlternativo.item" :indice="itemAlternativo.index"
+          @seleccionarAlternativa="onSelectItemAlternativo">
+        </verModalItemAlternativo>
+      </div>
+    </div>
+  </div>
 
 </template>
 
