@@ -154,7 +154,7 @@ async function openModalAprobacionFacturaDemanda(row) {
   lockModal(id);
   const resp = await fetchQuotationWithDetialAndStockActive(row.id);
   if (!resp?.ok) {
-    unLockedModal(id); (id);
+    unLockedModal(id);
     return swalError(resp?.message);
   }
   dataModal.value = resp.data;

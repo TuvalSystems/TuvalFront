@@ -3,7 +3,7 @@ import { computed, reactive, watch } from 'vue';
 import { useQuotationReserveApproval } from '@/composables/aprobaciones/reservas/useQuotationReserveApproval';
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { swalSuccess, swalError } from "@/functions/swal-alert.js";
+import { swalSuccess, swalError, swalWarning } from "@/functions/swal-alert.js";
 const props = defineProps({
     'reserva': Object
 });
@@ -15,7 +15,7 @@ const flatPickrState = reactive({
         locale: Spanish,
     },
 });
-const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm, ptoVtaReservation } = useQuotationReserveApproval();
+const { dataSendApproval, loadingApproval, approveReservation, loadingDeny, denyReservation, resetForm, ptoVtaReservation, checkStockReserved } = useQuotationReserveApproval();
 const infoResponse = computed(() => props.reserva);
 
 const infoReserva = infoResponse.value.reserva;
@@ -25,6 +25,13 @@ const infoSegmento = infoResponse.value.segmento;
 
 
 async function aprobarReserva() {
+    const respCheck = await checkStockReserved();
+    if (!respCheck.ok) {
+        await denyReservation();
+        await swalWarning(respCheck.message);
+        emit('closeModalAprobacionReserva', true);
+        return;
+    }
     const resp = await approveReservation();
     if (!resp?.ok) {
         await swalError(resp?.message);
