@@ -82,7 +82,7 @@ watch(
         dataSendApproval.id = newVal.id
         dataSendApproval.fe_autorizacion_reserva = newVal.fe_autorizacion_reserva
         dataSendApproval.obs_autorizacion_reserva = newVal.obs_autorizacion_reserva
-    });
+    }, { immediate: true , deep: true});
 </script>
 
 <template>
