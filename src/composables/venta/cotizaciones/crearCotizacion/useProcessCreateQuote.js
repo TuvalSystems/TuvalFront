@@ -1,6 +1,6 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref, reactive, watch, computed, onMounted, toRef } from "vue";
+import { ref, reactive, watch, computed, onMounted, toRef, nextTick } from "vue";
 import { swalError, swalWarning, swalSuccess } from "@/functions/swal-alert";
 import { useSessionStorage } from '@vueuse/core';
 import { useStore } from 'vuex'
@@ -143,6 +143,7 @@ export function useProcessCreateQuote() {
             loadingRef: loadingAddItem,
             onSuccess: (res) => {
                 form.value.items.push(res);
+                calculateTotals();
             },
             successMessage: 'Proceso realizado exitosamente',
         });
@@ -157,6 +158,8 @@ export function useProcessCreateQuote() {
             loadingRef: loadingAddItem,
             onSuccess: () => {
                 form.value.items.splice(i, 1);
+                form.value.items[i].disabled_delete = false;
+                calculateTotals();
             },
             onError: (error) => {
                 // 3. ¡IMPORTANTE! Si falla, desbloqueamos el botón para que intente de nuevo
@@ -173,9 +176,11 @@ export function useProcessCreateQuote() {
 
     //proceso de cambio de descripcion de item 
     const getDescriptionClass = (ele) => {
-        const isModified = ele.ART_DESCRIPCION !== ele.ART_DESCRIPCION_ORIGINAL;
-        const isTypeL = ele.ART_TIPO_COMPRA === 'L';
+        const descActual = (ele.ART_DESCRIPCION || '').toString().trim();
+        const descOriginal = (ele.ART_DESCRIPCION_ORIGINAL || '').toString().trim();
+        const isModified = descActual !== descOriginal;
 
+        const isTypeL = (ele.ART_TIPO_COMPRA || '').trim() === 'L';
         if ((isModified && !isTypeL) || (!isModified && isTypeL)) {
             return 'text-danger fw-bold';
         }
@@ -220,7 +225,7 @@ export function useProcessCreateQuote() {
     }
 
 
-
+    //proceso de items alternativos
     //proceso para listado de items alternativos 
     const descripcionAlternativa = ref('');
     const apiSearchAlternativesItems = '/cotizaciones/lista-items-alternativos';
@@ -240,21 +245,420 @@ export function useProcessCreateQuote() {
         listItemsAlternatives.value = [];
     }
 
+    const apiUpdateCheckAlternative = 'cart/item/update/check-alternativo';
+    const loadingUpdateCheckAlternative = ref(false);
+    async function updateCheckAlternative(check, id, i) {
+        return await run(() => axiosClient.post(apiUpdateCheckAlternative, { id: id, CHECK_ALTERNATIVO: check }), {
+            loadingRef: loadingUpdateCheckAlternative,
+            onSuccess: (res) => {
+                form.value.items[i].CHECK_ALTERNATIVO = check;
+            },
+            onError: (error) => {
+                form.value.items[i].CHECK_ALTERNATIVO = !check;
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        });
+    }
+
+    const apiUpdateDescriptionAlternative = 'cart/item/update/descripcion-alternativa';
+    const loadingUpdateDescriptionAlternative = ref(false);
+    async function updateDescriptionsForCheckAlternative(descripcion, i) {
+        let idRow = form.value.items[i].id;
+        return await run(() => axiosClient.post(apiUpdateDescriptionAlternative, { id: idRow, descripcion: descripcion.value }), {
+            loadingRef: loadingUpdateDescriptionAlternative,
+            onSuccess: () => {
+                form.value.items[i].ART_DESCRIPCION = descripcion;
+                form.value.items[i].ART_DESCRIPCION_ORIGINAL = descripcion;
+                form.value.items[i].cambiar_descripcion = false;
+            },
+            onError: (error) => {
+                form.value.items[i].ART_DESCRIPCION = form.value.items[i].ART_DESCRIPCION_ORIGINAL;
+                form.value.items[i].cambiar_descripcion = false;
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        })
+
+    }
+
+
+    // proceso para apertura de modal de proveedores
+
+    const isItemL = (row) => row.ART_TIPO_COMPRA === 'L'
+    const isClassProviderOK = (row) => row.proveedores_listo ? 'btn-success' : 'btn-danger';
+
+
+    //proceso para manejo de cantidades
+
+    const validateQtyBeforeUpdate = async (qty, row) => {
+        const allowsDecimals = row.ART_DECIMAL_CANTIDAD > 0;
+        if (qty < 0) return { ok: false, message: 'La cantidad no puede ser negativa' };
+        if (allowsDecimals && isNaN(qty)) {
+            return { ok: false, message: 'La cantidad debe ser un número' };
+        }
+        if (!allowsDecimals && !isInt(qty)) {
+            return { ok: false, message: 'La cantidad debe ser un número entero' };
+        }
+        return { ok: true, code: 0 };
+    }
 
 
 
-    //proceso de items alternativos
-    const itemUpdateCheckbox = reactive({
-        articulo: null,
-        CHECK_ALTERNATIVO: false
+    const apiUpdateQuantityItem = 'cart/item/update/cantidad';
+    const loadingUpdateQuantityItem = ref(false);
+
+    const formatQty = (qty, row) => {
+        if (row.ART_DECIMAL_CANTIDAD > 0) {
+            return parseFloat(qty).toFixed(row.ART_DECIMAL_CANTIDAD);
+        }
+        return parseInt(qty);
+    }
+
+    const isInt = (value) => {
+        const x = parseFloat(value);
+        return !isNaN(value) && (x | 0) === x;
+    }
+    async function updateQuantityItem(qty, row, i) {
+        const formattedQty = formatQty(qty, row);
+        return await run(() => axiosClient.post(apiUpdateQuantityItem, { id: row.id, cantidad: formattedQty }), {
+            loadingRef: loadingUpdateQuantityItem,
+            onSuccess: (res) => {
+                form.value.items[i].ART_CANTIDAD = formattedQty;
+                form.value.items[i].errorCantidad = false;
+                calculateTotals();
+            },
+            onError: (error) => {
+                form.value.items[i].ART_CANTIDAD = row.ART_CANTIDAD;
+                form.value.items[i].errorCantidad = true;
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        });
+    }
+
+
+
+
+    //proceso de stock total de un articulo 
+    const shouldShowStock = (row) => {
+        const excludeTypes = ['L', 'SERV'];
+        return !excludeTypes.includes(row.ART_TIPO_COMPRA);
+    };
+
+
+
+
+    //proceso de modal stock y peso 
+    const dataStockItem = ref({
+        items: [],
+        index: 0,
+        permiteDecimales: false
+    });
+    const isStockDisabled = (row) => {
+        return row.disableOpenModalStock || row.stockRowLoading;
+    }
+
+    //procesos de modal verModalSelecionStockBodegas 
+    const getStockClass = (stock) => {
+        const s = parseFloat(stock);
+        if (s <= 0) return 'text-danger fw-bold';
+        if (s < 10) return 'text-warning fw-bold';
+        return 'text-success';
+    };
+
+    const localStocks = ref([]);
+    const totalAsignado = computed(() => {
+        return localStocks.value.reduce((acc, item) => acc + (Number(item.seleccionado) || 0), 0);
     });
 
+    const validateInput = (item, isDecimal) => {
+        const maxStock = parseFloat(item.STO_ART_STOCK_DISPONIBLE || 0);
+        if (item.seleccionado < 0) item.seleccionado = 0;
+        if (item.seleccionado > maxStock) {
+            item.seleccionado = maxStock;
+            swalWarning(`Stock insuficiente.<br>Máximo disponible: <b>${maxStock}</b>`);
+            return false;
+        }
+        if (!isDecimal && !isInt(item.seleccionado)) {
+            item.error = true;
+            item.seleccionado = 0;
+            swalWarning('Ingresar un número entero');
+            return false;
+        }
+        if (isDecimal && isNaN(item.seleccionado)) {
+            item.error = true;
+            item.seleccionado = 0;
+            swalWarning('Ingresar un número');
+            return false;
+        }
+        item.error = false;
+        return true;
 
-    const apiUpdateCheckAlternative = 'cart/item/actualizar/check-alternativo';
-    const loadingUpdateCheckAlternative = ref(false);
-    async function updateCheckAlternative() {
-        return await run(() => axiosClient.post(apiUpdateCheckAlternative, itemUpdateCheckbox), {
-            loadingRef: loadingUpdateCheckAlternative,
+    }
+
+
+    const apiUpdateStockRowItem = 'cart/item/update/stock';
+    const loadingUpdateStockRowItem = ref(false);
+    async function updateStockRowItem(id, qty) {
+        return await run(() => axiosClient.post(apiUpdateStockRowItem, { id: id, seleccionado: qty }), {
+            loadingRef: loadingUpdateStockRowItem,
+            onSuccess: () => {
+                calculateTotals();
+            },
+
+            successMessage: 'Proceso realizado exitosamente',
+        })
+    }
+
+
+
+    const dataPesoItem = ref({ item: {}, index: 0 });
+    const apiUpdateWeinghtRowItem = 'cart/item/update/peso';
+    const loadingUpdateWeinghtRowItem = ref(false);
+
+    async function updateWeinghtRowItem(id, qty) {
+        return await run(() => axiosClient.post(apiUpdateWeinghtRowItem, { id: id, peso: qty }), {
+            loadingRef: loadingUpdateWeinghtRowItem,
+            onSuccess: () => {
+                calculateTotals();
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        })
+    }
+
+
+
+
+
+    /**
+     *  proceso de proveedores 
+     * 
+     */
+
+
+    /**
+     *  
+     * 
+     *    validacion global de stocks 
+     */
+
+    //variables de controles globales para bloque de guardado 
+    const isQuantityValid = ref(true);
+    const isPriceValid = ref(true);
+    const isDescriptionLValid = ref(true);
+    const calculateTotals = () => {
+        let tempSubtotal = 0.00;
+        let tempDescuento = 0.00;
+        let tempIva = 0.00;
+        let tempPeso = 0.00;
+
+
+        //se reinician las variables
+        isQuantityValid.value = true;
+        isPriceValid.value = true;
+        isDescriptionLValid.value = true;
+
+        form.value.items.forEach((art) => {
+            if (art.ART_TIPO_COMPRA === 'L' && (art.ART_DESCRIPCION == art.ART_DESCRIPCION_ORIGINAL)) {
+                art.errorDescripcion = true;
+                isDescriptionLValid.value = false;
+            }
+            if (art.ART_TIPO_COMPRA !== 'L') {
+                let valorUnitario = parseFloat(art.ART_VALOR_ORIGINAL || 0);
+                const modificador = parseFloat(art.modificador || 0);
+                valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
+                art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
+            } else {
+                art.ART_VALOR = redondear(parseFloat(art.ART_VALOR) + 0.000001, 4);
+            }
+
+            const cantidad = parseFloat(art.ART_CANTIDAD) || 0;
+            if (cantidad <= 0) {
+                art.errorCantidad = true;
+                isQuantityValid.value = false;
+            } else {
+                art.errorCantidad = false;
+            }
+
+            if (art.ART_VALOR === 0) {
+                art.errorPrecio = true;
+                isPriceValid.value = false;
+            }
+            // --- Cálculos Matemáticos (Todo Numérico) ---
+            const precioParaCalculo = art.ART_VALOR;
+            const descuentoPorcentaje = parseFloat(art.descuento) || 0;
+
+            //calcular descuento unitario
+            const descuentoUnitario = precioParaCalculo * (descuentoPorcentaje / 100);
+            art.ART_DESCUENTO = redondear(descuentoUnitario + 0.000001, 4); //se aplico por bloque de seguridad
+
+            //calcular SUBTOTAL de la linea (precio - descuento) * cantidad
+            const precioConDescuento = precioParaCalculo - descuentoUnitario;
+            const subtotalLinea = redondear((precioConDescuento * cantidad) + 0.000001, 2);
+
+            //guardamos el valor numerico crudo para calculos
+            // art.subTotalRaw = subtotalLinea;
+            art.subtotal = subtotalLinea;
+
+            //Acumuladores Globales
+            tempSubtotal += subtotalLinea;
+            tempDescuento += (descuentoUnitario * cantidad);
+
+            //calculo del IVA
+            const ivaPorcentaje = parseFloat(art.ART_IMP_VTA) || 0;
+            const ivaLinea = subtotalLinea * (ivaPorcentaje / 100);
+
+            art.ART_IVA = redondear(ivaLinea + 0.000001, 2); //se aplico por bloque de seguridad
+            tempIva += ivaLinea;
+            //calculo del peso
+            tempPeso += (parseFloat(art.ART_PESO) || 0) * cantidad;
+        });
+        form.value.subtotal = redondear(tempSubtotal + 0.000001, 2);
+        form.value.descuento = redondear(tempDescuento + 0.000001, 2);
+        form.value.iva = redondear(tempIva + 0.000001, 2);
+        form.value.peso = redondear(tempPeso, 2);
+
+        // Total General = Subtotal + IVA
+        form.value.total = redondear((form.value.subtotal + form.value.iva) + 0.000001, 2);
+        verifyStockConsistency(true);
+    }
+
+    function redondear(num, decimales = 2) {
+        const factor = Math.pow(10, decimales);
+        return Math.round((num + Number.EPSILON) * factor) / factor;
+    }
+    const verifyStockConsistency = (silent = false) => {
+        let isValid = true;
+        const globalStockUsage = {};
+        form.value.items.forEach((item) => {
+            if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
+                item.stockListo = true; //los servicios y l siempre estan listos
+                return;
+            }
+            const qtyReuired = parseFloat(item.ART_CANTIDAD || 0);
+            let qtyAsigned = 0;
+
+            if (item.stock && item.stock.length > 0) {
+                item.stock.forEach((bd) => {
+                    const seleccionado = parseFloat(bd.seleccionado || 0);
+                    const disponible = parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
+                    qtyAsigned += seleccionado;
+
+                    const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
+                    if (!globalStockUsage[key]) {
+                        globalStockUsage[key] = { used: 0, available: disponible, artCode: item.ART_CODIGO, bodegaName: bd.STO_ART_BODEGA };
+                    }
+                    globalStockUsage[key].used += seleccionado;
+                });
+            }
+            if (qtyAsigned.toFixed(item.ART_DECIMAL_CANTIDAD) !== qtyReuired.toFixed(item.ART_DECIMAL_CANTIDAD)) {
+                item.stockListo = false;
+                isValid = false;
+            } else {
+                item.stockListo = true;
+            }
+        });
+        for (const key in globalStockUsage) {
+            const data = globalStockUsage[key];
+            if (data.used > data.available) {
+                if (!silent) {
+                    swalWarning(`Stock insuficiente en la bodega ${data.bodegaName} para el articulo ${data.artCode}.<br>Máximo disponible: <b>${data.available}</b>`);
+                    return;
+                }
+                isValid = false;
+            }
+        }
+        return isValid;
+    }
+
+
+
+
+    /*
+     *
+     *  proceso de calculo de modificador y precio 
+     */
+
+    const calculatePriceFromModifier = (originalPrice, modifier) => {
+        if (!originalPrice) return 0;
+        if (modifier == 0) return originalPrice;
+        let decimal = 1 - (modifier / 100);
+        return originalPrice * decimal;
+    }
+    const calculateRowModifier = (row, newPrice) => {
+        if (row.ART_TIPO_COMPRA === 'L') {
+            return 0;
+        }
+        return (((newPrice / row.ART_VALOR_ORIGINAL) - 1) * (-100));
+    }
+
+
+    const isPriceEditable = (row) => {
+        return row.cambiar_valor === true;
+    }
+
+    const enableEditPrice = async (element, i) => {
+        element.valor_temporal = element.ART_VALOR;
+        element.cambiar_valor = true;
+
+        await nextTick();
+        const input = document.getElementById(`input-precio-${i}`);
+        if (input) input.focus();
+    }
+    const applyModifyPrice = (row) => {
+        return row.ART_VALOR != row.ART_VALOR_ORIGINAL && row.ART_TIPO_COMPRA != 'L';
+    }
+
+    const exitEditPrice = (row) => {
+        row.ART_VALOR = row.valor_temporal;
+        row.cambiar_valor = false;
+    }
+
+
+
+    const loadingUpdateOnlyModifyPriceItem = ref(false);
+    const apiUpdatePriceRow = 'cart/item/update/precio';
+    async function updateModifyPriceRowItem(id, price, nuevoModificar) {
+        return await run(() => axiosClient.post(apiUpdatePriceRow, { id: id, precio: price, modificador: nuevoModificar }), {
+            loadingRef: loadingUpdateOnlyModifyPriceItem,
+            onSuccess: () => {
+                calculateTotals();
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        });
+    }
+
+    /**
+     *  proceso de modificacion de descuento 
+     */
+
+    const isEditDiscount = (row) => {
+        return row.cambiar_descuento === true;
+    }
+
+    const enableEditDiscount = async (element, i) => {
+        element.descuento_temporal = element.descuento;
+        element.cambiar_descuento = true;
+
+        await nextTick();
+        const input = document.getElementById(`input-descuento-${i}`);
+        if (input) input.focus();
+    }
+    const applyModifyDiscount = (row) => {
+        return row.descuento != row.descuento_original;
+    }
+
+    const exitEditDiscount = (row) => {
+        row.descuento = row.descuento_temporal;
+        row.cambiar_descuento = false;
+    }
+
+    const loadingDiscountItem = ref(false);
+    const apiModifyDiscountItem = 'cart/item/update/descuento';
+    const updateModifyDiscountRowItem = async (id, descuento) => {
+        return await run(() => axiosClient.post(apiModifyDiscountItem, { id: id, descuento: descuento }), {
+            loadingRef: loadingDiscountItem,
+            onSuccess: () => {
+                calculateTotals();
+            },
             successMessage: 'Proceso realizado exitosamente',
         });
     }
@@ -278,11 +682,53 @@ export function useProcessCreateQuote() {
         listItemsAlternatives,
         clearSelectionItemalternative,
         descripcionAlternativa,
+        updateDescriptionsForCheckAlternative,
 
         //proceso de checkbox alternativos
-        itemUpdateCheckbox,
         loadingUpdateCheckAlternative,
-        updateCheckAlternative
+        updateCheckAlternative,
+
+        // proceso para apertura de modal de proveedores
+        isItemL,
+        isClassProviderOK,
+
+        //proceso para manejo de cantidades
+        loadingUpdateQuantityItem,
+        validateQtyBeforeUpdate,
+        updateQuantityItem,
+
+        //proceso de stock total de un articulo 
+        shouldShowStock,
+
+        //proceso de modal stock y peso 
+        dataStockItem,
+        isStockDisabled,
+        getStockClass,
+        localStocks,
+        totalAsignado,
+        validateInput,
+        updateStockRowItem,
+
+        //peso  
+        dataPesoItem,
+        updateWeinghtRowItem,
+        //proceso para manejo de modificador y precio
+
+        calculatePriceFromModifier,
+        isPriceEditable,
+        enableEditPrice,
+        applyModifyPrice,
+        exitEditPrice,
+        calculateRowModifier,
+        updateModifyPriceRowItem,
+
+        //proceso de modificacion de descuento 
+        isEditDiscount,
+        enableEditDiscount,
+        applyModifyDiscount,
+        exitEditDiscount,
+        updateModifyDiscountRowItem,
+
     };
 
 

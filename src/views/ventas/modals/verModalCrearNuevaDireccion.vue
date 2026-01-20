@@ -56,7 +56,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <BaseBlock title="Nueva Dirección" class="mb-0">
+    <BaseBlock title="Nueva Dirección" class="mb-0" transparent>
         <template #options>
             <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close" @click="resetModalForm()">
                 <i class="fa fa-fw fa-times"></i>

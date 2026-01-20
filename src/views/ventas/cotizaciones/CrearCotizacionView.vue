@@ -9,10 +9,17 @@ import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import draggable from 'vuedraggable'
+import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4 } from "@/functions";
+
 // imports modales
 import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
 import verModalBuscarArticulos from "@/views/ventas/modals/verModalBuscarArticulos.vue";
 import verModalItemAlternativo from "@/views/ventas/modals/verModalItemAlternativo.vue";
+import verModalSeleccionStockBodegas from "@/views/ventas/modals/verModalSeleccionStockBodegas.vue";
+import verModalModificacionPeso from "@/views/ventas/modals/verModalModificacionPeso.vue";
+import verModalProveedores from "@/views/ventas/modals/verModalProveedores.vue";
+
+
 const {
   clients,
   errorSearchClient,
@@ -45,16 +52,60 @@ const {
   clearForm,
   addItems,
   removeItem,
+
   //proceso de descripcion de item 
   getDescriptionClass,
   updateDescripcion,
   isDescriptionEditable,
   enableEditModeDescription,
 
+  //proceso item alternativo 
+  loadingListAlternative,
+  getAlternativeDescriptions,
+  listItemsAlternatives,
+  clearSelectionItemalternative,
+  descripcionAlternativa,
+  updateDescriptionsForCheckAlternative,
+
   //proceso de checkbox alternativos
-  itemUpdateCheckbox,
   loadingUpdateCheckAlternative,
-  updateCheckAlternative
+  updateCheckAlternative,
+
+  // proceso para apertura de modal de proveedores
+  isItemL,
+  isClassProviderOK,
+
+  //proceso para manejo de cantidades
+  loadingUpdateQuantityItem,
+  validateQtyBeforeUpdate,
+  updateQuantityItem,
+
+  //proceso de stock total de un articulo 
+  shouldShowStock,
+
+  //proceso de modal stock y peso 
+  dataStockItem,
+  isStockDisabled,
+  //peso  
+  dataPesoItem,
+  updateWeinghtRowItem,
+  //proceso para manejo de modificador y precio
+  calculatePriceFromModifier,
+  isPriceEditable,
+  enableEditPrice,
+  applyModifyPrice,
+  exitEditPrice,
+  calculateRowModifier,
+  updateModifyPriceRowItem,
+
+  //proceso de modificacion de descuento 
+  isEditDiscount,
+  enableEditDiscount,
+  applyModifyDiscount,
+  exitEditDiscount,
+  updateModifyDiscountRowItem,
+
+
 } = useProcessCreateQuote();
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 const flatPickrState = reactive({
@@ -69,11 +120,16 @@ const verModalActualizarSegmento = ref(null)
 const verModalCrearDireccionModal = ref(null)
 const verSearchItemModal = ref(null);
 const verItemAltRef = ref(null)
+const verSeleccionStockBodegasRef = ref(null)
+const verModalPesoItemRef = ref(null)
+const verProveedoresRef = ref(null);
 const verModalActualizarSegmentoObj = useBootstrapModal(verModalActualizarSegmento)
 const verModalCrearDireccionModalObj = useBootstrapModal(verModalCrearDireccionModal)
 const verSearchItemModalObj = useBootstrapModal(verSearchItemModal)
 const verItemAltObj = useBootstrapModal(verItemAltRef)
-
+const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef)
+const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef)
+const verProveedoresObj = useBootstrapModal(verProveedoresRef)
 // variables para mostrar las busquedas
 const showResultClients = ref(false);
 const showInfoClient = ref(false);
@@ -242,10 +298,11 @@ async function openModalListItemAlternatives(item, i) {
 }
 
 async function onSelectItemAlternativo(descripcion, i) {
-  const formItem = form.value.items[i];
-  formItem.cambiar_descripcion = false;
-  formItem.ART_DESCRIPCION = descripcion;
-  formItem.ART_DESCRIPCION_ORIGINAL = descripcion;
+  const repsOnSelect = await updateDescriptionsForCheckAlternative(descripcion, i);
+  if (!repsOnSelect?.ok) {
+    swalError(repsOnSelect?.message || 'Error al actualizar la descripcion');
+    return;
+  }
   itemAlternativo.item = '';
   itemAlternativo.index = 0;
   verItemAltObj.hide();
@@ -255,16 +312,169 @@ async function onSelectItemAlternativo(descripcion, i) {
 //proceso de checkAlternative
 async function actualizarCheckAlternative(event, art, i) {
   let valEvent = event.target.checked ? 1 : 0;
-  itemUpdateCheckbox.articulo = art.id;
-  itemUpdateCheckbox.CHECK_ALTERNATIVO = valEvent;
-  const respCheck = await updateCheckAlternative(itemUpdateCheckbox);
+  const respCheck = await updateCheckAlternative(valEvent, art.id, i);
   if (!respCheck?.ok) {
     swalError(respCheck?.message || 'Error consultando sucursales');
     return;
   }
-
-  form.value.items[i].CHECK_ALTERNATIVO = valEvent;
 }
+
+
+
+
+//proceso de proveedores de items 
+async function openModalProviders(item, i) {
+  console.log(item, i, 'modal abierto xdddd');
+  verProveedoresObj.show();
+
+}
+//proceso de validaciones y proceso de cantidad del item 
+async function changeQuantityItem(event, item, i) {
+  const qty = event.target.value;
+  const resValidate = await validateQtyBeforeUpdate(qty, item);
+  if (!resValidate?.ok) {
+    form.value.items[i].ART_CANTIDAD = 0;
+    form.value.items[i].errorCantidad = true;
+    event.target.value = item.ART_CANTIDAD;
+    swalWarning(resValidate?.message);
+    return;
+  }
+  const respQty = await updateQuantityItem(qty, item, i);
+  if (!respQty?.ok) {
+    form.value.items[i].errorCantidad = true;
+    event.target.value = item.ART_CANTIDAD;
+    form.value.items[i].ART_CANTIDAD = 0;
+    swalError(respQty?.message);
+    return;
+  }
+}
+
+
+
+
+
+//proceso de modales stock y peso 
+async function openModalStockRowItem(item, i) {
+
+  form.value.items[i].stockListo = false;
+  dataStockItem.value.items = item.stock;
+  dataStockItem.value.index = i;
+  dataStockItem.value.permiteDecimales = item.ART_DECIMAL_CANTIDAD > 0 ? true : false;
+  await nextTick();
+
+  verSeleccionStockBodegasObj.show();
+}
+
+async function closeModalStockRowItem() {
+
+  dataStockItem.value.items = [];
+  dataStockItem.value.index = 0;
+  dataStockItem.value.permiteDecimales = false;
+  verSeleccionStockBodegasObj.hide();
+}
+
+async function handleStockUpdate({ stocks, total, index }) {
+
+  const qty = Number(total || 0);
+  // 1. Actualizamos el estado local del formulario
+  form.value.items[index].stock = stocks;
+  form.value.items[index].stockListo = qty > 0 ? true : false;
+  // 2. Si es necesario actualizar la cantidad total en BD cada vez que cambian una bodega:
+  let itemInitial = form.value.items[index];
+
+  // NOTA: Esto actualizará el total visualmente y en BD
+  await updateQuantityItem(qty, itemInitial, index);
+}
+
+
+
+async function openModalPesoRowItem(item, i) {
+  dataPesoItem.value.item = item;
+  dataPesoItem.value.index = i;
+  verModalPesoItemObj.show();
+}
+
+
+async function handleWeightUpdate({ index, peso }) {
+
+  form.value.items[index].ART_PESO = peso;
+  let itemId = form.value.items[index].id;
+  await updateWeinghtRowItem(itemId, peso);
+
+}
+async function closeModalPesoRowItem() {
+  dataPesoItem.value.item = {};
+  dataPesoItem.value.index = 0;
+  verModalPesoItemObj.hide();
+}
+
+
+
+//proceso de validacion para modificar de item
+
+
+
+async function applyModifyRow(item) {
+  let modifierValue = item.modificador;
+  if (isNaN(modifierValue) || modifierValue === '') {
+    modifierValue = 0
+  }
+  let decimales = (item.ART_DECIMAL_VALOR && item.ART_DECIMAL_VALOR > 0)
+    ? item.ART_DECIMAL_VALOR
+    : 4;
+  let originalPrice = item.ART_VALOR_ORIGINAL;
+  let calculatedPrice = calculatePriceFromModifier(originalPrice, modifierValue);
+  calculatedPrice = parseFloat(calculatedPrice.toFixed(decimales));
+  item.ART_VALOR = calculatedPrice;
+  item.errorModificador = false;
+  await updateModifyPriceRowItem(item.id, calculatedPrice, modifierValue);
+}
+
+
+
+//proceso de modificaicon de precios
+
+const saveModifyPrice = async (element) => {
+  if (element.ART_VALOR === element.valor_temporal) {
+    element.cambiar_valor = false;
+    return;
+  }
+  let nuevoModificar = calculateRowModifier(element, element.ART_VALOR);
+  nuevoModificar = parseFloat(nuevoModificar.toFixed(4));
+  element.modificador = nuevoModificar;
+  element.cambiar_valor = false;
+  const resp = await updateModifyPriceRowItem(element.id, element.ART_VALOR, nuevoModificar);
+  if (!resp?.ok) {
+    element.ART_VALOR = element.valor_temporal;
+    element.modificador = calculateRowModifier(element, element.valor_temporal);
+    swalError(resp?.message);
+    return;
+  }
+}
+
+
+/**
+ *  proceso de modificacion de descuento
+ */
+
+const saveModifyDiscount = async (element) => {
+  if (element.descuento === element.descuento_temporal) {
+    element.cambiar_descuento = false;
+    return;
+  }
+  element.cambiar_descuento = false;
+  const resp = await updateModifyDiscountRowItem(element.id, element.descuento);
+  if (!resp?.ok) {
+    element.descuento = element.descuento_temporal;
+    swalError(resp?.message);
+    return;
+  }
+}
+
+
+
+
+
 
 onMounted(async () => {
   await fetchWarehouseByPtoVtaUser();
@@ -551,39 +761,43 @@ onMounted(async () => {
         <table v-if="form.items.length > 0" class="table table-hover table-sm table-vcenter mt-0">
           <thead>
             <tr>
-              <th style="width:0.313rem">#</th>
-              <th style="width:7.25rem">Código</th>
-              <th style="width:15.625rem">Descripción</th>
-              <th style="width:3.125rem"></th>
-              <th style="width:3.125rem;text-align: center">ALT</th>
-              <th>CTL</th>
-              <th>UDM</th>
-              <th></th>
-              <th>Cantidad</th>
-              <th></th>
-              <th>Stock</th>
-              <th>Mod %</th>
-              <th class="text-end">Precio</th>
-              <th class="text-end">% Desc.</th>
-              <th class="text-end">T. con Desc.</th>
+              <th class="text-center" style="width: 40px;">#</th>
+              <th style="min-width: 100px;">Código</th>
+              <th>Descripción</th>
+              <th style="width:3rem"></th>
+              <th class="text-center" style="width: 50px;">ALT</th>
+              <th class="text-center" style="width: 50px;">CTL</th>
+              <th class="text-center" style="width: 50px;">UDM</th>
+              <th style="width: 50px;"></th>
+              <th class="text-center" style="width: 80px;">Cantidad</th>
+              <th style="width: 50px;"></th>
+              <th class="text-end" style="width: 60px;">Stock</th>
+              <th class="text-center" style="width: 90px;">Mod %</th>
+              <th class="text-end" style="width: 100px;">Precio</th>
+              <th class="text-end" style="width: 80px;">% Desc.</th>
+              <th class="text-end" style="width: 100px;">T. con Desc.</th>
+              <th style="width: 50px;"></th>
+
             </tr>
           </thead>
-          <draggable v-model="form.items" tag="tbody" items-key="orden" handle=".handle">
+          <draggable v-model="form.items" tag="tbody" :item-key="'id'" handle=".handle">
             <template #item="{ element, index }">
               <tr>
-                <td class="fs-sm" style="width:0.313rem"> {{ index + 1 }}</td>
-                <td class="fs-sm code" style="width:7.25rem">{{ element.ART_CODIGO }}</td>
+                <td class="fs-sm"> {{ index + 1 }}</td>
+                <td class="fs-sm code">{{ element.ART_CODIGO }}</td>
                 <!-- descripcion -->
                 <td class="fs-sm">
                   <div v-if="!isDescriptionEditable(index)" @click="enableEditModeDescription(index)"
-                    class="d-flex align-items-center justify-content-between" style="cursor:pointer"
-                    title="Click para editar">
-                    <span :class="getDescriptionClass(element)">
-                      {{ element.ART_DESCRIPCION }}
-                    </span>
-
-                    <span v-if="element.CHECK_ALTERNATIVO == 1" class="text-warning">
-                      (Alternativa)</span>
+                    class="d-flex align-items-center" style="cursor:pointer" title="Click para editar">
+                    <div class="d-flex flex-column lh-sm">
+                      <span :class="getDescriptionClass(element)" class="fw-medium">
+                        {{ element.ART_DESCRIPCION }}
+                      </span>
+                      <small v-if="element.CHECK_ALTERNATIVO == 1" class="text-warning fst-italic"
+                        style="font-size: 0.75rem;">
+                        <i class="fa fa-info-circle me-1"></i>Alternativa
+                      </small>
+                    </div>
                   </div>
                   <input v-else type="text" :id="`updatedescripcion-${element.id}`" class="form-control form-control-sm"
                     :class="{ 'is-invalid': element.errorDescripcion }" placeholder="Descripción del artículo"
@@ -591,36 +805,169 @@ onMounted(async () => {
                     @keyup.enter="updateDescripcion($event, element, index)">
                 </td>
                 <!-- obtener listado de descripciones -->
-                <td>
+                <td class="fs-sm text-center">
                   <button type="button" class="btn btn-sm btn-info"
                     @click="openModalListItemAlternatives(element, index)">
                     <i class="fa fa-search"></i>
                   </button>
                 </td>
                 <!-- check alternativo -->
-                <td>
+                <td class="fs-sm text-center">
                   <input type="checkbox" class="form-check-input" :id="`checkAlternativo-${element.id}`"
-                    v-model="element.CHECK_ALTERNATIVO" :true-value="1" :false-value="0">
+                    @click="actualizarCheckAlternative($event, element, index)" v-model="element.CHECK_ALTERNATIVO"
+                    :true-value="1" :false-value="0">
                 </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <!-- codigo 3 letras -->
+                <td class="fs-sm"> {{ element.ART_CODIGO_TRES_LETRAS }} </td>
+                <!-- unidad de medida UDM -->
+                <td class="fs-sm">{{ element.ART_PLAN_UMEDIDA }}</td>
+                <!-- abrir modal de proveedores -->
+                <td class="fs-sm">
+                  <div v-if="isItemL(element)">
+                    <button type="button" class="btn btn-sm" :class="isClassProviderOK(element)"
+                      @click="openModalProviders(element, index)">
+                      <i class="fa fa-people-arrows-left-right"></i>
+                    </button>
+                  </div>
+                </td>
+                <!-- cantidad -->
+                <td class="fs-sm">
+                  <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
+                    :class="{ 'is-invalid': element.errorCantidad }" placeholder="0" min="0"
+                    v-model.lazy.number="element.ART_CANTIDAD" @change="changeQuantityItem($event, element, index)"
+                    :tablindex="index + 1">
+                </td>
+
+                <!-- modal para abrir stock de bodega -->
+                <td class="fs-sm">
+
+                  <!-- boton stock -->
+                  <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
+                    :class="element.stockListo ? 'btn-success' : 'btn-warning'" title="Seleccionar stock por bodega"
+                    :disabled="isStockDisabled(element)" @click="openModalStockRowItem(element, index)">
+                    <i v-if="isStockDisabled(element)" class="fa fa-spinner fa-spin"></i>
+                    <i v-else class="fa-solid fa-warehouse"></i>
+                  </button>
+
+
+
+                  <!-- boton peso -->
+                  <button v-else class="btn btn-sm btn-info" title="Peso de artículo"
+                    @click="openModalPesoRowItem(element, index)">
+                    <i class="fa-solid fa-scale-unbalanced"></i>
+                  </button>
+
+
+                </td>
+
+                <!-- ART_STOCK -->
+                <td class="fs-sm text-end">
+                  <span v-if="shouldShowStock(element)">
+                    {{ element.ART_STOCK }}
+                  </span>
+                  <span v-else class="text-muted" style="text-align:center" title="No aplica stock">
+                    &mdash;
+                  </span>
+                </td>
+                <!-- modificador -->
+                <td class="fs-sm  text-end">
+                  <input v-if="element.ART_TIPO_COMPRA !== 'L'" type="number" class="form-control text-end no-spinners"
+                    step="0.01" :class="{ 'is-invalid': element.errorModificador }" placeholder="0.00"
+                    v-model.number="element.modificador" @focus="$event.target.select()"
+                    @change="applyModifyRow(element)" @keydown.enter="$event.target.blur()">
+                  <span v-else class="text-muted" style="text-align:center" title="No aplica modificador">
+                    &mdash;
+                  </span>
+                </td>
+                <!-- precio -->
+                <td class="fs-sm text-end col-1">
+                  <div v-if="!isPriceEditable(element)" @click="enableEditPrice(element, index)" class="cursor-pointer"
+                    title="Clic para editar">
+                    <span :class="applyModifyPrice(element) ? 'text-danger' : 'text-primary'">
+                      ${{ formatPrice4(parseFloat(element.ART_VALOR)) }}
+                    </span>
+
+                  </div>
+                  <input v-else :id="`input-precio-${index}`" type="number" step="0.0001" min="0.0000"
+                    class="form-control text-end no-spinners p-1" :class="{ 'is-invalid': element.errorPrecio }"
+                    v-model.number="element.ART_VALOR" @focus="$event.target.select()"
+                    @blur="saveModifyPrice(element, index)" @keyup.enter="$event.target.blur()"
+                    @keyup.esc="exitEditPrice(element)">
+                </td>
+                <!-- descuento con opcion de cambiar descuento-->
+                <td class="fs-sm text-end col-1">
+                  <div v-if="!isEditDiscount(element)" @click="enableEditDiscount(element, index)"
+                    class="cursor-pointer" title="Clic para editar">
+                    <span :class="applyModifyDiscount(element) ? 'text-danger' : 'text-primary'">
+                      {{ format(parseFloat(element.descuento)) }}%
+                    </span>
+
+                  </div>
+                  <input v-else :id="`input-descuento-${index}`" type="number" step="0.0000" min="0.0000"
+                    class="form-control text-end no-spinners p-1" :class="{ 'is-invalid': element.errorDescuento }"
+                    v-model.number="element.descuento" @focus="$event.target.select()"
+                    @blur="saveModifyDiscount(element, index)" @keyup.enter="$event.target.blur()"
+                    @keyup.esc="exitEditDiscount(element)">
+                </td>
+                <!-- total con descuento -->
+                <td class="fs-sm  text-end col-1">
+                  ${{ (element.subtotal) }}
+                </td>
                 <!-- botones -->
                 <td>
-                  <button type="button " class="btn btn-danger btn-sm mx-1" @click="removeItem(element, index)" :disabled="element.disabled_delete">
+                  <button type="button " class="btn btn-danger btn-sm mx-1" @click="removeItem(element, index)"
+                    :disabled="element.disabled_delete">
                     <i class="fa fa-trash-can"></i>
                   </button>
                 </td>
               </tr>
             </template>
           </draggable>
+          <!-- fotter -->
+          <tfoot v-if="form.items.length > 0">
+            <tr>
+              <th colspan="14" class="fs-sm text-end border-0"> Subtotal sin Descuento</th>
+              <th class="fs-sm text-end text-nowrap border-0"> ${{ form.subtotal + form.descuento }}</th>
+              <th class="border-0"></th>
+            </tr>
+            <tr>
+              <th colspan="14" class="fs-sm text-end text-danger border-0"> Descuento</th>
+              <th class="fs-sm text-end text-danger text-nowrap border-0"> - ${{ format(form.descuento) }}</th>
+              <th class="border-0"></th>
+            </tr>
+            <tr>
+              <th colspan="14" class="fs-sm text-end border-0">Subtotal Neto</th>
+              <th class="fs-sm text-end text-nowrap border-0">
+                ${{ format(form.subtotal) }}
+              </th>
+              <th class="border-0"></th>
+            </tr>
+            <tr>
+              <th colspan="14" class="fs-sm text-end border-0">IVA</th>
+              <th class="fs-sm text-end text-nowrap border-0">
+                ${{ format(form.iva) }}
+              </th>
+              <th class="border-0"></th>
+            </tr>
+            <tr class="table-active">
+              <th colspan="14" class="fs-sm text-end fw-bold">TOTAL</th>
+              <th class="fs-sm text-end fw-bold text-nowrap">
+                ${{ format(parseFloat(form.total)) }}
+              </th>
+              <th class="border-0"></th>
+            </tr>
+            <tr>
+              <td colspan="16" class="border-0 p-1"></td>
+            </tr>
+            <tr>
+              <th colspan="14" class="fs-sm text-end text-muted fst-italic border-0">Peso total aprox.</th>
+              <th class="fs-sm text-end text-muted fst-italic text-nowrap border-0">
+                {{ format(form.peso) }} Kg
+              </th>
+              <th class="border-0"></th>
+            </tr>
+          </tfoot>
+          <!-- end fotter -->
         </table>
       </div>
     </BaseBlock>
@@ -672,6 +1019,43 @@ onMounted(async () => {
         <verModalItemAlternativo v-if="itemAlternativo" :item="itemAlternativo.item" :indice="itemAlternativo.index"
           @seleccionarAlternativa="onSelectItemAlternativo">
         </verModalItemAlternativo>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal para la seleccion del stock de un articulo -->
+  <div class="modal" id="modal-bodegas" tabindex="-1" role="dialog" aria-labelledby="modal-bodegas" aria-hidden="true"
+    ref="verSeleccionStockBodegasRef">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verModalSeleccionStockBodegas v-if="dataStockItem.items.length > 0" :stocks="dataStockItem.items"
+          :index="dataStockItem.index" :permiteDecimales="dataStockItem.permiteDecimales"
+          @closeModal="closeModalStockRowItem" @update="handleStockUpdate">
+        </verModalSeleccionStockBodegas>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- modal de modificacion de peso  -->
+  <div class="modal" id="modal-peso" tabindex="-1" role="dialog" aria-labelledby="modal-peso" aria-hidden="true"
+    ref="verModalPesoItemRef">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <verModalModificacionPeso :item="dataPesoItem.item" :index="dataPesoItem.index"
+          @cerrar="closeModalPesoRowItem()" @actualizar="handleWeightUpdate">
+        </verModalModificacionPeso>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal de seleccion de proveedores para items L  -->
+  <div class="modal fade" id="modal-block-proveedor" tabindex="-1" role="dialog" aria-labelledby="modal-block-proveedor"
+    data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" ref="verProveedoresRef">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <verModalProveedores>
+        </verModalProveedores>
       </div>
     </div>
   </div>
@@ -733,5 +1117,27 @@ onMounted(async () => {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   font-size: 0.875rem;
+}
+
+
+/* Ocultar flechas en Chrome, Safari, Edge, Opera */
+input.no-spinners::-webkit-outer-spin-button,
+input.no-spinners::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Ocultar flechas en Firefox */
+input.no-spinners {
+  -moz-appearance: textfield;
+}
+
+td input.form-control {
+  min-width: 60px;
+  /* Asegura que nunca sean inusables */
+  width: 100%;
+  /* Ocupa toda la celda */
+  padding: 0.25rem;
+  /* Padding pequeño */
 }
 </style>

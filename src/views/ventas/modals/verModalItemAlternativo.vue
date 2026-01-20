@@ -39,7 +39,7 @@ const confirmarSeleccion = () => {
 
 </script>
 <template>
-    <BaseBlock :title="`Item: ${item}`">
+    <BaseBlock :title="`Item: ${item}`" transparent>
         <template #options>
             <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
                 <i class="fa fa-fw fa-times"></i>

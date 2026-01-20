@@ -103,7 +103,11 @@ async function searchStockImport(row) {
 }
 
 async function addItemToQuote(row){
-    await searchStockWarehouse(row);
+    if (row.ART_TIPO_COMPRA !== 'L' || row.ART_TIPO_COMPRA === 'SERV') {
+        await searchStockWarehouse(row);
+    }
+    row.descuento = props.form.cliente?.CLI_DSTO_COMERCIAL || 0;
+    row.descuento_original = props.form.cliente?.CLI_DSTO_COMERCIAL || 0;
     emit('select-item', row);
 }
 
