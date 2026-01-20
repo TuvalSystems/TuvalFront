@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError } from "@/functions/swal-alert.js";
+import { swalWarning, swalError } from "@/functions/swal-alert.js";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
@@ -9,7 +9,7 @@ import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import draggable from 'vuedraggable'
-import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4 } from "@/functions";
+import { formatPrice4, format } from "@/functions";
 
 // imports modales
 import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
@@ -79,6 +79,9 @@ const {
   loadingUpdateQuantityItem,
   validateQtyBeforeUpdate,
   updateQuantityItem,
+  formatQty,
+  //proceso de proveedores
+  dataModalProviders,
 
   //proceso de stock total de un articulo 
   shouldShowStock,
@@ -105,6 +108,8 @@ const {
   exitEditDiscount,
   updateModifyDiscountRowItem,
 
+  //gloabl
+  calculateTotals
 
 } = useProcessCreateQuote();
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
@@ -324,30 +329,56 @@ async function actualizarCheckAlternative(event, art, i) {
 
 //proceso de proveedores de items 
 async function openModalProviders(item, i) {
-  console.log(item, i, 'modal abierto xdddd');
+  dataModalProviders.value.proveedores = item?.proveedores;
+  dataModalProviders.value.item = item;
+  dataModalProviders.value.index = i;
+  await nextTick();
   verProveedoresObj.show();
 
 }
+
+const handleSaveProviders = ({ index, providers, nuevoPrecio }) => {
+  console.log(providers, index, nuevoPrecio, 'handleSaveProviders');
+
+  form.value.items[index].proveedores = providers;
+  if (nuevoPrecio) {
+    form.value.items[index].ART_VALOR = nuevoPrecio
+  }
+  calculateTotals();
+  verProveedoresObj.hide();
+}
+
+
+
+
+
 //proceso de validaciones y proceso de cantidad del item 
 async function changeQuantityItem(event, item, i) {
   const qty = event.target.value;
+  const oldVal = item.ART_CANTIDAD;
   const resValidate = await validateQtyBeforeUpdate(qty, item);
   if (!resValidate?.ok) {
-    form.value.items[i].ART_CANTIDAD = 0;
+    form.value.items[i].ART_CANTIDAD = oldVal;
     form.value.items[i].errorCantidad = true;
-    event.target.value = item.ART_CANTIDAD;
+    event.target.value = oldVal;
     swalWarning(resValidate?.message);
     return;
   }
   const respQty = await updateQuantityItem(qty, item, i);
   if (!respQty?.ok) {
+    form.value.items[i].ART_CANTIDAD = oldVal;
     form.value.items[i].errorCantidad = true;
-    event.target.value = item.ART_CANTIDAD;
-    form.value.items[i].ART_CANTIDAD = 0;
+    event.target.value = oldVal;
     swalError(respQty?.message);
     return;
   }
+  const formattedQty = formatQty(qty, item);
+  form.value.items[i].ART_CANTIDAD = formattedQty;
+  event.target.value = formattedQty;
+  form.value.items[i].errorCantidad = false;
+  calculateTotals();
 }
+
 
 
 
@@ -359,9 +390,9 @@ async function openModalStockRowItem(item, i) {
   form.value.items[i].stockListo = false;
   dataStockItem.value.items = item.stock;
   dataStockItem.value.index = i;
-  dataStockItem.value.permiteDecimales = item.ART_DECIMAL_CANTIDAD > 0 ? true : false;
-  await nextTick();
+  dataStockItem.value.permiteDecimales = item.ART_DECIMAL_CANTIDAD > 0;
 
+  await nextTick();
   verSeleccionStockBodegasObj.show();
 }
 
@@ -378,7 +409,7 @@ async function handleStockUpdate({ stocks, total, index }) {
   const qty = Number(total || 0);
   // 1. Actualizamos el estado local del formulario
   form.value.items[index].stock = stocks;
-  form.value.items[index].stockListo = qty > 0 ? true : false;
+  form.value.items[index].stockListo = qty > 0;
   // 2. Si es necesario actualizar la cantidad total en BD cada vez que cambian una bodega:
   let itemInitial = form.value.items[index];
 
@@ -424,7 +455,7 @@ async function applyModifyRow(item) {
     : 4;
   let originalPrice = item.ART_VALOR_ORIGINAL;
   let calculatedPrice = calculatePriceFromModifier(originalPrice, modifierValue);
-  calculatedPrice = parseFloat(calculatedPrice.toFixed(decimales));
+  calculatedPrice = Number.parseFloat(calculatedPrice.toFixed(decimales));
   item.ART_VALOR = calculatedPrice;
   item.errorModificador = false;
   await updateModifyPriceRowItem(item.id, calculatedPrice, modifierValue);
@@ -440,7 +471,7 @@ const saveModifyPrice = async (element) => {
     return;
   }
   let nuevoModificar = calculateRowModifier(element, element.ART_VALOR);
-  nuevoModificar = parseFloat(nuevoModificar.toFixed(4));
+  nuevoModificar = Number.parseFloat(nuevoModificar.toFixed(4));
   element.modificador = nuevoModificar;
   element.cambiar_valor = false;
   const resp = await updateModifyPriceRowItem(element.id, element.ART_VALOR, nuevoModificar);
@@ -448,7 +479,6 @@ const saveModifyPrice = async (element) => {
     element.ART_VALOR = element.valor_temporal;
     element.modificador = calculateRowModifier(element, element.valor_temporal);
     swalError(resp?.message);
-    return;
   }
 }
 
@@ -467,7 +497,7 @@ const saveModifyDiscount = async (element) => {
   if (!resp?.ok) {
     element.descuento = element.descuento_temporal;
     swalError(resp?.message);
-    return;
+    // return;
   }
 }
 
@@ -513,7 +543,7 @@ onMounted(async () => {
         <div class="col">
           <div class="input-group input-group-sm">
             <input type="text" class="form-control" :class="errorSearchClient ? 'is-invalid' : ''"
-              placeholder="Buscar cliente..." autocomplete="no" @keyup.enter="searchFilterClientes"
+              placeholder="Buscar cliente..." autocomplete="off" @keyup.enter="searchFilterClientes"
               v-model="dataSearch.search" />
             <button class="btn btn-primary" type="button" @click="searchFilterClientes" :disabled="loadingSearch">
               <i class="fa fa-search"></i>
@@ -530,8 +560,9 @@ onMounted(async () => {
 
       <!-- loading de carga de clientes -->
       <div v-if="loadingSearch" class="text-center py-4">
-        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
-        </div>
+        <output class="spinner-border text-primary mt-4">
+          <span class="visually-hidden">Loading...</span>
+        </output>
       </div>
 
       <!-- mensaje de visualizacion en caso de que no haya clientes -->
@@ -761,22 +792,22 @@ onMounted(async () => {
         <table v-if="form.items.length > 0" class="table table-hover table-sm table-vcenter mt-0">
           <thead>
             <tr>
-              <th class="text-center" style="width: 40px;">#</th>
-              <th style="min-width: 100px;">Código</th>
-              <th>Descripción</th>
-              <th style="width:3rem"></th>
-              <th class="text-center" style="width: 50px;">ALT</th>
-              <th class="text-center" style="width: 50px;">CTL</th>
-              <th class="text-center" style="width: 50px;">UDM</th>
-              <th style="width: 50px;"></th>
-              <th class="text-center" style="width: 80px;">Cantidad</th>
-              <th style="width: 50px;"></th>
-              <th class="text-end" style="width: 60px;">Stock</th>
-              <th class="text-center" style="width: 90px;">Mod %</th>
-              <th class="text-end" style="width: 100px;">Precio</th>
-              <th class="text-end" style="width: 80px;">% Desc.</th>
-              <th class="text-end" style="width: 100px;">T. con Desc.</th>
-              <th style="width: 50px;"></th>
+              <th scope="col" class="text-center" style="width: 40px;">#</th>
+              <th scope="col" style="min-width: 100px;">Código</th>
+              <th scope="col">Descripción</th>
+              <th scope="col" style="width:3rem"></th>
+              <th scope="col" class="text-center" style="width: 50px;">ALT</th>
+              <th scope="col" class="text-center" style="width: 50px;">CTL</th>
+              <th scope="col" class="text-center" style="width: 50px;">UDM</th>
+              <th scope="col" style="width: 50px;"></th>
+              <th scope="col" class="text-center" style="width: 80px;">Cantidad</th>
+              <th scope="col" style="width: 50px;"></th>
+              <th scope="col" class="text-end" style="width: 60px;">Stock</th>
+              <th scope="col" class="text-center" style="width: 90px;">Mod %</th>
+              <th scope="col" class="text-end" style="width: 100px;">Precio</th>
+              <th scope="col" class="text-end" style="width: 80px;">% Desc.</th>
+              <th scope="col" class="text-end" style="width: 100px;">T. con Desc.</th>
+              <th scope="col" style="width: 50px;"></th>
 
             </tr>
           </thead>
@@ -834,7 +865,7 @@ onMounted(async () => {
                 <td class="fs-sm">
                   <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
                     :class="{ 'is-invalid': element.errorCantidad }" placeholder="0" min="0"
-                    v-model.lazy.number="element.ART_CANTIDAD" @change="changeQuantityItem($event, element, index)"
+                    :value="element.ART_CANTIDAD" @change="changeQuantityItem($event, element, index)"
                     :tablindex="index + 1">
                 </td>
 
@@ -926,45 +957,46 @@ onMounted(async () => {
           <!-- fotter -->
           <tfoot v-if="form.items.length > 0">
             <tr>
-              <th colspan="14" class="fs-sm text-end border-0"> Subtotal sin Descuento</th>
-              <th class="fs-sm text-end text-nowrap border-0"> ${{ form.subtotal + form.descuento }}</th>
-              <th class="border-0"></th>
+              <th scope="col" colspan="14" class="fs-sm text-end border-0"> Subtotal sin Descuento</th>
+              <th scope="col" class="fs-sm text-end text-nowrap border-0"> ${{ format(form.subtotal + form.descuento) }}</th>
+              <th scope="col" class="border-0"></th>
             </tr>
             <tr>
-              <th colspan="14" class="fs-sm text-end text-danger border-0"> Descuento</th>
-              <th class="fs-sm text-end text-danger text-nowrap border-0"> - ${{ format(form.descuento) }}</th>
-              <th class="border-0"></th>
+              <th scope="col" colspan="14" class="fs-sm text-end text-danger border-0"> Descuento</th>
+              <th scope="col" class="fs-sm text-end text-danger text-nowrap border-0"> - ${{ format(form.descuento) }}
+              </th>
+              <th scope="col" class="border-0"></th>
             </tr>
             <tr>
-              <th colspan="14" class="fs-sm text-end border-0">Subtotal Neto</th>
-              <th class="fs-sm text-end text-nowrap border-0">
+              <th scope="col" colspan="14" class="fs-sm text-end border-0">Subtotal Neto</th>
+              <th scope="col" class="fs-sm text-end text-nowrap border-0">
                 ${{ format(form.subtotal) }}
               </th>
-              <th class="border-0"></th>
+              <th scope="col" class="border-0"></th>
             </tr>
             <tr>
-              <th colspan="14" class="fs-sm text-end border-0">IVA</th>
-              <th class="fs-sm text-end text-nowrap border-0">
+              <th scope="col" colspan="14" class="fs-sm text-end border-0">IVA</th>
+              <th scope="col" class="fs-sm text-end text-nowrap border-0">
                 ${{ format(form.iva) }}
               </th>
-              <th class="border-0"></th>
+              <th scope="col" class="border-0"></th>
             </tr>
             <tr class="table-active">
-              <th colspan="14" class="fs-sm text-end fw-bold">TOTAL</th>
-              <th class="fs-sm text-end fw-bold text-nowrap">
+              <th scope="col" colspan="14" class="fs-sm text-end fw-bold">TOTAL</th>
+              <th scope="col" class="fs-sm text-end fw-bold text-nowrap">
                 ${{ format(parseFloat(form.total)) }}
               </th>
-              <th class="border-0"></th>
+              <th scope="col" class="border-0"></th>
             </tr>
             <tr>
               <td colspan="16" class="border-0 p-1"></td>
             </tr>
             <tr>
-              <th colspan="14" class="fs-sm text-end text-muted fst-italic border-0">Peso total aprox.</th>
-              <th class="fs-sm text-end text-muted fst-italic text-nowrap border-0">
+              <th scope="col" colspan="14" class="fs-sm text-end text-muted fst-italic border-0">Peso total aprox.</th>
+              <th scope="col" class="fs-sm text-end text-muted fst-italic text-nowrap border-0">
                 {{ format(form.peso) }} Kg
               </th>
-              <th class="border-0"></th>
+              <th scope="col" class="border-0"></th>
             </tr>
           </tfoot>
           <!-- end fotter -->
@@ -1050,11 +1082,12 @@ onMounted(async () => {
   </div>
 
   <!-- modal de seleccion de proveedores para items L  -->
-  <div class="modal fade" id="modal-block-proveedor" tabindex="-1" role="dialog" aria-labelledby="modal-block-proveedor"
-    data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" ref="verProveedoresRef">
-    <div class="modal-dialog modal-xl" role="document">
+  <div class="modal fade" id="modal-block-proveedor" tabindex="-1" role="dialog" data-bs-backdrop="static"
+    data-bs-keyboard="false" aria-hidden="true" ref="verProveedoresRef">
+    <div class="modal-dialog modal-xl" role="document" style="max-width: 90vw;">
       <div class="modal-content">
-        <verModalProveedores>
+        <verModalProveedores v-if="dataModalProviders.proveedores" :providers="dataModalProviders.proveedores"
+          :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders">
         </verModalProveedores>
       </div>
     </div>

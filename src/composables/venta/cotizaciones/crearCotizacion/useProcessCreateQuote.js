@@ -281,10 +281,6 @@ export function useProcessCreateQuote() {
     }
 
 
-    // proceso para apertura de modal de proveedores
-
-    const isItemL = (row) => row.ART_TIPO_COMPRA === 'L'
-    const isClassProviderOK = (row) => row.proveedores_listo ? 'btn-success' : 'btn-danger';
 
 
     //proceso para manejo de cantidades
@@ -292,7 +288,7 @@ export function useProcessCreateQuote() {
     const validateQtyBeforeUpdate = async (qty, row) => {
         const allowsDecimals = row.ART_DECIMAL_CANTIDAD > 0;
         if (qty < 0) return { ok: false, message: 'La cantidad no puede ser negativa' };
-        if (allowsDecimals && isNaN(qty)) {
+        if (allowsDecimals && Number.isNaN(qty)) {
             return { ok: false, message: 'La cantidad debe ser un número' };
         }
         if (!allowsDecimals && !isInt(qty)) {
@@ -307,30 +303,24 @@ export function useProcessCreateQuote() {
     const loadingUpdateQuantityItem = ref(false);
 
     const formatQty = (qty, row) => {
+        const valor = Number.parseFloat(qty) || 0;
         if (row.ART_DECIMAL_CANTIDAD > 0) {
-            return parseFloat(qty).toFixed(row.ART_DECIMAL_CANTIDAD);
+            return valor.toFixed(row.ART_DECIMAL_CANTIDAD);
         }
-        return parseInt(qty);
+        return Math.trunc(valor).toString();
     }
 
     const isInt = (value) => {
-        const x = parseFloat(value);
-        return !isNaN(value) && (x | 0) === x;
+        const x = Number.parseFloat(value);
+        return !Number.isNaN(value) && (x | 0) === x;
     }
     async function updateQuantityItem(qty, row, i) {
         const formattedQty = formatQty(qty, row);
         return await run(() => axiosClient.post(apiUpdateQuantityItem, { id: row.id, cantidad: formattedQty }), {
             loadingRef: loadingUpdateQuantityItem,
-            onSuccess: (res) => {
-                form.value.items[i].ART_CANTIDAD = formattedQty;
-                form.value.items[i].errorCantidad = false;
-                calculateTotals();
-            },
             onError: (error) => {
-                form.value.items[i].ART_CANTIDAD = row.ART_CANTIDAD;
-                form.value.items[i].errorCantidad = true;
+                console.log(error, 'updateQuantityItem');
             },
-            successMessage: 'Proceso realizado exitosamente',
         });
     }
 
@@ -428,10 +418,32 @@ export function useProcessCreateQuote() {
 
 
 
-    /**
-     *  proceso de proveedores 
-     * 
-     */
+
+    // proceso para apertura de modal de proveedores
+
+    const isItemL = (row) => row.ART_TIPO_COMPRA === 'L'
+
+    const dataModalProviders = ref({ proveedores: [], index: 0, item: {} });
+
+    //obtener margen item L 
+    const loadingMarginItemL = ref(false);
+    const margenItemL = ref(null);
+    const apiGetMarginItemL = '/cotizaciones/obtener-magen-item-l';
+
+    async function getMargenFotItemL(artCode) {
+        if (!artCode) return;
+        return await run(() => axiosClient.post(apiGetMarginItemL, { articulo: artCode }), {
+            loadingRef: loadingMarginItemL,
+            onSuccess: (res) => {
+                margenItemL.value = res;
+            },
+            onError: (err) => {
+                console.error(err);
+                // Opcional: margenItemL.value = { DATOS_ITEMS_L_MARGEN: 16 }; // Fallback en error
+            },
+        });
+    }
+    const isClassProviderOK = (row) => row.proveedores_listo ? 'btn-success' : 'btn-danger';
 
 
     /**
@@ -462,15 +474,15 @@ export function useProcessCreateQuote() {
                 isDescriptionLValid.value = false;
             }
             if (art.ART_TIPO_COMPRA !== 'L') {
-                let valorUnitario = parseFloat(art.ART_VALOR_ORIGINAL || 0);
-                const modificador = parseFloat(art.modificador || 0);
+                let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
+                const modificador = Number.parseFloat(art.modificador || 0);
                 valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
                 art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
             } else {
-                art.ART_VALOR = redondear(parseFloat(art.ART_VALOR) + 0.000001, 4);
+                art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
             }
 
-            const cantidad = parseFloat(art.ART_CANTIDAD) || 0;
+            const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
             if (cantidad <= 0) {
                 art.errorCantidad = true;
                 isQuantityValid.value = false;
@@ -484,7 +496,7 @@ export function useProcessCreateQuote() {
             }
             // --- Cálculos Matemáticos (Todo Numérico) ---
             const precioParaCalculo = art.ART_VALOR;
-            const descuentoPorcentaje = parseFloat(art.descuento) || 0;
+            const descuentoPorcentaje = Number.parseFloat(art.descuento) || 0;
 
             //calcular descuento unitario
             const descuentoUnitario = precioParaCalculo * (descuentoPorcentaje / 100);
@@ -503,13 +515,13 @@ export function useProcessCreateQuote() {
             tempDescuento += (descuentoUnitario * cantidad);
 
             //calculo del IVA
-            const ivaPorcentaje = parseFloat(art.ART_IMP_VTA) || 0;
+            const ivaPorcentaje = Number.parseFloat(art.ART_IMP_VTA) || 0;
             const ivaLinea = subtotalLinea * (ivaPorcentaje / 100);
 
             art.ART_IVA = redondear(ivaLinea + 0.000001, 2); //se aplico por bloque de seguridad
             tempIva += ivaLinea;
             //calculo del peso
-            tempPeso += (parseFloat(art.ART_PESO) || 0) * cantidad;
+            tempPeso += (Number.parseFloat(art.ART_PESO) || 0) * cantidad;
         });
         form.value.subtotal = redondear(tempSubtotal + 0.000001, 2);
         form.value.descuento = redondear(tempDescuento + 0.000001, 2);
@@ -518,6 +530,7 @@ export function useProcessCreateQuote() {
 
         // Total General = Subtotal + IVA
         form.value.total = redondear((form.value.subtotal + form.value.iva) + 0.000001, 2);
+        validateAllProvidersStock();
         verifyStockConsistency(true);
     }
 
@@ -533,13 +546,13 @@ export function useProcessCreateQuote() {
                 item.stockListo = true; //los servicios y l siempre estan listos
                 return;
             }
-            const qtyReuired = parseFloat(item.ART_CANTIDAD || 0);
+            const qtyReuired = Number.parseFloat(item.ART_CANTIDAD || 0);
             let qtyAsigned = 0;
 
             if (item.stock && item.stock.length > 0) {
                 item.stock.forEach((bd) => {
-                    const seleccionado = parseFloat(bd.seleccionado || 0);
-                    const disponible = parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
+                    const seleccionado = Number.parseFloat(bd.seleccionado || 0);
+                    const disponible = Number.parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
                     qtyAsigned += seleccionado;
 
                     const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
@@ -567,6 +580,44 @@ export function useProcessCreateQuote() {
             }
         }
         return isValid;
+    }
+
+
+    const isProvidersValidationOk = ref(true);
+    const validateAllProvidersStock = () => {
+        isProvidersValidationOk.value = true;
+        let hayErrores = false;
+
+        form.value.items.forEach(item => {
+            if (item.ART_TIPO_COMPRA === 'L') {
+                const requerido = Number.parseFloat(item.ART_CANTIDAD);
+
+                const proveedores = item.proveedores || [];
+                const asignado = proveedores.reduce((acc, prov) => {
+                    return acc + Number.parseFloat(prov.ART_CANTIDAD);
+                }, 0);
+
+                const diferencia = Math.abs(requerido - asignado);
+
+                const estaCompleto = diferencia <= 0.0001;
+
+
+                item.proveedores_listo = estaCompleto;
+                console.log(diferencia, 'diferencia');
+                console.log(estaCompleto, 'estaCompleto');
+                console.log(item.proveedores_listo, 'proveedorlisto');
+                if (!estaCompleto) {
+                    hayErrores = true;
+                }
+            }
+        });
+
+        if (hayErrores) {
+            isProvidersValidationOk.value = false;
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -696,10 +747,15 @@ export function useProcessCreateQuote() {
         loadingUpdateQuantityItem,
         validateQtyBeforeUpdate,
         updateQuantityItem,
+        formatQty,
 
         //proceso de stock total de un articulo 
         shouldShowStock,
-
+        //proceso de proveedores
+        dataModalProviders,
+        loadingMarginItemL,
+        margenItemL,
+        getMargenFotItemL,
         //proceso de modal stock y peso 
         dataStockItem,
         isStockDisabled,
@@ -728,6 +784,9 @@ export function useProcessCreateQuote() {
         applyModifyDiscount,
         exitEditDiscount,
         updateModifyDiscountRowItem,
+
+        //global
+        calculateTotals
 
     };
 
