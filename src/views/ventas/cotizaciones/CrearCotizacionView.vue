@@ -854,8 +854,9 @@ onMounted(async () => {
                 <td class="fs-sm">{{ element.ART_PLAN_UMEDIDA }}</td>
                 <!-- abrir modal de proveedores -->
                 <td class="fs-sm">
+                  {{ element.proveedores_listo ? 'Listo' : 'Pendiente' }}
                   <div v-if="isItemL(element)">
-                    <button type="button" class="btn btn-sm" :class="isClassProviderOK(element)"
+                    <button type="button" class="btn btn-sm" :class="element.proveedores_listo ? 'btn-success' : 'btn-danger'"
                       @click="openModalProviders(element, index)">
                       <i class="fa fa-people-arrows-left-right"></i>
                     </button>

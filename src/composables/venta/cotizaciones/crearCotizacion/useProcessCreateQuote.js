@@ -5,6 +5,12 @@ import { swalWarning } from "@/functions/swal-alert";
 import { useSessionStorage } from '@vueuse/core';
 import { useStore } from 'vuex'
 
+
+function redondear(num, decimales = 2) {
+    const factor = Math.pow(10, decimales);
+    return Math.round((num + Number.EPSILON) * factor) / factor;
+}
+
 const initialState = {
     cotizacion_id: null,
     bodega_facturacion: null,
@@ -348,7 +354,7 @@ export function useProcessCreateQuote() {
 
     //procesos de modal verModalSelecionStockBodegas 
     const getStockClass = (stock) => {
-        const s = parseFloat(stock);
+        const s = Number.parseFloat(stock);
         if (s <= 0) return 'text-danger fw-bold';
         if (s < 10) return 'text-warning fw-bold';
         return 'text-success';
@@ -360,7 +366,7 @@ export function useProcessCreateQuote() {
     });
 
     const validateInput = (item, isDecimal) => {
-        const maxStock = parseFloat(item.STO_ART_STOCK_DISPONIBLE || 0);
+        const maxStock = Number.parseFloat(item.STO_ART_STOCK_DISPONIBLE || 0);
         if (item.seleccionado < 0) item.seleccionado = 0;
         if (item.seleccionado > maxStock) {
             item.seleccionado = maxStock;
@@ -373,7 +379,7 @@ export function useProcessCreateQuote() {
             swalWarning('Ingresar un número entero');
             return false;
         }
-        if (isDecimal && isNaN(item.seleccionado)) {
+        if (isDecimal && Number.isNaN(item.seleccionado)) {
             item.error = true;
             item.seleccionado = 0;
             swalWarning('Ingresar un número');
@@ -457,10 +463,10 @@ export function useProcessCreateQuote() {
     const isPriceValid = ref(true);
     const isDescriptionLValid = ref(true);
     const calculateTotals = () => {
-        let tempSubtotal = 0.00;
-        let tempDescuento = 0.00;
-        let tempIva = 0.00;
-        let tempPeso = 0.00;
+        let tempSubtotal = 0;
+        let tempDescuento = 0;
+        let tempIva = 0;
+        let tempPeso = 0;
 
 
         //se reinician las variables
@@ -534,10 +540,7 @@ export function useProcessCreateQuote() {
         verifyStockConsistency(true);
     }
 
-    function redondear(num, decimales = 2) {
-        const factor = Math.pow(10, decimales);
-        return Math.round((num + Number.EPSILON) * factor) / factor;
-    }
+
     const verifyStockConsistency = (silent = false) => {
         let isValid = true;
         const globalStockUsage = {};
@@ -594,28 +597,21 @@ export function useProcessCreateQuote() {
 
                 const proveedores = item.proveedores || [];
                 const asignado = proveedores.reduce((acc, prov) => {
-                    return acc + Number.parseFloat(prov.ART_CANTIDAD);
+                    return acc + Number.parseFloat(prov.CANTIDAD);
                 }, 0);
-
                 const diferencia = Math.abs(requerido - asignado);
-
                 const estaCompleto = diferencia <= 0.0001;
-
-
                 item.proveedores_listo = estaCompleto;
-                console.log(diferencia, 'diferencia');
-                console.log(estaCompleto, 'estaCompleto');
-                console.log(item.proveedores_listo, 'proveedorlisto');
                 if (!estaCompleto) {
                     hayErrores = true;
                 }
             }
         });
-
         if (hayErrores) {
             isProvidersValidationOk.value = false;
             return false;
         }
+        console.log('isProviderValidationOk', isProvidersValidationOk.value);
 
         return true;
     }
