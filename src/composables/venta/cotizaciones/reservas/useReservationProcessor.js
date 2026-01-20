@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
 import { toNum } from "@/functions";
 import { ref, nextTick, unref, computed, onMounted, watch } from "vue";
-import { swalSuccess, swalError, swalWarning, swalInfo } from "@/functions/swal-alert.js";
+import {  swalError, swalWarning } from "@/functions/swal-alert.js";
 import { useApiAction } from "@/composables/core/useApiAction";
 
 
@@ -24,8 +24,6 @@ export function useReservationProcessor(infoReserva) {
   function getPendingBase(stock) {
     const autorizado = toNum(getAuthorized(stock));
     const facturado = toNum(stock.cantidad_facturada ?? 0); // histórico
-    // const cotizado    = toNum(stock.cantidad_cotizada ?? 0);
-    // const trasladado  = toNum(stock.cantidad_traslado ?? 0);
     const canceladoPrev = toNum(stock.cantidad_cancelada ?? 0); // histórico
     const result = autorizado - facturado - canceladoPrev;
     return Math.max(Number(result.toFixed(4)), 0);

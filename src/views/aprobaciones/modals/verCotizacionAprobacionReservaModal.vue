@@ -25,7 +25,7 @@ const infoSegmento = infoResponse.value.segmento;
 
 
 async function aprobarReserva() {
-    const respCheck = await checkStockReserved();
+    const respCheck = await checkStockReserved(dataSendApproval.id);
     if (!respCheck.ok) {
         await denyReservation();
         await swalWarning(respCheck.message);
