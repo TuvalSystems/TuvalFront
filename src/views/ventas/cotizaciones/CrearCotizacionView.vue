@@ -447,7 +447,7 @@ async function closeModalPesoRowItem() {
 
 async function applyModifyRow(item) {
   let modifierValue = item.modificador;
-  if (isNaN(modifierValue) || modifierValue === '') {
+  if (Number.isNaN(modifierValue) || modifierValue === '') {
     modifierValue = 0
   }
   let decimales = (item.ART_DECIMAL_VALOR && item.ART_DECIMAL_VALOR > 0)
