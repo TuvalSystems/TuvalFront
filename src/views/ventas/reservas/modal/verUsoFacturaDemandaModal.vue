@@ -1,7 +1,7 @@
 <script setup>
 import { computed, watch, reactive, } from 'vue';
 import { formatPriceJm, formatJm, toInt } from "@/functions";
-import { swalSuccess, swalError } from "@/functions/swal-alert.js";
+import { swalSuccess, swalError, swalWarning } from "@/functions/swal-alert.js";
 import { useQuotationReserveApproval } from '@/composables/aprobaciones/reservas/useQuotationReserveApproval';
 import { useReservationProcessor } from "@/composables/venta/cotizaciones/reservas/useReservationProcessor";
 import flatPickr from "vue-flatpickr-component";
