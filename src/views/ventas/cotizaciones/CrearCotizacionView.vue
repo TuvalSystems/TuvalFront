@@ -415,10 +415,14 @@ async function handleStockUpdate({ stocks, total, index }) {
   form.value.items[index].stock = stocks;
   form.value.items[index].stockListo = qty > 0;
   // 2. Si es necesario actualizar la cantidad total en BD cada vez que cambian una bodega:
-  let itemInitial = form.value.items[index];
-
   // NOTA: Esto actualizará el total visualmente y en BD
+  let itemInitial = form.value.items[index];
   await updateQuantityItem(qty, itemInitial, index);
+
+  const formattedQty = formatQty(qty, itemInitial);
+  form.value.items[index].ART_CANTIDAD = formattedQty;
+  form.value.items[index].errorCantidad = false;
+  calculateTotals();
 }
 
 
@@ -1047,145 +1051,150 @@ onMounted(async () => {
 
       <!-- condiciones de pago  -->
 
-       <div class="row mb-2">
-      <div class="col-12">
+      <div class="row mb-2">
+        <div class="col-12">
 
-        <div v-if="form.alerta_factura" class="mb-4">
-          <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
+          <div v-if="form.alerta_factura" class="mb-4">
+            <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
 
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa fa-exclamation-triangle"></i>
-              <span class="fw-bold">Factura a demanda posterior al despacho</span>
-            </div>
-
-            <div v-if="form.preguntar_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
-              <span class="small opacity-75">
-                Último día: <strong class="text-primary">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
-              </span>
-              <div class="form-check form-switch mb-0">
-                <input class="form-check-input" type="checkbox" id="switch-facturar" :true-value="0" :false-value="1"
-                  v-model="form.factura_siguiente_mes">
-                <label class="form-check-label fw-bold text-primary" for="switch-facturar">
-                  Facturar ahora
-                </label>
+              <div class="d-flex align-items-center gap-2">
+                <i class="fa fa-exclamation-triangle"></i>
+                <span class="fw-bold">Factura a demanda posterior al despacho</span>
               </div>
-            </div>
 
-          </div>
-        </div>
-
-        <BaseBlock class="mb-4">
-
-          <template #title>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa fa-file-invoice-dollar text-body-secondary"></i>
-              <span class="fw-semibold">Condiciones de venta</span>
-            </div>
-          </template>
-
-          <div class="row g-4">
-
-            <div class="col-md-6 col-xl-3">
-              <label class="form-label small text-uppercase fw-bold text-body-secondary">Condición de pago</label>
-              <select class="form-select">
-                <option>CONTADO</option>
-                <option>CRÉDITO 30 DÍAS</option>
-              </select>
-            </div>
-
-            <div class="col-md-6 col-xl-5">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma de pago</label>
-                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
-                  Condición diferente
+              <div v-if="form.preguntar_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
+                <span class="small opacity-75">
+                  Último día: <strong class="text-primary">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
                 </span>
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" id="switch-facturar" :true-value="0" :false-value="1"
+                    v-model="form.factura_siguiente_mes">
+                  <label class="form-check-label fw-bold text-primary" for="switch-facturar">
+                    Facturar ahora
+                  </label>
+                </div>
               </div>
 
-              <select class="form-select mb-2">
-                <option>Contado - Efectivo</option>
-                <option>Transferencia Bancaria</option>
-              </select>
-
-              <div class="d-flex align-items-center justify-content-end small">
-                <span class="text-body-secondary me-2">Descuento aplicado:</span>
-                <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info">25%</a>
-              </div>
-            </div>
-
-            <div class="col-md-6 col-xl-2">
-              <label class="form-label small text-uppercase fw-bold text-body-secondary">Desc. General PVP</label>
-              <div class="input-group">
-                <input type="number" class="form-control text-end" placeholder="0.00" value="0.00">
-                <span class="input-group-text bg-body-tertiary text-body-secondary">%</span>
-              </div>
-            </div>
-
-            <div class="col-md-6 col-xl-2">
-              <label class="form-label small text-uppercase fw-bold text-body-secondary">Orden de Compra</label>
-              <div class="position-relative">
-                <input type="text" class="form-control" placeholder="Opcional" value="OC-2024-999">
-                <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
-                  5
-                </span>
-              </div>
-            </div>
-
-          </div>
-        </BaseBlock>
-
-        <BaseBlock class="mb-4">
-          <template #title>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa fa-sticky-note text-body-secondary"></i>
-              <span class="fw-semibold">Notas</span>
-            </div>
-          </template>
-
-          <div class="row g-4">
-            <div class="col-md-4">
-              <div class="d-flex justify-content-between mb-1">
-                <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Cliente</label>
-                <span class="small text-body-secondary" style="font-size: 0.7rem;">150 chars</span>
-              </div>
-              <textarea class="form-control border-start border-4 border-primary" rows="3"
-                placeholder="Visible en factura..."></textarea>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Interna</label>
-              <textarea class="form-control border-start border-4 border-warning" rows="3"
-                placeholder="Uso administrativo..."></textarea>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
-              <textarea class="form-control border-start border-4 border-danger" rows="3"
-                placeholder="Logística y bodega..."></textarea>
             </div>
           </div>
-        </BaseBlock>
 
-        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-          <button type="button" class="btn btn-outline-danger px-4">
-            Limpiar cotización
-          </button>
+          <BaseBlock class="mb-4">
 
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-success px-4 fw-bold shadow-sm">
-              <i class="fa fa-save me-2"></i>Guardar Cotización
+            <template #title>
+              <div class="d-flex align-items-center gap-2">
+                <i class="fa fa-file-invoice-dollar text-body-secondary"></i>
+                <span class="fw-semibold">Condiciones de venta</span>
+              </div>
+            </template>
+
+            <div class="row g-4">
+
+              <div class="col-md-6 col-xl-3">
+                <label class="form-label small text-uppercase fw-bold text-body-secondary">Condición de pago</label>
+                <select class="form-select">
+                  <option>CONTADO</option>
+                  <option>CRÉDITO 30 DÍAS</option>
+                </select>
+              </div>
+
+              <div class="col-md-6 col-xl-5">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma de pago</label>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+                    Condición diferente
+                  </span>
+                </div>
+
+                <select class="form-select mb-2">
+                  <option>Contado - Efectivo</option>
+                  <option>Transferencia Bancaria</option>
+                </select>
+
+                <div class="d-flex align-items-center justify-content-end small">
+                  <span class="text-body-secondary me-2">Descuento aplicado:</span>
+                  <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info">25%</a>
+                </div>
+              </div>
+
+              <div class="col-md-6 col-xl-2">
+                <label class="form-label small text-uppercase fw-bold text-body-secondary">Desc. General PVP</label>
+                <div class="input-group">
+                  <input type="number" class="form-control text-end" placeholder="0.00" value="0.00">
+                  <span class="input-group-text bg-body-tertiary text-body-secondary">%</span>
+                </div>
+              </div>
+
+              <div class="col-md-6 col-xl-2">
+                <label class="form-label small text-uppercase fw-bold text-body-secondary">Orden de Compra</label>
+                <div class="position-relative">
+                  <input type="text" class="form-control" placeholder="Opcional" value="OC-2024-999">
+                  <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
+                    5
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </BaseBlock>
+
+          <BaseBlock class="mb-4">
+            <template #title>
+              <div class="d-flex align-items-center gap-2">
+                <i class="fa fa-sticky-note text-body-secondary"></i>
+                <span class="fw-semibold">Notas</span>
+              </div>
+            </template>
+
+            <div class="row g-4">
+              <div class="col-md-4">
+                <div class="d-flex justify-content-between mb-1">
+                  <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Cliente</label>
+                  <span class="small text-body-secondary" style="font-size: 0.7rem;">150 chars</span>
+                </div>
+                <textarea class="form-control border-start border-4 border-primary" rows="3"
+                  placeholder="Visible en factura..."></textarea>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Interna</label>
+                <textarea class="form-control border-start border-4 border-warning" rows="3"
+                  placeholder="Uso administrativo..."></textarea>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
+                <textarea class="form-control border-start border-4 border-danger" rows="3"
+                  placeholder="Logística y bodega..."></textarea>
+              </div>
+            </div>
+          </BaseBlock>
+
+          <div
+            class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3">
+
+            <button type="button" class="btn btn-outline-danger px-4 w-100 w-md-auto order-2 order-md-1">
+              Limpiar cotización
             </button>
 
-            <button type="button" class="btn btn-warning px-4 fw-bold text-dark shadow-sm">
-              <i class="fa fa-check-circle me-2"></i>Guardar Pedido
-            </button>
-          </div>
-        </div>
+            <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
 
+              <button type="button" class="btn btn-success px-4 fw-bold shadow-sm w-100 w-md-auto">
+                <i class="fa fa-save me-2"></i>Guardar Cotización
+              </button>
+
+              <button type="button" class="btn btn-warning px-4 fw-bold text-dark shadow-sm w-100 w-md-auto">
+                <i class="fa fa-check-circle me-2"></i>Guardar Pedido
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
       </div>
-    </div>
     </BaseBlock>
     <!-- {{ form }} -->
-   
+
   </div>
 
 
