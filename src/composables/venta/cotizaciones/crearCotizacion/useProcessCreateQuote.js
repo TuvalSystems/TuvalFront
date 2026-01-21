@@ -166,19 +166,9 @@ export function useProcessCreateQuote() {
         }
         return await run(() => axiosClient.delete(apiDeleteCart + `/${row.id}`), {
             loadingRef: loadingAddItem,
-            onSuccess: () => {
-                // form.value.items.splice(i, 1);
-                // form.value.items[i].disabled_delete = false;
-                // calculateTotals();
-            },
             onError: (error) => {
-                // 3. ¡IMPORTANTE! Si falla, desbloqueamos el botón para que intente de nuevo
                 console.error('Error al eliminar:', error);
-                // if (form.value.items[i]) {
-                //     form.value.items[i].disabled_delete = false;
-                // }
             },
-            // successMessage: 'Proceso realizado exitosamente',
         })
     }
 
@@ -779,9 +769,23 @@ export function useProcessCreateQuote() {
 
     /**
      * 
-     *  proceso de condiciones de pago 
+     * proceso de limpieza de session storage al crear la cotizacion
      */
 
+    const apiDeleteCartQuotation = 'cart/item/clear-temp';
+    const loadingClearQuotation = ref(false);
+    async function clearQuotation() {
+        return await run(() => axiosClient.delete(apiDeleteCartQuotation, {
+            clienteId: form.value.cliente.id,
+            puntoVentaId: ptoVtaSelect,
+            sucursalId: form.value.direccion_facturacion_id
+        }), {
+            loadingRef: loadingClearQuotation,
+            onError: (error) => {
+                console.error('Error al eliminar el carrito de cotización:', error);
+            },
+        });
+    }
 
 
     return {
@@ -789,7 +793,8 @@ export function useProcessCreateQuote() {
         clearForm,
         addItems,
         removeItem,
-
+        loadingClearQuotation,
+        clearQuotation,
         //limitadores 
         maxOrder,
         maxLength,

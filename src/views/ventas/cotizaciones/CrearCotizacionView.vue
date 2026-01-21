@@ -3,6 +3,7 @@ import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
 import { swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
+import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import actualizarSegmentoClienteComponent from "@/views/ventas/modals/actualizarSegmentoClienteModal.vue";
 import flatPickr from 'vue-flatpickr-component';
@@ -52,7 +53,8 @@ const {
   clearForm,
   addItems,
   removeItem,
-
+  loadingClearQuotation,
+  clearQuotation,
   //limitadores 
   maxOrder,
   maxLength,
@@ -114,6 +116,14 @@ const {
   calculateTotals
 
 } = useProcessCreateQuote();
+const {
+  loadingConditionPayment,
+  fetchConditionPayment,
+  conditionPayment,
+  loadingMethodPayment,
+  fetchMethodPayment,
+  methodPayment
+} = useSearchConditionPayment();
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 const flatPickrState = reactive({
   minDate: Date.now(),
@@ -223,6 +233,10 @@ async function processSelectClient(client) {
     }
   }
 
+  form.value.descuento_articulo = Number.parseFloat(client.CLI_DSTO_COMERCIAL || 0);
+  form.value.descuento_original = Number.parseFloat(client.CLI_DSTO_COMERCIAL || 0);
+
+
 }
 
 
@@ -270,6 +284,82 @@ watch(
   }
 )
 
+watch(
+  () => infoClient.value,
+  (newValue) => {
+    if (newValue.suspendido === 1) {
+      form.value.condicion_pago_id = 'CONTADO';
+    } else {
+      form.value.condicion_pago_id = newValue.CLI_CONDICION_PAGO
+    }
+  },
+  { immediate: true }
+)
+
+
+//condicion de pago 
+
+watch(() => form.value.condicion_pago_id, async (newVal) => {
+  if (newVal) {
+    await selectConditionPayment();
+  }
+});
+
+
+//metodos de pago 
+
+async function selectConditionPayment() {
+  const condId = form.value.condicion_pago_id;
+  if (!condId) {
+    methodPayment.value = [];
+    form.value.forma_pago_id = null;
+    return;
+  }
+  await fetchMethodPayment(condId);
+  if (methodPayment.value && methodPayment.value.length > 0) {
+    const primeraForma = methodPayment.value[0];
+    form.value.forma_pago_id = primeraForma.codigo;
+
+    const descuentoCliente = Number.parseFloat(infoClient.value.CLI_DSTO_COMERCIAL || 0);
+    const rebajaMetodo = Number.parseFloat(primeraForma.porcentaje_rebaja || 0); // O 'porcentaje_rebaja'
+
+    const nuevoDescuentoTotal = descuentoCliente + rebajaMetodo;
+
+    form.value.descuento_original = nuevoDescuentoTotal;
+    form.value.descuento_articulo = nuevoDescuentoTotal;
+    if (form.value.items && form.value.items.length > 0) {
+      form.value.items.forEach(articulo => {
+        articulo.descuento = nuevoDescuentoTotal;
+        articulo.descuento_original = nuevoDescuentoTotal;
+      });
+    }
+    calculateTotals();
+  } else {
+    // Si la condición de pago no tiene métodos asociados
+    form.value.forma_pago_id = null;
+    console.log("No se encontraron formas de pago para esta condición");
+  }
+}
+
+async function selectMethodPayment() {
+  let selectedMethod = methodPayment.value.find(m => m.codigo === form.value.forma_pago_id);
+  if (!selectedMethod) return;
+  const descuentoCliente = Number.parseFloat(infoClient.value.CLI_DSTO_COMERCIAL) || 0;
+  const descuentoFormaPago = Number.parseFloat(selectedMethod.porcentaje_rebaja) || 0;
+  const nuevoDescuentoTotal = descuentoCliente + descuentoFormaPago;
+  if (nuevoDescuentoTotal < 0) return;
+  form.value.descuento_original = nuevoDescuentoTotal;
+  form.value.descuento_articulo = nuevoDescuentoTotal;
+  if (form.value.items && form.value.items.length > 0) {
+    form.value.items.forEach(item => {
+      item.descuento = nuevoDescuentoTotal;
+      item.descuento_original = nuevoDescuentoTotal;
+    });
+  }
+  calculateTotals();
+}
+
+
 
 
 
@@ -286,12 +376,10 @@ const closeModalSearchItem = () => {
   verSearchItemModalObj.hide();
 }
 
-
 //proceso de seleccion de items para llenar el form-items 
 const handleItemSelected = (row) => {
   addItems(row);
 }
-
 
 
 
@@ -543,7 +631,7 @@ async function confirmarEliminarArticulo(item, i) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De eliminar el producto " + articulo.ART_CODIGO + "",
+      text: "De eliminar el producto " + item.ART_CODIGO + "",
       icon: "warning",
       showCancelButton: true,
       customClass: {
@@ -577,9 +665,17 @@ async function removeRowItem(item, i) {
 
 
 
+/** limpiar la cotizacion */
+
+async function clearCotizacion() {
+  await clearQuotation();
+  clearForm();
+}
+
+
 onMounted(async () => {
   await fetchWarehouseByPtoVtaUser();
-
+  await fetchConditionPayment();
   //logica para recuperar datos en memoria
   if (form.value.cliente && form.value.cliente.CLI_RUC) {
     loadingSearch.value = true;
@@ -885,7 +981,7 @@ onMounted(async () => {
           <draggable v-model="form.items" tag="tbody" :item-key="'id'" handle=".handle">
             <template #item="{ element, index }">
               <tr>
-                <td class="fs-sm"> {{ index + 1 }}</td>
+                <td class="fs-sm text-center"> {{ index + 1 }}</td>
                 <td class="fs-sm code">{{ element.ART_CODIGO }}</td>
                 <!-- descripcion -->
                 <td class="fs-sm">
@@ -1115,48 +1211,60 @@ onMounted(async () => {
             </template>
 
             <div class="row g-4">
-
               <div class="col-md-6 col-xl-3">
-                <label class="form-label small text-uppercase fw-bold text-body-secondary">Condición de pago</label>
-                <select class="form-select">
-                  <option>CONTADO</option>
-                  <option>CRÉDITO 30 DÍAS</option>
+                <label for="condicionPagoSelect"
+                  class="form-label small text-uppercase fw-bold text-body-secondary">Condición
+                  de pago</label>
+                <select id="condicionPagoSelect" class="form-select" :disabled="loadingConditionPayment"
+                  v-model="form.condicion_pago_id">
+
+                  <option v-for="(cod, index) in conditionPayment" :key="index" :value="cod.condId">{{ cod.condId }}
+                  </option>
                 </select>
               </div>
 
               <div class="col-md-6 col-xl-5">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                  <label class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma de pago</label>
-                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+                  <label for="metodoPagoSelect"
+                    class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma
+                    de pago</label>
+                  <span v-if="form.condicion_pago_id !== infoClient.CLI_CONDICION_PAGO" id="metodoPagoSelect"
+                    class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
                     Condición diferente
                   </span>
                 </div>
 
-                <select class="form-select mb-2">
-                  <option>Contado - Efectivo</option>
-                  <option>Transferencia Bancaria</option>
+                <select class="form-select mb-2" v-model="form.forma_pago_id" :disabled="loadingMethodPayment"
+                  @change="selectMethodPayment">
+                  <option v-for="(me, index) in methodPayment" :key="index" :value="me.codigo"> {{ me.tipo }}</option>
                 </select>
 
                 <div class="d-flex align-items-center justify-content-end small">
                   <span class="text-body-secondary me-2">Descuento aplicado:</span>
-                  <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info">25%</a>
+                  <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info">{{
+                    Number(form.descuento_articulo).toFixed(2) }}%</a>
                 </div>
               </div>
 
-              <div class="col-md-6 col-xl-2">
-                <label class="form-label small text-uppercase fw-bold text-body-secondary">Desc. General PVP</label>
+              <div class="col-md-5 col-xl-2">
+                <label for="descuentoGeneralInput"
+                  class="form-label small text-uppercase fw-bold text-body-secondary">Desc.
+                  General PVP</label>
                 <div class="input-group">
-                  <input type="number" class="form-control text-end no-spinners" placeholder="0.00" value="0.00"
-                    v-model.number="form.modificador_global" @change="applyGeneraModifier">
+                  <input id="descuentoGeneralInput" type="number" class="form-control text-end no-spinners"
+                    placeholder="0.00" value="0.00" v-model.number="form.modificador_global"
+                    @change="applyGeneraModifier">
                   <span class="input-group-text bg-body-tertiary text-body-secondary">%</span>
                 </div>
               </div>
 
               <div class="col-md-6 col-xl-2">
-                <label class="form-label small text-uppercase fw-bold text-body-secondary">Orden de Compra</label>
+                <label for="ordenCompraInput" class="form-label small text-uppercase fw-bold text-body-secondary">Orden
+                  de
+                  Compra</label>
                 <div class="position-relative">
-                  <input type="text" class="form-control " placeholder="Opcional" value="OC-2024-999"
-                    v-model="form.orden_de_compra" :maxlength="maxOrder">
+                  <input id="ordenCompraInput" type="text" class="form-control " placeholder="Opcional"
+                    value="OC-2024-999" v-model="form.orden_de_compra" :maxlength="maxOrder">
                   <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
                     {{ maxOrder -
                       form.orden_de_compra.length
@@ -1206,7 +1314,7 @@ onMounted(async () => {
           <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3">
 
-            <button type="button" class="btn btn-outline-danger px-4 w-100 w-md-auto order-2 order-md-1">
+            <button type="button" class="btn btn-outline-danger px-4 w-100 w-md-auto order-2 order-md-1" @click="clearCotizacion" :disabled="loadingClearQuotation">
               Limpiar cotización
             </button>
 
