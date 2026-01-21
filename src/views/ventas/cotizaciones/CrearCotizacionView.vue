@@ -53,6 +53,10 @@ const {
   addItems,
   removeItem,
 
+  //limitadores 
+  maxOrder,
+  maxLength,
+  maxLengthNote,
   //proceso de descripcion de item 
   getDescriptionClass,
   updateDescripcion,
@@ -466,6 +470,30 @@ async function applyModifyRow(item) {
   item.ART_VALOR = calculatedPrice;
   item.errorModificador = false;
   await updateModifyPriceRowItem(item.id, calculatedPrice, modifierValue);
+}
+
+
+//modificadotr general
+async function applyGeneraModifier() {
+  let globalModifier = form.value.modificador_global;
+  if (Number.isNaN(globalModifier) || globalModifier === '') {
+    globalModifier = 0
+  }
+
+
+  const updatePromises = form.value.items.map(async (item) => {
+    const tipoCompra = (item.ART_TIPO_COMPRA || '').trim().toUpperCase();
+    if (tipoCompra === 'L') return;
+    item.modificador = globalModifier;
+    return applyModifyRow(item);
+  });
+
+  try {
+    await Promise.all(updatePromises);
+    console.log("Actualización masiva terminada");
+  } catch (error) {
+    console.error("Error al actualizar items:", error);
+  }
 }
 
 
@@ -1118,7 +1146,8 @@ onMounted(async () => {
               <div class="col-md-6 col-xl-2">
                 <label class="form-label small text-uppercase fw-bold text-body-secondary">Desc. General PVP</label>
                 <div class="input-group">
-                  <input type="number" class="form-control text-end" placeholder="0.00" value="0.00">
+                  <input type="number" class="form-control text-end no-spinners" placeholder="0.00" value="0.00"
+                    v-model.number="form.modificador_global" @change="applyGeneraModifier">
                   <span class="input-group-text bg-body-tertiary text-body-secondary">%</span>
                 </div>
               </div>
@@ -1126,9 +1155,12 @@ onMounted(async () => {
               <div class="col-md-6 col-xl-2">
                 <label class="form-label small text-uppercase fw-bold text-body-secondary">Orden de Compra</label>
                 <div class="position-relative">
-                  <input type="text" class="form-control" placeholder="Opcional" value="OC-2024-999">
+                  <input type="text" class="form-control " placeholder="Opcional" value="OC-2024-999"
+                    v-model="form.orden_de_compra" :maxlength="maxOrder">
                   <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
-                    5
+                    {{ maxOrder -
+                      form.orden_de_compra.length
+                    }}
                   </span>
                 </div>
               </div>
@@ -1148,22 +1180,25 @@ onMounted(async () => {
               <div class="col-md-4">
                 <div class="d-flex justify-content-between mb-1">
                   <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Cliente</label>
-                  <span class="small text-body-secondary" style="font-size: 0.7rem;">150 chars</span>
+                  <span v-if="form.nota_cliente" class="small text-body-secondary" style="font-size: 0.7rem;">{{
+                    maxLengthNote
+                    - form.nota_cliente.length }}</span>
                 </div>
                 <textarea class="form-control border-start border-4 border-primary" rows="3"
-                  placeholder="Visible en factura..."></textarea>
+                  placeholder="Visible en factura..." v-model.trim="form.nota_cliente"
+                  :maxlength="maxLengthNote"></textarea>
               </div>
 
               <div class="col-md-4">
                 <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Interna</label>
                 <textarea class="form-control border-start border-4 border-warning" rows="3"
-                  placeholder="Uso administrativo..."></textarea>
+                  placeholder="Uso administrativo..." v-model.trim="form.nota_interna"></textarea>
               </div>
 
               <div class="col-md-4">
                 <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
                 <textarea class="form-control border-start border-4 border-danger" rows="3"
-                  placeholder="Logística y bodega..."></textarea>
+                  placeholder="Logística y bodega..." v-model.trim="form.nota_operaciones"></textarea>
               </div>
             </div>
           </BaseBlock>

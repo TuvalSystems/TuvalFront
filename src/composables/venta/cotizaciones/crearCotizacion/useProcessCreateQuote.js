@@ -42,6 +42,7 @@ const initialState = {
     //notas
     nota_interna: '',
     nota_cliente: '',
+    nota_operaciones: '',
     orden_de_compra: '',
 
 
@@ -55,8 +56,11 @@ const initialState = {
     iva: 0,
     total: 0,
 
+    //
+    modificador_global: 0,
     //items de cotizacion
     items: [],
+    imagenesoperaciones: [],
 
 }
 export function useProcessCreateQuote() {
@@ -530,18 +534,25 @@ export function useProcessCreateQuote() {
         isDescriptionLValid.value = true;
 
         form.value.items.forEach((art) => {
-            if (art.ART_TIPO_COMPRA === 'L' && (art.ART_DESCRIPCION == art.ART_DESCRIPCION_ORIGINAL)) {
+            const tipoCompra = (art.ART_TIPO_COMPRA || '').trim().toUpperCase();
+            if (tipoCompra === 'L' && (art.ART_DESCRIPCION == art.ART_DESCRIPCION_ORIGINAL)) {
                 art.errorDescripcion = true;
                 isDescriptionLValid.value = false;
             }
-            if (art.ART_TIPO_COMPRA !== 'L') {
+            if (tipoCompra === 'L') {
+                art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
+
+            } else {
                 let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
                 const modificador = Number.parseFloat(art.modificador || 0);
                 valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
                 art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
-            } else {
-                art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
             }
+            // if (art.ART_TIPO_COMPRA !== 'L') {
+
+            // } else {
+            //     art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
+            // }
 
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
             if (cantidad <= 0) {
@@ -771,13 +782,18 @@ export function useProcessCreateQuote() {
      *  proceso de condiciones de pago 
      */
 
-   
+
 
     return {
         form,
         clearForm,
         addItems,
         removeItem,
+
+        //limitadores 
+        maxOrder,
+        maxLength,
+        maxLengthNote,
 
         //proceso de descripcion de item 
         getDescriptionClass,
