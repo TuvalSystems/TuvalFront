@@ -775,7 +775,7 @@ export function useProcessCreateQuote() {
     const apiDeleteCartQuotation = 'cart/item/clear-temp';
     const loadingClearQuotation = ref(false);
     async function clearQuotation() {
-        return await run(() => axiosClient.delete(apiDeleteCartQuotation, {
+        return await run(() => axiosClient.post(apiDeleteCartQuotation, {
             clienteId: form.value.cliente.id,
             puntoVentaId: ptoVtaSelect,
             sucursalId: form.value.direccion_facturacion_id
