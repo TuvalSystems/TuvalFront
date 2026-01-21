@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
-import { swalWarning, swalError } from "@/functions/swal-alert.js";
+import { swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
@@ -71,18 +71,16 @@ const {
   loadingUpdateCheckAlternative,
   updateCheckAlternative,
 
-  // proceso para apertura de modal de proveedores
-  isItemL,
-  isClassProviderOK,
-
   //proceso para manejo de cantidades
   loadingUpdateQuantityItem,
   validateQtyBeforeUpdate,
   updateQuantityItem,
   formatQty,
   //proceso de proveedores
+  isItemL,
   dataModalProviders,
-
+  storeProvidersForItemL,
+  clearDataModalProviders,
   //proceso de stock total de un articulo 
   shouldShowStock,
 
@@ -134,7 +132,10 @@ const verSearchItemModalObj = useBootstrapModal(verSearchItemModal)
 const verItemAltObj = useBootstrapModal(verItemAltRef)
 const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef)
 const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef)
-const verProveedoresObj = useBootstrapModal(verProveedoresRef)
+const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
+  backdrop: 'static',
+  keyboard: false
+});
 // variables para mostrar las busquedas
 const showResultClients = ref(false);
 const showInfoClient = ref(false);
@@ -320,7 +321,6 @@ async function actualizarCheckAlternative(event, art, i) {
   const respCheck = await updateCheckAlternative(valEvent, art.id, i);
   if (!respCheck?.ok) {
     swalError(respCheck?.message || 'Error consultando sucursales');
-    return;
   }
 }
 
@@ -329,22 +329,26 @@ async function actualizarCheckAlternative(event, art, i) {
 
 //proceso de proveedores de items 
 async function openModalProviders(item, i) {
-  dataModalProviders.value.proveedores = item?.proveedores;
-  dataModalProviders.value.item = item;
-  dataModalProviders.value.index = i;
+  clearDataModalProviders();
+  dataModalProviders.value = {
+    proveedores: item.proveedores || [],
+    index: i,
+    item: item
+  };
   await nextTick();
   verProveedoresObj.show();
 
 }
 
-const handleSaveProviders = ({ index, providers, nuevoPrecio }) => {
-  console.log(providers, index, nuevoPrecio, 'handleSaveProviders');
-
+const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   form.value.items[index].proveedores = providers;
   if (nuevoPrecio) {
     form.value.items[index].ART_VALOR = nuevoPrecio
   }
+  let itemId = form.value.items[index].id;
+  await storeProvidersForItemL(itemId, providers, nuevoPrecio);
   calculateTotals();
+
   verProveedoresObj.hide();
 }
 
@@ -502,6 +506,42 @@ const saveModifyDiscount = async (element) => {
 }
 
 
+/** proceso de eliminacion de registro de item  */
+
+async function confirmarEliminarArticulo(item, i) {
+  toast
+    .fire({
+      title: "Estás seguro?",
+      text: "De eliminar el producto " + articulo.ART_CODIGO + "",
+      icon: "warning",
+      showCancelButton: true,
+      customClass: {
+        confirmButton: "btn btn-danger m-1",
+        cancelButton: "btn btn-secondary m-1",
+      },
+      confirmButtonText: "Si, eliminarlo!",
+      html: false,
+      preConfirm: () => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 50);
+        });
+      },
+    })
+    .then((result) => {
+      if (result.value) {
+        removeRowItem(item, i)
+      }
+    });
+}
+async function removeRowItem(item, i) {
+  form.value.items[i].disabled_delete = true;
+  await removeItem(item, i);
+  form.value.items.splice(i, 1);
+  await nextTick();
+  calculateTotals();
+}
 
 
 
@@ -779,7 +819,7 @@ onMounted(async () => {
         </div>
       </BaseBlock>
     </BaseBlock>
-    <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" title="Cotización">
+    <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" title="Cotización" class="mb-0">
       <div class="d-flex align-items-center mb-4">
         <div class="btn-group btn-group-sm" role="group">
           <button type="button" class="btn btn-outline-primary" @click="openModalSearchItem"><i
@@ -788,7 +828,7 @@ onMounted(async () => {
           <button type="button" class="btn btn-outline-success"> <i class="fa fa-rotate me-1"></i>Stock</button>
         </div>
       </div>
-      <div class="table-responsive mt-1">
+      <div class="table-responsive mt-1 mb-2">
         <table v-if="form.items.length > 0" class="table table-hover table-sm table-vcenter mt-0">
           <thead>
             <tr>
@@ -854,9 +894,9 @@ onMounted(async () => {
                 <td class="fs-sm">{{ element.ART_PLAN_UMEDIDA }}</td>
                 <!-- abrir modal de proveedores -->
                 <td class="fs-sm">
-                  {{ element.proveedores_listo ? 'Listo' : 'Pendiente' }}
                   <div v-if="isItemL(element)">
-                    <button type="button" class="btn btn-sm" :class="element.proveedores_listo ? 'btn-success' : 'btn-danger'"
+                    <button type="button" class="btn btn-sm"
+                      :class="element.proveedores_listo ? 'btn-success' : 'btn-danger'"
                       @click="openModalProviders(element, index)">
                       <i class="fa fa-people-arrows-left-right"></i>
                     </button>
@@ -947,8 +987,8 @@ onMounted(async () => {
                 </td>
                 <!-- botones -->
                 <td>
-                  <button type="button " class="btn btn-danger btn-sm mx-1" @click="removeItem(element, index)"
-                    :disabled="element.disabled_delete">
+                  <button type="button " class="btn btn-danger btn-sm mx-1"
+                    @click="confirmarEliminarArticulo(element, index)" :disabled="element.disabled_delete">
                     <i class="fa fa-trash-can"></i>
                   </button>
                 </td>
@@ -958,32 +998,33 @@ onMounted(async () => {
           <!-- fotter -->
           <tfoot v-if="form.items.length > 0">
             <tr>
-              <th scope="col" colspan="14" class="fs-sm text-end border-0"> Subtotal sin Descuento</th>
-              <th scope="col" class="fs-sm text-end text-nowrap border-0"> ${{ format(form.subtotal + form.descuento) }}</th>
+              <th scope="col" colspan="15" class="fs-sm text-end border-0"> Subtotal sin Descuento</th>
+              <th scope="col" class="fs-sm text-end text-nowrap border-0"> ${{ format(form.subtotal + form.descuento) }}
+              </th>
               <th scope="col" class="border-0"></th>
             </tr>
             <tr>
-              <th scope="col" colspan="14" class="fs-sm text-end text-danger border-0"> Descuento</th>
+              <th scope="col" colspan="15" class="fs-sm text-end text-danger border-0"> Descuento</th>
               <th scope="col" class="fs-sm text-end text-danger text-nowrap border-0"> - ${{ format(form.descuento) }}
               </th>
               <th scope="col" class="border-0"></th>
             </tr>
             <tr>
-              <th scope="col" colspan="14" class="fs-sm text-end border-0">Subtotal Neto</th>
+              <th scope="col" colspan="15" class="fs-sm text-end border-0">Subtotal Neto</th>
               <th scope="col" class="fs-sm text-end text-nowrap border-0">
                 ${{ format(form.subtotal) }}
               </th>
               <th scope="col" class="border-0"></th>
             </tr>
             <tr>
-              <th scope="col" colspan="14" class="fs-sm text-end border-0">IVA</th>
+              <th scope="col" colspan="15" class="fs-sm text-end border-0">IVA</th>
               <th scope="col" class="fs-sm text-end text-nowrap border-0">
                 ${{ format(form.iva) }}
               </th>
               <th scope="col" class="border-0"></th>
             </tr>
             <tr class="table-active">
-              <th scope="col" colspan="14" class="fs-sm text-end fw-bold">TOTAL</th>
+              <th scope="col" colspan="15" class="fs-sm text-end fw-bold">TOTAL</th>
               <th scope="col" class="fs-sm text-end fw-bold text-nowrap">
                 ${{ format(parseFloat(form.total)) }}
               </th>
@@ -993,7 +1034,7 @@ onMounted(async () => {
               <td colspan="16" class="border-0 p-1"></td>
             </tr>
             <tr>
-              <th scope="col" colspan="14" class="fs-sm text-end text-muted fst-italic border-0">Peso total aprox.</th>
+              <th scope="col" colspan="15" class="fs-sm text-end text-muted fst-italic border-0">Peso total aprox.</th>
               <th scope="col" class="fs-sm text-end text-muted fst-italic text-nowrap border-0">
                 {{ format(form.peso) }} Kg
               </th>
@@ -1003,9 +1044,148 @@ onMounted(async () => {
           <!-- end fotter -->
         </table>
       </div>
+
+      <!-- condiciones de pago  -->
+
+       <div class="row mb-2">
+      <div class="col-12">
+
+        <div v-if="form.alerta_factura" class="mb-4">
+          <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
+
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa fa-exclamation-triangle"></i>
+              <span class="fw-bold">Factura a demanda posterior al despacho</span>
+            </div>
+
+            <div v-if="form.preguntar_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
+              <span class="small opacity-75">
+                Último día: <strong class="text-primary">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
+              </span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="switch-facturar" :true-value="0" :false-value="1"
+                  v-model="form.factura_siguiente_mes">
+                <label class="form-check-label fw-bold text-primary" for="switch-facturar">
+                  Facturar ahora
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <BaseBlock class="mb-4">
+
+          <template #title>
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa fa-file-invoice-dollar text-body-secondary"></i>
+              <span class="fw-semibold">Condiciones de venta</span>
+            </div>
+          </template>
+
+          <div class="row g-4">
+
+            <div class="col-md-6 col-xl-3">
+              <label class="form-label small text-uppercase fw-bold text-body-secondary">Condición de pago</label>
+              <select class="form-select">
+                <option>CONTADO</option>
+                <option>CRÉDITO 30 DÍAS</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 col-xl-5">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma de pago</label>
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+                  Condición diferente
+                </span>
+              </div>
+
+              <select class="form-select mb-2">
+                <option>Contado - Efectivo</option>
+                <option>Transferencia Bancaria</option>
+              </select>
+
+              <div class="d-flex align-items-center justify-content-end small">
+                <span class="text-body-secondary me-2">Descuento aplicado:</span>
+                <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info">25%</a>
+              </div>
+            </div>
+
+            <div class="col-md-6 col-xl-2">
+              <label class="form-label small text-uppercase fw-bold text-body-secondary">Desc. General PVP</label>
+              <div class="input-group">
+                <input type="number" class="form-control text-end" placeholder="0.00" value="0.00">
+                <span class="input-group-text bg-body-tertiary text-body-secondary">%</span>
+              </div>
+            </div>
+
+            <div class="col-md-6 col-xl-2">
+              <label class="form-label small text-uppercase fw-bold text-body-secondary">Orden de Compra</label>
+              <div class="position-relative">
+                <input type="text" class="form-control" placeholder="Opcional" value="OC-2024-999">
+                <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
+                  5
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </BaseBlock>
+
+        <BaseBlock class="mb-4">
+          <template #title>
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa fa-sticky-note text-body-secondary"></i>
+              <span class="fw-semibold">Notas</span>
+            </div>
+          </template>
+
+          <div class="row g-4">
+            <div class="col-md-4">
+              <div class="d-flex justify-content-between mb-1">
+                <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Cliente</label>
+                <span class="small text-body-secondary" style="font-size: 0.7rem;">150 chars</span>
+              </div>
+              <textarea class="form-control border-start border-4 border-primary" rows="3"
+                placeholder="Visible en factura..."></textarea>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Interna</label>
+              <textarea class="form-control border-start border-4 border-warning" rows="3"
+                placeholder="Uso administrativo..."></textarea>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
+              <textarea class="form-control border-start border-4 border-danger" rows="3"
+                placeholder="Logística y bodega..."></textarea>
+            </div>
+          </div>
+        </BaseBlock>
+
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+          <button type="button" class="btn btn-outline-danger px-4">
+            Limpiar cotización
+          </button>
+
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success px-4 fw-bold shadow-sm">
+              <i class="fa fa-save me-2"></i>Guardar Cotización
+            </button>
+
+            <button type="button" class="btn btn-warning px-4 fw-bold text-dark shadow-sm">
+              <i class="fa fa-check-circle me-2"></i>Guardar Pedido
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
     </BaseBlock>
     <!-- {{ form }} -->
-
+   
   </div>
 
 

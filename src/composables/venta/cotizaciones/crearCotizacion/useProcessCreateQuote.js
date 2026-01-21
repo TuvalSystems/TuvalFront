@@ -163,18 +163,18 @@ export function useProcessCreateQuote() {
         return await run(() => axiosClient.delete(apiDeleteCart + `/${row.id}`), {
             loadingRef: loadingAddItem,
             onSuccess: () => {
-                form.value.items.splice(i, 1);
-                form.value.items[i].disabled_delete = false;
-                calculateTotals();
+                // form.value.items.splice(i, 1);
+                // form.value.items[i].disabled_delete = false;
+                // calculateTotals();
             },
             onError: (error) => {
                 // 3. ¡IMPORTANTE! Si falla, desbloqueamos el botón para que intente de nuevo
                 console.error('Error al eliminar:', error);
-                if (form.value.items[i]) {
-                    form.value.items[i].disabled_delete = false;
-                }
+                // if (form.value.items[i]) {
+                //     form.value.items[i].disabled_delete = false;
+                // }
             },
-            successMessage: 'Proceso realizado exitosamente',
+            // successMessage: 'Proceso realizado exitosamente',
         })
     }
 
@@ -429,8 +429,16 @@ export function useProcessCreateQuote() {
 
     const isItemL = (row) => row.ART_TIPO_COMPRA === 'L'
 
-    const dataModalProviders = ref({ proveedores: [], index: 0, item: {} });
 
+    const initialDataModalProvider = () => ({
+        proveedores: [],
+        index: 0,
+        item: {}
+    });
+    const dataModalProviders = ref(initialDataModalProvider());
+    const clearDataModalProviders = () => {
+        dataModalProviders.value = initialDataModalProvider();
+    }
     //obtener margen item L 
     const loadingMarginItemL = ref(false);
     const margenItemL = ref(null);
@@ -449,8 +457,55 @@ export function useProcessCreateQuote() {
             },
         });
     }
-    const isClassProviderOK = (row) => row.proveedores_listo ? 'btn-success' : 'btn-danger';
+    //obtener el margen actualizado 
+    const margenPorDefecto = computed(() =>
+        Number.parseFloat(margenItemL.value?.DATOS_ITEMS_L_MARGEN ?? 16)
+    );
 
+    /** proeso de agregar proveedores */
+    const itemsProvider = ref([]);
+
+    function eliminarProveedor(index) {
+        itemsProvider.value.splice(index, 1);
+    }
+
+
+    const validateProviderBeforeStore = () => {
+        for (const prov of itemsProvider.value) {
+            if (!prov.DESCRIPCION_ARTICULO || prov.DESCRIPCION_ARTICULO === "Item L descripción por completar") {
+                swalWarning('Actualice la descripción del item L');
+                return false;
+            }
+
+            if (
+                prov.CANTIDAD === '' || prov.CANTIDAD === null ||
+                prov.COSTO_UNITARIO === '' || prov.COSTO_UNITARIO === null ||
+                !prov.FECHA_ENTREGA || // Cubre null y ''
+                !prov.ID_PROVEEDOR ||  // Cubre null y ''
+                prov.MARGEN === '' || prov.MARGEN === null
+            ) {
+                swalWarning('Todos los campos deben ser llenados');
+                return false;
+            }
+
+        }
+        return true;
+    }
+
+    const apiStoreProvidersForItemL = 'cart/item/store/proveedores';
+    const loadingProvidersForItemL = ref(false);
+    async function storeProvidersForItemL(itemId, providers, priceNow) {
+        return await run(() => axiosClient.post(apiStoreProvidersForItemL, {
+            id: itemId,
+            proveedores: providers,
+            precio_actual: priceNow
+        }), {
+            loadingRef: loadingProvidersForItemL,
+            onError: () => {
+                console.error('Error al guardar proveedores para el item L', itemId);
+            },
+        });
+    }
 
     /**
      *  
@@ -711,6 +766,13 @@ export function useProcessCreateQuote() {
     }
 
 
+    /**
+     * 
+     *  proceso de condiciones de pago 
+     */
+
+   
+
     return {
         form,
         clearForm,
@@ -737,7 +799,6 @@ export function useProcessCreateQuote() {
 
         // proceso para apertura de modal de proveedores
         isItemL,
-        isClassProviderOK,
 
         //proceso para manejo de cantidades
         loadingUpdateQuantityItem,
@@ -747,11 +808,17 @@ export function useProcessCreateQuote() {
 
         //proceso de stock total de un articulo 
         shouldShowStock,
-        //proceso de proveedores
+        //proceso de proveedores - modal
+        itemsProvider,
+        eliminarProveedor,
+        margenPorDefecto,
         dataModalProviders,
+        clearDataModalProviders,
         loadingMarginItemL,
         margenItemL,
         getMargenFotItemL,
+        storeProvidersForItemL,
+        validateProviderBeforeStore,
         //proceso de modal stock y peso 
         dataStockItem,
         isStockDisabled,

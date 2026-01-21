@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, reactive, computed, watch ,toRaw} from 'vue';
+import { onMounted, ref, reactive, computed, watch, toRaw } from 'vue';
 import { useStore } from 'vuex'
 import VueSelect from "vue-select";
 import flatPickr from 'vue-flatpickr-component';
@@ -8,11 +8,12 @@ import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCot
 import { formatPrice, formatPrice4, format } from "@/functions";
 
 const {
-    //proceso de proveedores
-    dataModalProviders,
-    loadingMarginItemL,
-    margenItemL,
+    //proceso de proveedores - modal
+    itemsProvider,
+    eliminarProveedor,
+    margenPorDefecto,
     getMargenFotItemL,
+    validateProviderBeforeStore,
 } = useProcessCreateQuote();
 const store = useStore();
 const listaProviders = ref(store.state.proveedores);
@@ -36,20 +37,12 @@ const flatPickrState = reactive({
     minDate: Date.now(),
     monthSelectorType: "static",
     locale: Spanish,
-    dateFormat: "d/m/Y"
 });
 
-const itemsProvider = ref([]);
-const margenPorDefecto = computed(() => {
-    // Si la API respondió y tiene la propiedad
-    if (margenItemL.value && margenItemL.value.DATOS_ITEMS_L_MARGEN) {
-        return Number.parseFloat(margenItemL.value.DATOS_ITEMS_L_MARGEN);
-    }
-    return 16; // Valor por defecto si falla o está cargando
-});
+
 watch(() => props.providers, (newVal) => {
     if (newVal && newVal.length > 0) {
-       const rawData = toRaw(newVal);
+        const rawData = toRaw(newVal);
         itemsProvider.value = structuredClone(rawData);
     } else {
         itemsProvider.value = [];
@@ -62,7 +55,6 @@ watch(() => props.item.ART_CODIGO, (newVal) => {
     }
 }, { immediate: true, deep: true });
 const addProvider = async () => {
-
     const newProveedor = {
         'ID_PROVEEDOR': null,
         'DESCRIPCION_ARTICULO': props.item.ART_DESCRIPCION,
@@ -79,22 +71,15 @@ const addProvider = async () => {
     itemsProvider.value.push(newProveedor);
 }
 
-function eliminarProveedor(index) {
-    itemsProvider.value.splice(index, 1);
-}
-
-function validaCantidadProveedor(event, index) {
-    let val = Number.parseFloat(event.target.value);
-    if (Number.isNaN(val) || val < 0) val = 0;
-    itemsProvider.value[index].CANTIDAD = val;
-    calculaTotalProveedor(index);
-
-}
 
 function calculaTotalProveedor(index) {
     const row = itemsProvider.value[index];
 
     const costo = Number.parseFloat(row.COSTO_UNITARIO) || 0;
+    if (Number.isNaN(costo)) {
+        swalWarning('El costo unitario debe ser un número válido');
+        return;
+    }
     const cantidad = Number.parseFloat(row.CANTIDAD) || 0;
     const margen = Number.parseFloat(row.MARGEN) || 0;
 
@@ -106,9 +91,9 @@ function calculaTotalProveedor(index) {
     const iva = totalNeto * (impuestoPorcentaje / 100);
     const totalFinal = totalNeto + iva;
 
-    row.TOTALCONIMPUESTO = formatPrice(totalFinal);
-    row.IMPUESTO = formatPrice(iva);
-    row.TOTAL = formatPrice(totalNeto);  //por ahora solo visualizamos el total neto
+    row.TOTALCONIMPUESTO = format(totalFinal);
+    row.IMPUESTO = formatPrice4(iva);
+    row.TOTAL = formatPrice4(totalNeto);  //por ahora solo visualizamos el total neto
 
 
     const denominadorMargen = 1 - (margen / 100);
@@ -122,16 +107,18 @@ function calculaTotalProveedor(index) {
 }
 
 function guardarProveedor() {
+    if (!validateProviderBeforeStore()) {
+        return;
+    }
     emit('update:providers', {
         index: props.index,
         providers: itemsProvider.value,
         nuevoPrecio: props.item.ART_VALOR
     });
-    console.log('guardar proveedor');
 }
 
 const totalAsignado = computed(() => {
-    return itemsProvider.value.reduce((total, p) => total + (Number.parseFloat(p.TOTAL) || 0), 0);
+    return itemsProvider.value.reduce((total, p) => total + (Number(p.TOTAL) || 0), 0);
 });
 onMounted(async () => {
 
@@ -194,35 +181,31 @@ onMounted(async () => {
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-transparent border-0 ps-0 pe-1 text-muted"><i
                                                 class="fa fa-pen"></i></span>
-                                        <textarea class="form-control form-control-sm border-0 " rows="1"
+                                        <textarea class="form-control form-control-sm " rows="2"
                                             placeholder="Descripción técnica..." v-model="prov.DESCRIPCION_ARTICULO"
                                             style="resize: none;"></textarea>
                                     </div>
-                                    <input type="text"
-                                        class="form-control form-control-sm border-0  text-muted fs-xs mt-1 ps-4"
+                                    <input type="text" class="form-control form-control-sm  text-muted fs-xs mt-1 ps-4"
                                         placeholder="+ Agregar nota interna" v-model="prov.NOTA">
                                 </td>
                                 <td class="align-top py-3">
-                                    <flat-pickr class="form-control form-control-sm text-center border-0 bg-transparent"
+                                    <flat-pickr class="form-control form-control-sm text-center "
                                         v-model="prov.FECHA_ENTREGA" :config="flatPickrState" placeholder="Fecha" />
                                 </td>
                                 <td class="align-top py-3">
-                                    <input type="text"
-                                        class="form-control form-control-sm text-center fw-bold border-0 bg-transparent"
-                                        v-model="prov.CANTIDAD" @change="validaCantidadProveedor($event, index)" />
+                                    <input type="number" min="0" class="form-control form-control-sm text-end fw-bold"
+                                        v-model.number="prov.CANTIDAD" @input="calculaTotalProveedor(index)" />
                                 </td>
                                 <td class="align-top py-3">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-transparent border-0 text-muted px-1">$</span>
-                                        <input type="number"
-                                            class="form-control form-control-sm text-end border-0 bg-transparent"
+                                        <input type="number" class="form-control form-control-sm text-end"
                                             v-model="prov.COSTO_UNITARIO" @input="calculaTotalProveedor(index)" />
                                     </div>
                                 </td>
                                 <td class="align-top py-3">
                                     <div class="input-group input-group-sm">
-                                        <input type="number"
-                                            class="form-control form-control-sm text-end border-0 bg-transparent"
+                                        <input type="number" class="form-control form-control-sm text-end "
                                             v-model="prov.MARGEN" @input="calculaTotalProveedor(index)" />
                                         <span class="input-group-text bg-transparent border-0 text-muted px-1">%</span>
                                     </div>
@@ -230,8 +213,7 @@ onMounted(async () => {
                                 <td class="align-top py-3">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-transparent border-0 text-muted px-1">$</span>
-                                        <input type="number"
-                                            class="form-control form-control-sm text-end border-0 bg-transparent"
+                                        <input type="number" class="form-control form-control-sm text-end "
                                             v-model="prov.IMPUESTO" @input="calculaTotalProveedor(index)" />
                                     </div>
                                 </td>
@@ -250,7 +232,7 @@ onMounted(async () => {
                                 <td class="text-center align-middle">
                                     <a href="javascript:void(0)" class="text-danger opacity-50 hover-opacity-100"
                                         @click="eliminarProveedor(index)">
-                                        <i class="fa fa-times-circle"></i>
+                                        <i class="fa fa-trash-can fs-lg"></i>
                                     </a>
                                 </td>
                             </tr>
