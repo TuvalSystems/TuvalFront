@@ -32,6 +32,7 @@ const initialState = {
 
     //forma de pago 
     condicion_pago_id: null,
+    condicion_pago_original_id: null,
     forma_pago_id: null,
 
 
@@ -556,12 +557,7 @@ export function useProcessCreateQuote() {
                 valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
                 art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
             }
-            // if (art.ART_TIPO_COMPRA !== 'L') {
-
-            // } else {
-            //     art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
-            // }
-
+          
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
             if (cantidad <= 0) {
                 art.errorCantidad = true;
@@ -639,11 +635,16 @@ export function useProcessCreateQuote() {
                     globalStockUsage[key].used += seleccionado;
                 });
             }
-            if (qtyAsigned.toFixed(item.ART_DECIMAL_CANTIDAD) !== qtyReuired.toFixed(item.ART_DECIMAL_CANTIDAD)) {
+            if (qtyReuired === 0) {
                 item.stockListo = false;
                 isValid = false;
-            } else {
+            } else if (qtyAsigned.toFixed(item.ART_DECIMAL_CANTIDAD) === qtyReuired.toFixed(item.ART_DECIMAL_CANTIDAD)) {
                 item.stockListo = true;
+
+            } else {
+                console.log('cantidades diferentes', item.stockListo);
+                item.stockListo = false;
+                isValid = false;
             }
         });
         for (const key in globalStockUsage) {
@@ -847,6 +848,10 @@ export function useProcessCreateQuote() {
             },
         });
     }
+
+    /*** proceso de creacion de cotizacion  */
+
+
 
 
 

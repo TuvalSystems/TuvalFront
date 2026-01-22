@@ -301,6 +301,7 @@ watch(
     } else {
       form.value.condicion_pago_id = newValue.CLI_CONDICION_PAGO
     }
+    form.value.condicion_pago_original_id = newValue.CLI_CONDICION_PAGO;
   },
   { immediate: true }
 )
@@ -717,35 +718,36 @@ async function updateStockByBatch() {
   if (!form.value.items || form.value.items.length === 0) return;
   loadingStockMasivo.value = true;
 
-  const actualizaciones = form.value.items.map(async (item) => {
+  const actualizaciones = form.value.items.map(async (item, index) => {
     if (item.ART_TIPO_COMPRA === 'L') {
       item.stockRowLoading = false;
       return;
     };
-    item.stockRowLoading = true;
-    item.disableOpenModalStock = true;
-    item.stockListo = false;
+    form.value.items[index].stockRowLoading = true;
+    form.value.items[index].disableOpenModalStock = true;
+    form.value.items[index].stockListo = false;
     const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-    console.log(respLote,'respuesta de stock masivo');
-    
+    console.log(respLote, 'respuesta de stock masivo');
+
     if (!respLote?.ok) {
-      item.stockListo = false;
-      item.stockRowLoading = false;
-      item.disableOpenModalStock = false;
+      form.value.items[index].stockListo = false;
+      form.value.items[index].stockRowLoading = false;
+      form.value.items[index].disableOpenModalStock = false;
       console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
       return;
     }
-    item.stock = respLote?.stock || [];
-    item.ART_STOCK = respLote?.ART_STOCK
-    item.stockListo = true;
-    item.stockRowLoading = false;
-    item.disableOpenModalStock = false;
+    form.value.items[index].stock = respLote.data.stock || [];
+    form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
+
+    // form.value.items[index].stockListo = true;
+    form.value.items[index].stockRowLoading = false;
+    form.value.items[index].disableOpenModalStock = false;
   });
   await Promise.all(actualizaciones);
-  calculateTotals(); // Recalcular validaciones de la cotización
   loadingStockMasivo.value = false;
+  calculateTotals(); // Recalcular validaciones de la cotización
   console.log('stocks actualizados Correctamente');
-  
+
 }
 
 
