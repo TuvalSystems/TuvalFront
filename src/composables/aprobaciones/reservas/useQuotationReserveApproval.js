@@ -19,13 +19,13 @@ export function useQuotationReserveApproval() {
   /** para listar los detalles de la cotizacion y el stock activo */
   const dataQuotationDetailAndStockActive = ref(null);
   const loadingQ2 = ref(false);
-
   // apis consultas
   const apiFetchWithDetail = "/reservas/cotizacion-con-detalle/";
   const apiFetchWithDetailAnStock = "/reservas/cotizacion-detalle-stock/";
   const apiFetchWithDetailAnStockActive = "/reservas/cotizacion-detalle-stock-activo/";
   const apiDenyReservation = "/reservas/rechazar-solicitud-reserva";
   const apiApproveReservation = "/reservas/aprobar-solicitud-reserva";
+  const apiCheckStockReserved = "/reservas/verificar-stock-reserva";
   /** datos para enviar a aprobar y rechazar */
   const dataSendApproval = reactive({
     id: null,
@@ -73,6 +73,14 @@ export function useQuotationReserveApproval() {
     });
   }
 
+
+  async function checkStockReserved() {
+    return await run(() => axiosClient.post(apiCheckStockReserved, { id: dataSendApproval.id }), {
+      loadingRef: loadingApproval,
+      successMessage: "Proceso realizado exitosamente.",
+    });
+  }
+
   /** denegar solicitud */
   async function denyReservation() {
     return await run(() => axiosClient.post(apiDenyReservation, { data: dataSendApproval }), {
@@ -81,6 +89,8 @@ export function useQuotationReserveApproval() {
       onSuccess: () => { resetForm(); }
     });
   }
+
+
 
   /** aprobar solicitud */
   async function approveReservation() {
@@ -163,6 +173,7 @@ export function useQuotationReserveApproval() {
     dataQuotationDetailStock,
     fetchQuotationWithDetialAndStock,
     loadingDeny,
+    checkStockReserved,
     denyReservation,
     dataSendApproval,
     loadingApproval,
@@ -171,6 +182,6 @@ export function useQuotationReserveApproval() {
     resetForm,
     ptoVtaReservation,
 
-    cancelReservation
+    cancelReservation,
   };
 }
