@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
-import { swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalWarning, swalError, toast, swalSuccess } from "@/functions/swal-alert.js";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
@@ -11,7 +11,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import draggable from 'vuedraggable'
 import { formatPrice4, format } from "@/functions";
-
+import VueEasyLightbox from "vue-easy-lightbox";
 // imports modales
 import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
 import verModalBuscarArticulos from "@/views/ventas/modals/verModalBuscarArticulos.vue";
@@ -111,7 +111,15 @@ const {
   applyModifyDiscount,
   exitEditDiscount,
   updateModifyDiscountRowItem,
+  //descuento global
+  isEditingGlobalDiscount,
+  enableGlobalDiscountEdit,
+  inputGlobalDiscountRef,
+  cancelGlobalDiscountEdit,
+  updateGlobalDiscount,
 
+  //update stock por lote
+  updateStockItemsByBatch,
   //gloabl
   calculateTotals
 
@@ -287,6 +295,7 @@ watch(
 watch(
   () => infoClient.value,
   (newValue) => {
+    if (!newValue) return;
     if (newValue.suspendido === 1) {
       form.value.condicion_pago_id = 'CONTADO';
     } else {
@@ -622,6 +631,7 @@ const saveModifyDiscount = async (element) => {
     swalError(resp?.message);
     // return;
   }
+  calculateTotals();
 }
 
 
@@ -670,7 +680,80 @@ async function removeRowItem(item, i) {
 async function clearCotizacion() {
   await clearQuotation();
   clearForm();
+  showInfoClient.value = false;
+  showResultClients.value = false;
+  infoClient.value = null;
+  if (dataSearch.value) {
+    dataSearch.value.search = '';
+  }
+
+  if (clients.value) {
+    clients.value = [];
+  }
 }
+
+
+/** visualizacion de imagenes  */
+const gallery = reactive({
+  visible: false,
+  index: 0,
+  photos: [],
+});
+function showPhoto(imagenes) {
+  gallery.index = 0;
+  gallery.visible = true;
+  gallery.photos = imagenes;
+}
+
+function handleHide() {
+  gallery.visible = false;
+}
+
+
+/** proceso de actualizacion de stock por lote  */
+const loadingStockMasivo = ref(false);
+
+async function updateStockByBatch() {
+  if (!form.value.items || form.value.items.length === 0) return;
+  loadingStockMasivo.value = true;
+
+  const actualizaciones = form.value.items.map(async (item) => {
+    if (item.ART_TIPO_COMPRA === 'L') {
+      item.stockRowLoading = false;
+      return;
+    };
+    item.stockRowLoading = true;
+    item.disableOpenModalStock = true;
+    item.stockListo = false;
+    const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
+    console.log(respLote,'respuesta de stock masivo');
+    
+    if (!respLote?.ok) {
+      item.stockListo = false;
+      item.stockRowLoading = false;
+      item.disableOpenModalStock = false;
+      console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
+      return;
+    }
+    item.stock = respLote?.stock || [];
+    item.ART_STOCK = respLote?.ART_STOCK
+    item.stockListo = true;
+    item.stockRowLoading = false;
+    item.disableOpenModalStock = false;
+  });
+  await Promise.all(actualizaciones);
+  calculateTotals(); // Recalcular validaciones de la cotización
+  loadingStockMasivo.value = false;
+  console.log('stocks actualizados Correctamente');
+  
+}
+
+
+
+
+
+
+
 
 
 onMounted(async () => {
@@ -705,7 +788,7 @@ onMounted(async () => {
 </script>
 <template>
   <div class="content">
-    <BaseBlock title="Cliente" content-full rounded>
+    <BaseBlock title="Cliente" content-full rounded class="mb-3">
       <div class="row g-2">
         <div class="col">
           <div class="input-group input-group-sm">
@@ -952,7 +1035,8 @@ onMounted(async () => {
           <button type="button" class="btn btn-outline-primary" @click="openModalSearchItem"><i
               class="fa fa-search me-1"></i> Buscar
             Articulo</button>
-          <button type="button" class="btn btn-outline-success"> <i class="fa fa-rotate me-1"></i>Stock</button>
+          <button type="button" class="btn btn-outline-success" :disabled="loadingStockMasivo"
+            @click="updateStockByBatch"> <i class="fa fa-rotate me-1"></i>Stock</button>
         </div>
       </div>
       <div class="table-responsive mt-1 mb-2">
@@ -1113,11 +1197,21 @@ onMounted(async () => {
                   ${{ (element.subtotal) }}
                 </td>
                 <!-- botones -->
-                <td>
-                  <button type="button " class="btn btn-danger btn-sm mx-1"
-                    @click="confirmarEliminarArticulo(element, index)" :disabled="element.disabled_delete">
-                    <i class="fa fa-trash-can"></i>
-                  </button>
+                <td class="text-center align-middle">
+                  <div class="btn-group btn-group-sm" role="group" aria-label="Acciones del ítem">
+                    <button type="button " class="btn btn-danger btn-sm"
+                      @click="confirmarEliminarArticulo(element, index)" :disabled="element.disabled_delete"
+                      title="Eliminar">
+                      <i class="fa fa-trash-can"></i>
+                    </button>
+                    <a class="btn btn-primary btn-sm handle" style="cursor: move;">
+                      <i class="fa fa-arrows-up-down-left-right"></i>
+                    </a>
+                    <button v-if="element.imagenes && element.imagenes.length" class="btn btn-success btn-sm"
+                      type="button" @click="showPhoto(element.imagenes)">
+                      <i class="fa fa-search"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </template>
@@ -1174,7 +1268,7 @@ onMounted(async () => {
 
       <!-- condiciones de pago  -->
 
-      <div class="row mb-2">
+      <div v-if="form.items.length > 0" class="row mb-2">
         <div class="col-12">
 
           <div v-if="form.alerta_factura" class="mb-4">
@@ -1202,7 +1296,6 @@ onMounted(async () => {
           </div>
 
           <BaseBlock class="mb-4">
-
             <template #title>
               <div class="d-flex align-items-center gap-2">
                 <i class="fa fa-file-invoice-dollar text-body-secondary"></i>
@@ -1240,9 +1333,19 @@ onMounted(async () => {
                 </select>
 
                 <div class="d-flex align-items-center justify-content-end small">
-                  <span class="text-body-secondary me-2">Descuento aplicado:</span>
-                  <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info">{{
-                    Number(form.descuento_articulo).toFixed(2) }}%</a>
+                  <span v-if="!isEditingGlobalDiscount">
+                    <span class="text-body-secondary me-2">Descuento aplicado:</span>
+                    <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info"
+                      @click="enableGlobalDiscountEdit" title="Clic para editar descuento global manualmente">{{
+                        Number(form.descuento_articulo).toFixed(2) }}%</a>
+                  </span>
+                  <div v-else class="d-flex align-items-center">
+                    <span class="text-body-secondary me-2">Nuevo %:</span>
+                    <input id="input-global-discount" ref="inputGlobalDiscountRef" type="number"
+                      class="form-control form-control-sm text-end no-spinners p-1" style="width: 80px;"
+                      :value="form.descuento_articulo" @blur="updateGlobalDiscount($event)"
+                      @keyup.enter="$event.target.blur()" @keyup.esc="cancelGlobalDiscountEdit">
+                  </div>
                 </div>
               </div>
 
@@ -1304,17 +1407,24 @@ onMounted(async () => {
               </div>
 
               <div class="col-md-4">
-                <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
+                <div class="d-flex justify-content-between mb-1">
+                  <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
+                  <span v-if="form.nota_operaciones" class="small text-body-secondary" style="font-size: 0.7rem;">{{
+                    maxLengthNote
+                    - form.nota_operaciones.length }}</span>
+                </div>
                 <textarea class="form-control border-start border-4 border-danger" rows="3"
-                  placeholder="Logística y bodega..." v-model.trim="form.nota_operaciones"></textarea>
+                  placeholder="Logística y bodega..." v-model.trim="form.nota_operaciones"
+                  :maxlength="maxLengthNote"></textarea>
               </div>
             </div>
           </BaseBlock>
 
           <div
-            class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3">
+            class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3 mb-2">
 
-            <button type="button" class="btn btn-outline-danger px-4 w-100 w-md-auto order-2 order-md-1" @click="clearCotizacion" :disabled="loadingClearQuotation">
+            <button type="button" class="btn btn-outline-danger px-4 w-100 w-md-auto order-2 order-md-1"
+              @click="clearCotizacion" :disabled="loadingClearQuotation">
               Limpiar cotización
             </button>
 
@@ -1324,7 +1434,7 @@ onMounted(async () => {
                 <i class="fa fa-save me-2"></i>Guardar Cotización
               </button>
 
-              <button type="button" class="btn btn-warning px-4 fw-bold text-dark shadow-sm w-100 w-md-auto">
+              <button type="button" class="btn btn-warning px-4 fw-bold text-primary shadow-sm w-100 w-md-auto">
                 <i class="fa fa-check-circle me-2"></i>Guardar Pedido
               </button>
 
@@ -1425,6 +1535,7 @@ onMounted(async () => {
     </div>
   </div>
 
+  <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 
 <style scoped>

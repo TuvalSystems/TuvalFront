@@ -398,6 +398,24 @@ export function useProcessCreateQuote() {
         })
     }
 
+    const apiUpdateStockItemsByBatch = 'cotizaciones/articulo-stock-por-bodega';
+    const loadingUpdateStockItemsByBatch = ref(false);
+    async function updateStockItemsByBatch(item, tipo, cotizacionId) {
+        const payloadBatch = {
+            'articulo': item,
+            'bodega': ptoVtaSelect,
+            'tipo': tipo,
+            'cotizacion_id': cotizacionId,
+        }
+        return await run(() => axiosClient.post(apiUpdateStockItemsByBatch, payloadBatch), {
+            loadingRef: loadingUpdateStockItemsByBatch,
+            onError: (err) => {
+                console.log(err);
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        })
+    }
+
 
 
     const dataPesoItem = ref({ item: {}, index: 0 });
@@ -754,14 +772,57 @@ export function useProcessCreateQuote() {
         row.cambiar_descuento = false;
     }
 
+    /** actualizacion de descuento global  */
+    const isEditingGlobalDiscount = ref(false);
+    const inputGlobalDiscountRef = ref(null);
+    const enableGlobalDiscountEdit = async () => {
+        isEditingGlobalDiscount.value = true;
+        const inputElement = document.getElementById('input-global-discount');
+        await nextTick();
+        if (inputElement) {
+            inputElement.focus();
+            inputElement.select();
+        }
+    }
+
+    const cancelGlobalDiscountEdit = () => {
+        isEditingGlobalDiscount.value = false;
+    };
+
+    async function updateGlobalDiscount(event) {
+        const nuevoValorRaw = event.target.value;
+        if (nuevoValorRaw === '' || Number.isNaN(nuevoValorRaw)) {
+            swalWarning('Ingrese un valor numérico válido para el descuento global.');
+            isEditingGlobalDiscount.value = false;
+            return;
+        }
+
+        const nuevoDescuento = Number.parseFloat(nuevoValorRaw);
+        form.value.descuento_articulo = nuevoDescuento;
+        const updatePromiseDiscount = form.value.items.map(async (item) => {
+            if (item.descuento === nuevoDescuento) return;
+            item.descuento = nuevoDescuento;
+            return await updateModifyDiscountRowItem(item.id, nuevoDescuento);
+        });
+
+        try {
+            await Promise.all(updatePromiseDiscount);
+            console.log('Descuento global actualizado exitosamente.');
+        } catch (err) {
+            console.error('Error al actualizar el descuento global:', err);
+        }
+        isEditingGlobalDiscount.value = false;
+        calculateTotals();
+    }
+
     const loadingDiscountItem = ref(false);
     const apiModifyDiscountItem = 'cart/item/update/descuento';
     const updateModifyDiscountRowItem = async (id, descuento) => {
         return await run(() => axiosClient.post(apiModifyDiscountItem, { id: id, descuento: descuento }), {
             loadingRef: loadingDiscountItem,
-            onSuccess: () => {
-                calculateTotals();
-            },
+            // onSuccess: () => {
+            //     calculateTotals();
+            // },
             successMessage: 'Proceso realizado exitosamente',
         });
     }
@@ -786,6 +847,7 @@ export function useProcessCreateQuote() {
             },
         });
     }
+
 
 
     return {
@@ -868,6 +930,15 @@ export function useProcessCreateQuote() {
         applyModifyDiscount,
         exitEditDiscount,
         updateModifyDiscountRowItem,
+        //descuento global
+        isEditingGlobalDiscount,
+        enableGlobalDiscountEdit,
+        inputGlobalDiscountRef,
+        cancelGlobalDiscountEdit,
+        updateGlobalDiscount,
+
+        //update stock por lote
+        updateStockItemsByBatch,
 
         //global
         calculateTotals
