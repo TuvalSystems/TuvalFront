@@ -1053,11 +1053,12 @@ async function llenarcotizacion() {
     })
     store.dispatch('llenarcotizacion', consulta).then(() => {
       calcTotales();
+      actualizarStockPorLote();
+
     });
     cambiacoordenadas()
     cambiacoordenadasdeentrega()
   }
-  actualizarStockPorLote();
 }
 function selectformapago() {
 
@@ -1456,12 +1457,12 @@ function calcTotales() {
     tempPeso += (parseFloat(art.ART_PESO) || 0) * cantidad;
   });
 
-  subtotal.value = redondear(tempSubtotal+ 0.000001, 2);
-  descuento.value = redondear(tempDescuento+ 0.000001, 2);
-  iva.value = redondear(tempIva+ 0.000001, 2);
+  subtotal.value = redondear(tempSubtotal + 0.000001, 2);
+  descuento.value = redondear(tempDescuento + 0.000001, 2);
+  iva.value = redondear(tempIva + 0.000001, 2);
   peso.value = redondear(tempPeso, 2);
 
-  total.value = redondear((subtotal.value + iva.value)+ 0.000001, 2);
+  total.value = redondear((subtotal.value + iva.value) + 0.000001, 2);
 
 
   // 4. Verificaciones externas
