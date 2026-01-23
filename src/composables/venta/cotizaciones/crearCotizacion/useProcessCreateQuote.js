@@ -15,7 +15,7 @@ const initialState = {
     cotizacion_id: null,
     bodega_facturacion: null,
     cliente: null,
-    sucursal: null,
+    punto_venta_id: null,
     //variables de fecha y direccion de facturacion
     tipo_entrega: 'retiro',  //despacho
     fecha_entrega: null,
@@ -879,7 +879,7 @@ export function useProcessCreateQuote() {
         formData.append('vendedor_apellidos', form.value.cliente.gpvendedor.VEND_APELLIDOS);
 
         //variables de punto de venta y bodega de facturacion
-        formData.append('punto_venta_id', ptoVtaSelect);
+        formData.append('punto_venta_id', form.value.punto_venta_id);
         formData.append('bodega_facturacion', form.value.bodega_facturacion);
 
         //variables de fecha y direccion de facturacion
@@ -954,6 +954,7 @@ export function useProcessCreateQuote() {
         removeItem,
         loadingClearQuotation,
         clearQuotation,
+        ptoVtaSelect,
         //limitadores 
         maxOrder,
         maxLength,

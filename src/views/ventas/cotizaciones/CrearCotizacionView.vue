@@ -56,6 +56,7 @@ const {
   removeItem,
   loadingClearQuotation,
   clearQuotation,
+  ptoVtaSelect,
   //limitadores 
   maxOrder,
   maxLength,
@@ -299,6 +300,30 @@ async function closeModalCreateAddress(client) {
   dataClient.value = {};
 
 }
+
+watch(
+  () => infoClient.value,
+  (newValue) => {
+    if (newValue && warehouseByUser.value.length > 0 ) {
+      form.value.punto_venta_id = ptoVtaSelect;
+    }
+  }
+);
+
+watch(
+  () => warehouseByUser.value,
+  (newValue) => {
+    let warehouseSelected = warehouseByUser.value.find(w => w.PTO_VTA_BOD_REL_PUNTO_VENTA === form.value.bodega_facturacion);
+    // if(warehouseSelected.PTO_VTA_BOD_REL_PUNTO_VENTA !== ptoVtaSelect){
+    console.log(warehouseSelected, 'bodega seleccionada');
+    
+    // }
+    if (newValue.length > 0 && !form.value.bodega_facturacion) {
+      form.value.bodega_facturacion = newValue[0].relacion_bodega.BOD_BODEGA;
+    }
+  },
+);
+
 
 watch(
   () => infoClient.value,
@@ -846,6 +871,7 @@ onMounted(async () => {
 <template>
   <div class="content">
     <BaseBlock title="Cliente" content-full rounded class="mb-3">
+    {{ ptoVtaSelect }}
       <div class="row g-2">
         <div class="col">
           <div class="input-group input-group-sm">
@@ -1282,8 +1308,8 @@ onMounted(async () => {
               <th scope="col" class="border-0"></th>
             </tr>
             <tr>
-              <th scope="col" colspan="15" class="fs-sm text-end text-danger border-0"> Descuento</th>
-              <th scope="col" class="fs-sm text-end text-danger text-nowrap border-0"> - ${{ format(form.descuento) }}
+              <th scope="col" colspan="15" class="fs-sm text-end  border-0"> Descuento</th>
+              <th scope="col" class="fs-sm text-end  text-nowrap border-0"> ${{ format(form.descuento) }}
               </th>
               <th scope="col" class="border-0"></th>
             </tr>
@@ -1326,22 +1352,22 @@ onMounted(async () => {
       <!-- condiciones de pago  -->
       <div v-if="form.items.length > 0" class="row mb-2">
         <div class="col-12">
-          <div v-if="form.alerta_factura" class="mb-4">
+          <div class="mb-4">
             <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
 
-              <div class="d-flex align-items-center gap-2">
+              <div v-if="form.alerta_facturar != ''" class="d-flex align-items-center gap-2">
                 <i class="fa fa-exclamation-triangle"></i>
                 <span class="fw-bold">Factura a demanda posterior al despacho</span>
               </div>
 
-              <div v-if="form.preguntar_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
+              <div v-if="form.pregunta_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
                 <span class="small opacity-75">
-                  Último día: <strong class="text-primary">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
+                  Último día: <strong class="text-white">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
                 </span>
                 <div class="form-check form-switch mb-0">
                   <input class="form-check-input" type="checkbox" id="switch-facturar" :true-value="0" :false-value="1"
                     v-model="form.factura_siguiente_mes">
-                  <label class="form-check-label fw-bold text-primary" for="switch-facturar">
+                  <label class="form-check-label fw-bold text-white" for="switch-facturar">
                     Facturar ahora
                   </label>
                 </div>
