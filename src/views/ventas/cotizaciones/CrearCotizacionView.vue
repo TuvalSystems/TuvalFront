@@ -1056,6 +1056,7 @@ async function llenarcotizacion() {
     });
     cambiacoordenadas()
     cambiacoordenadasdeentrega()
+    actualizarStockPorLote();
   }
 }
 function selectformapago() {
