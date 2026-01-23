@@ -1514,7 +1514,7 @@ onMounted(async () => {
 
           <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3 mb-2">
-            <button type="button" class="btn btn-outline-danger px-4 w-100 w-md-auto order-2 order-md-1"
+            <button type="button" class="btn btn-danger px-4 w-100 w-md-auto order-2 order-md-1"
               @click="clearCotizacion" :disabled="loadingClearQuotation">
               Limpiar cotización
             </button>

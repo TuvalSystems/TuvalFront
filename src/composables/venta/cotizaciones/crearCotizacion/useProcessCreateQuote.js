@@ -92,6 +92,8 @@ export function useProcessCreateQuote() {
             if (newVal === 'retiro') {
                 form.value.direccion_entrega_id = null;
                 form.value.fecha_entrega = null;
+            } else if (newVal === 'despacho') {
+                form.value.direccion_entrega_id = form.value.direccion_facturacion_id;
             }
         }
     );
