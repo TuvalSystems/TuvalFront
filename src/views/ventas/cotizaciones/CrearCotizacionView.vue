@@ -5,6 +5,7 @@ import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacio
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
+import { useImageUpload } from "@/composables/core/useImageUpload";
 import actualizarSegmentoClienteComponent from "@/views/ventas/modals/actualizarSegmentoClienteModal.vue";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
@@ -121,7 +122,11 @@ const {
   //update stock por lote
   updateStockItemsByBatch,
   //gloabl
-  calculateTotals
+  calculateTotals,
+
+  //proceso de creacion de cotizacion
+  loadingCreateQuotation,
+  createQuote,
 
 } = useProcessCreateQuote();
 const {
@@ -132,6 +137,18 @@ const {
   fetchMethodPayment,
   methodPayment
 } = useSearchConditionPayment();
+
+// Extraes las variables y funciones
+const {
+  uploadedFiles,
+  isDragging,
+  isCompressing,
+  handleDrop,
+  handleInputFiles,
+  removeFile,
+  clearFiles
+} = useImageUpload();
+
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 const flatPickrState = reactive({
   minDate: Date.now(),
@@ -751,9 +768,47 @@ async function updateStockByBatch() {
 }
 
 
+/** proceso de imagen de operaciones  */
+const fileInput = ref(null);
+const triggerFileInput = () => {
+  fileInput.value.click();
+}
 
 
+const previewUploadedImages = (index) => {
+  const photoUrl = uploadedFiles.value.map(file => file.preview);
+  gallery.photos = photoUrl;
+  gallery.index = index;
+  gallery.visible = true;
 
+}
+
+/** asignacion de imagenes a mi form de cotizacion para que se mantengan 
+ * en el store cuando se recargue la pagina y no se pierdan
+ */
+watch(uploadedFiles, (newFiles) => {
+  if (newFiles.length > 0) {
+    console.log("Estructura de un item:", newFiles[0]);
+  }
+  form.value.imagenesoperaciones = newFiles.map(item => item.file).filter(f => f !== undefined);
+  console.log("Imágenes en el form:", form.value.imagenesoperaciones);
+}, { deep: true });
+
+
+/**
+ * proceso de creacion de cotizacion
+ */
+
+async function createQuotation() {
+  const respCreate = await createQuote();
+  if (!respCreate?.ok) {
+    swalError(respCreate?.message);
+    return;
+  }
+  swalSuccess(respCreate?.message);
+  // clearCotizacion(); // comentado por ahora porque limpia el form registrado en cache 
+
+}
 
 
 
@@ -1269,10 +1324,8 @@ onMounted(async () => {
       </div>
 
       <!-- condiciones de pago  -->
-
       <div v-if="form.items.length > 0" class="row mb-2">
         <div class="col-12">
-
           <div v-if="form.alerta_factura" class="mb-4">
             <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
 
@@ -1296,7 +1349,6 @@ onMounted(async () => {
 
             </div>
           </div>
-
           <BaseBlock class="mb-4">
             <template #title>
               <div class="d-flex align-items-center gap-2">
@@ -1380,7 +1432,6 @@ onMounted(async () => {
 
             </div>
           </BaseBlock>
-
           <BaseBlock class="mb-4">
             <template #title>
               <div class="d-flex align-items-center gap-2">
@@ -1388,7 +1439,6 @@ onMounted(async () => {
                 <span class="fw-semibold">Notas</span>
               </div>
             </template>
-
             <div class="row g-4">
               <div class="col-md-4">
                 <div class="d-flex justify-content-between mb-1">
@@ -1401,13 +1451,11 @@ onMounted(async () => {
                   placeholder="Visible en factura..." v-model.trim="form.nota_cliente"
                   :maxlength="maxLengthNote"></textarea>
               </div>
-
               <div class="col-md-4">
                 <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Interna</label>
                 <textarea class="form-control border-start border-4 border-warning" rows="3"
                   placeholder="Uso administrativo..." v-model.trim="form.nota_interna"></textarea>
               </div>
-
               <div class="col-md-4">
                 <div class="d-flex justify-content-between mb-1">
                   <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
@@ -1421,34 +1469,68 @@ onMounted(async () => {
               </div>
             </div>
           </BaseBlock>
+          <!-- seccion de manejo de imagenes de operaciones -->
+          <BaseBlock title="Imágenes" content-full rounded class="mb-3">
+            <div
+              class="upload-zone position-relative d-flex align-items-center justify-content-center p-3 border border-2 border-dashed rounded-3"
+              :class="isDragging ? 'border-primary bg-primary bg-opacity-10' : 'border-secondary border-opacity-25 bg-body-tertiary'"
+              @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @drop.prevent="handleDrop"
+              @click="triggerFileInput" style="cursor: pointer; transition: all 0.2s ease;">
+              <input type="file" ref="fileInput" class="d-none" multiple accept="image/*" @change="handleInputFiles">
+
+              <div class="d-flex align-items-center gap-3 pointer-events-none text-muted">
+                <i class="fa fa-cloud-upload-alt fs-3 text-primary"></i>
+
+                <div class="lh-1 text-start">
+                  <span class="fw-semibold text-primary">Adjuntar imágenes</span>
+                  <span class="d-none d-sm-inline ms-1 text-muted small">(Clic o arrastrar)</span>
+                  <div class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">JPG, PNG (Máx 5MB)</div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="uploadedFiles.length > 0 || isCompressing" class="d-flex flex-wrap gap-3 mt-3">
+
+              <div v-for="(file, index) in uploadedFiles" :key="index"
+                class="position-relative border border-secondary border-opacity-25 rounded bg-body overflow-hidden group-hover-container"
+                style="width: 80px; height: 80px;" @click="previewUploadedImages(index)">
+                <img :src="file.preview" class="img-fluid w-100 h-100 object-fit-cover" alt="Preview"
+                  style="opacity: 0.9;" title="Clic para ampliar">
+
+                <button @click.stop="removeFile(index)" type="button"
+                  class="btn btn-sm btn-danger p-0 position-absolute top-0 end-0 d-flex align-items-center justify-content-center btn-remove-img"
+                  style="width: 20px; height: 20px; border-radius: 0 0 0 4px; z-index: 10;" title="Eliminar imagen">
+                  <i class="fa fa-times" style="font-size: 10px;"></i>
+                </button>
+              </div>
+              <div v-if="isCompressing"
+                class="d-flex flex-column align-items-center justify-content-center border rounded bg-light text-info"
+                style="width: 80px; height: 80px; font-size: 0.7rem;">
+                <i class="fa fa-circle-notch fa-spin fs-4 mb-1"></i>
+                <span>Procesando</span>
+              </div>
+            </div>
+          </BaseBlock>
 
           <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3 mb-2">
-
             <button type="button" class="btn btn-outline-danger px-4 w-100 w-md-auto order-2 order-md-1"
               @click="clearCotizacion" :disabled="loadingClearQuotation">
               Limpiar cotización
             </button>
-
             <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
-
-              <button type="button" class="btn btn-success px-4 fw-bold shadow-sm w-100 w-md-auto">
+              <button type="button" class="btn btn-success px-4 fw-bold shadow-sm w-100 w-md-auto"
+                :disabled="loadingCreateQuotation" @click="createQuotation">
                 <i class="fa fa-save me-2"></i>Guardar Cotización
               </button>
-
-              <button type="button" class="btn btn-warning px-4 fw-bold text-primary shadow-sm w-100 w-md-auto">
+              <button type="button" class="btn btn-warning px-4 fw-bold text-white shadow-sm w-100 w-md-auto">
                 <i class="fa fa-check-circle me-2"></i>Guardar Pedido
               </button>
-
             </div>
-
           </div>
-
         </div>
       </div>
     </BaseBlock>
-    <!-- {{ form }} -->
-
   </div>
 
 
@@ -1617,5 +1699,42 @@ td input.form-control {
   /* Ocupa toda la celda */
   padding: 0.25rem;
   /* Padding pequeño */
+}
+
+
+
+
+/***
+ estilos para el drop de imagenes 
+
+*/
+/* Efecto hover para la zona de carga */
+.upload-zone:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+/* Efecto hover para las miniaturas */
+.group-hover-container img {
+  transition: opacity 0.2s;
+}
+
+.group-hover-container:hover img {
+  opacity: 1 !important;
+}
+
+/* Botón de eliminar oculto por defecto, visible al hover */
+.btn-remove-img {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.group-hover-container:hover .btn-remove-img {
+  opacity: 1;
+}
+
+/* Utilidad object-fit por si tu versión de Bootstrap es antigua */
+.object-fit-cover {
+  object-fit: cover;
 }
 </style>

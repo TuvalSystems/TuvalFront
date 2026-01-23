@@ -57,10 +57,12 @@ const initialState = {
     iva: 0,
     total: 0,
 
-    //
+    //modificador global
     modificador_global: 0,
     //items de cotizacion
     items: [],
+
+    //imagenes de operaciones
     imagenesoperaciones: [],
 
 }
@@ -68,8 +70,6 @@ export function useProcessCreateQuote() {
     const store = useStore();
     const ptoVtaSelect = store.state.puntodeventaselect;
     const { run } = useApiAction();
-    const loadingCreate = ref(false);
-    const apiCreateQuote = '/cotizaciones/crear-cotizacion';
     const form = useSessionStorage('quoteTemp_v1', { ...initialState });
     const today = new Date();
 
@@ -557,7 +557,7 @@ export function useProcessCreateQuote() {
                 valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
                 art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
             }
-          
+
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
             if (cantidad <= 0) {
                 art.errorCantidad = true;
@@ -686,8 +686,6 @@ export function useProcessCreateQuote() {
             isProvidersValidationOk.value = false;
             return false;
         }
-        console.log('isProviderValidationOk', isProvidersValidationOk.value);
-
         return true;
     }
 
@@ -849,9 +847,101 @@ export function useProcessCreateQuote() {
         });
     }
 
-    /*** proceso de creacion de cotizacion  */
+    /*** 
+     * 
+     * 
+     * proceso de creacion de cotizacion  
+     * 
+     * 
+     * */
 
+    const loadingCreateQuotation = ref(false);
+    const apiCreateQuote = '/cotizaciones/crear-cotizacion';
+    async function createQuote() {
+        if (!form.value.cliente) {
+            swalWarning('Debe seleccionar un cliente.');
+            return;
+        }
+        if (!form.value.items.length) {
+            swalWarning('Debe agregar al menos un artículo.');
+            return;
+        }
+        const formData = new FormData();
+        //datos del cliente
+        formData.append('cliente_id', form.value.cliente.id);
+        formData.append('ruc', form.value.cliente.CLI_RUC);
+        formData.append('razon_social', form.value.cliente.CLI_RAZON_SOCIAL);
+        formData.append('correo_electronico_sri', form.value.cliente.CLI_CORREO_ELECT_SRI);
+        formData.append('vendedor_id', form.value.cliente.gpvendedor.VEND_ID);
+        formData.append('vendedor_nombres', form.value.cliente.gpvendedor.VEND_NOMBRES);
+        formData.append('vendedor_apellidos', form.value.cliente.gpvendedor.VEND_APELLIDOS);
 
+        //variables de punto de venta y bodega de facturacion
+        formData.append('punto_venta_id', ptoVtaSelect);
+        formData.append('bodega_facturacion', form.value.bodega_facturacion);
+
+        //variables de fecha y direccion de facturacion
+        formData.append('tipo_entrega', form.value.tipo_entrega); //despacho o retiro
+        formData.append('fecha_entrega', form.value.fecha_entrega);
+        formData.append('direccion_facturacion_id', form.value.direccion_facturacion_id);
+        formData.append('direccion_entrega_id', form.value.direccion_entrega_id);
+        // variables de facturacion posterior (Booleanos)
+        formData.append('factura_posterior_despacho', form.value.factura_posterior_despacho);
+        formData.append('factura_a_demanda', form.value.factura_a_demanda);
+        formData.append('factura_siguiente_mes', form.value.factura_siguiente_mes);
+        // formData.append('alerta_facturar', form.value.alerta_facturar);
+        // formData.append('pregunta_facturar', form.value.pregunta_facturar);
+        // formData.append('facturar_ahora', form.value.facturar_ahora);
+
+        //condiciones y formas de pago 
+        formData.append('condicion_pago_id', form.value.condicion_pago_id);
+        formData.append('condicion_pago_original_id', form.value.condicion_pago_original_id);
+        formData.append('forma_pago_id', form.value.forma_pago_id);
+
+        //descuentos de articulo y descuento original
+        formData.append('descuento_articulo', form.value.descuento_articulo);
+        formData.append('descuento_original', form.value.descuento_original);
+
+        //notas
+        formData.append('nota_interna', form.value.nota_interna);
+        formData.append('nota_cliente', form.value.nota_cliente);
+        formData.append('nota_operaciones', form.value.nota_operaciones);
+
+        //orden de compra
+        formData.append('orden_de_compra', form.value.orden_de_compra);
+
+        //registro copia
+        formData.append('registro_copia', form.value.registro_copia);
+
+        //calculos
+        formData.append('subtotal', form.value.subtotal);
+        formData.append('peso', form.value.peso);
+        formData.append('descuento', form.value.descuento);
+        formData.append('iva', form.value.iva);
+        formData.append('total', form.value.total);
+
+        //modificador global
+        formData.append('modificador_global', form.value.modificador_global);
+
+        //items de cotizacion
+        formData.append('items', JSON.stringify(form.value.items));
+
+        //imagenes de operaciones
+        if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
+            form.value.imagenesoperaciones.forEach((file) => {
+                formData.append('imagenes[]', file);
+            });
+        }
+        return await run(() => axiosClient.post(apiCreateQuote, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        }), {
+            loadingRef: loadingCreateQuotation,
+            onError: (error) => {
+                console.error('Error al crear la cotización:', error);
+            },
+        });
+
+    }
 
 
 
@@ -946,7 +1036,12 @@ export function useProcessCreateQuote() {
         updateStockItemsByBatch,
 
         //global
-        calculateTotals
+        calculateTotals,
+
+
+        //proceso de creacion de cotizacion
+        loadingCreateQuotation,
+        createQuote,
 
     };
 
