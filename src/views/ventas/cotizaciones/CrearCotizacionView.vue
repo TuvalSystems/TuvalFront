@@ -20,7 +20,7 @@ import verModalItemAlternativo from "@/views/ventas/modals/verModalItemAlternati
 import verModalSeleccionStockBodegas from "@/views/ventas/modals/verModalSeleccionStockBodegas.vue";
 import verModalModificacionPeso from "@/views/ventas/modals/verModalModificacionPeso.vue";
 import verModalProveedores from "@/views/ventas/modals/verModalProveedores.vue";
-
+import { useRouter } from "vue-router";
 
 const {
   clients,
@@ -127,6 +127,7 @@ const {
 
   //proceso de creacion de cotizacion
   loadingCreateQuotation,
+  isQuoteValid,
   createQuote,
 
 } = useProcessCreateQuote();
@@ -157,7 +158,7 @@ const flatPickrState = reactive({
   locale: Spanish,
 });
 
-
+const router = useRouter();
 //variables de modales 
 const verModalActualizarSegmento = ref(null)
 const verModalCrearDireccionModal = ref(null)
@@ -250,6 +251,7 @@ async function processSelectClient(client) {
   if (sucursales.value.length > 0) {
     if (!form.value.direccion_facturacion_id) {
       form.value.direccion_facturacion_id = sucursales.value[0].id
+      form.value.direccion_entrega_id = sucursales.value[0].id
     }
   }
 
@@ -301,28 +303,37 @@ async function closeModalCreateAddress(client) {
 
 }
 
-watch(
-  () => infoClient.value,
-  (newValue) => {
-    if (newValue && warehouseByUser.value.length > 0 ) {
-      form.value.punto_venta_id = ptoVtaSelect;
-    }
+const asigmentWarehouse = (nuevoPuntoVenta) => {
+
+  if (!warehouseByUser.value || !nuevoPuntoVenta) return;
+  const warehouseSelect = warehouseByUser.value.find(w => w.PTO_VTA_BOD_REL_PUNTO_VENTA == nuevoPuntoVenta);
+  if (warehouseSelect) {
+    form.value.punto_venta_id = nuevoPuntoVenta;
+    form.value.bodega_facturacion = warehouseSelect.relacion_bodega.BOD_BODEGA;
+  } else {
+    form.value.bodega_facturacion = null;
   }
+}
+watch(
+  () => ptoVtaSelect,
+  (nuevoPuntoVenta) => {
+    if (nuevoPuntoVenta) {
+      asigmentWarehouse(nuevoPuntoVenta);
+    }
+  },
+  { immediate: true }
 );
 
 watch(
   () => warehouseByUser.value,
-  (newValue) => {
-    let warehouseSelected = warehouseByUser.value.find(w => w.PTO_VTA_BOD_REL_PUNTO_VENTA === form.value.bodega_facturacion);
-    // if(warehouseSelected.PTO_VTA_BOD_REL_PUNTO_VENTA !== ptoVtaSelect){
-    console.log(warehouseSelected, 'bodega seleccionada');
-    
-    // }
-    if (newValue.length > 0 && !form.value.bodega_facturacion) {
-      form.value.bodega_facturacion = newValue[0].relacion_bodega.BOD_BODEGA;
+  (nuevasBodegas) => {
+    // Solo intentamos asignar si ya tenemos un punto de venta seleccionado
+    if (nuevasBodegas && nuevasBodegas.length > 0 && ptoVtaSelect) {
+      asigmentWarehouse(ptoVtaSelect.value);
     }
-  },
+  }
 );
+
 
 
 watch(
@@ -557,7 +568,7 @@ async function handleStockUpdate({ stocks, total, index }) {
   const qty = Number(total || 0);
   // 1. Actualizamos el estado local del formulario
   form.value.items[index].stock = stocks;
-  form.value.items[index].stockListo = qty > 0;
+  // form.value.items[index].stockListo = qty > 0;
   // 2. Si es necesario actualizar la cantidad total en BD cada vez que cambian una bodega:
   // NOTA: Esto actualizará el total visualmente y en BD
   let itemInitial = form.value.items[index];
@@ -769,7 +780,6 @@ async function updateStockByBatch() {
     form.value.items[index].disableOpenModalStock = true;
     form.value.items[index].stockListo = false;
     const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-    console.log(respLote, 'respuesta de stock masivo');
 
     if (!respLote?.ok) {
       form.value.items[index].stockListo = false;
@@ -781,14 +791,12 @@ async function updateStockByBatch() {
     form.value.items[index].stock = respLote.data.stock || [];
     form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
 
-    // form.value.items[index].stockListo = true;
     form.value.items[index].stockRowLoading = false;
     form.value.items[index].disableOpenModalStock = false;
   });
   await Promise.all(actualizaciones);
   loadingStockMasivo.value = false;
   calculateTotals(); // Recalcular validaciones de la cotización
-  console.log('stocks actualizados Correctamente');
 
 }
 
@@ -812,11 +820,8 @@ const previewUploadedImages = (index) => {
  * en el store cuando se recargue la pagina y no se pierdan
  */
 watch(uploadedFiles, (newFiles) => {
-  if (newFiles.length > 0) {
-    console.log("Estructura de un item:", newFiles[0]);
-  }
+
   form.value.imagenesoperaciones = newFiles.map(item => item.file).filter(f => f !== undefined);
-  console.log("Imágenes en el form:", form.value.imagenesoperaciones);
 }, { deep: true });
 
 
@@ -824,14 +829,29 @@ watch(uploadedFiles, (newFiles) => {
  * proceso de creacion de cotizacion
  */
 
+
+//validacion de antes de crear una cotizacion o pedido 
+
+const btnDisabledStore = computed(() => {
+  if (loadingStockMasivo.value) return true;
+  if (loadingCreateQuotation.value) return true;
+  if (!isQuoteValid.value) return true;
+  if (!form.value.cliente) return true;
+  if (!form.value.condicion_pago_id) return true;
+  return false;
+});
+
 async function createQuotation() {
   const respCreate = await createQuote();
   if (!respCreate?.ok) {
     swalError(respCreate?.message);
     return;
   }
+  await clearCotizacion();
   swalSuccess(respCreate?.message);
-  // clearCotizacion(); // comentado por ahora porque limpia el form registrado en cache 
+  router.push({
+    name: 'ventas-cotizaciones'
+  });
 
 }
 
@@ -871,7 +891,6 @@ onMounted(async () => {
 <template>
   <div class="content">
     <BaseBlock title="Cliente" content-full rounded class="mb-3">
-    {{ ptoVtaSelect }}
       <div class="row g-2">
         <div class="col">
           <div class="input-group input-group-sm">
@@ -1546,10 +1565,13 @@ onMounted(async () => {
             </button>
             <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
               <button type="button" class="btn btn-success px-4 fw-bold shadow-sm w-100 w-md-auto"
-                :disabled="loadingCreateQuotation" @click="createQuotation">
-                <i class="fa fa-save me-2"></i>Guardar Cotización
+                :disabled="btnDisabledStore" @click="createQuotation">
+                <i v-if="loadingCreateQuotation" class="fa fa-spinner fa-spin me-2"></i>
+                <i v-else class="fa fa-save me-2"></i>
+                Guardar Cotización
               </button>
-              <button type="button" class="btn btn-warning px-4 fw-bold text-white shadow-sm w-100 w-md-auto">
+              <button v-if="form.cotizacion_id" type="button"
+                class="btn btn-warning px-4 fw-bold text-white shadow-sm w-100 w-md-auto" :disabled="btnDisabledStore">
                 <i class="fa fa-check-circle me-2"></i>Guardar Pedido
               </button>
             </div>

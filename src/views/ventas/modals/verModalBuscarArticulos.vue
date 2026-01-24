@@ -103,6 +103,7 @@ async function searchStockImport(row) {
 }
 
 async function addItemToQuote(row){
+    
     if (row.ART_TIPO_COMPRA !== 'L' || row.ART_TIPO_COMPRA === 'SERV') {
         await searchStockWarehouse(row);
     }

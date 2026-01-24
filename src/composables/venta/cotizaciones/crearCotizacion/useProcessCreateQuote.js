@@ -48,7 +48,7 @@ const initialState = {
 
 
     //registro copia
-    registro_copia: false,
+    registro_copia: null,
 
     //calculos
     subtotal: 0,
@@ -68,7 +68,7 @@ const initialState = {
 }
 export function useProcessCreateQuote() {
     const store = useStore();
-    const ptoVtaSelect = store.state.puntodeventaselect;
+    const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
     const { run } = useApiAction();
     const form = useSessionStorage('quoteTemp_v1', { ...initialState });
     const today = new Date();
@@ -90,7 +90,7 @@ export function useProcessCreateQuote() {
         () => form.value.tipo_entrega,
         (newVal) => {
             if (newVal === 'retiro') {
-                form.value.direccion_entrega_id = null;
+                form.value.direccion_entrega_id = form.value.direccion_facturacion_id;
                 form.value.fecha_entrega = null;
             } else if (newVal === 'despacho') {
                 form.value.direccion_entrega_id = form.value.direccion_facturacion_id;
@@ -146,15 +146,19 @@ export function useProcessCreateQuote() {
     const apiAddItem = 'cart/item/add';
     const loadingAddItem = ref(false);
     const addItems = async (itm) => {
+        console.log(itm, 'addItems');
+
         const payloadAdddItem = {
             'cliente_id': form.value.cliente.id,
-            'punto_venta_id': ptoVtaSelect,
+            'punto_venta_id': ptoVtaSelect.value,
             'sucursal_id': form.value.direccion_facturacion_id,
             'articulo': itm,
         }
+        console.log(payloadAdddItem, 'payloadAdddItem');
         return await run(() => axiosClient.post(apiAddItem, payloadAdddItem), {
             loadingRef: loadingAddItem,
             onSuccess: (res) => {
+                console.log(res, 'res');
                 form.value.items.push(res);
                 calculateTotals();
             },
@@ -393,11 +397,10 @@ export function useProcessCreateQuote() {
     async function updateStockRowItem(id, qty) {
         return await run(() => axiosClient.post(apiUpdateStockRowItem, { id: id, seleccionado: qty }), {
             loadingRef: loadingUpdateStockRowItem,
-            onSuccess: () => {
-                calculateTotals();
+            onError: (err) => {
+                console.log(err, 'updateStockRowItem');
             },
 
-            successMessage: 'Proceso realizado exitosamente',
         })
     }
 
@@ -406,16 +409,16 @@ export function useProcessCreateQuote() {
     async function updateStockItemsByBatch(item, tipo, cotizacionId) {
         const payloadBatch = {
             'articulo': item,
-            'bodega': ptoVtaSelect,
+            'bodega': ptoVtaSelect.value,
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
         return await run(() => axiosClient.post(apiUpdateStockItemsByBatch, payloadBatch), {
             loadingRef: loadingUpdateStockItemsByBatch,
             onError: (err) => {
-                console.log(err);
+                console.log(err, 'updateStockItemsByBatch');
             },
-            successMessage: 'Proceso realizado exitosamente',
+            // successMessage: 'Proceso realizado exitosamente',
         })
     }
 
@@ -839,7 +842,7 @@ export function useProcessCreateQuote() {
     async function clearQuotation() {
         return await run(() => axiosClient.post(apiDeleteCartQuotation, {
             clienteId: form.value.cliente.id,
-            puntoVentaId: ptoVtaSelect,
+            puntoVentaId: ptoVtaSelect.value,
             sucursalId: form.value.direccion_facturacion_id
         }), {
             loadingRef: loadingClearQuotation,
@@ -858,7 +861,7 @@ export function useProcessCreateQuote() {
      * */
 
     const loadingCreateQuotation = ref(false);
-    const apiCreateQuote = '/cotizaciones/crear-cotizacion';
+    const apiCreateQuote = 'cotizaciones/crear-cotizacion-v2';
     async function createQuote() {
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
@@ -930,8 +933,9 @@ export function useProcessCreateQuote() {
 
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
-            form.value.imagenesoperaciones.forEach((file) => {
-                formData.append('imagenes[]', file);
+            form.value.imagenesoperaciones.forEach((file, index) => {
+                const nombreArchivo = file.name || `foto_operacion_${Date.now()}_${index}.jpg`;
+                formData.append('imagenes[]', file, nombreArchivo);
             });
         }
         return await run(() => axiosClient.post(apiCreateQuote, formData, {
@@ -944,6 +948,42 @@ export function useProcessCreateQuote() {
         });
 
     }
+
+
+
+
+    /*** proceso validador para verificar que se puede guardar esta cotizacion y pedido  */
+
+    const isQuoteValid = computed(() => {
+        if (!form.value.items || form.value.items.length === 0) return false;
+
+        return form.value.items.every((item) => {
+            const tipoCompra = (item.ART_TIPO_COMPRA || '').trim().toUpperCase();
+
+            // A. Validación de Cantidad
+            const cantidad = Number.parseFloat(item.ART_CANTIDAD || 0);
+            if (cantidad <= 0 || item.errorCantidad) return false;
+
+            // B. Validación de Precio (Costo)
+            const precio = Number.parseFloat(item.ART_VALOR || 0);
+            if (precio <= 0 && tipoCompra !== 'SERV') return false;
+
+            if (tipoCompra === 'L') {
+                const descActual = (item.ART_DESCRIPCION || '').toString().trim();
+                const descOriginal = (item.ART_DESCRIPCION_ORIGINAL || '').toString().trim();
+                if (descActual === descOriginal || descActual.length < 5) return false;
+            }
+            if (tipoCompra === 'L') {
+                if(!item.proveedores_listo) return false;
+            }else if(tipoCompra !== 'SERV'){
+                // C. Validación de Stock para tipos que no son 'L' ni 'SERV'
+                if (!item.stockListo) return false;
+            }
+            
+            return true;
+        });
+
+    });
 
 
 
@@ -1044,6 +1084,7 @@ export function useProcessCreateQuote() {
 
         //proceso de creacion de cotizacion
         loadingCreateQuotation,
+        isQuoteValid,
         createQuote,
 
     };

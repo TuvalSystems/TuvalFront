@@ -28,7 +28,7 @@ const props = defineProps({
 
 
 const handleBlur = (item) => {
-    if (item.seleccionado === '' || item.seleccionado === null || isNaN(item.seleccionado)) {
+    if (item.seleccionado === '' || item.seleccionado === null || Number.isNaN(item.seleccionado)) {
         item.seleccionado = 0;
         return;
     }
@@ -38,6 +38,7 @@ const handleBlur = (item) => {
 };
 
 const close = () => {
+    saveChangesLocal();
     emit('closeModal');
 }
 const saveChangesLocal = () => {
