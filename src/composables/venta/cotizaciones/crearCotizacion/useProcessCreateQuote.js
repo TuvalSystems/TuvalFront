@@ -964,7 +964,7 @@ export function useProcessCreateQuote() {
                 form.value.items = items.map(item => ({
                     ...item,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
-                    ART_STOCK : Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: true, // Al ser recuperado, asumimos validación previa
                     cambiar_descripcion: false,
                     cambiar_valor: false,
@@ -1033,7 +1033,7 @@ export function useProcessCreateQuote() {
      * 
      */
 
-    const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
+    const apiLoadCopyData = 'pedidos/volver-a-pedir-cotizacion-v2';
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef) {
         clearForm();
@@ -1084,7 +1084,7 @@ export function useProcessCreateQuote() {
                         seleccionado: 0 // Importante resetear selección previa
                     })),
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
-                    ART_STOCK : Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: false,
                     stockRowLoading: false,
                     disableOpenModalStock: false,
@@ -1121,6 +1121,73 @@ export function useProcessCreateQuote() {
     /** 
      * PROCESO DE COPIAR COTIZACION
      */
+
+    const apiCopyRawQuoteOrOrder = 'pedidos/copiar-cotizacion-o-pedido-v2';
+    const loadingCopyQuoteOrOrder = ref(false);
+
+    async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId) {
+        return await run(() => axiosClient.post(apiCopyRawQuoteOrOrder, {
+            rowId: originalId,
+            tipo: type,
+            cliente_id: clienteId,
+            sucursal_id: sucursalId
+        }), {
+            loadingRef: loadingCopyQuoteOrOrder,
+            onSuccess: (res) => {
+                const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones } = res;
+                form.value.mode = mode;
+                form.value.cotizacion_id = null;        // Nueva cotización, sin ID previo
+                form.value.cotizacion_codigo = null;    // Nueva cotización, sin código previo
+                form.value.registro_copia = registro_copia;
+
+                // Asignamos cliente y datos básicos
+                form.value.cliente = cliente;
+                form.value.segmento = segmento;
+
+                form.value.punto_venta_id = ptoVtaSelect.value,
+                form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
+                form.value.direccion_facturacion_id = sucursal_id;
+                form.value.direccion_entrega_id = sucursal_id;
+                form.value.tipo_entrega = 'retiro';
+                form.value.fecha_entrega = null;
+                form.value.condicion_pago_id = cliente.CLI_CONDICION_PAGO;
+                form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
+                form.value.forma_pago_id = null;                // no ponemos porque se carga con la condificion de pago 
+
+                form.value.nota_cliente = '';
+                form.value.nota_interna = '';
+                form.value.nota_operaciones = '';
+                form.value.modificador_global = 0;
+                form.value.imagenesoperaciones = [];
+
+                form.value.items = items.map(item => ({
+                    ...item,
+                    id: null,
+                    cotizacion_id: null,
+                    stock: (item.stock || []).map(st => ({
+                        ...st,
+                        id: null,
+                        detalle_id: null,
+                        seleccionado: 0                           // Importante resetear selección previa
+                    })),
+                    ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    stockListo: false,
+                    stockRowLoading: false,
+                    disableOpenModalStock: false,
+                    proveedores: [],
+                    imagenes: item.imagenes || []
+
+                }));
+
+                validateBillingRules();
+                calculateTotals();
+            },
+            onError: (err) => {
+                console.error("Error al copiar cotización o pedido:", err);
+            }
+        });
+    }
 
 
 
@@ -1223,8 +1290,7 @@ export function useProcessCreateQuote() {
 
         fetchAndFillQuotation,
         loadDataForReorder,
-
-
+        copyRawQuoteOrOrder
     };
 
 
