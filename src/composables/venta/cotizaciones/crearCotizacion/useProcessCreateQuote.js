@@ -963,7 +963,8 @@ export function useProcessCreateQuote() {
                 // 3. Mapeamos los Items (inyectando estados de UI necesarios)
                 form.value.items = items.map(item => ({
                     ...item,
-                    ART_CANTIDAD: item.ART_CANTIDAD.toFixed(item.ART_DECIMAL_CANTIDAD),
+                    ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    ART_STOCK : Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: true, // Al ser recuperado, asumimos validación previa
                     cambiar_descripcion: false,
                     cambiar_valor: false,
@@ -1000,12 +1001,14 @@ export function useProcessCreateQuote() {
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
 
                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
-                    uploadedFilesRef.value = imagenesOperaciones.map(img => ({
-                        id: img.id,
-                        preview: img.url,
-                        name: img.nombre,
-                        isPersisted: true
-                    }));
+                    if (uploadedFilesRef) {
+                        uploadedFilesRef.value = imagenesOperaciones.map(img => ({
+                            id: img.id,
+                            preview: img.url,
+                            name: img.nombre,
+                            isPersisted: true
+                        }));
+                    }
                     form.value.imagenesoperaciones = imagenesOperaciones.map(img => img.url);
                 } else {
                     if (uploadedFilesRef) uploadedFilesRef.value = [];
@@ -1080,7 +1083,8 @@ export function useProcessCreateQuote() {
                         detalle_id: null,
                         seleccionado: 0 // Importante resetear selección previa
                     })),
-                    ART_CANTIDAD: item.ART_CANTIDAD.toFixed(item.ART_DECIMAL_CANTIDAD),
+                    ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    ART_STOCK : Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: false,
                     stockRowLoading: false,
                     disableOpenModalStock: false,
@@ -1090,12 +1094,15 @@ export function useProcessCreateQuote() {
                 }));
 
                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
-                    uploadedFilesRef.value = imagenesOperaciones.map(img => ({
-                        id: img.id,
-                        preview: img.url,
-                        name: img.nombre,
-                        isPersisted: true
-                    }));
+                    if (uploadedFilesRef) {
+
+                        uploadedFilesRef.value = imagenesOperaciones.map(img => ({
+                            id: img.id,
+                            preview: img.url,
+                            name: img.nombre,
+                            isPersisted: true
+                        }));
+                    }
                     form.value.imagenesoperaciones = imagenesOperaciones.map(img => img.url);
                 } else {
                     if (uploadedFilesRef) uploadedFilesRef.value = [];
@@ -1110,6 +1117,10 @@ export function useProcessCreateQuote() {
             }
         });
     }
+
+    /** 
+     * PROCESO DE COPIAR COTIZACION
+     */
 
 
 

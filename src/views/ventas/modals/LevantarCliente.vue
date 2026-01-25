@@ -155,7 +155,6 @@
       </BaseBlock>
       </div>
     </template>
-    {{ verpedido }}
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
     <button  type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cancelar</button>
@@ -276,7 +275,7 @@ function copiarPedido(pedido, tipo){
   const data = reactive({
       sucursal_id: currentSucursal.value,
       cliente_id: currentCliente.value.id,
-      pedido: pedido,
+      pedido: pedido.id,
       tipo: tipo,
   })
   store.dispatch('copiarPedido', data).then(() => {
