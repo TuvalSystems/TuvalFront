@@ -54,8 +54,6 @@ const {
   clearForm,
   addItems,
   removeItem,
-  loadingClearQuotation,
-  clearQuotation,
   ptoVtaSelect,
   //limitadores 
   maxOrder,
@@ -68,26 +66,18 @@ const {
   enableEditModeDescription,
 
   //proceso item alternativo 
-  loadingListAlternative,
-  getAlternativeDescriptions,
-  listItemsAlternatives,
-  clearSelectionItemalternative,
-  descripcionAlternativa,
   updateDescriptionsForCheckAlternative,
 
   //proceso de checkbox alternativos
-  loadingUpdateCheckAlternative,
   updateCheckAlternative,
 
   //proceso para manejo de cantidades
-  loadingUpdateQuantityItem,
   validateQtyBeforeUpdate,
-  updateQuantityItem,
   formatQty,
+  changeQuantityItem,
   //proceso de proveedores
   isItemL,
   dataModalProviders,
-  storeProvidersForItemL,
   clearDataModalProviders,
   //proceso de stock total de un articulo 
   shouldShowStock,
@@ -97,7 +87,6 @@ const {
   isStockDisabled,
   //peso  
   dataPesoItem,
-  updateWeinghtRowItem,
   //proceso para manejo de modificador y precio
   calculatePriceFromModifier,
   isPriceEditable,
@@ -112,7 +101,6 @@ const {
   enableEditDiscount,
   applyModifyDiscount,
   exitEditDiscount,
-  updateModifyDiscountRowItem,
   //descuento global
   isEditingGlobalDiscount,
   enableGlobalDiscountEdit,
@@ -121,7 +109,8 @@ const {
   updateGlobalDiscount,
 
   //update stock por lote
-  updateStockItemsByBatch,
+  updateStockByBatch,
+  loadingStockMasivo,
   //gloabl
   calculateTotals,
 
@@ -459,25 +448,13 @@ async function openModalListItemAlternatives(item, i) {
 }
 
 async function onSelectItemAlternativo(descripcion, i) {
-  const repsOnSelect = await updateDescriptionsForCheckAlternative(descripcion, i);
-  if (!repsOnSelect?.ok) {
-    swalError(repsOnSelect?.message || 'Error al actualizar la descripcion');
-    return;
-  }
+  await updateDescriptionsForCheckAlternative(descripcion, i);
   itemAlternativo.item = '';
   itemAlternativo.index = 0;
   verItemAltObj.hide();
 }
 
 
-//proceso de checkAlternative
-async function actualizarCheckAlternative(event, art, i) {
-  let valEvent = event.target.checked ? 1 : 0;
-  const respCheck = await updateCheckAlternative(valEvent, art.id, i);
-  if (!respCheck?.ok) {
-    swalError(respCheck?.message || 'Error consultando sucursales');
-  }
-}
 
 
 
@@ -500,45 +477,9 @@ const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   if (nuevoPrecio) {
     form.value.items[index].ART_VALOR = nuevoPrecio
   }
-  let itemId = form.value.items[index].id;
-  await storeProvidersForItemL(itemId, providers, nuevoPrecio);
   calculateTotals();
-
   verProveedoresObj.hide();
 }
-
-
-
-
-
-//proceso de validaciones y proceso de cantidad del item 
-async function changeQuantityItem(event, item, i) {
-  const qty = event.target.value;
-  const oldVal = item.ART_CANTIDAD;
-  const resValidate = await validateQtyBeforeUpdate(qty, item);
-  if (!resValidate?.ok) {
-    form.value.items[i].ART_CANTIDAD = oldVal;
-    form.value.items[i].errorCantidad = true;
-    event.target.value = oldVal;
-    swalWarning(resValidate?.message);
-    return;
-  }
-  const respQty = await updateQuantityItem(qty, item, i);
-  if (!respQty?.ok) {
-    form.value.items[i].ART_CANTIDAD = oldVal;
-    form.value.items[i].errorCantidad = true;
-    event.target.value = oldVal;
-    swalError(respQty?.message);
-    return;
-  }
-  const formattedQty = formatQty(qty, item);
-  form.value.items[i].ART_CANTIDAD = formattedQty;
-  event.target.value = formattedQty;
-  form.value.items[i].errorCantidad = false;
-  calculateTotals();
-}
-
-
 
 
 
@@ -568,12 +509,7 @@ async function handleStockUpdate({ stocks, total, index }) {
   const qty = Number(total || 0);
   // 1. Actualizamos el estado local del formulario
   form.value.items[index].stock = stocks;
-  // form.value.items[index].stockListo = qty > 0;
-  // 2. Si es necesario actualizar la cantidad total en BD cada vez que cambian una bodega:
-  // NOTA: Esto actualizará el total visualmente y en BD
   let itemInitial = form.value.items[index];
-  await updateQuantityItem(qty, itemInitial, index);
-
   const formattedQty = formatQty(qty, itemInitial);
   form.value.items[index].ART_CANTIDAD = formattedQty;
   form.value.items[index].errorCantidad = false;
@@ -590,11 +526,7 @@ async function openModalPesoRowItem(item, i) {
 
 
 async function handleWeightUpdate({ index, peso }) {
-
   form.value.items[index].ART_PESO = peso;
-  let itemId = form.value.items[index].id;
-  await updateWeinghtRowItem(itemId, peso);
-
 }
 async function closeModalPesoRowItem() {
   dataPesoItem.value.item = {};
@@ -620,7 +552,7 @@ async function applyModifyRow(item) {
   calculatedPrice = Number.parseFloat(calculatedPrice.toFixed(decimales));
   item.ART_VALOR = calculatedPrice;
   item.errorModificador = false;
-  await updateModifyPriceRowItem(item.id, calculatedPrice, modifierValue);
+  calculateTotals();
 }
 
 
@@ -673,18 +605,12 @@ const saveModifyPrice = async (element) => {
  *  proceso de modificacion de descuento
  */
 
-const saveModifyDiscount = async (element) => {
+const saveModifyDiscount = async (element, index) => {
   if (element.descuento === element.descuento_temporal) {
     element.cambiar_descuento = false;
     return;
   }
   element.cambiar_descuento = false;
-  const resp = await updateModifyDiscountRowItem(element.id, element.descuento);
-  if (!resp?.ok) {
-    element.descuento = element.descuento_temporal;
-    swalError(resp?.message);
-    // return;
-  }
   calculateTotals();
 }
 
@@ -714,17 +640,11 @@ async function confirmarEliminarArticulo(item, i) {
     })
     .then((result) => {
       if (result.value) {
-        removeRowItem(item, i)
+        removeItem(i)
       }
     });
 }
-async function removeRowItem(item, i) {
-  form.value.items[i].disabled_delete = true;
-  await removeItem(item, i);
-  form.value.items.splice(i, 1);
-  await nextTick();
-  calculateTotals();
-}
+
 
 
 
@@ -732,7 +652,6 @@ async function removeRowItem(item, i) {
 /** limpiar la cotizacion */
 
 async function clearCotizacion() {
-  await clearQuotation();
   clearForm();
   showInfoClient.value = false;
   showResultClients.value = false;
@@ -764,41 +683,6 @@ function handleHide() {
 }
 
 
-/** proceso de actualizacion de stock por lote  */
-const loadingStockMasivo = ref(false);
-
-async function updateStockByBatch() {
-  if (!form.value.items || form.value.items.length === 0) return;
-  loadingStockMasivo.value = true;
-
-  const actualizaciones = form.value.items.map(async (item, index) => {
-    if (item.ART_TIPO_COMPRA === 'L') {
-      item.stockRowLoading = false;
-      return;
-    };
-    form.value.items[index].stockRowLoading = true;
-    form.value.items[index].disableOpenModalStock = true;
-    form.value.items[index].stockListo = false;
-    const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-
-    if (!respLote?.ok) {
-      form.value.items[index].stockListo = false;
-      form.value.items[index].stockRowLoading = false;
-      form.value.items[index].disableOpenModalStock = false;
-      console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
-      return;
-    }
-    form.value.items[index].stock = respLote.data.stock || [];
-    form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
-
-    form.value.items[index].stockRowLoading = false;
-    form.value.items[index].disableOpenModalStock = false;
-  });
-  await Promise.all(actualizaciones);
-  loadingStockMasivo.value = false;
-  calculateTotals(); // Recalcular validaciones de la cotización
-
-}
 
 
 /** proceso de imagen de operaciones  */
@@ -820,8 +704,12 @@ const previewUploadedImages = (index) => {
  * en el store cuando se recargue la pagina y no se pierdan
  */
 watch(uploadedFiles, (newFiles) => {
-
-  form.value.imagenesoperaciones = newFiles.map(item => item.file).filter(f => f !== undefined);
+  const procesados = newFiles.map(item => {
+    if (item.file) return item.file;
+    if (item.isPersisted) return item.preview;
+    return null;
+  }).filter(f => f !== null);
+  form.value.imagenesoperaciones = procesados;
 }, { deep: true });
 
 
@@ -866,8 +754,26 @@ onMounted(async () => {
     loadingSearch.value = true;
     loadingAvailableCredit.value = false;
     infoClient.value = form.value.cliente;
+    if (form.value.segmento) {
+      infoSegmento.value = form.value.segmento;
+    }
     showInfoClient.value = true;
     showResultClients.value = false;
+
+    //esto es para aseguyrar que si viene de la tabla recuperar las fotos aparezcan 
+    if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
+      if (uploadedFiles.value.length === 0) {
+        uploadedFiles.value = form.value.imagenesoperaciones.map((url, index) => {
+
+          return {
+            id: `restored-${index}`,
+            preview: url,
+            name: `Imagen recuperada ${index + 1}`,
+            isPersisted: true
+          };
+        });
+      }
+    }
     await nextTick();
     try {
 
@@ -1198,7 +1104,7 @@ onMounted(async () => {
                 <!-- check alternativo -->
                 <td class="fs-sm text-center">
                   <input type="checkbox" class="form-check-input" :id="`checkAlternativo-${element.id}`"
-                    @click="actualizarCheckAlternative($event, element, index)" v-model="element.CHECK_ALTERNATIVO"
+                    @click="updateCheckAlternative($event, element, index)" v-model="element.CHECK_ALTERNATIVO"
                     :true-value="1" :false-value="0">
                 </td>
                 <!-- codigo 3 letras -->
@@ -1560,7 +1466,7 @@ onMounted(async () => {
           <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3 mb-2">
             <button type="button" class="btn btn-danger px-4 w-100 w-md-auto order-2 order-md-1"
-              @click="clearCotizacion" :disabled="loadingClearQuotation">
+              @click="clearCotizacion">
               Limpiar cotización
             </button>
             <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">

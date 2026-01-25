@@ -33,7 +33,7 @@ const handleBlur = (item) => {
         return;
     }
     if (!validateInput(item, props.permiteDecimales)) return;
-    saveChanges(item);
+    // saveChanges(item);
     saveChangesLocal();
 };
 

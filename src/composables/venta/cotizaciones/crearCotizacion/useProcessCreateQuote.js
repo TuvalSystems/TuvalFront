@@ -13,8 +13,11 @@ function redondear(num, decimales = 2) {
 
 const initialState = {
     cotizacion_id: null,
+    cotizacion_codigo: null,
+    mode: 'crear',
     bodega_facturacion: null,
     cliente: null,
+    segmento: null,
     punto_venta_id: null,
     //variables de fecha y direccion de facturacion
     tipo_entrega: 'retiro',  //despacho
@@ -143,40 +146,59 @@ export function useProcessCreateQuote() {
 
 
     //proceso de agregar items a mi form-items y me crea el registro en las tablas temporales
-    const apiAddItem = 'cart/item/add';
-    const loadingAddItem = ref(false);
-    const addItems = async (itm) => {
-        console.log(itm, 'addItems');
+    const addItems = async (rawItem) => {
 
-        const payloadAdddItem = {
-            'cliente_id': form.value.cliente.id,
-            'punto_venta_id': ptoVtaSelect.value,
-            'sucursal_id': form.value.direccion_facturacion_id,
-            'articulo': itm,
+        if (rawItem.ART_CLASE_ARTICULO === 'VTA-SERV') {
+            rawItem.ART_TIPO_COMPRA = 'SERV'; //id temporal para servicios 
         }
-        console.log(payloadAdddItem, 'payloadAdddItem');
-        return await run(() => axiosClient.post(apiAddItem, payloadAdddItem), {
-            loadingRef: loadingAddItem,
-            onSuccess: (res) => {
-                console.log(res, 'res');
-                form.value.items.push(res);
-                calculateTotals();
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        });
+
+        if (rawItem.ART_CLASE_ARTICULO === 'VTA-SERV-L') {
+            rawItem.ART_TIPO_COMPRA = 'L'; //id temporal para servicios 
+        }
+        const artValor = Number.parseFloat(rawItem.ART_VALOR || 0);
+        const artValorOriginal = Number.parseFloat(rawItem.ART_VALOR_ORIGINAL || 0);
+        const itemEstandarizado = {
+            ...rawItem,
+
+            //id: `temp-${Date.now()}`, //id temporal  // lo comentare para que use el id del backend en cao de que exista sino no asignamos id 
+            ART_CANTIDAD: 0,
+            ART_VALOR: artValor,
+            ART_VALOR_ORIGINAL: artValorOriginal,
+            ART_IVA: 0,
+            ART_DESCUENTO: 0,
+            orden: form.value.items.length + 1,
+            disable_delete: false,
+            modificador: 0,
+            imagenes: rawItem.imagenes || [],
+            stock: (rawItem.stock || []).map(bodega => ({
+                ...bodega,
+                seleccionado: 0,
+                error: false,
+            })),
+            stockListo: (rawItem.ART_TIPO_COMPRA === 'L' || rawItem.ART_TIPO_COMPRA === 'SERV'),
+            cambiar_descripcion: false,
+            cambiar_valor: false,
+            cambiar_descuento: false,
+            errorCantidad: false,
+            errorPrecio: false,
+            errorDescripcion: false,
+            stockRowLoading: false,
+            disableOpenModalStock: false,
+            CHECK_ALTERNATIVO: false,
+            proveedores: [],
+            proveedores_listo: false,
+            descuento_temporal: 0,
+        }
+        form.value.items.push(itemEstandarizado);
+        calculateTotals();
+
     }
 
-    const apiDeleteCart = 'cart/item/delete';
-    const removeItem = async (row, i) => {
-        if (form.value.items[i]) {
-            form.value.items[i].disabled_delete = true;
-        }
-        return await run(() => axiosClient.delete(apiDeleteCart + `/${row.id}`), {
-            loadingRef: loadingAddItem,
-            onError: (error) => {
-                console.error('Error al eliminar:', error);
-            },
-        })
+    const removeItem = async (i) => {
+        form.value.items[i].disable_delete = true;
+        form.value.items.splice(i, 1);
+        await nextTick();
+        calculateTotals();
     }
 
 
@@ -203,32 +225,16 @@ export function useProcessCreateQuote() {
     }
 
 
-    const apiUpdateDescription = 'cart/item/update/descripcion';
-    const loadingUpdateDescription = ref(false);
     async function updateDescripcion(event, row, i) {
         if (event.target.value.length < 5) {
             form.value.items[i].errorDescripcion = true;
             swalWarning('La descripcion debe tener al menos 5 caracteres');
             return;
         }
-        let payloadUpdateDescription = {
-            'id': row.id,
-            'descripcion': event.target.value,
-        }
-        return await run(() => axiosClient.post(apiUpdateDescription, payloadUpdateDescription), {
-            loadingRef: loadingUpdateDescription,
-            onSuccess: (res) => {
-                form.value.items[i].errorDescripcion = false;
-                form.value.items[i].ART_DESCRIPCION = event.target.value;
-                form.value.items[i].cambiar_descripcion = false;
-            },
-            onError: (error) => {
-                form.value.items[i].errorDescripcion = false;
-                form.value.items[i].ART_DESCRIPCION = form.value.items[i].ART_DESCRIPCION_ORIGINAL;
-                form.value.items[i].cambiar_descripcion = false;
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        });
+        form.value.items[i].errorDescripcion = false;
+        form.value.items[i].ART_DESCRIPCION = event.target.value;
+        form.value.items[i].cambiar_descripcion = false;
+
     }
 
 
@@ -252,45 +258,41 @@ export function useProcessCreateQuote() {
         listItemsAlternatives.value = [];
     }
 
-    const apiUpdateCheckAlternative = 'cart/item/update/check-alternativo';
-    const loadingUpdateCheckAlternative = ref(false);
-    async function updateCheckAlternative(check, id, i) {
-        return await run(() => axiosClient.post(apiUpdateCheckAlternative, { id: id, CHECK_ALTERNATIVO: check }), {
-            loadingRef: loadingUpdateCheckAlternative,
-            onSuccess: (res) => {
-                form.value.items[i].CHECK_ALTERNATIVO = check;
-            },
-            onError: (error) => {
-                form.value.items[i].CHECK_ALTERNATIVO = !check;
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        });
+    async function updateCheckAlternative(event, element, i) {
+        let valEvent = event.target.checked ? 1 : 0;
+        form.value.items[i].CHECK_ALTERNATIVO = valEvent;
+
     }
 
-    const apiUpdateDescriptionAlternative = 'cart/item/update/descripcion-alternativa';
-    const loadingUpdateDescriptionAlternative = ref(false);
     async function updateDescriptionsForCheckAlternative(descripcion, i) {
-        let idRow = form.value.items[i].id;
-        return await run(() => axiosClient.post(apiUpdateDescriptionAlternative, { id: idRow, descripcion: descripcion.value }), {
-            loadingRef: loadingUpdateDescriptionAlternative,
-            onSuccess: () => {
-                form.value.items[i].ART_DESCRIPCION = descripcion;
-                form.value.items[i].ART_DESCRIPCION_ORIGINAL = descripcion;
-                form.value.items[i].cambiar_descripcion = false;
-            },
-            onError: (error) => {
-                form.value.items[i].ART_DESCRIPCION = form.value.items[i].ART_DESCRIPCION_ORIGINAL;
-                form.value.items[i].cambiar_descripcion = false;
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        })
-
+        form.value.items[i].ART_DESCRIPCION = descripcion;
+        form.value.items[i].ART_DESCRIPCION_ORIGINAL = descripcion;
+        form.value.items[i].cambiar_descripcion = false;
     }
 
 
 
 
     //proceso para manejo de cantidades
+
+    async function changeQuantityItem(event, item, i) {
+        const qty = event.target.value;
+        const oldVal = item.ART_CANTIDAD;
+        const resValidate = await validateQtyBeforeUpdate(qty, item);
+        if (!resValidate?.ok) {
+            form.value.items[i].ART_CANTIDAD = oldVal;
+            form.value.items[i].errorCantidad = true;
+            event.target.value = oldVal;
+            swalWarning(resValidate?.message);
+            return;
+        }
+
+        const formattedQty = formatQty(qty, item);
+        form.value.items[i].ART_CANTIDAD = formattedQty;
+        event.target.value = formattedQty;
+        form.value.items[i].errorCantidad = false;
+        calculateTotals();
+    }
 
     const validateQtyBeforeUpdate = async (qty, row) => {
         const allowsDecimals = row.ART_DECIMAL_CANTIDAD > 0;
@@ -303,12 +305,6 @@ export function useProcessCreateQuote() {
         }
         return { ok: true, code: 0 };
     }
-
-
-
-    const apiUpdateQuantityItem = 'cart/item/update/cantidad';
-    const loadingUpdateQuantityItem = ref(false);
-
     const formatQty = (qty, row) => {
         const valor = Number.parseFloat(qty) || 0;
         if (row.ART_DECIMAL_CANTIDAD > 0) {
@@ -321,15 +317,6 @@ export function useProcessCreateQuote() {
         const x = Number.parseFloat(value);
         return !Number.isNaN(value) && (x | 0) === x;
     }
-    async function updateQuantityItem(qty, row, i) {
-        const formattedQty = formatQty(qty, row);
-        return await run(() => axiosClient.post(apiUpdateQuantityItem, { id: row.id, cantidad: formattedQty }), {
-            loadingRef: loadingUpdateQuantityItem,
-            onError: (error) => {
-                console.log(error, 'updateQuantityItem');
-            },
-        });
-    }
 
 
 
@@ -339,9 +326,6 @@ export function useProcessCreateQuote() {
         const excludeTypes = ['L', 'SERV'];
         return !excludeTypes.includes(row.ART_TIPO_COMPRA);
     };
-
-
-
 
     //proceso de modal stock y peso 
     const dataStockItem = ref({
@@ -392,17 +376,42 @@ export function useProcessCreateQuote() {
     }
 
 
-    const apiUpdateStockRowItem = 'cart/item/update/stock';
-    const loadingUpdateStockRowItem = ref(false);
-    async function updateStockRowItem(id, qty) {
-        return await run(() => axiosClient.post(apiUpdateStockRowItem, { id: id, seleccionado: qty }), {
-            loadingRef: loadingUpdateStockRowItem,
-            onError: (err) => {
-                console.log(err, 'updateStockRowItem');
-            },
+    /** proceso de actualizacion de stock por lote  */
+    const loadingStockMasivo = ref(false);
 
-        })
+    async function updateStockByBatch() {
+        if (!form.value.items || form.value.items.length === 0) return;
+        loadingStockMasivo.value = true;
+
+        const actualizaciones = form.value.items.map(async (item, index) => {
+            if (item.ART_TIPO_COMPRA === 'L') {
+                item.stockRowLoading = false;
+                return;
+            };
+            form.value.items[index].stockRowLoading = true;
+            form.value.items[index].disableOpenModalStock = true;
+            form.value.items[index].stockListo = false;
+            const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
+
+            if (!respLote?.ok) {
+                form.value.items[index].stockListo = false;
+                form.value.items[index].stockRowLoading = false;
+                form.value.items[index].disableOpenModalStock = false;
+                console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
+                return;
+            }
+            form.value.items[index].stock = respLote.data.stock || [];
+            form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
+
+            form.value.items[index].stockRowLoading = false;
+            form.value.items[index].disableOpenModalStock = false;
+        });
+        await Promise.all(actualizaciones);
+        loadingStockMasivo.value = false;
+        calculateTotals(); // Recalcular validaciones de la cotización
+
     }
+
 
     const apiUpdateStockItemsByBatch = 'cotizaciones/articulo-stock-por-bodega';
     const loadingUpdateStockItemsByBatch = ref(false);
@@ -423,20 +432,7 @@ export function useProcessCreateQuote() {
     }
 
 
-
     const dataPesoItem = ref({ item: {}, index: 0 });
-    const apiUpdateWeinghtRowItem = 'cart/item/update/peso';
-    const loadingUpdateWeinghtRowItem = ref(false);
-
-    async function updateWeinghtRowItem(id, qty) {
-        return await run(() => axiosClient.post(apiUpdateWeinghtRowItem, { id: id, peso: qty }), {
-            loadingRef: loadingUpdateWeinghtRowItem,
-            onSuccess: () => {
-                calculateTotals();
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        })
-    }
 
 
 
@@ -510,20 +506,6 @@ export function useProcessCreateQuote() {
         return true;
     }
 
-    const apiStoreProvidersForItemL = 'cart/item/store/proveedores';
-    const loadingProvidersForItemL = ref(false);
-    async function storeProvidersForItemL(itemId, providers, priceNow) {
-        return await run(() => axiosClient.post(apiStoreProvidersForItemL, {
-            id: itemId,
-            proveedores: providers,
-            precio_actual: priceNow
-        }), {
-            loadingRef: loadingProvidersForItemL,
-            onError: () => {
-                console.error('Error al guardar proveedores para el item L', itemId);
-            },
-        });
-    }
 
     /**
      *  
@@ -738,19 +720,6 @@ export function useProcessCreateQuote() {
     }
 
 
-
-    const loadingUpdateOnlyModifyPriceItem = ref(false);
-    const apiUpdatePriceRow = 'cart/item/update/precio';
-    async function updateModifyPriceRowItem(id, price, nuevoModificar) {
-        return await run(() => axiosClient.post(apiUpdatePriceRow, { id: id, precio: price, modificador: nuevoModificar }), {
-            loadingRef: loadingUpdateOnlyModifyPriceItem,
-            onSuccess: () => {
-                calculateTotals();
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        });
-    }
-
     /**
      *  proceso de modificacion de descuento 
      */
@@ -806,7 +775,6 @@ export function useProcessCreateQuote() {
         const updatePromiseDiscount = form.value.items.map(async (item) => {
             if (item.descuento === nuevoDescuento) return;
             item.descuento = nuevoDescuento;
-            return await updateModifyDiscountRowItem(item.id, nuevoDescuento);
         });
 
         try {
@@ -819,38 +787,8 @@ export function useProcessCreateQuote() {
         calculateTotals();
     }
 
-    const loadingDiscountItem = ref(false);
-    const apiModifyDiscountItem = 'cart/item/update/descuento';
-    const updateModifyDiscountRowItem = async (id, descuento) => {
-        return await run(() => axiosClient.post(apiModifyDiscountItem, { id: id, descuento: descuento }), {
-            loadingRef: loadingDiscountItem,
-            // onSuccess: () => {
-            //     calculateTotals();
-            // },
-            successMessage: 'Proceso realizado exitosamente',
-        });
-    }
 
 
-    /**
-     * 
-     * proceso de limpieza de session storage al crear la cotizacion
-     */
-
-    const apiDeleteCartQuotation = 'cart/item/clear-temp';
-    const loadingClearQuotation = ref(false);
-    async function clearQuotation() {
-        return await run(() => axiosClient.post(apiDeleteCartQuotation, {
-            clienteId: form.value.cliente.id,
-            puntoVentaId: ptoVtaSelect.value,
-            sucursalId: form.value.direccion_facturacion_id
-        }), {
-            loadingRef: loadingClearQuotation,
-            onError: (error) => {
-                console.error('Error al eliminar el carrito de cotización:', error);
-            },
-        });
-    }
 
     /*** 
      * 
@@ -872,6 +810,12 @@ export function useProcessCreateQuote() {
             return;
         }
         const formData = new FormData();
+
+        //datos de la cotizacion 
+        if (form.value.cotizacion_id) {
+            formData.append('cotizacion_id', form.value.cotizacion_id);
+        }
+        formData.append('mode', form.value.mode);
         //datos del cliente
         formData.append('cliente_id', form.value.cliente.id);
         formData.append('ruc', form.value.cliente.CLI_RUC);
@@ -894,9 +838,7 @@ export function useProcessCreateQuote() {
         formData.append('factura_posterior_despacho', form.value.factura_posterior_despacho);
         formData.append('factura_a_demanda', form.value.factura_a_demanda);
         formData.append('factura_siguiente_mes', form.value.factura_siguiente_mes);
-        // formData.append('alerta_facturar', form.value.alerta_facturar);
-        // formData.append('pregunta_facturar', form.value.pregunta_facturar);
-        // formData.append('facturar_ahora', form.value.facturar_ahora);
+
 
         //condiciones y formas de pago 
         formData.append('condicion_pago_id', form.value.condicion_pago_id);
@@ -934,8 +876,14 @@ export function useProcessCreateQuote() {
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
             form.value.imagenesoperaciones.forEach((file, index) => {
-                const nombreArchivo = file.name || `foto_operacion_${Date.now()}_${index}.jpg`;
-                formData.append('imagenes[]', file, nombreArchivo);
+
+                // CASO A: Es una imagen NUEVA (Es un objeto File)
+                if (file instanceof File) {
+                    formData.append('imagenes_nuevas', file);
+                }
+                else if (typeof file === 'string') {
+                    formData.append('imagenes_existentes[]', file);
+                }
             });
         }
         return await run(() => axiosClient.post(apiCreateQuote, formData, {
@@ -974,16 +922,194 @@ export function useProcessCreateQuote() {
                 if (descActual === descOriginal || descActual.length < 5) return false;
             }
             if (tipoCompra === 'L') {
-                if(!item.proveedores_listo) return false;
-            }else if(tipoCompra !== 'SERV'){
+                if (!item.proveedores_listo) return false;
+            } else if (tipoCompra !== 'SERV') {
                 // C. Validación de Stock para tipos que no son 'L' ni 'SERV'
                 if (!item.stockListo) return false;
             }
-            
+
             return true;
         });
 
     });
+
+
+    /***
+     * 
+     *  PROCESO DE RECUPERAR COTIZACION 
+     * 
+     */
+
+    const apiGetQuoteData = 'cotizaciones/recuperar-cotizacion-v2';
+    const loadingGetQuoteData = ref(false);
+
+    async function fetchAndFillQuotation(quoteId, uploadedFilesRef, infoClienteRef, infoSegmentoRef) {
+        return await run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
+            loadingRef: loadingGetQuoteData,
+            onSuccess: (res) => {
+                const { cotizacion, cliente, items, segmento, imagenesOperaciones, mode } = res;
+                clearForm();
+
+                if (infoClienteRef) infoClienteRef.value = cliente;
+                if (infoSegmentoRef) infoSegmentoRef.value = segmento;
+
+                //cargamos el cliente y los datos de identificacion 
+                form.value.cliente = cliente;
+                form.value.segmento = segmento;
+                form.value.cotizacion_id = cotizacion.id;
+                form.value.cotizacion_codigo = cotizacion.cotizacion;
+                form.value.mode = mode;
+
+                // 3. Mapeamos los Items (inyectando estados de UI necesarios)
+                form.value.items = items.map(item => ({
+                    ...item,
+                    ART_CANTIDAD: item.ART_CANTIDAD.toFixed(item.ART_DECIMAL_CANTIDAD),
+                    stockListo: true, // Al ser recuperado, asumimos validación previa
+                    cambiar_descripcion: false,
+                    cambiar_valor: false,
+                    cambiar_descuento: false,
+                    errorCantidad: false,
+                    errorPrecio: false,
+                    stockRowLoading: false,
+                    disableOpenModalStock: false,
+                    // Aseguramos que existan como arrays
+                    proveedores: item.proveedores || [],
+                    stock: item.stock || []
+                }));
+
+
+                // 4. Configuración de Cabecera y Logística
+                form.value.punto_venta_id = cotizacion.PTO_VTA_ID;
+                form.value.bodega_facturacion = cotizacion.BOD_BODEGA;
+                form.value.direccion_facturacion_id = cotizacion.sucursal_facturacion_id;
+                form.value.direccion_entrega_id = cotizacion.sucursal_id;
+                const esRetiro = cotizacion.despacho === 'Retiro en bodega';
+                form.value.tipo_entrega = esRetiro ? 'retiro' : 'despacho';
+                form.value.fecha_entrega = cotizacion.fecha_entrega;
+
+                // 5. Pagos y Descuentos
+                form.value.condicion_pago_id = cotizacion.CON_ID;
+                form.value.condicion_pago_original_id = cliente.CON_ID_ORIGINAL;
+                form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
+
+                // 6. Notas y Otros
+                form.value.nota_cliente = cotizacion.nota_cliente || '';
+                form.value.nota_interna = cotizacion.nota_interna || '';
+                form.value.nota_operaciones = cotizacion.nota_operaciones || '';
+                form.value.orden_de_compra = cotizacion.orden_de_compra || '';
+                form.value.modificador_global = Number(cotizacion.modificador_global || 0);
+
+                if (imagenesOperaciones && imagenesOperaciones.length > 0) {
+                    uploadedFilesRef.value = imagenesOperaciones.map(img => ({
+                        id: img.id,
+                        preview: img.url,
+                        name: img.nombre,
+                        isPersisted: true
+                    }));
+                    form.value.imagenesoperaciones = imagenesOperaciones.map(img => img.url);
+                } else {
+                    if (uploadedFilesRef) uploadedFilesRef.value = [];
+                    form.value.imagenesoperaciones = [];
+                }
+
+                validateBillingRules();
+                calculateTotals();
+                // updateStockByBatch();
+
+            },
+            onError: (err) => {
+                console.error("Error recuperando cotización:", err);
+            }
+        });
+    }
+
+
+
+    /**
+     *  PROCESO DE VOLVER A PEDIR COTIZACION
+     * 
+     */
+
+    const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
+    const loadingReorder = ref(false);
+    async function loadDataForReorder(quoteId, uploadedFilesRef) {
+        clearForm();
+        return await run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
+            loadingRef: loadingReorder,
+            onSuccess: (res) => {
+                const { cotizacion, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
+
+
+                form.value.mode = mode;
+                form.value.cotizacion_id = null; // Nueva cotización, sin ID previo
+                form.value.cotizacion_codigo = null; // Nueva cotización, sin código previo
+                form.value.registro_copia = registro_copia;
+
+                // Asignamos cliente y datos básicos
+                form.value.cliente = cliente;
+                form.value.segmento = segmento;
+
+                form.value.punto_venta_id = cotizacion.PTO_VTA_ID;
+                form.value.bodega_facturacion = cotizacion.BOD_BODEGA;
+                form.value.condicion_pago_id = cotizacion.CON_ID;
+                form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
+                form.value.condicion_pago_original_id = cliente.CON_ID_ORIGINAL;
+
+                // Reseteamos fechas a HOY
+                form.value.fecha_entrega = null;
+
+                // Direcciones (Mantenemos las de la copia)
+                form.value.direccion_facturacion_id = cotizacion.sucursal_facturacion_id;
+                form.value.direccion_entrega_id = cotizacion.sucursal_id;
+                form.value.tipo_entrega = cotizacion.despacho === 'Retiro en bodega' ? 'retiro' : 'despacho';
+
+                // Notas (Opcional: puedes limpiarlas o dejarlas)
+                form.value.nota_cliente = cotizacion.nota_cliente;
+                form.value.nota_interna = cotizacion.nota_interna;
+                form.value.nota_operaciones = cotizacion.nota_operaciones;
+
+                form.value.modificador_global = Number(cotizacion.modificador_global || 0);
+
+                form.value.items = items.map(item => ({
+                    ...item,
+                    id: null,
+                    cotizacion_id: null,
+                    stock: (item.stock || []).map(st => ({
+                        ...st,
+                        id: null,
+                        detalle_id: null,
+                        seleccionado: 0 // Importante resetear selección previa
+                    })),
+                    ART_CANTIDAD: item.ART_CANTIDAD.toFixed(item.ART_DECIMAL_CANTIDAD),
+                    stockListo: false,
+                    stockRowLoading: false,
+                    disableOpenModalStock: false,
+                    proveedores: item.proveedores || [],
+                    imagenes: item.imagenes || []
+
+                }));
+
+                if (imagenesOperaciones && imagenesOperaciones.length > 0) {
+                    uploadedFilesRef.value = imagenesOperaciones.map(img => ({
+                        id: img.id,
+                        preview: img.url,
+                        name: img.nombre,
+                        isPersisted: true
+                    }));
+                    form.value.imagenesoperaciones = imagenesOperaciones.map(img => img.url);
+                } else {
+                    if (uploadedFilesRef) uploadedFilesRef.value = [];
+                    form.value.imagenesoperaciones = [];
+                }
+                validateBillingRules();
+                calculateTotals();
+                // updateStockByBatch();
+            },
+            onError: (err) => {
+                console.error("Error al volver a pedir cotización:", err);
+            }
+        });
+    }
 
 
 
@@ -992,8 +1118,6 @@ export function useProcessCreateQuote() {
         clearForm,
         addItems,
         removeItem,
-        loadingClearQuotation,
-        clearQuotation,
         ptoVtaSelect,
         //limitadores 
         maxOrder,
@@ -1015,17 +1139,15 @@ export function useProcessCreateQuote() {
         updateDescriptionsForCheckAlternative,
 
         //proceso de checkbox alternativos
-        loadingUpdateCheckAlternative,
         updateCheckAlternative,
 
         // proceso para apertura de modal de proveedores
         isItemL,
 
         //proceso para manejo de cantidades
-        loadingUpdateQuantityItem,
         validateQtyBeforeUpdate,
-        updateQuantityItem,
         formatQty,
+        changeQuantityItem,
 
         //proceso de stock total de un articulo 
         shouldShowStock,
@@ -1038,7 +1160,6 @@ export function useProcessCreateQuote() {
         loadingMarginItemL,
         margenItemL,
         getMargenFotItemL,
-        storeProvidersForItemL,
         validateProviderBeforeStore,
         //proceso de modal stock y peso 
         dataStockItem,
@@ -1047,11 +1168,12 @@ export function useProcessCreateQuote() {
         localStocks,
         totalAsignado,
         validateInput,
-        updateStockRowItem,
+
+
+
 
         //peso  
         dataPesoItem,
-        updateWeinghtRowItem,
         //proceso para manejo de modificador y precio
 
         calculatePriceFromModifier,
@@ -1060,14 +1182,12 @@ export function useProcessCreateQuote() {
         applyModifyPrice,
         exitEditPrice,
         calculateRowModifier,
-        updateModifyPriceRowItem,
 
         //proceso de modificacion de descuento 
         isEditDiscount,
         enableEditDiscount,
         applyModifyDiscount,
         exitEditDiscount,
-        updateModifyDiscountRowItem,
         //descuento global
         isEditingGlobalDiscount,
         enableGlobalDiscountEdit,
@@ -1076,7 +1196,8 @@ export function useProcessCreateQuote() {
         updateGlobalDiscount,
 
         //update stock por lote
-        updateStockItemsByBatch,
+        updateStockByBatch,
+        loadingStockMasivo,
 
         //global
         calculateTotals,
@@ -1086,6 +1207,12 @@ export function useProcessCreateQuote() {
         loadingCreateQuotation,
         isQuoteValid,
         createQuote,
+
+        // proceso de recuperar cotizacion 
+
+        fetchAndFillQuotation,
+        loadDataForReorder,
+
 
     };
 
