@@ -333,6 +333,7 @@
                       && verpedido.imprimir === 'yes'
                       && !verpedido.item_l_recibido
                       && !verpedido.check_traslado_venta
+                      && !verpedido.has_guide_dispatch
                     "
                 type="button" class="btn btn-danger btn-sm mx-1 mb-2"
                 @click="confirmcancelarPedido(verpedido)"><i class="fa fa-xmark"></i> Cancelar Pedido</button>
