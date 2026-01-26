@@ -17,24 +17,27 @@ export function useImageUpload() {
         for (const file of files) {
             if (file.type.startsWith('image/')) {
                 try {
-                    console.log(`Peso original de ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-                    const compressedFile = await imageCompression(file, options);
-                    console.log(`Peso comprimido de ${file.name}: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
-                    const previewUrl = URL.createObjectURL(compressedFile);
+                    const compressedBlob = await imageCompression(file, options);
+                    const finalFile = new File([compressedBlob], file.name, {
+                        type: compressedBlob.type,
+                        lastModified: Date.now()
+                    });
+                    const previewUrl = URL.createObjectURL(finalFile);
                     uploadedFiles.value.push({
-                        file: compressedFile,
-                        name: compressedFile.name,
-                        size: compressedFile.size,
-                        type: compressedFile.type,
-                        preview: previewUrl
+                        file: finalFile,
+                        name: finalFile.name,
+                        size: finalFile.size,
+                        type: finalFile.type,
+                        preview: previewUrl,
+                        isPersisted: false
                     });
                 } catch (error) {
-                    console.error("Error al comprimir:", error);
                     const previewUrl = URL.createObjectURL(file);
                     uploadedFiles.value.push({
                         file: file,
                         name: file.name,
-                        preview: previewUrl
+                        preview: previewUrl,
+                        isPersisted: false
                     });
                 }
             }

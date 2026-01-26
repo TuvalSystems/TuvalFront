@@ -875,20 +875,28 @@ export function useProcessCreateQuote() {
 
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
-            form.value.imagenesoperaciones.forEach((file, index) => {
+            form.value.imagenesoperaciones.forEach((item, index) => {
+                let archivoReal = (item && item.file) ? item.file : item;
+                if (archivoReal instanceof File || archivoReal instanceof Blob) {
+                    let nombre = archivoReal.name || `imagen_${index}.jpg`;
+                    const archivoLimpio = new File([archivoReal], nombre, {
+                        type: archivoReal.type || 'image/png', // Usa el tipo real o png por defecto
+                        lastModified: new Date().getTime()
+                    });
 
-                // CASO A: Es una imagen NUEVA (Es un objeto File)
-                if (file instanceof File) {
-                    formData.append('imagenes_nuevas', file);
+
+                    formData.append('imagenes_nuevas[]', archivoLimpio);
+
                 }
-                else if (typeof file === 'string') {
-                    formData.append('imagenes_existentes[]', file);
+                else if (typeof item === 'string') {
+                    formData.append('imagenes_existentes[]', item);
+                }
+                else {
+                    console.log('Objeto ignorado al guardar (no es archivo ni url):', item);
                 }
             });
         }
-        return await run(() => axiosClient.post(apiCreateQuote, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        }), {
+        return await run(() => axiosClient.post(apiCreateQuote, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
                 console.error('Error al crear la cotización:', error);
@@ -1017,7 +1025,6 @@ export function useProcessCreateQuote() {
 
                 validateBillingRules();
                 calculateTotals();
-                // updateStockByBatch();
 
             },
             onError: (err) => {
@@ -1190,7 +1197,7 @@ export function useProcessCreateQuote() {
 
 
     /** 
-     * PROCESO DE COPIAR PEDIDO 
+     * PROCESO DE VOLVER A PEDIR UN  PEDIDO 
      */
 
     const apiReorder = 'pedidos/voler-a-pedir-pedido-v2'
@@ -1200,7 +1207,7 @@ export function useProcessCreateQuote() {
         return await run(() => axiosClient.post(apiReorder, { id: rowId }), {
             loadingRef: loadingIsReordering,
             onSuccess: (res) => {
-                const { pedido, cliente, items, imagenesOperaciones,segmento, registro_copia, mode } = res;
+                const { pedido, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
 
                 form.value.mode = mode;
                 form.value.cotizacion_id = null;        // Nueva cotización, sin ID previo
@@ -1222,9 +1229,9 @@ export function useProcessCreateQuote() {
                 form.value.direccion_facturacion_id = pedido.sucursal_facturacion_id;
                 form.value.direccion_entrega_id = pedido.sucursal_id;
                 form.value.tipo_entrega = pedido.despacho === 'Retiro en bodega' ? 'retiro' : 'despacho';
-                form.value.nota_cliente = pedido.nota_cliente   || '';
-                form.value.nota_interna = pedido.nota_interna  || '';
-                form.value.nota_operaciones = pedido.nota_operaciones  || '';
+                form.value.nota_cliente = pedido.nota_cliente || '';
+                form.value.nota_interna = pedido.nota_interna || '';
+                form.value.nota_operaciones = pedido.nota_operaciones || '';
                 form.value.modificador_global = Number(pedido.modificador_global || 0);
 
                 form.value.items = items.map(item => ({
@@ -1271,6 +1278,111 @@ export function useProcessCreateQuote() {
             }
         });
 
+    }
+
+
+    /**
+     * 
+     * PROCESO DE GUARDAR UN PEDIDO 
+     */
+
+    const apiSaveOrder = 'pedidos/crear-pedido-v2';
+    const loadingSaveOrder = ref(false);
+    async function saveOrder() {
+        if (!form.value.cliente) {
+            swalWarning('Debe seleccionar un cliente.');
+            return;
+        }
+        if (!form.value.items.length) {
+            swalWarning('Debe agregar al menos un artículo.');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('mode', 'crear_pedido');
+        formData.append('cotizacion_id', form.value.cotizacion_id);
+        formData.append('ruc', form.value.cliente.CLI_RUC);
+        formData.append('razon_social', form.value.cliente.CLI_RAZON_SOCIAL);
+        formData.append('correo_electronico_sri', form.value.cliente.CLI_CORREO_ELECT_SRI);
+        formData.append('vendedor_id', form.value.cliente.gpvendedor.VEND_ID);
+        formData.append('vendedor_nombres', form.value.cliente.gpvendedor.VEND_NOMBRES);
+        formData.append('vendedor_apellidos', form.value.cliente.gpvendedor.VEND_APELLIDOS);
+
+
+        //variables de punto de venta y bodega de facturacion
+        formData.append('punto_venta_id', form.value.punto_venta_id);
+        formData.append('bodega_facturacion', form.value.bodega_facturacion);
+
+        //variables de fecha y direccion de facturacion
+        formData.append('tipo_entrega', form.value.tipo_entrega); //despacho o retiro
+        formData.append('fecha_entrega', form.value.fecha_entrega);
+        formData.append('direccion_facturacion_id', form.value.direccion_facturacion_id);
+        formData.append('direccion_entrega_id', form.value.direccion_entrega_id);
+        // variables de facturacion posterior (Booleanos)
+        formData.append('factura_posterior_despacho', form.value.factura_posterior_despacho);
+        formData.append('factura_a_demanda', form.value.factura_a_demanda);
+        formData.append('factura_siguiente_mes', form.value.factura_siguiente_mes);
+
+
+        //condiciones y formas de pago 
+        formData.append('condicion_pago_id', form.value.condicion_pago_id);
+        formData.append('condicion_pago_original_id', form.value.condicion_pago_original_id);
+        formData.append('forma_pago_id', form.value.forma_pago_id);
+
+        //descuentos de articulo y descuento original
+        formData.append('descuento_articulo', form.value.descuento_articulo);
+        formData.append('descuento_original', form.value.descuento_original);
+
+        //notas
+        formData.append('nota_interna', form.value.nota_interna);
+        formData.append('nota_cliente', form.value.nota_cliente);
+        formData.append('nota_operaciones', form.value.nota_operaciones);
+
+        //orden de compra
+        formData.append('orden_de_compra', form.value.orden_de_compra);
+
+        //registro copia
+        formData.append('registro_copia', form.value.registro_copia);
+
+        //calculos
+        formData.append('subtotal', form.value.subtotal);
+        formData.append('peso', form.value.peso);
+        formData.append('descuento', form.value.descuento);
+        formData.append('iva', form.value.iva);
+        formData.append('total', form.value.total);
+
+        //modificador global
+        formData.append('modificador_global', form.value.modificador_global);
+
+        formData.append('items', JSON.stringify(form.value.items));
+        //imagenes de operaciones
+        if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
+            form.value.imagenesoperaciones.forEach((item, index) => {
+                let archivoReal = (item && item.file) ? item.file : item;
+                if (archivoReal instanceof File || archivoReal instanceof Blob) {
+                    let nombre = archivoReal.name || `imagen_${index}.jpg`;
+                    const archivoLimpio = new File([archivoReal], nombre, {
+                        type: archivoReal.type || 'image/png', // Usa el tipo real o png por defecto
+                        lastModified: new Date().getTime()
+                    });
+
+
+                    formData.append('imagenes_nuevas[]', archivoLimpio);
+
+                }
+                else if (typeof item === 'string') {
+                    formData.append('imagenes_existentes[]', item);
+                }
+                else {
+                    console.log('Objeto ignorado al guardar (no es archivo ni url):', item);
+                }
+            });
+        }
+        return await run(() => axiosClient.post(apiSaveOrder, formData), {
+            loadingRef: loadingSaveOrder,
+            onError: (error) => {
+                console.error('Error al crear el pedido:', error);
+            },
+        });
     }
 
 
