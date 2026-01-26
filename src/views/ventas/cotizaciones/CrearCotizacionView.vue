@@ -1037,11 +1037,26 @@ onMounted(async () => {
         </div>
       </BaseBlock>
     </BaseBlock>
-    <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" title="Cotización" class="mb-0">
+    <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" class="mb-0">
+      <template #title>
+        <div class="d-flex flex-wrap align-items-center justify-content-between w-100">
+          <div class="d-flex align-items-center gap-3">
+            <span class="fw-semibold">Cotización</span>
+            <div v-if="form.cotizacion_id" class="d-flex align-items-center animate__animated animate__fadeIn">
+              <span
+                class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-2 d-flex align-items-center shadow-sm">
+                <i class="fa fa-pen-to-square me-2 opacity-75"></i>
+                <span class="fs-sm fw-bold">Editando # {{ form.cotizacion_codigo || form.cotizacion_id }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </template>
       <div class="d-flex align-items-center mb-4">
         <div class="btn-group btn-group-sm" role="group">
           <button type="button" class="btn btn-outline-primary" @click="openModalSearchItem"><i
-              class="fa fa-search me-1"></i> Buscar
+              class="fa fa-search me-1"></i>
+            Buscar
             Articulo</button>
           <button type="button" class="btn btn-outline-success" :disabled="loadingStockMasivo"
             @click="updateStockByBatch"> <i class="fa fa-rotate me-1"></i>Stock</button>
@@ -1277,7 +1292,8 @@ onMounted(async () => {
       <!-- condiciones de pago  -->
       <div v-if="form.items.length > 0" class="row mb-2">
         <div class="col-12">
-          <div class="mb-4">
+          <div class="mb-4" v-if="(form.alerta_facturar != '') || form.pregunta_facturar">
+
             <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
 
               <div v-if="form.alerta_facturar != ''" class="d-flex align-items-center gap-2">
@@ -1286,16 +1302,17 @@ onMounted(async () => {
               </div>
 
               <div v-if="form.pregunta_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
-                <span class="small opacity-75">
-                  Último día: <strong class="text-white">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
+                <span class="small">
+                  Último día: <strong class="text-dark">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
                 </span>
                 <div class="form-check form-switch mb-0">
                   <input class="form-check-input" type="checkbox" id="switch-facturar" :true-value="0" :false-value="1"
                     v-model="form.factura_siguiente_mes">
-                  <label class="form-check-label fw-bold text-white" for="switch-facturar">
+                  <label class="form-check-label fw-bold text-dark" for="switch-facturar">
                     Facturar ahora
                   </label>
                 </div>
+
               </div>
 
             </div>
