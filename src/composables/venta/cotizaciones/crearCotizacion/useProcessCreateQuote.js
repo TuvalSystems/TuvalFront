@@ -1110,7 +1110,6 @@ export function useProcessCreateQuote() {
                 }
                 validateBillingRules();
                 calculateTotals();
-                // updateStockByBatch();
             },
             onError: (err) => {
                 console.error("Error al volver a pedir cotización:", err);
@@ -1134,7 +1133,7 @@ export function useProcessCreateQuote() {
         }), {
             loadingRef: loadingCopyQuoteOrOrder,
             onSuccess: (res) => {
-                const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones } = res;
+                const { cliente, segmento, mode, registro_copia, sucursal_id, items } = res;
                 form.value.mode = mode;
                 form.value.cotizacion_id = null;        // Nueva cotización, sin ID previo
                 form.value.cotizacion_codigo = null;    // Nueva cotización, sin código previo
@@ -1145,7 +1144,7 @@ export function useProcessCreateQuote() {
                 form.value.segmento = segmento;
 
                 form.value.punto_venta_id = ptoVtaSelect.value,
-                form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
+                    form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
                 form.value.direccion_facturacion_id = sucursal_id;
                 form.value.direccion_entrega_id = sucursal_id;
                 form.value.tipo_entrega = 'retiro';
@@ -1189,6 +1188,90 @@ export function useProcessCreateQuote() {
         });
     }
 
+
+    /** 
+     * PROCESO DE COPIAR PEDIDO 
+     */
+
+    const apiReorder = 'pedidos/voler-a-pedir-pedido-v2'
+    const loadingIsReordering = ref(false);
+
+    async function reOrder(rowId, uploadedFilesRef) {
+        return await run(() => axiosClient.post(apiReorder, { id: rowId }), {
+            loadingRef: loadingIsReordering,
+            onSuccess: (res) => {
+                const { pedido, cliente, items, imagenesOperaciones,segmento, registro_copia, mode } = res;
+
+                form.value.mode = mode;
+                form.value.cotizacion_id = null;        // Nueva cotización, sin ID previo
+                form.value.cotizacion_codigo = null;    // Nueva cotización, sin código previo
+                form.value.registro_copia = registro_copia;
+
+                // Asignamos cliente y datos básicos
+                form.value.cliente = cliente;
+                form.value.segmento = segmento;
+
+                form.value.punto_venta_id = pedido.PTO_VTA_ID;
+                form.value.bodega_facturacion = pedido.BOD_BODEGA;
+                form.value.condicion_pago_id = pedido.CON_ID;
+                form.value.forma_pago_id = pedido.DESC_FORMA_PAGO_CODIGO;
+                form.value.condicion_pago_original_id = pedido.CON_ID_ORIGINAL;
+
+                form.value.fecha_entrega = null;
+
+                form.value.direccion_facturacion_id = pedido.sucursal_facturacion_id;
+                form.value.direccion_entrega_id = pedido.sucursal_id;
+                form.value.tipo_entrega = pedido.despacho === 'Retiro en bodega' ? 'retiro' : 'despacho';
+                form.value.nota_cliente = pedido.nota_cliente   || '';
+                form.value.nota_interna = pedido.nota_interna  || '';
+                form.value.nota_operaciones = pedido.nota_operaciones  || '';
+                form.value.modificador_global = Number(pedido.modificador_global || 0);
+
+                form.value.items = items.map(item => ({
+                    ...item,
+                    id: null,
+                    cotizacion_id: null,
+                    stock: (item.stock || []).map(st => ({
+                        ...st,
+                        id: null,
+                        detalle_id: null,
+                        seleccionado: 0 // Importante resetear selección previa
+                    })),
+                    ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
+                    stockListo: false,
+                    stockRowLoading: false,
+                    disableOpenModalStock: false,
+                    proveedores: item.proveedores || [],
+                    imagenes: item.imagenes || []
+
+                }));
+
+                if (imagenesOperaciones && imagenesOperaciones.length > 0) {
+                    if (uploadedFilesRef) {
+
+                        uploadedFilesRef.value = imagenesOperaciones.map(img => ({
+                            id: img.id,
+                            preview: img.url,
+                            name: img.nombre,
+                            isPersisted: true
+                        }));
+                    }
+                    form.value.imagenesoperaciones = imagenesOperaciones.map(img => img.url);
+                } else {
+                    if (uploadedFilesRef) uploadedFilesRef.value = [];
+                    form.value.imagenesoperaciones = [];
+                }
+                validateBillingRules();
+                calculateTotals();
+            },
+
+            onError: (err) => {
+                console.error("Error al volver a pedir pedido:", err);
+            }
+        });
+
+    }
 
 
     return {
@@ -1290,7 +1373,10 @@ export function useProcessCreateQuote() {
 
         fetchAndFillQuotation,
         loadDataForReorder,
-        copyRawQuoteOrOrder
+        copyRawQuoteOrOrder,
+
+        //voler a pedir un pedido 
+        reOrder,
     };
 
 

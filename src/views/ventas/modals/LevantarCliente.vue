@@ -265,15 +265,7 @@ function selectsucursal(sucursal) {
 
 async function copiarPedido(pedido, tipo) {
   templateStore.pageLoader({ mode: "on" });
-  // const data = reactive({
-  //   sucursal_id: currentSucursal.value,
-  //   cliente_id: currentCliente.value.id,
-  //   rowId: pedido.id,
-  //   tipo: tipo,
-  // })
-
   const resp = await copyRawQuoteOrOrder(pedido.id, tipo, currentCliente.value.id, currentSucursal.value);
- 
   if (resp?.ok) {
     templateStore.pageLoader({ mode: "off" });
     router.push({
