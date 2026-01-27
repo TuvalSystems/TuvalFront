@@ -52,8 +52,12 @@ async function procesar() {
             emit('closeModalUsoFacturaDemanda', true);
             return
         }
-        swalError(resp?.message || "Error al procesar la reserva.");
-        return;
+        if (resp?.status >= 500) {
+            swalError(resp?.message);
+            emit('closeModalUsoFacturaDemanda', true);
+            return;
+        }
+
     }
     let ord = resp?.data
     emit('closeModalUsoFacturaDemanda', true);
@@ -121,7 +125,7 @@ watch(
                             <small class="text-muted">Razón Social</small>
                             <div class="fw-semibold text-truncate" :title="infoReserva.cotizacion.CLI_RAZON_SOCIAL">{{
                                 infoReserva.cotizacion.CLI_RAZON_SOCIAL
-                                }}</div>
+                            }}</div>
                         </div>
                     </div>
 
@@ -161,7 +165,7 @@ watch(
                             <div class="fw-semibold">
                                 <span class="badge bg-warning text-white" style="font-size:12px">{{
                                     num2(infoReserva.cotizacion.porcentage_descuento)
-                                }}%</span>
+                                    }}%</span>
                             </div>
                         </div>
                     </div>
@@ -190,7 +194,7 @@ watch(
                             <small class="text-muted">Observación</small>
                             <span class="badge bg-dark text-white text-wrap text-start mt-1 badge2">{{
                                 infoReserva.obs_solicitud_reserva
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                     <div class="col-12" v-if="segmento.segmento || segmento.subsegmento">
@@ -198,7 +202,7 @@ watch(
                             <span class="text-muted me-1">Segmentación:</span>
                             <span v-if="segmento.segmento" class="badge bg-info">{{ segmento.segmento }}</span>
                             <span v-if="segmento.subsegmento" class="badge bg-primary">{{ segmento.subsegmento
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -259,14 +263,14 @@ watch(
                                 <td colspan="8" class="fw-semibold text-end">Iva</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.iva))
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="fw-semibold text-end">Descuento</td>
                                 <td class="fw-semibold text-end nums">${{
                                     formatPriceJm(parseFloat(infoReserva.cotizacion.descuento))
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr>
@@ -308,7 +312,7 @@ watch(
                                 </div>
                                 <div class="text-end text-muted fs-xs">{{ (infoReserva.obs_autorizacion_reserva ||
                                     '').length
-                                    }}/400
+                                }}/400
                                 </div>
                             </div>
                         </div>
