@@ -228,8 +228,7 @@
         <div class="row">
           <div class="col-sm-12">
             <button v-if="
-              !pendientes
-              && existentes
+              existentes
               && !['facturado', 'eliminado', 'espera', 'rechazado', 'anulada'].includes(verpedido.estado)
 
             " type="button" class="btn btn-warning btn-sm mx-1 mb-2" @click="emit('consultarExistente')">Facturar
