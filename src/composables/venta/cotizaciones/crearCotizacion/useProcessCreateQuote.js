@@ -1300,6 +1300,7 @@ export function useProcessCreateQuote() {
         const formData = new FormData();
         formData.append('mode', 'crear_pedido');
         formData.append('cotizacion_id', form.value.cotizacion_id);
+        formData.append('cliente_id', form.value.cliente.id);
         formData.append('ruc', form.value.cliente.CLI_RUC);
         formData.append('razon_social', form.value.cliente.CLI_RAZON_SOCIAL);
         formData.append('correo_electronico_sri', form.value.cliente.CLI_CORREO_ELECT_SRI);
@@ -1479,8 +1480,8 @@ export function useProcessCreateQuote() {
         //proceso de creacion de cotizacion
         loadingCreateQuotation,
         isQuoteValid,
-        createQuote,
-
+        createQuote,    
+       
         // proceso de recuperar cotizacion 
 
         fetchAndFillQuotation,
@@ -1489,6 +1490,9 @@ export function useProcessCreateQuote() {
 
         //voler a pedir un pedido 
         reOrder,
+        //gaurdar una cotizacion a pedido
+        loadingSaveOrder,
+         saveOrder
     };
 
 

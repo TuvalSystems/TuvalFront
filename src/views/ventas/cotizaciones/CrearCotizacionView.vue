@@ -118,7 +118,8 @@ const {
   loadingCreateQuotation,
   isQuoteValid,
   createQuote,
-
+  loadingSaveOrder,
+  saveOrder,
 } = useProcessCreateQuote();
 const {
   loadingConditionPayment,
@@ -253,7 +254,7 @@ async function processSelectClient(client) {
   form.value.descuento_articulo = Number.parseFloat(client.CLI_DSTO_COMERCIAL || 0);
   form.value.descuento_original = Number.parseFloat(client.CLI_DSTO_COMERCIAL || 0);
 
-
+  form.value.punto_venta_id = ptoVtaSelect.value;
 }
 
 
@@ -723,6 +724,7 @@ watch(uploadedFiles, (newFiles) => {
 const btnDisabledStore = computed(() => {
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
+  if (loadingSaveOrder.value) return true;
   if (!isQuoteValid.value) return true;
   if (!form.value.cliente) return true;
   if (!form.value.condicion_pago_id) return true;
@@ -741,6 +743,26 @@ async function createQuotation() {
     name: 'ventas-cotizaciones'
   });
 
+}
+
+
+/**
+ * 
+ * guardar cotizacion a pedido y actualizar el pedido 
+ */
+
+async function saveToOrderAndUpdateQuotation() {
+  const respOrder = await saveOrder();
+  await createQuote();
+  if (!respOrder?.ok) {
+    swalError(respOrder?.message);
+    return;
+  }
+  await clearCotizacion();
+  swalSuccess(respOrder?.message);
+  router.push({
+    name: 'ventas-pedidos'
+  });
 }
 
 
@@ -1494,8 +1516,10 @@ onMounted(async () => {
                 Guardar Cotización
               </button>
               <button v-if="form.cotizacion_id" type="button"
-                class="btn btn-warning px-4 fw-bold text-white shadow-sm w-100 w-md-auto" :disabled="btnDisabledStore">
-                <i class="fa fa-check-circle me-2"></i>Guardar Pedido
+                class="btn btn-warning px-4 fw-bold text-white shadow-sm w-100 w-md-auto" :disabled="btnDisabledStore"
+                @click="saveToOrderAndUpdateQuotation">
+                <i v-if="loadingSaveOrder" class="fa fa-spinner fa-spin me-2"></i>
+                <i v-else class="fa fa-check-circle me-2"></i>Guardar Pedido
               </button>
             </div>
           </div>
