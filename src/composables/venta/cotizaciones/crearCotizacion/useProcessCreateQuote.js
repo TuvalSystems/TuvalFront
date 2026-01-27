@@ -1131,7 +1131,7 @@ export function useProcessCreateQuote() {
     const apiCopyRawQuoteOrOrder = 'pedidos/copiar-cotizacion-o-pedido-v2';
     const loadingCopyQuoteOrOrder = ref(false);
 
-    async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId) {
+    async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId, uploadedFilesRef) {
         return await run(() => axiosClient.post(apiCopyRawQuoteOrOrder, {
             rowId: originalId,
             tipo: type,
@@ -1140,7 +1140,7 @@ export function useProcessCreateQuote() {
         }), {
             loadingRef: loadingCopyQuoteOrOrder,
             onSuccess: (res) => {
-                const { cliente, segmento, mode, registro_copia, sucursal_id, items } = res;
+                const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones } = res;
                 form.value.mode = mode;
                 form.value.cotizacion_id = null;        // Nueva cotización, sin ID previo
                 form.value.cotizacion_codigo = null;    // Nueva cotización, sin código previo
@@ -1185,6 +1185,22 @@ export function useProcessCreateQuote() {
                     imagenes: item.imagenes || []
 
                 }));
+
+                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
+                    if (uploadedFilesRef) {
+
+                        uploadedFilesRef.value = imagenesOperaciones.map(img => ({
+                            id: img.id,
+                            preview: img.url,
+                            name: img.nombre,
+                            isPersisted: true
+                        }));
+                    }
+                    form.value.imagenesoperaciones = imagenesOperaciones.map(img => img.url);
+                } else {
+                    if (uploadedFilesRef) uploadedFilesRef.value = [];
+                    form.value.imagenesoperaciones = [];
+                }
 
                 validateBillingRules();
                 calculateTotals();

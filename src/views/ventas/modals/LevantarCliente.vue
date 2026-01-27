@@ -160,7 +160,9 @@ import {
   toast,
 } from "@/functions/swal-alert.js";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
+import { useImageUpload } from "@/composables/core/useImageUpload";
 const { copyRawQuoteOrOrder } = useProcessCreateQuote();
+const { uploadedFiles } = useImageUpload();
 const { verpedido, tipo } = defineProps({
   verpedido: Object,
   tipo: String,
@@ -265,7 +267,7 @@ function selectsucursal(sucursal) {
 
 async function copiarPedido(pedido, tipo) {
   templateStore.pageLoader({ mode: "on" });
-  const resp = await copyRawQuoteOrOrder(pedido.id, tipo, currentCliente.value.id, currentSucursal.value);
+  const resp = await copyRawQuoteOrOrder(pedido.id, tipo, currentCliente.value.id, currentSucursal.value, uploadedFiles);
   if (resp?.ok) {
     templateStore.pageLoader({ mode: "off" });
     router.push({
