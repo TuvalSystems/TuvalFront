@@ -40,6 +40,13 @@
             </td>
             <th class="fs-sm">Usuario</th>
             <td class="fs-sm">{{verpedido.USERID}}</td>
+             
+          </tr>
+           <tr>
+            <th class="fs-sm">Nota Operaciones</th>
+            <td class="fs-sm">
+              {{ verpedido.nota_operaciones }}
+            </td>
           </tr>
           </tbody>
         </table>
