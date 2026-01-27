@@ -2299,6 +2299,7 @@ const store = createStore({
       state.pendientes = data.pendientes;
       state.existentes = data.existentes;
       state.devoluciones_pedido = data.devoluciones;
+      state.has_guide_dispatched = data.has_guide_dispatched;
     },
     setDetalleDevolucionLoading: (state, loading) => {
       state.detalledevolucion.loading = loading;
@@ -2352,6 +2353,8 @@ const store = createStore({
     setSegmentoClienteLoading: (state, loading) => {
       state.segmentocliente.loading = loading;
     },
+
+
     setFacturasLoading: (state, loading) => {
       state.facturas.loading = loading;
     },
