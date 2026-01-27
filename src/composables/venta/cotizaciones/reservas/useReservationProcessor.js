@@ -127,15 +127,7 @@ export function useReservationProcessor(infoReserva) {
     return await run(() => axiosClient.post(urlFacturaDemanda, { reserva: reserve }), {
       loadingRef: loadingFacturaDemanda,
       successMessage: "Proceso realizado exitosamente.",
-      onError: (backend, error) => {
-        swalError(
-          backend?.error ||
-          backend?.message ||
-          error?.message ||
-          "Error al obtener la información"
-        );
-      },
-    })
+    });
   }
 
 
