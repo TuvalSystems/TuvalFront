@@ -574,7 +574,6 @@ async function applyGeneraModifier() {
 
   try {
     await Promise.all(updatePromises);
-    console.log("Actualización masiva terminada");
   } catch (error) {
     console.error("Error al actualizar items:", error);
   }
