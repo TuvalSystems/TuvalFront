@@ -296,13 +296,9 @@
           <div class="col-sm-12">
             <button
                 v-if="
-                  pendientes
+                  !pendientes
                   && existentes
-                  && verpedido.estado !== 'facturado'
-                  && verpedido.estado !== 'eliminado'
-                  && verpedido.estado !== 'espera'
-                  && verpedido.estado !== 'rechazado'
-                  && verpedido.estado !== 'anulada'
+                  && !['facturado', 'eliminado', 'espera', 'rechazado', 'anulada'].includes(verpedido.estado)
 
                 "
                 type="button" class="btn btn-warning btn-sm mx-1 mb-2"  @click="emit('consultarExistente')">Facturar lo existente</button>
