@@ -319,7 +319,7 @@
             <button
                 type="button" class="btn btn-primary btn-sm mx-1 mb-2" data-bs-dismiss="modal"> Cerrar</button>
           </div>
-          <div class="col-sm-12 mt-2">
+          <div v-if="detallepedido.data.length && !detallepedido.loading" class="col-sm-12 mt-2">
             <button
                 v-if="
                       verpedido.estado !== 'facturado'
