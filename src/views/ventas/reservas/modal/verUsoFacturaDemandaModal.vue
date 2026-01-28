@@ -47,8 +47,17 @@ async function procesar() {
     }
     const resp = await procesarReservaFacturaDemanda(infoReserva);
     if (!resp?.ok) {
-        swalError(resp?.message || "Error al procesar la reserva.");
-        return;
+        if (resp?.status >= 400 && resp?.status < 500) {
+            swalWarning(resp?.message);
+            emit('closeModalUsoFacturaDemanda', true);
+            return
+        }
+        if (resp?.status >= 500) {
+            swalError(resp?.message);
+            emit('closeModalUsoFacturaDemanda', true);
+            return;
+        }
+
     }
     let ord = resp?.data
     emit('closeModalUsoFacturaDemanda', true);
@@ -82,7 +91,7 @@ watch(
         dataSendApproval.id = newVal.id
         dataSendApproval.fe_autorizacion_reserva = newVal.fe_autorizacion_reserva
         dataSendApproval.obs_autorizacion_reserva = newVal.obs_autorizacion_reserva
-    }, { immediate: true , deep: true});
+    }, { immediate: true, deep: true });
 </script>
 
 <template>
