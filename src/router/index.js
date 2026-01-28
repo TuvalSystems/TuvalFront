@@ -367,15 +367,7 @@ const routes = [
     component: LayoutBackend,
     meta: { requiresAuth: true },
     children: [
-      {
-        path: "/bodegas/dashboard/pendientes-despacho",
-        name: "bodegas-dashboard-pendientes-despacho",
-        component: () => import("@/views/bodegas/dashboard/PendingDispatchDashboard.vue"),
-        props: true,
-        meta: {
-          title: "Bodegas - Dashboard",
-        },
-      },
+
       {
         path: "dashboard",
         name: "bodegas-dashboard",
@@ -521,6 +513,18 @@ const routes = [
     meta: {
       layout: 'simple', // Si usas layouts, usa uno limpio (sin sidebar/header)
       public: true      // Marca para que no requiera auth (si usas middleware de auth)
+    }
+  },
+
+  /** dashboard de mantenimiento */
+  {
+    path: "/dashboard/pendientes-despacho/:ptovta",
+    name: "dashboard-pendientes-despacho",
+    component: () => import("@/views/bodegas/dashboard/PendingDispatchDashboard.vue"),
+    props: true,
+    meta: {
+      layout: 'simple', 
+      public: true    
     }
   },
 ];
