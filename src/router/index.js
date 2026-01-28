@@ -368,6 +368,15 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       {
+        path: "/bodegas/dashboard/pendientes-despacho",
+        name: "bodegas-dashboard-pendientes-despacho",
+        component: () => import("@/views/bodegas/dashboard/PendingDispatchDashboard.vue"),
+        props: true,
+        meta: {
+          title: "Bodegas - Dashboard",
+        },
+      },
+      {
         path: "dashboard",
         name: "bodegas-dashboard",
         component: BodegasDashboard,
@@ -505,7 +514,7 @@ const routes = [
   },
 
   /** mantenimiento  */
-    {
+  {
     path: '/mantenimiento',
     name: 'Maintenance',
     component: Maintenance,
