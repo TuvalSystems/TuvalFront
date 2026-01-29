@@ -129,7 +129,7 @@ export function useQuotationReserveRequests() {
       ptovta: table.ptovta,
       cliente: table.cliente,
     }
-    return await run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+    return  run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
       loadingRef,
       latestOnly: true,                         // 👈 activa takeLatest
       key: `lista-solicitudes-reserva`,      // 👈 clave para este endpoint

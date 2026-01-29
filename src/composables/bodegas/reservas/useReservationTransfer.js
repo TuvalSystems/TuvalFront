@@ -15,7 +15,7 @@ export function useReservationTransfers(){
 
   async function fetchListTransfersCount() {
 
-     return await run(() => axiosClient.get(apiListTransferByWarehouse), {
+     return  run(() => axiosClient.get(apiListTransferByWarehouse), {
       loadingRef: loadingTransfer,
       successMessage: "Proceso realizado exitosamente.",
        onSuccess: (list) => {

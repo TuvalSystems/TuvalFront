@@ -420,6 +420,7 @@ async function selectMethodPayment() {
 /** apertura de modal de consulta de items */
 const dataSearchItem = ref({});
 const openModalSearchItem = () => {
+  dataSearchItem.value = {};
   dataSearchItem.value = form.value;
   verSearchItemModalObj.show();
 }

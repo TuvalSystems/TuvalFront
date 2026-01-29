@@ -8,7 +8,7 @@ export function useUpdateQuotationStatus() {
     const apiChangeStatus = "aprobaciones/cotizacion/rechazar-estado-espera";
 
     async function changeStatusQuoteBeenWaiting(id) {
-        return await run(() => axiosClient.post(apiChangeStatus, { id },
+        return run(() => axiosClient.post(apiChangeStatus, { id },
             { headers: { "Content-Type": "application/json" } }
         ), {
             loadingRef: loadingChange,

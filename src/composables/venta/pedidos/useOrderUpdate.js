@@ -83,7 +83,7 @@ export function useOrderUpdate() {
   }
 
   async function updateDateInvoiceReserved() {
-    return await run(() => axiosClient.post(apiOrderUpdateDateInvoice, dataUpddateDateInvoice), {
+    return  run(() => axiosClient.post(apiOrderUpdateDateInvoice, dataUpddateDateInvoice), {
       loadingRef: loadingDateInvoice,
       onSuccess: () => {
         resetFormDateInvoice();
@@ -109,7 +109,7 @@ export function useOrderUpdate() {
   const loadingPending = ref(false);
   const apiUpdatePendingEgress = '/pedidos/bloquear-despacho-pedido';
   async function updateStatePendingEgress() {
-    return await run(() => axiosClient.post(apiUpdatePendingEgress, formUpdateStateEgress), {
+    return  run(() => axiosClient.post(apiUpdatePendingEgress, formUpdateStateEgress), {
       loadingRef: loadingPending,
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: () => {

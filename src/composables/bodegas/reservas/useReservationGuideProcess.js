@@ -185,7 +185,7 @@ export const useReservationGuideProcess = () => {
             .replace(/\s/g, ""),
         }),
     };
-    return await run(() => axiosClient.post(apiCreateGuideRemision, payload), {
+    return  run(() => axiosClient.post(apiCreateGuideRemision, payload), {
       loadingRef: loadingProcessGuide,
       onSuccess: () => clearData(),
       successMessage: "Guía de remisión creada.",

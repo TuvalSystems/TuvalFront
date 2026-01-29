@@ -30,7 +30,7 @@ export function useDireccionProcess() {
     const allTerritories = ref([]);
     const Apiterritories = 'consultas/new-territorios';
     async function fetchAllTerritories() {
-        return await run(() => axiosClient.post(Apiterritories), {
+        return run(() => axiosClient.post(Apiterritories), {
             loadingRef: loadingTerritories,
             onSuccess: (res) => {
                 allTerritories.value = res;
@@ -43,7 +43,7 @@ export function useDireccionProcess() {
     const allProvincies = ref([]);
     const ApiProvincies = 'consultas/provincias';
     async function fetchAllProvincies() {
-        return await run(() => axiosClient.post(ApiProvincies), {
+        return run(() => axiosClient.post(ApiProvincies), {
             loadingRef: loadingProvincies,
             onSuccess: (res) => {
                 allProvincies.value = res;
@@ -56,8 +56,8 @@ export function useDireccionProcess() {
     const ApiCities = 'consultas/ciudades';
     const loadingCities = ref(false);
     async function fetchAllCities() {
-        if(!form.value.provincia) return
-        return await run(() => axiosClient.post(ApiCities, { provincia: form.value.provincia }), {
+        if (!form.value.provincia) return
+        return run(() => axiosClient.post(ApiCities, { provincia: form.value.provincia }), {
             loadingRef: loadingCities,
             onSuccess: (res) => {
                 allCities.value = res;
@@ -68,7 +68,7 @@ export function useDireccionProcess() {
 
 
     async function createNewAddress() {
-        return await run(() => axiosClient.post(apiCreateAddress, { form: form.value }), {
+        return run(() => axiosClient.post(apiCreateAddress, { form: form.value }), {
             loadingRef: loading,
             onSuccess: () => {
                 resetModalForm();

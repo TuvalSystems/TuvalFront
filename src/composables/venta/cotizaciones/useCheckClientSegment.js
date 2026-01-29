@@ -9,7 +9,7 @@ export function useCheckClientSegment() {
   const apiValidateSegment = '/cotizaciones/validar-segmento-cliente';
 
   async function fetchCheckSegmentoClient(ruc){
-    return await run(()=> axiosClient.post(apiValidateSegment, {ruc : ruc}),{
+    return  run(()=> axiosClient.post(apiValidateSegment, {ruc : ruc}),{
       loadingRef: loadingCheck,
       successMessage: 'Proceso realizado exitosamente',
     })

@@ -68,6 +68,15 @@
                   Sin segmento para este cliente
                 </td>
               </tr>
+              <tr>
+                <td>Nivel de Precio</td>
+                <td colspan="6">{{ nivelPrecioCliente }}</td>
+              </tr>
+              <tr>
+                <td>Nota Interna</td>
+                <td colspan="5">{{ verpedido.nota_interna }}</td>
+              </tr>
+
             </tbody>
           </table>
 
@@ -264,6 +273,7 @@ const store = useStore();
 const detallepedido = computed(() => store.state.detallepedido);
 const estadodecuenta = computed(() => store.state.estadodecuenta);
 const segmentocliente = computed(() => store.state.segmentocliente);
+const nivelPrecioCliente = computed(() => store.state.nivelPrecioClienteDetalle);
 
 
 function guardarMensaje(pedido) {

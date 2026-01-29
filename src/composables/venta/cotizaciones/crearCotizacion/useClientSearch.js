@@ -21,7 +21,7 @@ export function useClientSearch() {
 
 
     async function searchClients() {
-        return await run(() => axiosClient.post(apiSearchClients, dataSearch), {
+        return  run(() => axiosClient.post(apiSearchClients, dataSearch), {
             loadingRef: loadingSearch,
             successMessage: 'Proceso realizado exitosamente',
             onSuccess: (list) => {
@@ -43,7 +43,7 @@ export function useClientSearch() {
     const infoSegmento = ref({});
     const apiAvailableCreditCustomer = '/consultas/cliente/cupo-disponible/';
     async function fetchAvailableCreditCustomer(ruc) {
-        return await run(() => axiosClient.get(apiAvailableCreditCustomer + ruc), {
+        return  run(() => axiosClient.get(apiAvailableCreditCustomer + ruc), {
             loadingRef: loadingAvailableCredit,
             onSuccess: (res) => {
                 infoClient.value = res.cliente
@@ -59,7 +59,7 @@ export function useClientSearch() {
     const apiCustomerBranches = '/consultas/cliente/sucursales/';
 
     async function fetchCustomerBranches(ruc) {
-        return await run(() => axiosClient.get(apiCustomerBranches + ruc), {
+        return  run(() => axiosClient.get(apiCustomerBranches + ruc), {
             loadingRef: loadingSucursales,
             onSuccess: (res) => {
                 sucursales.value = res;
@@ -74,7 +74,7 @@ export function useClientSearch() {
     const apiWarehouseByUser = '/usuario/obtener-bodegas-por-punto-de-venta';
 
     async function fetchWarehouseByPtoVtaUser() {
-        return await run(() => axiosClient.post(apiWarehouseByUser, { ptoVta: ptoVtaSelect }), {
+        return  run(() => axiosClient.post(apiWarehouseByUser, { ptoVta: ptoVtaSelect }), {
             loadingRef: loadingWarehouseByUser,
             onSuccess: (res) => {
                 warehouseByUser.value = res;

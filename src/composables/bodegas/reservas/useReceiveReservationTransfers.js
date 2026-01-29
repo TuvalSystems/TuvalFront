@@ -49,7 +49,7 @@ export function useReceiveReservationTransfers() {
       sortBy: table.sortField || "fecha_salida",
       sortOrder: table.sortOrder || "desc",
     }
-    return await run(() => axiosClient.post(apiFetch, payload, { signal: ctrl.value.signal }), {
+    return  run(() => axiosClient.post(apiFetch, payload, { signal: ctrl.value.signal }), {
       loadingRef,
       latestOnly: true,                         // 👈 activa takeLatest
       key: `receive-reservation-transfers`,      // 👈 clave para este endpoint

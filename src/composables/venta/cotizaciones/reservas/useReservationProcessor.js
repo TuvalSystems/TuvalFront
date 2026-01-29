@@ -109,7 +109,7 @@ export function useReservationProcessor(infoReserva) {
   }
 
   async function processReservation(quotation) {
-    return await run(() => axiosClient.post(urlProcess, { data: quotation }), {
+    return  run(() => axiosClient.post(urlProcess, { data: quotation }), {
       loadingRef: loadingReservedProcess,
       successMessage: "Proceso realizado exitosamente.",
       onError: (backend, error) => {
@@ -124,7 +124,7 @@ export function useReservationProcessor(infoReserva) {
   }
 
   async function procesarReservaFacturaDemanda(reserve) {
-    return await run(() => axiosClient.post(urlFacturaDemanda, { reserva: reserve }), {
+    return  run(() => axiosClient.post(urlFacturaDemanda, { reserva: reserve }), {
       loadingRef: loadingFacturaDemanda,
       successMessage: "Proceso realizado exitosamente.",
     });

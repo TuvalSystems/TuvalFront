@@ -213,7 +213,7 @@ onMounted(() => { });
                         </thead>
                         <DatasetItem tag="tbody" class="fs-sm">
                             <template #default="{ row }">
-                                <tr>
+                                <tr :class="row.debe_resaltar ? 'table-danger fs-sm' : ''">
                                     <td>
                                         <a v-if="row.imagenes.length" href="javascript:void(0)"
                                             @click="showPhoto(row.imagenes)">

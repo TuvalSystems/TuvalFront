@@ -172,7 +172,7 @@ export function useSearchArticle() {
 
     //function de consulta para listar todos los articulos de acuerdo a los filtros
     async function fetchSearchArticles() {
-        return await run(() => axiosClient.post(apiSearchArticles, payload), {
+        return  run(() => axiosClient.post(apiSearchArticles, payload), {
             loadingRef: loadingArt,
             onSuccess: (res) => {
                 articles.value = res;
@@ -193,7 +193,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return await run(() => axiosClient.post(apiStockTransit, payloadTransit), {
+        return  run(() => axiosClient.post(apiStockTransit, payloadTransit), {
             loadingRef: loadingRowRef,
             onSuccess: (res) => {
                 row.stockTransito = res || null;
@@ -226,7 +226,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return await run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+        return  run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             onSuccess: (res) => {
                 row.stock = Array.isArray(res.stock) ? res.stock : [];
@@ -266,7 +266,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return await run(() => axiosClient.post(apiStockImport, payloadImport), {
+        return  run(() => axiosClient.post(apiStockImport, payloadImport), {
             loadingRef: loadingRowImportRef,
             onSuccess: (res) => {
 
