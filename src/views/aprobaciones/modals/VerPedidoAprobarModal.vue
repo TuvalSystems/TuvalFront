@@ -121,6 +121,7 @@
                 <th>Código</th>
                 <th>Descripción</th>
                 <th>CTL</th>
+                <th class="text-center">Clasificacion Tuval</th>
                 <th>UDM</th>
                 <th class="text-end">Cantidad</th>
                 <th class="text-end">Precio</th>
@@ -150,6 +151,9 @@
                   </td>
                   <td class="fs-sm">
                     {{ articulo.ART_CODIGO_TRES_LETRAS }}
+                  </td>
+                   <td class="fs-sm text-center">
+                    {{ articulo.clasificacion_tuval }}
                   </td>
                   <td class="fs-sm">
                     {{ articulo.ART_PLAN_UMEDIDA }}
@@ -211,23 +215,23 @@
                 </tr>
               </template>
               <tr>
-                <th colspan="10" class="fs-sm text-end">Subtotal</th>
+                <th colspan="11" class="fs-sm text-end">Subtotal</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotal)) }}</th>
               </tr>
               <tr>
-                <th colspan="10" class="fs-sm text-end">Descuento</th>
+                <th colspan="11" class="fs-sm text-end">Descuento</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.descuento)) }}</th>
               </tr>
               <tr>
-                <th colspan="10" class="fs-sm text-end">Subtotal - descuento</th>
+                <th colspan="11" class="fs-sm text-end">Subtotal - descuento</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotalmenosdescuento)) }}</th>
               </tr>
               <tr>
-                <th colspan="10" class="fs-sm text-end">IVA</th>
+                <th colspan="11" class="fs-sm text-end">IVA</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.iva)) }}</th>
               </tr>
               <tr>
-                <th colspan="10" class="fs-sm text-end">Total</th>
+                <th colspan="11" class="fs-sm text-end">Total</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(verpedido.total)) }}</th>
               </tr>
             </tbody>
