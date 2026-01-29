@@ -124,34 +124,34 @@ watch(() => route.params.ptovta, () => refreshData());
                                     <div class="row g-0 h-100">
                                         <div class="col-6 border-end border-bottom p-2 text-center d-flex flex-column justify-content-center"
                                             style="min-height: 130px;">
-                                            <div class="fs-xs fw-bold text-uppercase text-muted mb-1"><i
+                                            <div class="fs-2 fw-bold text-uppercase text-muted mb-1"><i
                                                     class="fa fa-calendar-day text-info me-1"></i> Hoy</div>
-                                            <div class="fs-3 fw-bold text-dark">{{ section.stats.today.count }}</div>
+                                            <div class="fs-2 fw-bold text-dark">{{ section.stats.today.count }}</div>
                                             <div class="fs-xs text-muted">{{ section.stats.today.weight.toFixed(0) }} Kg
                                             </div>
                                         </div>
                                         <div class="col-6 border-bottom p-2 text-center d-flex flex-column justify-content-center"
                                             style="min-height: 130px;">
-                                            <div class="fs-xs fw-bold text-uppercase text-muted mb-1"><i
+                                            <div class="fs-2 fw-bold text-uppercase text-muted mb-1"><i
                                                     class="fa fa-warehouse text-warning me-1"></i> Retiro</div>
-                                            <div class="fs-3 fw-bold text-dark">{{ section.stats.pickupDispatch.count }}
+                                            <div class="fs-2 fw-bold text-dark">{{ section.stats.pickupDispatch.count }}
                                             </div>
                                             <div class="fs-xs text-muted">{{
                                                 section.stats.pickupDispatch.weight.toFixed(0) }} Kg</div>
                                         </div>
                                         <div class="col-6 border-end p-2 text-center d-flex flex-column justify-content-center"
                                             style="min-height: 130px;">
-                                            <div class="fs-xs fw-bold text-uppercase text-muted mb-1"><i
+                                            <div class="fs-2 fw-bold text-uppercase text-muted mb-1"><i
                                                     class="fa fa-history text-danger me-1"></i> Ant.</div>
-                                            <div class="fs-3 fw-bold text-dark">{{ section.stats.previous.count }}</div>
+                                            <div class="fs-2 fw-bold text-dark">{{ section.stats.previous.count }}</div>
                                             <div class="fs-xs text-muted">{{ section.stats.previous.weight.toFixed(0) }}
                                                 Kg</div>
                                         </div>
                                         <div class="col-6 p-2 text-center d-flex flex-column justify-content-center"
                                             style="min-height: 130px;">
-                                            <div class="fs-xs fw-bold text-uppercase text-muted mb-1"><i
+                                            <div class="fs-2 fw-bold text-uppercase text-muted mb-1"><i
                                                     class="fa fa-truck text-success me-1"></i> Ruta</div>
-                                            <div class="fs-3 fw-bold text-dark">{{ section.stats.routeDispatch.count }}
+                                            <div class="fs-2 fw-bold text-dark">{{ section.stats.routeDispatch.count }}
                                             </div>
                                             <div class="fs-xs text-muted">{{
                                                 section.stats.routeDispatch.weight.toFixed(0) }} Kg</div>
@@ -187,27 +187,30 @@ watch(() => route.params.ptovta, () => refreshData());
                                 <div class="col-7">
                                     <div
                                         class="bg-body-light border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
-                                        <span class="fs-xs fw-bold text-uppercase text-muted">Orden</span>
-                                        <span class="fs-xs fw-bold text-uppercase text-muted">Cliente</span>
+                                        <span class="fs-xs fw-bold text-uppercase text-muted" style="flex: 1;">Orden</span>
+                                        <span class="fs-xs fw-bold text-uppercase text-muted text-start" style="flex: 2;"
+                                           >Cliente</span>
+                                        <span class="fs-xs fw-bold text-uppercase text-muted text-end" style="flex: 1;">Cantidad</span>
                                     </div>
 
                                     <div class="p-0" style="overflow-y: auto; max-height: 220px;">
                                         <table class="table table-sm table-vcenter table-hover mb-0 fs-sm">
                                             <tbody>
                                                 <tr v-for="(order, i) in section.details" :key="i">
-                                                    <td class="fw-bold text-dark ps-3" style="width: 40%;">
-                                                        {{ order.orden }}
+                                                    <td class="fw-bold text-dark ps-3" style="width: 25%;">
+                                                       # {{ order.orden }}
                                                     </td>
                                                     <td class="pe-3">
                                                         <div class="d-flex justify-content-between align-items-center">
-                                                            <div class="text-muted text-truncate"
-                                                                style="max-width: 200px;" :title="order.cliente">
+                                                            <div class="text-muted text-truncate text-center"
+                                                                style="max-width:650px;" :title="order.cliente">
                                                                 {{ order.cliente }}
                                                             </div>
-                                                            <span class="badge bg-info rounded-pill ms-1">{{
-                                                                order.totalItemServ }}</span>
+
                                                         </div>
                                                     </td>
+                                                    <td class="fs-sm text-end"> <span class="badge bg-info rounded-pill ms-1">{{
+                                                        order.totalItemServ }}</span></td>
                                                 </tr>
 
                                             </tbody>
