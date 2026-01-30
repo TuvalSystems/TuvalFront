@@ -65,8 +65,6 @@ async function searchStockWarehouse(row) {
     if (!resp.ok) {
         swalError(resp.message);
     }
-    console.log(resp.data.stock, 'respuesta');
-
     row.stock = Array.isArray(resp.data.stock) ? resp.data.stock : [];
 }
 
