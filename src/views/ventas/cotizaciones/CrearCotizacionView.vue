@@ -576,8 +576,8 @@ async function applyModifyRow(item) {
 
 //modificadotr general
 async function applyGeneraModifier() {
-  let globalModifier = form.value.modificador_global;
-  if (Number.isNaN(globalModifier) || globalModifier === '') {
+  let globalModifier = parseFloat(form.value.modificador_global);
+  if (isNaN(globalModifier)) {
     globalModifier = 0
   }
 
