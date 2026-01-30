@@ -83,7 +83,7 @@ onMounted(() => { });
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_codigo">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                                }}</option>
+                            }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_codigo"
                             @keyup.enter="buscarArticulo" />
@@ -100,7 +100,7 @@ onMounted(() => { });
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_nombre">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                                }}</option>
+                            }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_nombre"
                             @keyup.enter="buscarArticulo" />
@@ -127,27 +127,28 @@ onMounted(() => { });
         </div>
         <!-- detalle de busqueda -->
         <div v-if="articles.length > 0 && !loadingArt" class="table-responsive">
-           <table class="table table-sm table-hover align-middle mb-0 ">
+            <table class="table table-sm table-hover align-middle mb-0 ">
                 <thead>
                     <tr>
-                        <th class="fs-sm"></th>
-                        <th class="fs-sm"><small class="fw-bold text-uppercase text-muted"
+                        <th scope="col" class="fs-sm"></th>
+                        <th scope="col" class="fs-sm"><small class="fw-bold text-uppercase text-muted"
                                 style="font-size: 12px;">CODIGO</small> </th>
-                        <th class="fs-sm"><small class="fw-bold text-uppercase text-muted" style="font-size: 12px;">COD.
+                        <th scope="col" class="fs-sm"><small class="fw-bold text-uppercase text-muted"
+                                style="font-size: 12px;">COD.
                                 ZAFIRO</small> </th>
-                        <th class="fs-sm"><small class="fw-bold text-uppercase text-muted"
+                        <th scope="col" class="fs-sm"><small class="fw-bold fw-medium text-uppercase text-muted"
                                 style="font-size: 12px;">DESCRIPCION</small> </th>
-                        <th class="fs-sm"><small class="fw-bold text-uppercase text-muted"
+                        <th scope="col" class="fs-sm"><small class="fw-bold text-uppercase text-muted"
                                 style="font-size: 12px;">MARCA</small> </th>
-                        <th class="fs-sm"><small class="fw-bold text-uppercase text-muted"
+                        <th scope="col" class="fs-sm"><small class="fw-bold text-uppercase text-muted"
                                 style="font-size: 12px;">MATERIAL</small> </th>
-                        <th class="fs-sm"><small class="fw-bold text-uppercase text-muted"
+                        <th scope="col" class="fs-sm"><small class="fw-bold text-uppercase text-muted"
                                 style="font-size: 12px;">CTL</small> </th>
-                        <th class="fs-sm"><small class="fw-bold text-uppercase text-muted" style="font-size: 12px;">UND.
+                        <th scope="col" class="fs-sm"><small class="fw-bold text-uppercase text-muted" style="font-size: 12px;">UND.
                                 MEDIDA</small> </th>
-                        <th class="fs-sm text-center"><small class="fw-bold text-uppercase text-muted"
+                        <th scope="col" class="fs-sm text-center"><small class="fw-bold text-uppercase text-muted"
                                 style="font-size: 12px;">STOCK</small> </th>
-                        <th class="fs-sm text-end"><small class="fw-bold text-uppercase text-muted"
+                        <th scope="col" class="fs-sm text-end"><small class="fw-bold text-uppercase text-muted"
                                 style="font-size: 12px;">PRECIO LISTA</small> </th>
                     </tr>
                 </thead>
@@ -187,7 +188,8 @@ onMounted(() => { });
                             </div>
                         </td>
                         <td class="text-end">
-                            <p  v-for="precio in item.precios" :key="precio.id" class="fs-sm text-muted mb-0 text-nowrap">
+                            <p v-for="precio in item.precios" :key="precio.id"
+                                class="fs-sm text-muted mb-0 text-nowrap">
                                 {{ precio.idLista }} <span class="fw-medium mini">${{
                                     format(parseFloat(precio.valor || 0)) }}</span>
                             </p>
@@ -195,6 +197,12 @@ onMounted(() => { });
                     </tr>
                 </tbody>
             </table>
+        </div>
+        <div v-if="articles.length === 0 && !loadingArt" class="text-center py-4">
+            <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">
+                No se encontraron registros para mostrar
+            </p>
         </div>
     </BaseBlock>
     <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
