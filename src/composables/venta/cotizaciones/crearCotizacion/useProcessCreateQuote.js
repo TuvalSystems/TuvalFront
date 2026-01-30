@@ -1040,7 +1040,7 @@ export function useProcessCreateQuote() {
      * 
      */
 
-    const apiLoadCopyData = 'pedidos/volver-a-pedir-cotizacion-v2';
+    const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef) {
         clearForm();
