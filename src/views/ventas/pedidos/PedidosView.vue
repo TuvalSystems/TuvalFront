@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick, onUnmounted } from "vue";
 import { useStore } from 'vuex'
@@ -24,7 +23,13 @@ import {
   swalError,
   toast,
 } from "@/functions/swal-alert.js";
+import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
+import { useImageUpload } from "@/composables/core/useImageUpload";
+
 const { loadingChange, changeStatusOrderBeenWaiting } = useUpdateOrderStatus();
+const { reOrder } = useProcessCreateQuote();
+const { uploadedFiles } = useImageUpload();
+
 const flatPickrState = reactive({
   fecha_desde: {
     maxDate: Date.now(),
@@ -265,16 +270,18 @@ function refreshllenarpedidos() {
   llenarpedidos('todos');
 }
 
-function recuperarpedido(pedido) {
+async function recuperarpedido(pedido) {
   templateStore.pageLoader({ mode: "on" });
-  store.dispatch('recuperarPedido', pedido).then(() => {
+  const respV = await reOrder(pedido.id, uploadedFiles);
+  if (respV?.ok) {
     templateStore.pageLoader({ mode: "off" });
     router.push({
-      name: 'ventas-crearcotizacion'
-    })
-  }).catch(err => {
-    console.log(err);
-  });
+      name: "ventas-crearcotizacion",
+    });
+  } else {
+    templateStore.pageLoader({ mode: "off" });
+    swalError(respV.error);
+  }
 }
 
 async function imprimirpedido(pedido) {

@@ -12,7 +12,7 @@ export function useApiValidatesOrdersReservation() {
 
 
     async function validateExistingGuidesWithAjustment(id) {
-       return await run(() => axiosClient.post(apiValidateGuides, { id: id }), {
+       return  run(() => axiosClient.post(apiValidateGuides, { id: id }), {
             loadingRef: loadingValidateGuides,
             successMessage: "Proceso realizado exitosamente.",
         });

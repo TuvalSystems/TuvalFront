@@ -14,7 +14,7 @@ export function useGetSegmentClients() {
 
   async function fetchSegmentos() {
 
-    return await run(() => axiosClient.post(apiSegments), {
+    return  run(() => axiosClient.post(apiSegments), {
       loadingRef: loadingSegmentos,
       onSuccess: (data) => {
         segmentos.value = data ?? []
@@ -31,7 +31,7 @@ export function useGetSegmentClients() {
   }
 
   async function fetchSubSegmentos(segmentoTxt) {
-    return await run(() => axiosClient.post(apiSubSegments, { segmento: segmentoTxt }), {
+    return  run(() => axiosClient.post(apiSubSegments, { segmento: segmentoTxt }), {
       loadingRef: loadingSubSegmentos,
       onSuccess: (data) => {
         subsegmentos.value = data ?? []

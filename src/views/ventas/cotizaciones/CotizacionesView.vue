@@ -370,6 +370,17 @@ const tipoReservasStore = useTipoReservasStore()
 const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits()
 const { checkExistingReserve } = useValidatesReserved()
 const { verifyStockBeforeRequestReserve, loadingStockValidation } = useQuotationReserveRequestSale()
+//** imports pra nuevos procesos */
+import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
+
+import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
+import { useImageUpload } from "@/composables/core/useImageUpload";
+
+
+const { fetchAndFillQuotation, loadDataForReorder } = useProcessCreateQuote();
+const { uploadedFiles } = useImageUpload();
+const { infoClient, infoSegmento } = useClientSearch();
+
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -601,30 +612,46 @@ async function llenarcotizaciones(estado) {
     });
 }
 
+
 async function recuperarcotizacion(cotizacion) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(cotizacion.id);
-  } catch {
-    return;
-  }
+  templateStore.pageLoader({ mode: "on" });
+
+  const respRes = await checkExistingReserve(cotizacion.id);
   if (respRes?.exists) {
+    templateStore.pageLoader({ mode: "off" });
     swalInfo('No puede recuperar la cotización: la cotización cuenta con una solicitud de reserva  ');
     return;
   }
-
-  templateStore.pageLoader({ mode: "on" });
-  store
-    .dispatch("recuperarCotizacion", cotizacion)
-    .then(() => {
-      templateStore.pageLoader({ mode: "off" });
-      router.push({
-        name: "ventas-crearcotizacion",
-      });
-    })
-    .catch((err) => {
-      errorMsg.value = err.response.data.error;
+  const resRestore = await fetchAndFillQuotation(cotizacion.id, uploadedFiles, infoClient, infoSegmento);
+  if (resRestore?.ok) {
+    templateStore.pageLoader({ mode: "off" });
+    router.push({
+      name: "ventas-crearcotizacion",
     });
+  } else {
+    templateStore.pageLoader({ mode: "off" });
+  }
+}
+
+async function volverapedir(cotizacion) {
+  templateStore.pageLoader({ mode: "on" });
+  const respRes = await checkExistingReserve(cotizacion.id);
+  if (respRes?.exists) {
+    templateStore.pageLoader({ mode: "off" });
+    swalInfo('No puede volver a pedir la cotización ya que cuenta con una solicitud de reserva');
+    return;
+  }
+
+  const resploadForReorder = await loadDataForReorder(cotizacion.id, uploadedFiles);
+  if (resploadForReorder?.ok) {
+    templateStore.pageLoader({ mode: "off" });
+    router.push({
+      name: "ventas-crearcotizacion",
+    });
+  } else {
+    templateStore.pageLoader({ mode: "off" });
+  }
+
 }
 
 function recuperarcotizacionprospecto(cotizacion) {
@@ -652,30 +679,6 @@ function recuperarcotizacionprospecto(cotizacion) {
   });
 }
 
-async function volverapedir(cotizacion) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(cotizacion.id);
-  } catch {
-    return;
-  }
-  if (respRes?.exists) {
-    swalInfo('No puede volver a pedir la cotización ya que cuenta con una solicitud de reserva');
-    return;
-  }
-  templateStore.pageLoader({ mode: "on" });
-  store
-    .dispatch("volverapedirCotizacion", cotizacion)
-    .then(() => {
-      templateStore.pageLoader({ mode: "off" });
-      router.push({
-        name: "ventas-crearcotizacion",
-      });
-    })
-    .catch((err) => {
-      errorMsg.value = err.response.data.error;
-    });
-}
 
 
 async function levantarcliente(pedido) {

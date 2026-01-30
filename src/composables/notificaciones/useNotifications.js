@@ -81,7 +81,7 @@ export function useNotifications() {
             sortOrder: table.sortOrder,
             userId: table.userId
         }
-        return await run(() => axiosClient.post(apilist, payload, { signal: ctrl.value.signal }), {
+        return  run(() => axiosClient.post(apilist, payload, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `notifications-all`,
@@ -155,7 +155,7 @@ export function useNotifications() {
             'userId': user.id,
             'notifyId': id
         }
-        return await run(() => axiosClient.post(apiMarkAsRead, pay1), {
+        return  run(() => axiosClient.post(apiMarkAsRead, pay1), {
             'loadingRef': loadingMarkAsRead,
             'successMessage': 'Proceso realizado exitosamente.',
             'onSuccess': () => onfunctionNotifyDecrement()
@@ -167,7 +167,7 @@ export function useNotifications() {
         const pay1 = {
             'userId': user.id,
         }
-        return await run(() => axiosClient.post(apiMarkAsReadAll, pay1), {
+        return  run(() => axiosClient.post(apiMarkAsReadAll, pay1), {
             'loadingRef': loadingMarkAsRead,
             'successMessage': 'Proceso realizado exitosamente.',
             'onSuccess': () => onFunctionCleanAllNotify()
