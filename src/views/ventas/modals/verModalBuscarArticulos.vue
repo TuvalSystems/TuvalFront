@@ -337,4 +337,3 @@ onMounted(() => { });
     <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 
-<style lang="css" scoped></style>

@@ -24,7 +24,7 @@ export function useSearchArticle() {
         text_nombre: '',
         terminal: '',
         puntodeventaselect: store.state.puntodeventaselect,
-        nivel_precio: 'GENERAL',
+        nivel_precio: '',
     });
     const payload = reactive(getInitialPayload());
 
@@ -236,6 +236,20 @@ export function useSearchArticle() {
         });
     }
 
+     async function fetchStockWarehouseConsult(row) {
+        const loadingRowStockRef = toRef(row, 'loadingStockWarehouse');
+        const payloadWarehouse = {
+            articulo: row, // O el campo que necesites
+            sucursal_id: null, // Asumiendo que tienes esto en tu form
+            cliente_id: null,   // Asumiendo que tienes esto
+            puntodeventa_id: store.state.puntodeventaselect // O de tu store
+        };
+        return  run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+            loadingRef: loadingRowStockRef,
+            successMessage: 'Proceso realizado exitosamente',
+        });
+    }
+
     const isShowStock = (row) => {
         return row.ART_TIPO_COMPRA !== 'L'
             && Array.isArray(row.stock)
@@ -332,6 +346,7 @@ export function useSearchArticle() {
 
         //opciones stock bodegas
         fetchStockWarehouse,
+        fetchStockWarehouseConsult,
         isShowStock,
         isButtonStockWarehouse,
         isEmptyStockWarehouse,
