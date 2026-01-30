@@ -159,9 +159,17 @@ const verModalPesoItemRef = ref(null)
 const verProveedoresRef = ref(null);
 const verModalActualizarSegmentoObj = useBootstrapModal(verModalActualizarSegmento)
 const verModalCrearDireccionModalObj = useBootstrapModal(verModalCrearDireccionModal)
-const verSearchItemModalObj = useBootstrapModal(verSearchItemModal)
+const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
+  onHidden: () => {
+    dataSearchItem.value = null
+  }
+})
 const verItemAltObj = useBootstrapModal(verItemAltRef)
-const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef)
+const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef,{
+  onHidden: () => {
+    calculateTotals();
+  }
+})
 const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef)
 const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
   backdrop: 'static',
@@ -175,7 +183,7 @@ async function searchFilterClientes() {
   clearForm();//limpia el formulario 
   showResultClients.value = true;
   showInfoClient.value = false;
-  if (dataSearch.search == null || dataSearch.search.length >= 0 && dataSearch.search.length < 4) {
+  if (dataSearch.search == null || dataSearch.search.length < 4) {
     showResultClients.value = false;
     showInfoClient.value = false;
     errorSearchClient.value = true
@@ -295,13 +303,13 @@ async function closeModalCreateAddress(client) {
 
 const asigmentWarehouse = (nuevoPuntoVenta) => {
 
-  if (!warehouseByUser.value || !nuevoPuntoVenta) return;
+  if (!warehouseByUser.value || warehouseByUser.value.length === 0) return;
+  if (!nuevoPuntoVenta) return;
   const warehouseSelect = warehouseByUser.value.find(w => w.PTO_VTA_BOD_REL_PUNTO_VENTA == nuevoPuntoVenta);
   if (warehouseSelect) {
-    form.value.punto_venta_id = nuevoPuntoVenta;
-    form.value.bodega_facturacion = warehouseSelect.relacion_bodega.BOD_BODEGA;
-  } else {
-    form.value.bodega_facturacion = null;
+    if (form.value.bodega_facturacion !== warehouseSelect.relacion_bodega.BOD_BODEGA) {
+      form.value.bodega_facturacion = warehouseSelect.relacion_bodega.BOD_BODEGA;
+    }
   }
 }
 watch(
@@ -325,12 +333,20 @@ watch(
 );
 
 
-
+// asignacion de cliente y segmento
 watch(
   () => infoClient.value,
   (newValue) => {
     if (newValue) {
       form.value.cliente = newValue
+    }
+  }
+)
+watch(
+  () => infoSegmento.value,
+  (newValue) => {
+    if (newValue) {
+      form.value.segmento = newValue
     }
   }
 )
@@ -732,7 +748,7 @@ const btnDisabledStore = computed(() => {
 });
 
 async function createQuotation() {
-  const respCreate = await createQuote();
+  const respCreate = await createQuote('create');
   if (!respCreate?.ok) {
     swalError(respCreate?.message);
     return;
@@ -753,7 +769,7 @@ async function createQuotation() {
 
 async function saveToOrderAndUpdateQuotation() {
   const respOrder = await saveOrder();
-  await createQuote();
+  await createQuote('update');
   if (!respOrder?.ok) {
     swalError(respOrder?.message);
     return;
@@ -773,7 +789,7 @@ onMounted(async () => {
   await fetchConditionPayment();
   //logica para recuperar datos en memoria
   if (form.value.cliente && form.value.cliente.CLI_RUC) {
-    loadingSearch.value = true;
+    loadingSearch.value = false;
     loadingAvailableCredit.value = false;
     infoClient.value = form.value.cliente;
     if (form.value.segmento) {
@@ -839,14 +855,15 @@ onMounted(async () => {
       </div>
 
       <!-- loading de carga de clientes -->
-      <div v-if="loadingSearch" class="text-center py-4">
+      <div v-if="loadingSearch && showResultClients && !form.cliente?.id" class="text-center py-4">
         <output class="spinner-border text-primary mt-4">
           <span class="visually-hidden">Loading...</span>
         </output>
       </div>
 
       <!-- mensaje de visualizacion en caso de que no haya clientes -->
-      <div v-if="clients.length === 0 && !loadingSearch && showResultClients" class="text-center py-4">
+      <div v-if="clients.length === 0 && !loadingSearch && showResultClients && !form.cliente?.id"
+        class="text-center py-4">
         <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
         <p class="text-muted mb-0">
           No se encontraron registros para mostrar
@@ -891,57 +908,57 @@ onMounted(async () => {
 
 
       <!-- detalle visual de informacion de cliente -->
-      <div v-if="loadingAvailableCredit" class="text-center py-4">
+      <div v-if="loadingAvailableCredit && !form.cliente?.id" class="text-center py-4">
         <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
         </div>
       </div>
-      <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" class="mb-0">
-        <div class="content-fluid">
+      <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
+        <div class="content-fluid" :class="{ 'opacity-50': loadingAvailableCredit }">
           <div class="row g-1 mb-2">
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Ruc</small>
-                <div class="fw-semibold text-truncate">{{ infoClient.CLI_RUC }}</div>
+                <div class="fw-semibold text-truncate">{{ form.cliente.CLI_RUC }}</div>
               </div>
             </div>
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Razón Social</small>
-                <div class="fw-semibold text-truncate">{{ infoClient.CLI_RAZON_SOCIAL }}</div>
+                <div class="fw-semibold text-truncate">{{ form.cliente.CLI_RAZON_SOCIAL }}</div>
               </div>
             </div>
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Descuento Comercial</small>
-                <div class="fw-semibold ">{{ infoClient.CLI_DSTO_COMERCIAL }} %</div>
+                <div class="fw-semibold ">{{ form.cliente.CLI_DSTO_COMERCIAL }} %</div>
               </div>
             </div>
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Ciudad</small>
-                <div class="fw-semibold ">{{ infoClient.CLI_CIUDAD }}</div>
+                <div class="fw-semibold ">{{ form.cliente.CLI_CIUDAD }}</div>
               </div>
             </div>
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Provincia</small>
-                <div class="fw-semibold ">{{ infoClient.CLI_PROVINCIA }}</div>
+                <div class="fw-semibold ">{{ form.cliente.CLI_PROVINCIA }}</div>
               </div>
             </div>
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Condición de Pago</small>
-                <div class="fw-semibold ">{{ infoClient.CLI_CONDICION_PAGO }}</div>
-                <span class="badge bg-info" v-if="infoClient.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
-                  infoClient.CLI_DIA_GRACIA_CHEQUE_A_FECHA }}</span>
+                <div class="fw-semibold ">{{ form.cliente.CLI_CONDICION_PAGO }}</div>
+                <span class="badge bg-info" v-if="form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
+                  form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }}</span>
               </div>
             </div>
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Suspendido</small>
                 <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                  :class="getClientStatus(infoClient.suspendido).class">
-                  {{ getClientStatus(infoClient.suspendido).text }}
+                  :class="getClientStatus(form.cliente.suspendido).class">
+                  {{ getClientStatus(form.cliente.suspendido).text }}
                 </span>
               </div>
             </div>
@@ -949,32 +966,33 @@ onMounted(async () => {
               <div class="kv">
                 <small class="text-muted">Cupo Asignado</small>
                 <div class="fw-semibold ">${{
-                  infoClient.cupo_asignado }}</div>
+                  form.cliente.cupo_asignado }}</div>
               </div>
             </div>
             <div class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Cupo Disponible</small>
-                <div class="fw-semibold " :class="parseFloat(infoClient.cupo_disponible) < 0 ? 'text-danger' : ''">${{
-                  infoClient.cupo_disponible }}</div>
+                <div class="fw-semibold " :class="parseFloat(form.cliente.cupo_disponible) < 0 ? 'text-danger' : ''">${{
+                  form.cliente.cupo_disponible }}</div>
               </div>
             </div>
             <div v-if="infoSegmento" class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Segmento</small>
-                <div class="fw-semibold ">{{ infoSegmento.segmento }}</div>
+                <div class="fw-semibold ">{{ form.segmento.segmento }}</div>
               </div>
             </div>
             <div v-if="infoSegmento" class="col-6 col-lg-4">
               <div class="kv">
                 <small class="text-muted">Segmento</small>
-                <div class="fw-semibold ">{{ infoSegmento.subsegmento }}</div>
+                <div class="fw-semibold ">{{ form.segmento.subsegmento }}</div>
               </div>
             </div>
             <div class="col-12 col-lg-4">
               <div class="kv space-y-2">
                 <small class="text-muted">Bodegas</small>
-                <select class="form-select form-select-sm" v-model="form.bodega_facturacion">
+                <select class="form-select form-select-sm" v-model="form.bodega_facturacion"
+                  :disabled="loadingWarehouseByUser">
                   <option v-for="(bod, index) in warehouseByUser" :key="index" :value="bod.relacion_bodega.BOD_BODEGA">
                     {{ bod.relacion_bodega.BOD_BODEGA }}
                   </option>
@@ -986,7 +1004,7 @@ onMounted(async () => {
               <div class="kv space-y-2">
                 <small class="text-muted">Dirección de Facturación</small>
                 <div class="input-group input-group-sm">
-                  <select class="form-select" v-model="form.direccion_facturacion_id">
+                  <select class="form-select" v-model="form.direccion_facturacion_id" :disabled="loadingSucursales">
                     <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
                       {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
                     </option>
@@ -1059,7 +1077,7 @@ onMounted(async () => {
         </div>
       </BaseBlock>
     </BaseBlock>
-    <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" class="mb-0">
+    <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
       <template #title>
         <div class="d-flex flex-wrap align-items-center justify-content-between w-100">
           <div class="d-flex align-items-center gap-3">
@@ -1543,9 +1561,8 @@ onMounted(async () => {
   </div>
 
   <!-- modal para la creacion de una nueva direccion -->
-  <div class="modal" id="modal-crear-direccion" tabindex="-1" role="dialog" aria-labelledby="modal-crear-direccion"
-    aria-hidden="true" ref="verModalCrearDireccionModal">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+  <div class="modal" id="modal-crear-direccion" tabindex="-1" aria-hidden="true" ref="verModalCrearDireccionModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
         <verModalCrearNuevaDireccion v-if="dataClient" :cliente="dataClient" @closeModal="closeModalCreateAddress">
         </verModalCrearNuevaDireccion>
@@ -1554,9 +1571,8 @@ onMounted(async () => {
   </div>
 
   <!-- modal de busqueda de articulos -->
-  <div class="modal" id="modal-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-cliente" aria-hidden="true"
-    ref="verSearchItemModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 90vw;">
+  <div class="modal" id="modal-cliente" tabindex="-1" ref="verSearchItemModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90vw;">
       <div class="modal-content">
         <verModalBuscarArticulos v-if="dataSearchItem" :form="dataSearchItem" @closeModal="closeModalSearchItem"
           @select-item="handleItemSelected"></verModalBuscarArticulos>
@@ -1564,10 +1580,10 @@ onMounted(async () => {
     </div>
   </div>
 
+
   <!-- Modal para listar y asignar item alternativo -->
-  <div class="modal" id="modal-item-alternativo" tabindex="-1" role="dialog" aria-labelledby="modal-item-alternativo"
-    aria-hidden="true" ref="verItemAltRef">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document" style="max-width: 400px">
+  <div class="modal" id="modal-item-alternativo" tabindex="-1" ref="verItemAltRef">
+    <div class="modal-dialog modal-sm modal-dialog-centered" style="max-width: 400px">
       <div class="modal-content">
         <verModalItemAlternativo v-if="itemAlternativo" :item="itemAlternativo.item" :indice="itemAlternativo.index"
           @seleccionarAlternativa="onSelectItemAlternativo">
@@ -1577,9 +1593,8 @@ onMounted(async () => {
   </div>
 
   <!-- modal para la seleccion del stock de un articulo -->
-  <div class="modal" id="modal-bodegas" tabindex="-1" role="dialog" aria-labelledby="modal-bodegas" aria-hidden="true"
-    ref="verSeleccionStockBodegasRef">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal" id="modal-bodegas" tabindex="-1" ref="verSeleccionStockBodegasRef">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <verModalSeleccionStockBodegas v-if="dataStockItem.items.length > 0" :stocks="dataStockItem.items"
           :index="dataStockItem.index" :permiteDecimales="dataStockItem.permiteDecimales"
@@ -1590,10 +1605,10 @@ onMounted(async () => {
   </div>
 
 
+
   <!-- modal de modificacion de peso  -->
-  <div class="modal" id="modal-peso" tabindex="-1" role="dialog" aria-labelledby="modal-peso" aria-hidden="true"
-    ref="verModalPesoItemRef">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal" id="modal-peso" tabindex="-1" ref="verModalPesoItemRef">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <verModalModificacionPeso :item="dataPesoItem.item" :index="dataPesoItem.index"
           @cerrar="closeModalPesoRowItem()" @actualizar="handleWeightUpdate">
@@ -1603,9 +1618,8 @@ onMounted(async () => {
   </div>
 
   <!-- modal de seleccion de proveedores para items L  -->
-  <div class="modal fade" id="modal-block-proveedor" tabindex="-1" role="dialog" data-bs-backdrop="static"
-    data-bs-keyboard="false" aria-hidden="true" ref="verProveedoresRef">
-    <div class="modal-dialog modal-xl" role="document" style="max-width: 90vw;">
+  <div class="modal fade" id="modal-block-proveedor" tabindex="-1" ref="verProveedoresRef">
+    <div class="modal-dialog modal-xl" style="max-width: 90vw;">
       <div class="modal-content">
         <verModalProveedores v-if="dataModalProviders.proveedores" :providers="dataModalProviders.proveedores"
           :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders">

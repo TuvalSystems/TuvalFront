@@ -800,7 +800,7 @@ export function useProcessCreateQuote() {
 
     const loadingCreateQuotation = ref(false);
     const apiCreateQuote = 'cotizaciones/crear-cotizacion-v2';
-    async function createQuote() {
+    async function createQuote(mode) {
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
             return;
@@ -815,7 +815,7 @@ export function useProcessCreateQuote() {
         if (form.value.cotizacion_id) {
             formData.append('cotizacion_id', form.value.cotizacion_id);
         }
-        formData.append('mode', form.value.mode);
+        formData.append('mode', mode);
         //datos del cliente
         formData.append('cliente_id', form.value.cliente.id);
         formData.append('ruc', form.value.cliente.CLI_RUC);
