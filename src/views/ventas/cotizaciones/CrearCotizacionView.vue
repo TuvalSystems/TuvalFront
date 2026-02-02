@@ -409,7 +409,6 @@ async function selectConditionPayment() {
   } else {
     // Si la condición de pago no tiene métodos asociados
     form.value.forma_pago_id = null;
-    console.log("No se encontraron formas de pago para esta condición");
   }
 }
 

@@ -629,7 +629,6 @@ export function useProcessCreateQuote() {
                 item.stockListo = true;
 
             } else {
-                console.log('cantidades diferentes', item.stockListo);
                 item.stockListo = false;
                 isValid = false;
             }
@@ -779,7 +778,6 @@ export function useProcessCreateQuote() {
 
         try {
             await Promise.all(updatePromiseDiscount);
-            console.log('Descuento global actualizado exitosamente.');
         } catch (err) {
             console.error('Error al actualizar el descuento global:', err);
         }
