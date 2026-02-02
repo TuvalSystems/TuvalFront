@@ -887,10 +887,10 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr v-for="(client, index) in clients" :key="index">
-                <td class="fs-sm" @click="selectClient(client)">
+                <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
                   <span class="text-primary">{{ client.CLI_RUC }}</span>
                 </td>
-                <td class="fs-sm" @click="selectClient(client)">
+                <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
                   <span class="text-primary">{{ client.CLI_RAZON_SOCIAL }}</span>
                 </td>
                 <td class="fs-sm">{{ client.CLI_CONTACTO }}</td>
