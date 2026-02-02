@@ -1,7 +1,8 @@
 <script setup>
-import { computed, watch, onMounted } from 'vue';
+import { computed, watch, onMounted , onBeforeUnmount} from 'vue';
 import { useRoute } from 'vue-router';
 import { useDashboardOrderDispatch } from "@/composables/bodegas/dashboard/useDashboardOrderDispatch";
+import { useDashboardEvents } from "@/composables/bodegas/dashboard/events/useDashboardEvents";
 
 const route = useRoute();
 const {
@@ -84,8 +85,22 @@ const refreshData = () => {
     }
 };
 
-onMounted(async () => { refreshData(); });
 watch(() => route.params.ptovta, () => refreshData());
+/** socket refresh */
+let stopSocketRefresh = null;
+onMounted(async () => {
+    refreshData();
+
+    stopSocketRefresh = useDashboardEvents({
+        refreshFn: () => refreshData(),
+        debounceMs: 350
+    });
+});
+
+onBeforeUnmount(() => {
+  stopSocketRefresh?.()
+ 
+});
 </script>
 
 <template>
@@ -95,7 +110,7 @@ watch(() => route.params.ptovta, () => refreshData());
 
     <div v-else class="content" style="padding: 15px;">
         <div class="row g-3 align-items-stretch">
-            <div v-for="section in dashboardSections" :key="section.id" :class="getGridClass(index)">
+            <div v-for="(section, index) in dashboardSections" :key="section.id" :class="getGridClass(index)">
                 <BaseBlock v-if="section.type === 'complex_dispatch'" :title="section.title"
                     class="h-100 mb-0 shadow-sm" rounded>
                     <template #content>
@@ -187,10 +202,12 @@ watch(() => route.params.ptovta, () => refreshData());
                                 <div class="col-7">
                                     <div
                                         class="bg-body-light border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
-                                        <span class="fs-xs fw-bold text-uppercase text-muted" style="flex: 1;">Orden</span>
-                                        <span class="fs-xs fw-bold text-uppercase text-muted text-start" style="flex: 2;"
-                                           >Cliente</span>
-                                        <span class="fs-xs fw-bold text-uppercase text-muted text-end" style="flex: 1;">Cantidad</span>
+                                        <span class="fs-xs fw-bold text-uppercase text-muted"
+                                            style="flex: 1;">Orden</span>
+                                        <span class="fs-xs fw-bold text-uppercase text-muted text-start"
+                                            style="flex: 2;">Cliente</span>
+                                        <span class="fs-xs fw-bold text-uppercase text-muted text-end"
+                                            style="flex: 1;">Cantidad</span>
                                     </div>
 
                                     <div class="p-0" style="overflow-y: auto; max-height: 220px;">
@@ -198,7 +215,7 @@ watch(() => route.params.ptovta, () => refreshData());
                                             <tbody>
                                                 <tr v-for="(order, i) in section.details" :key="i">
                                                     <td class="fw-bold text-dark ps-3" style="width: 25%;">
-                                                       # {{ order.orden }}
+                                                        # {{ order.orden }}
                                                     </td>
                                                     <td class="pe-3">
                                                         <div class="d-flex justify-content-between align-items-center">
@@ -209,8 +226,9 @@ watch(() => route.params.ptovta, () => refreshData());
 
                                                         </div>
                                                     </td>
-                                                    <td class="fs-sm text-end"> <span class="badge bg-info rounded-pill ms-1">{{
-                                                        order.totalItemServ }}</span></td>
+                                                    <td class="fs-sm text-end"> <span
+                                                            class="badge bg-info rounded-pill ms-1">{{
+                                                                order.totalItemServ }}</span></td>
                                                 </tr>
 
                                             </tbody>
