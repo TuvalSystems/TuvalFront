@@ -307,8 +307,8 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
   if (!nuevoPuntoVenta) return;
 
   if (form.value.bodega_facturacion) {
-    const existeBodega = warehouseByUser.value.some(w => w.relacion_bodega.BOD_BODEGA === form.value.bodega_facturacion);
-    if (existeBodega) return;
+    const exists = warehouseByUser.value.some(w => w.relacion_bodega.BOD_BODEGA === form.value.bodega_facturacion);
+    if (exists) return;
   }
 
   const warehouseSelect = warehouseByUser.value.find(w => w.PTO_VTA_BOD_REL_PUNTO_VENTA == nuevoPuntoVenta);
@@ -323,7 +323,6 @@ watch(
       asigmentWarehouse(nuevoPuntoVenta);
     }
   },
-  { immediate: true }
 );
 
 watch(
