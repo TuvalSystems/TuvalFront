@@ -165,7 +165,7 @@ const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
   }
 })
 const verItemAltObj = useBootstrapModal(verItemAltRef)
-const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef,{
+const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef, {
   onHidden: () => {
     calculateTotals();
   }
@@ -305,15 +305,19 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
 
   if (!warehouseByUser.value || warehouseByUser.value.length === 0) return;
   if (!nuevoPuntoVenta) return;
+
+  if (form.value.bodega_facturacion) {
+    const existeBodega = warehouseByUser.value.some(w => w.relacion_bodega.BOD_BODEGA === form.value.bodega_facturacion);
+    if (existeBodega) return;
+  }
+
   const warehouseSelect = warehouseByUser.value.find(w => w.PTO_VTA_BOD_REL_PUNTO_VENTA == nuevoPuntoVenta);
   if (warehouseSelect) {
-    if (form.value.bodega_facturacion !== warehouseSelect.relacion_bodega.BOD_BODEGA) {
-      form.value.bodega_facturacion = warehouseSelect.relacion_bodega.BOD_BODEGA;
-    }
+    form.value.bodega_facturacion = warehouseSelect.relacion_bodega.BOD_BODEGA;
   }
 }
 watch(
-  () => ptoVtaSelect,
+  () => ptoVtaSelect.value,
   (nuevoPuntoVenta) => {
     if (nuevoPuntoVenta) {
       asigmentWarehouse(nuevoPuntoVenta);
