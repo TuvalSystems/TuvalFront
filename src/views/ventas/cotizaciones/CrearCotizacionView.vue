@@ -952,7 +952,7 @@ onMounted(async () => {
                 <small class="text-muted">Condición de Pago</small>
                 <div class="fw-semibold ">{{ form.cliente.CLI_CONDICION_PAGO }}</div>
                 <span class="badge bg-info" v-if="form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
-                  form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }}</span>
+                  form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span>
               </div>
             </div>
             <div class="col-6 col-lg-4">
