@@ -1372,7 +1372,7 @@ onMounted(async () => {
                 <label for="condicionPagoSelect"
                   class="form-label small text-uppercase fw-bold text-body-secondary">Condición
                   de pago</label>
-                <select id="condicionPagoSelect" class="form-select" :disabled="loadingConditionPayment"
+                <select id="condicionPagoSelect" class="form-select" :disabled="form.cliente.suspendido == 1"
                   v-model="form.condicion_pago_id">
 
                   <option v-for="(cod, index) in conditionPayment" :key="index" :value="cod.condId">{{ cod.condId }}
@@ -1552,9 +1552,9 @@ onMounted(async () => {
   <!-- seccion de modales -->
 
   <!-- modal para actualizacion de segmento -->
-  <div class="modal" id="modal-segmento" tabindex="-1" role="dialog" aria-labelledby="modal-segmento" aria-hidden="true"
+  <div class="modal" id="modal-segmento" tabindex="-1" aria-hidden="true"
     ref="verModalActualizarSegmento">
-    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-md modal-dialog-centered">
       <div class="modal-content">
         <actualizarSegmentoClienteComponent v-if="datosCliente" :cliente="datosCliente" @updated="processSelectClient">
         </actualizarSegmentoClienteComponent>
