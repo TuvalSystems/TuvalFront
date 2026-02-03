@@ -283,7 +283,7 @@ watch(
                     </table>
                 </div>
             </div>
-            <div v-if="infoReserva.estado === 'procesado' || infoReserva.estado === 'rechazada'">
+            <div v-if="infoReserva.estado === 'procesado'|| infoReserva.estado === 'rechazada'">
                 <div class="content text-end mb-4">
                     <button type="button" class="btn btn-sm btn-alt-secondary me-1" data-bs-dismiss="modal">
                         Close
