@@ -20,7 +20,7 @@ export function useSearchArticle() {
         select_codigo: 'empieza',
         text_codigo: '',
         codigo3l: '',
-        select_nombre: 'empieza',
+        select_nombre: 'contiene',
         text_nombre: '',
         terminal: '',
         puntodeventaselect: store.state.puntodeventaselect,

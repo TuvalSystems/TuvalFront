@@ -173,9 +173,13 @@ onMounted(async () => {
                             <tr v-for="(prov, index) in itemsProvider" :key="index">
                                 <td class="ps-3 align-top py-3">
                                     <div class="mb-2">
+                                        <small class="text-primary fw-bold mb-1 d-block" style="font-size: 0.65rem;">
+                                            PROVEEDOR:
+                                        </small>
                                         <VueSelect v-model="prov.ID_PROVEEDOR" :options="listaProviders"
-                                            :reduce="(option) => option.id" placeholder="Buscar proveedor..."
-                                            label="PROV_RAZON_SOCIAL" class="style-chooser fs-xs fw-semibold">
+                                            :reduce="(option) => option.id" placeholder="Seleccionar proveedor..."
+                                            label="PROV_RAZON_SOCIAL"
+                                            class="style-chooser fs-xs fw-bold bg-white border-bottom">
                                         </VueSelect>
                                     </div>
                                     <div class="input-group input-group-sm">

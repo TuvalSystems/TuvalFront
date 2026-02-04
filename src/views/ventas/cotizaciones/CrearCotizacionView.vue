@@ -143,9 +143,10 @@ const {
 
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 const flatPickrState = reactive({
-  minDate: Date.now(),
+  minDate: "today",
   monthSelectorType: "static",
   locale: Spanish,
+  dateFormat: "Y-m-d"
 });
 
 const router = useRouter();

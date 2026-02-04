@@ -2,7 +2,7 @@ import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
-import { useSessionStorage } from '@vueuse/core';
+import { now, useSessionStorage } from '@vueuse/core';
 import { useStore } from 'vuex'
 
 
@@ -97,6 +97,12 @@ export function useProcessCreateQuote() {
                 form.value.fecha_entrega = null;
             } else if (newVal === 'despacho') {
                 form.value.direccion_entrega_id = form.value.direccion_facturacion_id;
+                const hoy = new Date();
+                const year = hoy.getFullYear();
+                const month = String(hoy.getMonth() + 1).padStart(2, '0');
+                const day = String(hoy.getDate()).padStart(2, '0');
+
+                form.value.fecha_entrega = `${year}-${month}-${day}`;
             }
         }
     );
@@ -245,7 +251,7 @@ export function useProcessCreateQuote() {
     const listItemsAlternatives = ref([]);
     const loadingListAlternative = ref(false);
     async function getAlternativeDescriptions(artCode) {
-        return  run(() => axiosClient.post(apiSearchAlternativesItems, { item: artCode }), {
+        return run(() => axiosClient.post(apiSearchAlternativesItems, { item: artCode }), {
             loadingRef: loadingListAlternative,
             onSuccess: (res) => {
                 listItemsAlternatives.value = res;
@@ -422,7 +428,7 @@ export function useProcessCreateQuote() {
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
-        return  run(() => axiosClient.post(apiUpdateStockItemsByBatch, payloadBatch), {
+        return run(() => axiosClient.post(apiUpdateStockItemsByBatch, payloadBatch), {
             loadingRef: loadingUpdateStockItemsByBatch,
             onError: (err) => {
                 console.log(err, 'updateStockItemsByBatch');
@@ -460,7 +466,7 @@ export function useProcessCreateQuote() {
 
     async function getMargenFotItemL(artCode) {
         if (!artCode) return;
-        return  run(() => axiosClient.post(apiGetMarginItemL, { articulo: artCode }), {
+        return run(() => axiosClient.post(apiGetMarginItemL, { articulo: artCode }), {
             loadingRef: loadingMarginItemL,
             onSuccess: (res) => {
                 margenItemL.value = res;
@@ -894,7 +900,7 @@ export function useProcessCreateQuote() {
                 }
             });
         }
-        return  run(() => axiosClient.post(apiCreateQuote, formData), {
+        return run(() => axiosClient.post(apiCreateQuote, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
                 console.error('Error al crear la cotización:', error);
@@ -950,7 +956,7 @@ export function useProcessCreateQuote() {
     const loadingGetQuoteData = ref(false);
 
     async function fetchAndFillQuotation(quoteId, uploadedFilesRef, infoClienteRef, infoSegmentoRef) {
-        return  run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
+        return run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
             onSuccess: (res) => {
                 const { cotizacion, cliente, items, segmento, imagenesOperaciones, mode } = res;
@@ -1042,7 +1048,7 @@ export function useProcessCreateQuote() {
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef) {
         clearForm();
-        return  run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
+        return run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
             loadingRef: loadingReorder,
             onSuccess: (res) => {
                 const { cotizacion, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
@@ -1130,7 +1136,7 @@ export function useProcessCreateQuote() {
     const loadingCopyQuoteOrOrder = ref(false);
 
     async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId, uploadedFilesRef) {
-        return  run(() => axiosClient.post(apiCopyRawQuoteOrOrder, {
+        return run(() => axiosClient.post(apiCopyRawQuoteOrOrder, {
             rowId: originalId,
             tipo: type,
             cliente_id: clienteId,
@@ -1184,7 +1190,7 @@ export function useProcessCreateQuote() {
 
                 }));
 
-                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
+                if (imagenesOperaciones && imagenesOperaciones.length > 0) {
                     if (uploadedFilesRef) {
 
                         uploadedFilesRef.value = imagenesOperaciones.map(img => ({
@@ -1218,7 +1224,7 @@ export function useProcessCreateQuote() {
     const loadingIsReordering = ref(false);
 
     async function reOrder(rowId, uploadedFilesRef) {
-        return  run(() => axiosClient.post(apiReorder, { id: rowId }), {
+        return run(() => axiosClient.post(apiReorder, { id: rowId }), {
             loadingRef: loadingIsReordering,
             onSuccess: (res) => {
                 const { pedido, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
@@ -1392,7 +1398,7 @@ export function useProcessCreateQuote() {
                 }
             });
         }
-        return  run(() => axiosClient.post(apiSaveOrder, formData), {
+        return run(() => axiosClient.post(apiSaveOrder, formData), {
             loadingRef: loadingSaveOrder,
             onError: (error) => {
                 console.error('Error al crear el pedido:', error);
@@ -1494,8 +1500,8 @@ export function useProcessCreateQuote() {
         //proceso de creacion de cotizacion
         loadingCreateQuotation,
         isQuoteValid,
-        createQuote,    
-       
+        createQuote,
+
         // proceso de recuperar cotizacion 
 
         fetchAndFillQuotation,
@@ -1506,7 +1512,7 @@ export function useProcessCreateQuote() {
         reOrder,
         //gaurdar una cotizacion a pedido
         loadingSaveOrder,
-         saveOrder
+        saveOrder
     };
 
 
