@@ -1070,7 +1070,7 @@ export function useProcessCreateQuote() {
                 form.value.condicion_pago_original_id = cliente.CON_ID_ORIGINAL;
 
                 // Reseteamos fechas a HOY
-                form.value.fecha_entrega = null;
+                form.value.fecha_entrega = cotizacion.fecha_entrega;
 
                 // Direcciones (Mantenemos las de la copia)
                 form.value.direccion_facturacion_id = cotizacion.sucursal_facturacion_id;
@@ -1244,7 +1244,7 @@ export function useProcessCreateQuote() {
                 form.value.forma_pago_id = pedido.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = pedido.CON_ID_ORIGINAL;
 
-                form.value.fecha_entrega = null;
+                form.value.fecha_entrega = pedido.fecha_entrega;
 
                 form.value.direccion_facturacion_id = pedido.sucursal_facturacion_id;
                 form.value.direccion_entrega_id = pedido.sucursal_id;
