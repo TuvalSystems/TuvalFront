@@ -600,26 +600,27 @@ export function useProcessCreateQuote() {
         // Total General = Subtotal + IVA
         form.value.total = redondear((form.value.subtotal + form.value.iva) + 0.000001, 2);
         validateAllProvidersStock();
-        verifyStockConsistency(true);
+        verifyStockConsistency();
     }
 
 
     const verifyStockConsistency = (silent = false) => {
         let isValid = true;
         const globalStockUsage = {};
+
+        //primer paso para mapear el uso de totales por bodega/articulo
+        //Y cacular cuanto tiene asignado cada fila individualmente
         form.value.items.forEach((item) => {
             if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
                 item.stockListo = true; //los servicios y l siempre estan listos
                 return;
             }
-            const qtyReuired = Number.parseFloat(item.ART_CANTIDAD || 0);
-            let qtyAsigned = 0;
-
+            let currentItemQtyAsigned = 0;
             if (item.stock && item.stock.length > 0) {
                 item.stock.forEach((bd) => {
                     const seleccionado = Number.parseFloat(bd.seleccionado || 0);
                     const disponible = Number.parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
-                    qtyAsigned += seleccionado;
+                    currentItemQtyAsigned += seleccionado;
 
                     const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
                     if (!globalStockUsage[key]) {
@@ -628,27 +629,51 @@ export function useProcessCreateQuote() {
                     globalStockUsage[key].used += seleccionado;
                 });
             }
-            if (qtyReuired === 0) {
-                item.stockListo = false;
-                isValid = false;
-            } else if (qtyAsigned.toFixed(item.ART_DECIMAL_CANTIDAD) === qtyReuired.toFixed(item.ART_DECIMAL_CANTIDAD)) {
-                item.stockListo = true;
+            item.tempQtyAsigned = currentItemQtyAsigned;
+        });
 
+        //Segundo paso, valuidar si la suma global excede el disponible
+        let globalOverstock = false;
+        for (const key in globalStockUsage) {
+            const data = globalStockUsage[key];
+            const totalUsado = Number(data.used.toFixed(4));
+            const totalDisponible = Number(data.available.toFixed(4));
+            if (totalUsado > totalDisponible) {
+                if (!silent) {
+                    swalWarning(`Stock insuficiente (Total todas las filas).<br>Artículo: ${data.artCode} en ${data.bodegaName}<br>Digitado: <b>${data.used}</b> | Disponible: <b>${data.available}</b>`);
+                }
+                globalOverstock = true;
+                isValid = false;
+                if (!silent) return false; // Si no es silent, cortamos la ejecución aquí
+            }
+        }
+
+        //Tercer paso determina stockListo de cada Fila
+        form.value.items.forEach((item) => {
+            if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
+                item.stockListo = true;
+                return;
+            }
+            const qtyRequired = Number.parseFloat(item.ART_CANTIDAD || 0);
+            const qtyAsigned = item.tempQtyAsigned || 0;
+            const matchesRequired = qtyAsigned.toFixed(item.ART_DECIMAL_CANTIDAD) === qtyRequired.toFixed(item.ART_DECIMAL_CANTIDAD);
+
+            let itemHasError = false;
+            if (globalOverstock && item.stock) {
+                itemHasError = item.stock.some(bd => {
+                    const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
+                    return globalStockUsage[key].used > globalStockUsage[key].available;
+                });
+            }
+
+            if (qtyRequired > 0 && matchesRequired && !itemHasError) {
+                item.stockListo = true;
             } else {
                 item.stockListo = false;
                 isValid = false;
             }
+            delete item.tempQtyAsigned;
         });
-        for (const key in globalStockUsage) {
-            const data = globalStockUsage[key];
-            if (data.used > data.available) {
-                if (!silent) {
-                    swalWarning(`Stock insuficiente en la bodega ${data.bodegaName} para el articulo ${data.artCode}.<br>Máximo disponible: <b>${data.available}</b>`);
-                    return;
-                }
-                isValid = false;
-            }
-        }
         return isValid;
     }
 
