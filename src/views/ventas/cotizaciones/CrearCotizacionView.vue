@@ -181,7 +181,7 @@ const showResultClients = ref(false);
 const showInfoClient = ref(false);
 
 async function searchFilterClientes() {
-  clearForm();//limpia el formulario 
+  clearForm(uploadedFiles, infoClient);//limpia el formulario 
   showResultClients.value = true;
   showInfoClient.value = false;
   if (dataSearch.search == null || dataSearch.search.length < 4) {
@@ -672,7 +672,7 @@ async function confirmarEliminarArticulo(item, i) {
 /** limpiar la cotizacion */
 
 async function clearCotizacion() {
-  clearForm();
+  clearForm(uploadedFiles, infoClient);
   showInfoClient.value = false;
   showResultClients.value = false;
   infoClient.value = null;
@@ -784,6 +784,20 @@ async function saveToOrderAndUpdateQuotation() {
   });
 }
 
+
+watch(uploadedFiles, (newFiles) => {
+  const procesados = newFiles.map(item => {
+    // Si es un archivo recién subido (Blob/File)
+    if (item.file) return item.file; 
+    
+    // Si es una imagen que ya estaba en el servidor (URL)
+    if (item.isPersisted) return item.preview; 
+    
+    return null;
+  }).filter(f => f !== null);
+
+  form.value.imagenesoperaciones = procesados;
+}, { deep: true });
 
 
 
@@ -1553,8 +1567,7 @@ onMounted(async () => {
   <!-- seccion de modales -->
 
   <!-- modal para actualizacion de segmento -->
-  <div class="modal" id="modal-segmento" tabindex="-1" aria-hidden="true"
-    ref="verModalActualizarSegmento">
+  <div class="modal" id="modal-segmento" tabindex="-1" aria-hidden="true" ref="verModalActualizarSegmento">
     <div class="modal-dialog modal-md modal-dialog-centered">
       <div class="modal-content">
         <actualizarSegmentoClienteComponent v-if="datosCliente" :cliente="datosCliente" @updated="processSelectClient">

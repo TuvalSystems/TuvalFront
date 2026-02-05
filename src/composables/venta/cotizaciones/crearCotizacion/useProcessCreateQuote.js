@@ -10,8 +10,7 @@ function redondear(num, decimales = 2) {
     const factor = Math.pow(10, decimales);
     return Math.round((num + Number.EPSILON) * factor) / factor;
 }
-
-const initialState = {
+const getInitialState = () => ({
     cotizacion_id: null,
     cotizacion_codigo: null,
     mode: 'crear',
@@ -68,12 +67,12 @@ const initialState = {
     //imagenes de operaciones
     imagenesoperaciones: [],
 
-}
+});
 export function useProcessCreateQuote() {
     const store = useStore();
     const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
     const { run } = useApiAction();
-    const form = useSessionStorage('quoteTemp_v1', { ...initialState });
+    const form = useSessionStorage('quoteTemp_v1', getInitialState());
     const today = new Date();
 
 
@@ -83,8 +82,18 @@ export function useProcessCreateQuote() {
     const maxOrder = 20;
 
 
-    function clearForm() {
-        form.value = { ...initialState };
+    function clearForm(uploadedFilesRef = null, infoClienteRef = null) {
+        sessionStorage.removeItem('quoteTemp_v1');
+        form.value = getInitialState();
+        if (uploadedFilesRef) {
+            uploadedFilesRef.value = [];
+        }
+        if (infoClienteRef) {
+            infoClienteRef.value = null;
+        }
+        nextTick(() => {
+            calculateTotals();
+        });
     }
 
 
@@ -142,13 +151,18 @@ export function useProcessCreateQuote() {
     }
 
 
-    watch(
-        () => form.value.cliente,
-        () => {
-            validateBillingRules();
-        },
-        { deep: true, immediate: true }
-    );
+  watch(
+    () => form.value.cliente,
+    (newClient) => {
+        if (!newClient) {
+            form.value.factura_posterior_despacho = false;
+            form.value.alerta_facturar = '';
+            return;
+        }
+        validateBillingRules();
+    },
+    { deep: true, immediate: true }
+);
 
 
     //proceso de agregar items a mi form-items y me crea el registro en las tablas temporales
@@ -985,7 +999,7 @@ export function useProcessCreateQuote() {
             loadingRef: loadingGetQuoteData,
             onSuccess: (res) => {
                 const { cotizacion, cliente, items, segmento, imagenesOperaciones, mode } = res;
-                clearForm();
+                clearForm(uploadedFilesRef, infoClienteRef);
 
                 if (infoClienteRef) infoClienteRef.value = cliente;
                 if (infoSegmentoRef) infoSegmentoRef.value = segmento;
@@ -1072,7 +1086,7 @@ export function useProcessCreateQuote() {
     const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef) {
-        clearForm();
+        clearForm(uploadedFilesRef, null);
         return run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
             loadingRef: loadingReorder,
             onSuccess: (res) => {
