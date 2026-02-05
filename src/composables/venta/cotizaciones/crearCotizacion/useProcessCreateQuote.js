@@ -43,10 +43,10 @@ const getInitialState = () => ({
     descuento_original: 0,
 
     //notas
-    nota_interna: '',
-    nota_cliente: '',
-    nota_operaciones: '',
-    orden_de_compra: '',
+    nota_interna: null,
+    nota_cliente: null,
+    nota_operaciones: null,
+    orden_de_compra: null,
 
 
     //registro copia
