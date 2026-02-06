@@ -237,7 +237,7 @@
           <div class="col-sm-12">
             <button v-if="
               existentes
-              && !['facturado', 'eliminado', 'espera', 'rechazado', 'anulada'].includes(verpedido.estado)" 
+              && !['facturado', 'eliminado', 'espera', 'rechazado', 'anulada'].includes(verpedido.estado)"
               type="button" class="btn btn-warning btn-sm mx-1 mb-2" @click="emit('consultarExistente')">Facturar
               lo existente</button>
             <button type="button" class="btn btn-primary btn-sm mx-1 mb-2" data-bs-dismiss="modal"> Cerrar</button>
@@ -384,7 +384,10 @@ const handleHide = () => {
   gallery.visible = false;
 };
 const handleImageError = (e) => {
-  e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+  const placeholder = 'https://via.placeholder.com/100?text=No+Image';
+  if (e.target.src !== placeholder) {
+    e.target.src = placeholder;
+  }
 };
 
 onMounted(() => {
