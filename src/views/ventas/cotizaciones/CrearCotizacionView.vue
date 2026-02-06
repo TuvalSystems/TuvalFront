@@ -788,11 +788,11 @@ async function saveToOrderAndUpdateQuotation() {
 watch(uploadedFiles, (newFiles) => {
   const procesados = newFiles.map(item => {
     // Si es un archivo recién subido (Blob/File)
-    if (item.file) return item.file; 
-    
+    if (item.file) return item.file;
+
     // Si es una imagen que ya estaba en el servidor (URL)
-    if (item.isPersisted) return item.preview; 
-    
+    if (item.isPersisted) return item.preview;
+
     return null;
   }).filter(f => f !== null);
 
@@ -1635,12 +1635,17 @@ onMounted(async () => {
 
   <!-- modal de seleccion de proveedores para items L  -->
   <div class="modal fade" id="modal-block-proveedor" tabindex="-1" ref="verProveedoresRef">
-    <div class="modal-dialog modal-xl" style="max-width: 90vw; margin: 2.5vh auto;">
-      <div class="modal-content" style="height: 95vh; display: flex; flex-direction: column;">
-        <verModalProveedores v-if="dataModalProviders.proveedores" :providers="dataModalProviders.proveedores"
-          :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders"
-          style="flex: 1; overflow-y: auto;">
-        </verModalProveedores>
+    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 95vw;">
+      <div class="modal-content" style="height: 90vh; display: flex; flex-direction: column;">
+
+        <div class="block block-rounded block-transparent mb-0 d-flex flex-column" style="height: 100%; flex: 1;">
+
+          <verModalProveedores v-if="dataModalProviders.proveedores" :providers="dataModalProviders.proveedores"
+            :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders"
+            class="flex-grow-1" style="overflow-y: auto; display: flex; flex-direction: column;">
+          </verModalProveedores>
+
+        </div>
       </div>
     </div>
   </div>
