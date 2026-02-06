@@ -203,7 +203,7 @@
           aria-labelledby="btabs-alt-static-devoluciones-tab">
           <Devoluciones></Devoluciones>
         </div>
-        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane active d-flex flex-wrap gap-2 p-3"
+        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane d-flex flex-wrap gap-2 p-3"
           id="btabs-alt-static-imagenes-operaciones" role="tabpanel"
           aria-labelledby="btabs-alt-static-imagenes-operaciones-tab">
 
