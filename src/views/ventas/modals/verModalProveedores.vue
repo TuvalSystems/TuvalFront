@@ -126,7 +126,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <BaseBlock class="mb-0 shadow-sm" transparent rounded>
+    <BaseBlock class="mb-0 shadow-sm d-flex flex-column h-100" transparent rounded>
         <template #title>
             <div class="d-flex align-items-center py-1">
                 <div class="me-2">
