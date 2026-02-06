@@ -1638,14 +1638,14 @@ onMounted(async () => {
     <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 95vw;">
       <div class="modal-content" style="height: 90vh; display: flex; flex-direction: column;">
 
-        <div class="block block-rounded block-transparent mb-0 d-flex flex-column" style="height: 100%; flex: 1;">
+        <!-- <div class="block block-rounded block-transparent mb-0 d-flex flex-column" style="height: 100%; flex: 1;"> -->
 
-          <verModalProveedores v-if="dataModalProviders.proveedores" :providers="dataModalProviders.proveedores"
-            :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders"
-            class="flex-grow-1" style="overflow-y: auto; display: flex; flex-direction: column;">
-          </verModalProveedores>
+        <verModalProveedores v-if="dataModalProviders.proveedores" :providers="dataModalProviders.proveedores"
+          :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders"
+          class="h-100">
+        </verModalProveedores>
 
-        </div>
+        <!-- </div> -->
       </div>
     </div>
   </div>
