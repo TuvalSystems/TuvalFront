@@ -50,6 +50,13 @@
             Notas de crédito
           </button>
         </li>
+        <li v-if="imagenesOperaciones && imagenesOperaciones.length" class="nav-item">
+          <button class="nav-link" id="btabs-alt-static-imagenes-operaciones-tab" data-bs-toggle="tab"
+            data-bs-target="#btabs-alt-static-imagenes-operaciones" role="tab"
+            aria-controls="btabs-alt-static-imagenes-operaciones" aria-selected="false">
+            Imagenes Operaciones
+          </button>
+        </li>
       </ul>
 
       <div class="block-content tab-content fs-sm">
@@ -90,7 +97,7 @@
                       <a class="text-danger"
                         v-if="articulo.ART_TIPO_COMPRA !== 'L' && articulo.ART_DESCRIPCION != articulo.ART_DESCRIPCION_ORIGINAL"
                         @click="verdiferenciadescripcion(articulo)" href="javascript:void(0);">{{
-                        articulo.ART_DESCRIPCION }}</a>
+                          articulo.ART_DESCRIPCION }}</a>
                       <span v-else>{{ articulo.ART_DESCRIPCION }}</span>
                     </td>
                     <td class="fs-sm">
@@ -196,6 +203,20 @@
           aria-labelledby="btabs-alt-static-devoluciones-tab">
           <Devoluciones></Devoluciones>
         </div>
+        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane"
+          id="btabs-alt-static-imagenes-operaciones" role="tabpanel"
+          aria-labelledby="btabs-alt-static-imagenes-operaciones-tab">
+
+
+          <div v-for="(img, index) in imagenesOperaciones" :key="img.id"
+            class="position-relative border border-secondary border-opacity-25 rounded bg-body overflow-hidden shadow-sm"
+            style="width: 100px; height: 100px; cursor: pointer;" @click="showGallery(index)">
+
+            <img :src="img.url" class="img-fluid w-100 h-100 object-fit-cover" :alt="img.nombre"
+              @error="handleImageError" title="Ver en pantalla completa">
+          </div>
+
+        </div>
       </div>
     </template>
   </BaseBlock>
@@ -210,7 +231,7 @@
                 :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
                 :maxlength="max_length" @change="guardarOrdenDeCompra(verpedido)" />
               <span v-if="verpedido.orden_de_compra" class="input-group-text">{{ max_length -
-                verpedido.orden_de_compra.length}}</span>
+                verpedido.orden_de_compra.length }}</span>
             </div>
 
           </div>
@@ -255,13 +276,16 @@
               && !verpedido.item_l_recibido
               && !verpedido.check_traslado_venta
               && !has_guide_dispatched
-            " type="button" class="btn btn-danger btn-sm mx-1 mb-2"
-              @click="confirmcancelarPedido(verpedido)"><i class="fa fa-xmark"></i> Cancelar Pedido</button>
+            " type="button" class="btn btn-danger btn-sm mx-1 mb-2" @click="confirmcancelarPedido(verpedido)"><i
+                class="fa fa-xmark"></i> Cancelar Pedido</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+
+  <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
@@ -274,7 +298,7 @@ import OrdenDespacho from "./tabs/OrdenDespacho.vue"
 import GuiasRemision from "./tabs/GuiasRemision.vue"
 import Devoluciones from "./tabs/Devoluciones.vue";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
-
+import VueEasyLightbox from "vue-easy-lightbox";
 const { verpedido, indexPedido, tipo } = defineProps({
   verpedido: Object,
   indexPedido: Number,
@@ -292,6 +316,7 @@ const pendientes = computed(() => store.state.pendientes);
 const existentes = computed(() => store.state.existentes);
 const segmentocliente = computed(() => store.state.segmentocliente);
 const has_guide_dispatched = computed(() => store.state.has_guide_dispatched);
+const imagenesOperaciones = computed(() => store.state.imagenesOperaciones);
 const max_length = ref(20);
 const emit = defineEmits(["consultarExistente", "cancelarPedido", "consultarDespachado"]);
 
@@ -365,6 +390,25 @@ function cancelarPedido(pedido) {
     emit('cancelarPedido');
   })
 }
+
+const gallery = reactive({
+  visible: false,
+  index: 0,
+  photos: []
+});
+
+const showGallery = (index) => {
+  gallery.photos = imagenesOperaciones.value.map(img => img.url);
+  gallery.index = index;
+  gallery.visible = true;
+}
+
+const handleHide = () => {
+  gallery.visible = false;
+};
+const handleImageError = (e) => {
+    e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+};
 
 onMounted(() => {
 

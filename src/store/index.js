@@ -994,7 +994,8 @@ const store = createStore({
         commit("setEstadoDeCuenta", res.data.estadodecuenta);
         commit("setSegmentoClienteLoading", false);
         commit("setSegmentoCliente", res.data.segmento);
-        commit("setNivelPrecioClienteDetalle", res.data.nivelPrecio)
+        commit("setNivelPrecioClienteDetalle", res.data.nivelPrecio);
+        commit("setImagenesOperaciones", res.data.imagenesOperaciones);
         return res;
       });
     },
@@ -2357,6 +2358,9 @@ const store = createStore({
 
     setNivelPrecioClienteDetalle : (state, data) => {
       state.nivelPrecioClienteDetalle = data;
+    },
+    setImagenesOperaciones : (state, data) =>{
+      state.imagenesOperaciones = data;
     },
 
 
