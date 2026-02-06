@@ -1635,10 +1635,11 @@ onMounted(async () => {
 
   <!-- modal de seleccion de proveedores para items L  -->
   <div class="modal fade" id="modal-block-proveedor" tabindex="-1" ref="verProveedoresRef">
-    <div class="modal-dialog modal-xl" style="max-width: 90vw;">
-      <div class="modal-content">
+    <div class="modal-dialog modal-xl" style="max-width: 90vw; margin: 2.5vh auto;">
+      <div class="modal-content" style="height: 95vh; display: flex; flex-direction: column;">
         <verModalProveedores v-if="dataModalProviders.proveedores" :providers="dataModalProviders.proveedores"
-          :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders">
+          :index="dataModalProviders.index" :item="dataModalProviders.item" @update:providers="handleSaveProviders"
+          style="flex: 1; overflow-y: auto;">
         </verModalProveedores>
       </div>
     </div>
