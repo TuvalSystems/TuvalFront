@@ -203,14 +203,13 @@
           aria-labelledby="btabs-alt-static-devoluciones-tab">
           <Devoluciones></Devoluciones>
         </div>
-        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane"
+        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane active d-flex flex-wrap gap-2 p-3"
           id="btabs-alt-static-imagenes-operaciones" role="tabpanel"
           aria-labelledby="btabs-alt-static-imagenes-operaciones-tab">
 
-
           <div v-for="(img, index) in imagenesOperaciones" :key="img.id"
-            class="position-relative border border-secondary border-opacity-25 rounded bg-body overflow-hidden shadow-sm"
-            style="width: 100px; height: 100px; cursor: pointer;" @click="showGallery(index)">
+            class="border border-secondary border-opacity-25 rounded bg-body overflow-hidden shadow-sm"
+            style="width: 100px; height: 100px; cursor: pointer; flex-shrink: 0;" @click="showGallery(index)">
 
             <img :src="img.url" class="img-fluid w-100 h-100 object-fit-cover" :alt="img.nombre"
               @error="handleImageError" title="Ver en pantalla completa">
@@ -407,7 +406,7 @@ const handleHide = () => {
   gallery.visible = false;
 };
 const handleImageError = (e) => {
-    e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+  e.target.src = 'https://via.placeholder.com/100?text=No+Image';
 };
 
 onMounted(() => {
