@@ -155,7 +155,7 @@ onMounted(async () => {
 
         <template #content>
             <div class="block-content block-content-full p-0 d-flex flex-column flex-grow-1 overflow-hidden">
-                <div class="table-responsive" style="max-height: 100%; overflow-y: auto;">
+                <div class="table-responsive flex-grow-1" style="max-height: 100%; overflow-y: auto;">
                     <table class="table table-hover table-vcenter mb-0 fs-sm table-striped">
                         <thead class="bg-body-light text-uppercase fs-xs sticky-top" style="z-index: 10;">
                             <tr>
