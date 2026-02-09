@@ -854,6 +854,8 @@ onMounted(async () => {
         form.value.forma_pago_id = null;
         await nextTick();
         form.value.forma_pago_id = temp;
+      }else if(methodPayment.value && methodPayment.value.length > 0){
+        form.value.forma_pago_id = methodPayment.value[0].codigo;
       }
     } catch (e) {
       console.error("Error cargando datos del cliente recuperado", e);

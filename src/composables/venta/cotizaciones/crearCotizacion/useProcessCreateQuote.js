@@ -1074,7 +1074,7 @@ export function useProcessCreateQuote() {
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
                 setTimeout(() => {
                     isRecoveringQuote.value = false;
-                    console.log("✅ Recuperación completada. Watchers reactivados.");
+                    
                 }, 500);
             },
             onError: (err) => {
