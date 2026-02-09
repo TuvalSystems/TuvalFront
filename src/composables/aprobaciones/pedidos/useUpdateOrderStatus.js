@@ -8,7 +8,7 @@ export function useUpdateOrderStatus() {
     const apiChangeStatus = "aprobaciones/pedido/rechazar-estado-espera";
 
     async function changeStatusOrderBeenWaiting(id) {
-        return await run(() => axiosClient.post(apiChangeStatus, { id },
+        return run(() => axiosClient.post(apiChangeStatus, { id },
             { headers: { "Content-Type": "application/json" } }
         ), {
             loadingRef: loadingChange,

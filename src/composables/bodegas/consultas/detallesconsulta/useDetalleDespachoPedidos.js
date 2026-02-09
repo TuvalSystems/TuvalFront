@@ -36,7 +36,7 @@ export function useDetalleDespachoPedidos() {
   const apiDetailReservation = "bodegas/guia-remision-reserva/detalle";
 
   async function fetchDetailGuideReservation(id){
-    return await run(() => axiosClient.post(apiDetailReservation, { id }), {
+    return  run(() => axiosClient.post(apiDetailReservation, { id }), {
       loadingRef: loadingDetailGuideR,
       successMessage: "Proceso realizado exitosamente.",
     })

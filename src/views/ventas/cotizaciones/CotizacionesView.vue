@@ -343,18 +343,16 @@ import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import {
-  swalSimple,
   swalInfo,
   swalSuccess,
   swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 import VerCotizacionModal from "../modals/VerCotizacionModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { formatPrice, format } from "@/functions";
+import {  format } from "@/functions";
 import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
@@ -369,7 +367,16 @@ const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
 const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits()
 const { checkExistingReserve } = useValidatesReserved()
-const { verifyStockBeforeRequestReserve, loadingStockValidation } = useQuotationReserveRequestSale()
+const { verifyStockBeforeRequestReserve } = useQuotationReserveRequestSale()
+//** imports pra nuevos procesos */
+import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
+
+import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
+import { useImageUpload } from "@/composables/core/useImageUpload";
+
+
+const { fetchAndFillQuotation, loadDataForReorder } = useProcessCreateQuote();
+const { uploadedFiles } = useImageUpload();
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -601,30 +608,46 @@ async function llenarcotizaciones(estado) {
     });
 }
 
+
 async function recuperarcotizacion(cotizacion) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(cotizacion.id);
-  } catch {
-    return;
-  }
+  templateStore.pageLoader({ mode: "on" });
+
+  const respRes = await checkExistingReserve(cotizacion.id);
   if (respRes?.exists) {
+    templateStore.pageLoader({ mode: "off" });
     swalInfo('No puede recuperar la cotización: la cotización cuenta con una solicitud de reserva  ');
     return;
   }
-
-  templateStore.pageLoader({ mode: "on" });
-  store
-    .dispatch("recuperarCotizacion", cotizacion)
-    .then(() => {
-      templateStore.pageLoader({ mode: "off" });
-      router.push({
-        name: "ventas-crearcotizacion",
-      });
-    })
-    .catch((err) => {
-      errorMsg.value = err.response.data.error;
+  const resRestore = await fetchAndFillQuotation(cotizacion.id, uploadedFiles);
+  if (resRestore?.ok) {
+    templateStore.pageLoader({ mode: "off" });
+    router.push({
+      name: "ventas-crearcotizacion",
     });
+  } else {
+    templateStore.pageLoader({ mode: "off" });
+  }
+}
+
+async function volverapedir(cotizacion) {
+  templateStore.pageLoader({ mode: "on" });
+  const respRes = await checkExistingReserve(cotizacion.id);
+  if (respRes?.exists) {
+    templateStore.pageLoader({ mode: "off" });
+    swalInfo('No puede volver a pedir la cotización ya que cuenta con una solicitud de reserva');
+    return;
+  }
+
+  const resploadForReorder = await loadDataForReorder(cotizacion.id, uploadedFiles);
+  if (resploadForReorder?.ok) {
+    templateStore.pageLoader({ mode: "off" });
+    router.push({
+      name: "ventas-crearcotizacion",
+    });
+  } else {
+    templateStore.pageLoader({ mode: "off" });
+  }
+
 }
 
 function recuperarcotizacionprospecto(cotizacion) {
@@ -652,30 +675,6 @@ function recuperarcotizacionprospecto(cotizacion) {
   });
 }
 
-async function volverapedir(cotizacion) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(cotizacion.id);
-  } catch {
-    return;
-  }
-  if (respRes?.exists) {
-    swalInfo('No puede volver a pedir la cotización ya que cuenta con una solicitud de reserva');
-    return;
-  }
-  templateStore.pageLoader({ mode: "on" });
-  store
-    .dispatch("volverapedirCotizacion", cotizacion)
-    .then(() => {
-      templateStore.pageLoader({ mode: "off" });
-      router.push({
-        name: "ventas-crearcotizacion",
-      });
-    })
-    .catch((err) => {
-      errorMsg.value = err.response.data.error;
-    });
-}
 
 
 async function levantarcliente(pedido) {

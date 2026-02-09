@@ -68,7 +68,7 @@ export function useDevolutionReceivedTable() {
             sortOrder: table.sortOrder,
             ptoVtaId: table.ptovta,
         }
-        return await run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+        return  run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-devoluciones-pendiente-recepcion`,

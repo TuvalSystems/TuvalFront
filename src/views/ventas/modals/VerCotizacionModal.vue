@@ -91,15 +91,15 @@
             class="table table-hover table-sm table-vcenter mt-4">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Código</th>
-                <th>Descripción</th>
-                <th>CTL</th>
-                <th>UDM</th>
-                <th class="text-end">Cantidad</th>
-                <th class="text-end">Precio</th>
-                <th class="text-end">Descuento</th>
-                <th class="text-end">Total</th>
+                <th scope="col">#</th>
+                <th scope="col">Código</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">CTL</th>
+                <th scope="col">UDM</th>
+                <th scope="col" class="text-end">Cantidad</th>
+                <th scope="col" class="text-end">Precio</th>
+                <th scope="col" class="text-end">Descuento</th>
+                <th scope="col" class="text-end">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -252,7 +252,7 @@
           Cerrar
         </button>
       </div>
-      
+
     </div>
   </div>
 </template>

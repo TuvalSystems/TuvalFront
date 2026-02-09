@@ -994,6 +994,8 @@ const store = createStore({
         commit("setEstadoDeCuenta", res.data.estadodecuenta);
         commit("setSegmentoClienteLoading", false);
         commit("setSegmentoCliente", res.data.segmento);
+        commit("setNivelPrecioClienteDetalle", res.data.nivelPrecio);
+        commit("setImagenesOperaciones", res.data.imagenesOperaciones);
         return res;
       });
     },
@@ -1054,6 +1056,7 @@ const store = createStore({
           commit("setEstadoDeCuenta", res.data.data.estadodecuenta);
           commit("setSegmentoClienteLoading", false);
           commit("setSegmentoCliente", res.data.data.segmento);
+          commit("setNivelPrecioCotizacion", res.data.data.nivelPrecio);
           return res;
         });
     },
@@ -2350,8 +2353,18 @@ const store = createStore({
     setSegmentoCliente: (state, data) => {
       state.segmentocliente.data = data;
     },
+     setNivelPrecioClienteDetalle : (state, data) => {
+      state.nivelPrecioClienteDetalle = data;
+    },
     setSegmentoClienteLoading: (state, loading) => {
       state.segmentocliente.loading = loading;
+    },
+
+    setNivelPrecioCotizacion : (state, data) => {
+      state.nivelPrecioCotizacion = data;
+    },
+    setImagenesOperaciones : (state, data) =>{
+      state.imagenesOperaciones = data;
     },
 
 

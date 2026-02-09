@@ -2,40 +2,58 @@ import axios from 'axios';
 import store from './store';
 import router from './router';
 
-
 const axiosClient = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`, //http://172.30.1.7/api,
+    baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
     headers: {
-        // "Access-Control-Allow-Origin": "*",
-        'Content-Type': 'application/json',
-    }
-})
+        'Accept': 'application/json',
+        // NOTA: No ponemos 'Content-Type' aquí para permitir 
+        // que el navegador gestione automáticamente FormData (imágenes/archivos)
+    },
+    // Opcional: Establecer un tiempo máximo de espera (ej. 60 segundos)
+});
 
+// --- Interceptor de Solicitud (Request) ---
 axiosClient.interceptors.request.use(config => {
-    config.headers.Authorization = `Bearer ${store.state.user.token}`;
+    // Validamos token antes de inyectar
+    if (store.state.user.token) {
+        config.headers.Authorization = `Bearer ${store.state.user.token}`;
+    }
     return config;
-})
+}, error => {
+    return Promise.reject(error);
+});
 
-
+// --- Interceptor de Respuesta (Response) ---
 axiosClient.interceptors.response.use(
     response => response,
     error => {
-        // Si la API devuelve 503 (Service Unavailable / Mantenimiento)
-        if (error.response && error.response.status === 503) {
+        const { response } = error;
 
-            // Verificamos si ya estamos en la página de mantenimiento para evitar loops
+        // Caso 1: Error 503 (Mantenimiento)
+        if (response && response.status === 503) {
             if (router.currentRoute.value.name !== 'Maintenance') {
                 router.push({ name: 'Maintenance' });
             }
-
-            // Retornamos una promesa vacía ("pendiente para siempre")
-            // Esto sirve para detener la cadena de errores. Así tus componentes
-            // (ej. el formulario de login) NO mostrarán alertas rojas de "Error"
-            // justo antes de cambiar de página.
+            // Promesa vacía para detener la ejecución y evitar alertas innecesarias
             return new Promise(() => { });
         }
 
-        // Para cualquier otro error (401, 422, 500), dejamos que fluya normal
+        // Caso 2: Error 401 (No autorizado / Token vencido) -> MEJORA RECOMENDADA
+        if (response && response.status === 401) {
+            // Si el usuario recibe un 401, significa que su token ya no sirve.
+            // Lo ideal es limpiar el estado y mandarlo al login.
+
+            // store.dispatch('logout'); // Si tienes una acción de logout
+            // O limpiar manualmente si no tienes acción:
+            if (store.state.user.token) {
+                store.state.user.token = null;
+                router.push({ name: 'Login' }); // Redirigir a login
+            }
+        }
+
+        // Caso 3: Error 403 (Forbidden / Sin permisos)
+        // Puedes redirigir a una página de "No autorizado" si quieres
+
         return Promise.reject(error);
     }
 );

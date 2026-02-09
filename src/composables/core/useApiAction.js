@@ -39,7 +39,7 @@ export function useApiAction() {
             }
             const status = error.response?.status || 500;
             const backend = error?.response?.data ?? {};
-            const msg = backend.error || backend.message || error?.message || "Ocurrió un error al procesar la solicitud.";
+            let msg = backend.error || backend.message || error?.message || "Ocurrió un error al procesar la solicitud.";
 
             if (backend.errors && typeof backend.errors === 'object') {
                 const firstValidationError = Object.values(backend.errors).flat().shift();

@@ -18,7 +18,7 @@ export function useProcessDetailDevolution(infoRef) {
 
 
     async function fetchDetail(devolutionId) {
-        return await run(() => axiosClient.post(apiDetail, { id: devolutionId }), {
+        return  run(() => axiosClient.post(apiDetail, { id: devolutionId }), {
             loadingRef: loadingDetail,
             successMessage: "Proceso realizado exitosamente.",
             onSuccess: (rows) => {
@@ -243,7 +243,7 @@ export function useProcessDetailDevolution(infoRef) {
             header: infoRef.value?.devolucion || {},
             details: detallesFiltrados,
         }
-        return await run(() => axiosClient.post(apiProcessDetail, payloadProcess), {
+        return  run(() => axiosClient.post(apiProcessDetail, payloadProcess), {
             loadingRef: loadingProcess,
             successMessage: "Proceso realizado exitosamente.",
         });
@@ -257,7 +257,7 @@ export function useProcessDetailDevolution(infoRef) {
     const loadingDenny = ref(false);
     const apiDenny = 'devoluciones/rechazar-devolucion';
     async function dennyDevolution(id) {
-        return await run(() => axiosClient.post(apiDenny, { id }), {
+        return  run(() => axiosClient.post(apiDenny, { id }), {
             loadingRef: loadingDenny,
             successMessage: "Proceso realizado exitosamente.",
         });

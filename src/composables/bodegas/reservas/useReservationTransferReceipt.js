@@ -30,7 +30,7 @@ export function useReservationTransferReceipt() {
 
     /** obtener detalle */
     async function fetchDetail(guiaId) {
-        return await run(() => axiosClient.post(apiSearchDetail, { id: guiaId }), {
+        return  run(() => axiosClient.post(apiSearchDetail, { id: guiaId }), {
             loadingRef: loading,
             successMessage: "Proceso realizado exitosamente.",
             onSuccess: (rows) => {
@@ -81,7 +81,7 @@ export function useReservationTransferReceipt() {
     const loadingReceived = ref(false);
     const apiProcessReceivedItems = 'bodegas/reservas/guia-remision/detalle-transferencias-por-recibir/recibir';
     async function processReceivedItems(payload){
-      return await run(() => axiosClient.post(apiProcessReceivedItems, payload), {
+      return  run(() => axiosClient.post(apiProcessReceivedItems, payload), {
         loadingRef: loadingReceived,
         successMessage: "Proceso realizado exitosamente.",
       });

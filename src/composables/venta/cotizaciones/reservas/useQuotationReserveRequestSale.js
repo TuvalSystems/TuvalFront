@@ -157,7 +157,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
       reserva.tipo_traslado_reserva_id = null;
     }
 
-    return await run(() => axiosClient.post(apiSolicitud, { reserva: reserva }), {
+    return  run(() => axiosClient.post(apiSolicitud, { reserva: reserva }), {
       loadingRef: isInvalid,
       successMessage: "Reserva solicitada correctamente.",
       onError: (backend, error) => {
@@ -190,7 +190,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
 
 
   async function verifyStockBeforeRequestReserve(cotizacionId) {
-    return await run(() => axiosClient.post(apiVerificarStock, { id: cotizacionId }), {
+    return  run(() => axiosClient.post(apiVerificarStock, { id: cotizacionId }), {
       loadingRef: loadingStockValidation,
       // onError: (backend, error) => {
       //   swalError(

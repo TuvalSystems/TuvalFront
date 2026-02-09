@@ -62,7 +62,7 @@ export function useReceivedReservationTable() {
             fecha_hasta: table.filters.fecha_hasta,
             ptoVtaDestino: table.filters.ptoVtaDestino
         }
-        return await run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+        return  run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,                         // 👈 activa takeLatest
             key: `lista-reservas-enviadas`,      // 👈 clave para este endpoint

@@ -6,63 +6,62 @@
       </button>
     </template>
     <template #content>
-      <ul class="nav nav-tabs nav-tabs-alt" role="tablist">
+      <ul class="nav nav-tabs nav-tabs-alt">
         <li class="nav-item">
-          <button class="nav-link active" id="btabs-alt-static-detalle-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-detalle" role="tab" aria-controls="btabs-alt-static-detalle"
-            aria-selected="true">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'detalle' }"
+            @click="tabActual = 'detalle'">
             Detalle
           </button>
         </li>
         <li v-if="verrecibodecompral && verrecibodecompral.length" class="nav-item">
-          <button class="nav-link" id="btabs-alt-static-ordendecompra-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-ordendecompra" role="tab" aria-controls="btabs-alt-static-ordendecompra"
-            aria-selected="false">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'recibocompra' }"
+            @click="tabActual = 'recibocompra'">
             Orden de compra
           </button>
         </li>
         <li v-if="traslados && traslados.length" class="nav-item">
-          <button class="nav-link" id="btabs-alt-static-traslados-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-traslados" role="tab" aria-controls="btabs-alt-static-traslados"
-            aria-selected="false">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'traslados' }"
+            @click="tabActual = 'traslados'">
             Traslados
           </button>
         </li>
 
         <li v-if="orden_despacho" class="nav-item">
-          <button class="nav-link" id="btabs-alt-static-orden_despacho-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-orden_despacho" role="tab" aria-controls="btabs-alt-static-orden_despacho"
-            aria-selected="false">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'orden_despacho' }"
+            @click="tabActual = 'orden_despacho'">
             Orden de despacho
           </button>
         </li>
         <li v-if="guias_remision && guias_remision.length" class="nav-item">
-          <button class="nav-link" id="btabs-alt-static-guias_remision-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-guias_remision" role="tab" aria-controls="btabs-alt-static-guias_remision"
-            aria-selected="false">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'guia_remision' }"
+            @click="tabActual = 'guia_remision'">
             Guia Remisión
           </button>
         </li>
         <li v-if="devoluciones && devoluciones.length" class="nav-item">
-          <button class="nav-link" id="btabs-alt-static-devoluciones-tab" data-bs-toggle="tab"
-            data-bs-target="#btabs-alt-static-devoluciones" role="tab" aria-controls="btabs-alt-static-devoluciones"
-            aria-selected="false">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'devoluciones' }"
+            @click="tabActual = 'devoluciones'">
             Notas de crédito
+          </button>
+        </li>
+        <li v-if="imagenesOperaciones && imagenesOperaciones.length" class="nav-item">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'imagenes_operaciones' }"
+            @click="tabActual = 'imagenes_operaciones'">
+            Imagenes Operaciones
           </button>
         </li>
       </ul>
 
       <div class="block-content tab-content fs-sm">
-        <div class="tab-pane active" id="btabs-alt-static-detalle" role="tabpanel"
-          aria-labelledby="btabs-alt-static-detalle-tab">
+        <div class="tab-pane fade" :class="{ 'active show': tabActual === 'detalle' }">
           <CabeceraPedido :verpedido="verpedido" :segmento="segmentocliente"></CabeceraPedido>
           <div class="table-responsive">
             <div v-if="detallepedido.loading" class="text-center">
-              <div class="spinner-border text-primary mt-4" role="status"><span
+              <div class="spinner-border text-primary mt-2" role="status"><span
                   class="visually-hidden">Loading...</span></div>
             </div>
             <table v-if="detallepedido.data.length && !detallepedido.loading"
-              class="table table-hover table-sm table-vcenter mt-4">
+              class="table table-hover table-sm table-vcenter mt-2">
               <thead>
                 <tr>
                   <th>#</th>
@@ -90,7 +89,7 @@
                       <a class="text-danger"
                         v-if="articulo.ART_TIPO_COMPRA !== 'L' && articulo.ART_DESCRIPCION != articulo.ART_DESCRIPCION_ORIGINAL"
                         @click="verdiferenciadescripcion(articulo)" href="javascript:void(0);">{{
-                        articulo.ART_DESCRIPCION }}</a>
+                          articulo.ART_DESCRIPCION }}</a>
                       <span v-else>{{ articulo.ART_DESCRIPCION }}</span>
                     </td>
                     <td class="fs-sm">
@@ -176,25 +175,34 @@
           </div>
 
         </div>
-        <div v-if="verrecibodecompral && verrecibodecompral.length" class="tab-pane" id="btabs-alt-static-ordendecompra"
-          role="tabpanel" aria-labelledby="btabs-alt-static-ordendecompra-tab">
+        <div v-if="verrecibodecompral && verrecibodecompral.length" class="tab-pane fade"
+          :class="{ 'active show': tabActual === 'recibocompra' }">
           <ReciboDeCompraL></ReciboDeCompraL>
         </div>
-        <div v-if="traslados.length" class="tab-pane" id="btabs-alt-static-traslados" role="tabpanel"
-          aria-labelledby="btabs-alt-static-traslados-tab">
+        <div v-if="traslados.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'traslados' }">
           <Traslados></Traslados>
         </div>
-        <div v-if="orden_despacho" class="tab-pane" id="btabs-alt-static-orden_despacho" role="tabpanel"
-          aria-labelledby="btabs-alt-static-orden_despacho-tab">
+        <div v-if="orden_despacho" class="tab-pane fade" :class="{ 'active show': tabActual === 'orden_despacho' }">
           <OrdenDespacho></OrdenDespacho>
         </div>
-        <div v-if="guias_remision.length" class="tab-pane" id="btabs-alt-static-guias_remision" role="tabpanel"
-          aria-labelledby="btabs-alt-static-guias_remision-tab">
+        <div v-if="guias_remision.length" class="tab-pane fade"
+          :class="{ 'active show': tabActual === 'guia_remision' }">
           <GuiasRemision></GuiasRemision>
         </div>
-        <div v-if="devoluciones.length" class="tab-pane" id="btabs-alt-static-devoluciones" role="tabpanel"
-          aria-labelledby="btabs-alt-static-devoluciones-tab">
+        <div v-if="devoluciones.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'devoluciones' }">
           <Devoluciones></Devoluciones>
+        </div>
+        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade d-flex flex-wrap gap-2 p-3"
+          :class="{ 'active show': tabActual === 'imagenes_operaciones' }">
+
+          <div v-for="(img, index) in imagenesOperaciones" :key="img.id"
+            class="border border-secondary border-opacity-25 rounded bg-body overflow-hidden shadow-sm"
+            style="width: 100px; height: 100px; cursor: pointer; flex-shrink: 0;" @click="showGallery(index)">
+
+            <img :src="img.url" class="img-fluid w-100 h-100 object-fit-cover" :alt="img.nombre"
+              @error="handleImageError" title="Ver en pantalla completa">
+          </div>
+
         </div>
       </div>
     </template>
@@ -210,7 +218,7 @@
                 :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
                 :maxlength="max_length" @change="guardarOrdenDeCompra(verpedido)" />
               <span v-if="verpedido.orden_de_compra" class="input-group-text">{{ max_length -
-                verpedido.orden_de_compra.length}}</span>
+                verpedido.orden_de_compra.length }}</span>
             </div>
 
           </div>
@@ -229,20 +237,9 @@
           <div class="col-sm-12">
             <button v-if="
               existentes
-              && !['facturado', 'eliminado', 'espera', 'rechazado', 'anulada'].includes(verpedido.estado)
-
-            " type="button" class="btn btn-warning btn-sm mx-1 mb-2" @click="emit('consultarExistente')">Facturar
+              && !['facturado', 'eliminado', 'espera', 'rechazado', 'anulada'].includes(verpedido.estado)"
+              type="button" class="btn btn-warning btn-sm mx-1 mb-2" @click="emit('consultarExistente')">Facturar
               lo existente</button>
-            <!--            <button-->
-            <!--                v-if="-->
-            <!--                  verpedido.factura_posterior_despacho && verpedido.factura_a_demanda-->
-            <!--                  && verpedido.estado !== 'facturado'-->
-            <!--                  && verpedido.estado !== 'eliminado'-->
-            <!--                  && verpedido.estado !== 'rechazado'-->
-            <!--                  && !verpedido.despacho_en_proceso-->
-            <!--                  && !verpedido.transferencia_en_proceso-->
-            <!--                "-->
-            <!--                type="button" class="btn btn-info btn-sm mx-1 mb-2"  @click="emit('consultarDespachado')">Facturar despachado</button>-->
             <button type="button" class="btn btn-primary btn-sm mx-1 mb-2" data-bs-dismiss="modal"> Cerrar</button>
           </div>
           <div v-if="detallepedido.data.length && !detallepedido.loading" class="col-sm-12 mt-2">
@@ -255,13 +252,16 @@
               && !verpedido.item_l_recibido
               && !verpedido.check_traslado_venta
               && !has_guide_dispatched
-            " type="button" class="btn btn-danger btn-sm mx-1 mb-2"
-              @click="confirmcancelarPedido(verpedido)"><i class="fa fa-xmark"></i> Cancelar Pedido</button>
+            " type="button" class="btn btn-danger btn-sm mx-1 mb-2" @click="confirmcancelarPedido(verpedido)"><i
+                class="fa fa-xmark"></i> Cancelar Pedido</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+
+  <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
@@ -274,7 +274,7 @@ import OrdenDespacho from "./tabs/OrdenDespacho.vue"
 import GuiasRemision from "./tabs/GuiasRemision.vue"
 import Devoluciones from "./tabs/Devoluciones.vue";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
-
+import VueEasyLightbox from "vue-easy-lightbox";
 const { verpedido, indexPedido, tipo } = defineProps({
   verpedido: Object,
   indexPedido: Number,
@@ -292,9 +292,11 @@ const pendientes = computed(() => store.state.pendientes);
 const existentes = computed(() => store.state.existentes);
 const segmentocliente = computed(() => store.state.segmentocliente);
 const has_guide_dispatched = computed(() => store.state.has_guide_dispatched);
+const imagenesOperaciones = computed(() => store.state.imagenesOperaciones);
 const max_length = ref(20);
 const emit = defineEmits(["consultarExistente", "cancelarPedido", "consultarDespachado"]);
 
+const tabActual = ref('detalle');
 let errorMsg = ref('');
 
 function verdiferenciacondicion(pedido) {
@@ -365,6 +367,28 @@ function cancelarPedido(pedido) {
     emit('cancelarPedido');
   })
 }
+
+const gallery = reactive({
+  visible: false,
+  index: 0,
+  photos: []
+});
+
+const showGallery = (index) => {
+  gallery.photos = imagenesOperaciones.value.map(img => img.url);
+  gallery.index = index;
+  gallery.visible = true;
+}
+
+const handleHide = () => {
+  gallery.visible = false;
+};
+const handleImageError = (e) => {
+  const placeholder = 'https://via.placeholder.com/100?text=No+Image';
+  if (e.target.src !== placeholder) {
+    e.target.src = placeholder;
+  }
+};
 
 onMounted(() => {
 

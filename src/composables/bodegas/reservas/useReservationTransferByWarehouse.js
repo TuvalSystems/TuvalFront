@@ -168,7 +168,7 @@ export function useReservationTransferByWarehouse() {
 
   async function fetchHeaderTransferByWarehouseOriginAndDestination() {
     if (!validatePtoDestination()) return;
-    return await run(() => axiosClient.post(apiHeaderTransferByWarehouseOriginAndDestination, payloadHeader), {
+    return  run(() => axiosClient.post(apiHeaderTransferByWarehouseOriginAndDestination, payloadHeader), {
       loadingRef: loadingHeaderTransfer,
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: (list) => {
@@ -187,7 +187,7 @@ export function useReservationTransferByWarehouse() {
 
   async function fetchListTransfersByWarehouseOriginAndDestination() {
     if (!validatePtoDestination()) return;
-    return await run(() => axiosClient.post(apiListTransferByWarehouse, payload), {
+    return  run(() => axiosClient.post(apiListTransferByWarehouse, payload), {
       loadingRef: loadingDetailTransfer,
       successMessage: "Items cargados correctamente.",
       onSuccess: (list) => {
@@ -392,7 +392,7 @@ export function useReservationTransferByWarehouse() {
 
   const loadingCancelPicking = ref(false);
   async function cancelPicking(row) {
-    return await run(() => axiosClient.post(apiCancelPicking, { row }), {
+    return  run(() => axiosClient.post(apiCancelPicking, { row }), {
       loadingRef: loadingCancelPicking,
       successMessage: "Proceso realizado exitosamente.",
     });
@@ -401,7 +401,7 @@ export function useReservationTransferByWarehouse() {
   const loadingPicking = ref(false);
 
   async function applyPickingSelected(items) {
-    return await run(() => axiosClient.post(apiUpdatePicking, { items }), {
+    return  run(() => axiosClient.post(apiUpdatePicking, { items }), {
       loadingRef: loadingPicking,
       successMessage: "Proceso realizado exitosamente.",
     });
@@ -439,7 +439,7 @@ export function useReservationTransferByWarehouse() {
   /*** proceso de listado de guias de remision de reserva pendientes*/
   async function fectchListGuideRemisionPending() {
     if (!validatePtoDestination()) return;
-    return await run(() => axiosClient.post(apiListPendingGuides, payloadHeader), {
+    return  run(() => axiosClient.post(apiListPendingGuides, payloadHeader), {
       loadingRef: loadingPendingGuides,
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: (list) => {
@@ -491,7 +491,7 @@ export function useReservationTransferByWarehouse() {
 
   const loadingDispacthGuide = ref(false);
   async function dispatchGuideReservedPending(id) {
-    return await run(() => axiosClient.post(apiDispatchPendingGuides, { id }), {
+    return  run(() => axiosClient.post(apiDispatchPendingGuides, { id }), {
       loadingRef: loadingDispacthGuide,
       // onSuccess: () => refresh(),
       successMessage: "Proceso realizado exitosamente.",
