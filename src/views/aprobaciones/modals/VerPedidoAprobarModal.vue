@@ -121,7 +121,7 @@
                 <th>Código</th>
                 <th>Descripción</th>
                 <th>CTL</th>
-                <th class="text-center">Clasificacion Tuval</th>
+                <th class="text-center">Clas. Tuval</th>
                 <th>UDM</th>
                 <th class="text-end">Cantidad</th>
                 <th class="text-end">Precio</th>

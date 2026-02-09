@@ -68,6 +68,10 @@
                 <td colspan="6" class="text-muted">Sin segmento para este cliente</td>
               </tr>
               <tr>
+                <td>Nivel de Precio</td>
+                <td colspan="6">{{ nivelPrecioCotizacion }}</td>
+              </tr>
+              <tr>
                 <th v-if="vercotizacion.nota_interna" class="fs-sm text-danger">Nota interna</th>
                 <td v-if="vercotizacion.nota_interna" class="fs-sm text-danger" colspan="5">
                   {{ vercotizacion.nota_interna }}</td>
@@ -116,6 +120,7 @@
                 <th>Código</th>
                 <th>Descripción</th>
                 <th>CTL</th>
+                <th class="text-center">Clas. Tuval</th>
                 <th>UDM</th>
                 <th class="text-end">Cantidad</th>
                 <th class="text-end">Precio</th>
@@ -144,6 +149,9 @@
                   </td>
                   <td class="fs-sm">
                     {{ articulo.ART_CODIGO_TRES_LETRAS }}
+                  </td>
+                  <td class="fs-sm text-center">
+                    {{ articulo.clasificacion_tuval }}
                   </td>
                   <td class="fs-sm">
                     {{ articulo.ART_PLAN_UMEDIDA }}
@@ -176,7 +184,7 @@
                   </td>
                 </tr>
                 <tr v-if="articulo.proveedores.length">
-                  <td colspan="10" style="background:#EFEFEF">
+                  <td colspan="11" style="background:#EFEFEF">
                     <table class="table table-sm table-vcenter">
                       <tr>
                         <th>Descripción L</th>
@@ -200,23 +208,23 @@
                 </tr>
               </template>
               <tr>
-                <th colspan="9" class="fs-sm text-end">Subtotal</th>
+                <th colspan="10" class="fs-sm text-end">Subtotal</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(vercotizacion.subtotal)) }}</th>
               </tr>
               <tr>
-                <th colspan="9" class="fs-sm text-end">Descuento</th>
+                <th colspan="10" class="fs-sm text-end">Descuento</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(vercotizacion.descuento)) }}</th>
               </tr>
               <tr>
-                <th colspan="9" class="fs-sm text-end">Subtotal - descuento</th>
+                <th colspan="10" class="fs-sm text-end">Subtotal - descuento</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(vercotizacion.subtotalmenosdescuento)) }}</th>
               </tr>
               <tr>
-                <th colspan="9" class="fs-sm text-end">IVA</th>
+                <th colspan="10" class="fs-sm text-end">IVA</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(vercotizacion.iva)) }}</th>
               </tr>
               <tr>
-                <th colspan="9" class="fs-sm text-end">Total</th>
+                <th colspan="10" class="fs-sm text-end">Total</th>
                 <th class="fs-sm text-end">${{ format(parseFloat(vercotizacion.total)) }}</th>
               </tr>
             </tbody>
@@ -260,6 +268,7 @@ const store = useStore();
 const detallecotizacion = computed(() => store.state.detallecotizacion);
 const estadodecuenta = computed(() => store.state.estadodecuenta);
 const segmentocliente = computed(() => store.state.segmentocliente);
+const nivelPrecioCotizacion = computed(() => store.state.nivelPrecioCotizacion);
 
 function guardarMensaje(pedido) {
   store.dispatch('guardarMensajeCotizacion', pedido)
