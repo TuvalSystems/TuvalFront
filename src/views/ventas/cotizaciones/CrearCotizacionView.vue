@@ -120,6 +120,7 @@ const {
   createQuote,
   loadingSaveOrder,
   saveOrder,
+  isRecoveringQuote
 } = useProcessCreateQuote();
 const {
   loadingConditionPayment,
@@ -181,7 +182,7 @@ const showResultClients = ref(false);
 const showInfoClient = ref(false);
 
 async function searchFilterClientes() {
-  clearForm(uploadedFiles, infoClient);//limpia el formulario 
+  clearForm(uploadedFiles);//limpia el formulario 
   showResultClients.value = true;
   showInfoClient.value = false;
   if (dataSearch.search == null || dataSearch.search.length < 4) {
@@ -245,6 +246,13 @@ async function processSelectClient(client) {
     return;
   }
   showInfoClient.value = true;
+  console.log(infoClient.value);
+  
+  //asignacion de cliente y segmento
+  form.value.cliente = infoClient.value;
+  if (infoSegmento.value) {
+    form.value.segmento = infoSegmento.value;
+  }
 
   //asignacion de sucursal 
   if (sucursales.value.length > 0) {
@@ -287,7 +295,7 @@ const hasDispatch = computed(() => {
 // proceso de crear direccion nueva para un cliente 
 let dataClient = ref({});
 async function openModalCreateAddress() {
-  dataClient.value = infoClient.value;
+  dataClient.value = form.value.cliente;
   await nextTick();
   verModalCrearDireccionModalObj.show()
 
@@ -337,42 +345,35 @@ watch(
 );
 
 
-// asignacion de cliente y segmento
-watch(
-  () => infoClient.value,
-  (newValue) => {
-    if (newValue) {
-      form.value.cliente = newValue
-    }
-  }
-)
-watch(
-  () => infoSegmento.value,
-  (newValue) => {
-    if (newValue) {
-      form.value.segmento = newValue
-    }
-  }
-)
 
+//blindeja dependiendo del modo del form para evitar cargadar informacion innecesaria
 watch(
-  () => infoClient.value,
-  (newValue) => {
-    if (!newValue) return;
-    if (newValue.suspendido === 1) {
+  () => form.value.cliente, (newVal) => {
+    if (!newVal) return;
+    form.value.condicion_pago_original_id = newVal.CLI_CONDICION_PAGO;
+    if (isRecoveringQuote.value) return;
+
+    const modosIncludes = ['restore_quote', 'volver_a_pedir'];
+    if (modosIncludes.includes(form.value.mode) && form.value.condicion_pago_id) {
+      if (newVal.CLI_RUC === form.value.cliente.CLI_RUC) {
+        return;
+      }
+    }
+    // Lógica normal
+    if (newVal.suspendido === 1) {
       form.value.condicion_pago_id = 'CONTADO';
     } else {
-      form.value.condicion_pago_id = newValue.CLI_CONDICION_PAGO
+      form.value.condicion_pago_id = newVal.CLI_CONDICION_PAGO;
     }
-    form.value.condicion_pago_original_id = newValue.CLI_CONDICION_PAGO;
-  },
-  { immediate: true }
-)
+
+  }, { deep: true, immediate: true });
+
 
 
 //condicion de pago 
 
 watch(() => form.value.condicion_pago_id, async (newVal) => {
+  if (isRecoveringQuote.value) return;
   if (newVal) {
     await selectConditionPayment();
   }
@@ -390,16 +391,26 @@ async function selectConditionPayment() {
   }
   await fetchMethodPayment(condId);
   if (methodPayment.value && methodPayment.value.length > 0) {
-    const primeraForma = methodPayment.value[0];
-    form.value.forma_pago_id = primeraForma.codigo;
 
-    const descuentoCliente = Number.parseFloat(infoClient.value.CLI_DSTO_COMERCIAL || 0);
-    const rebajaMetodo = Number.parseFloat(primeraForma.porcentaje_rebaja || 0); // O 'porcentaje_rebaja'
+    const formaPagoActual = form.value.forma_pago_id;
+    const existeFormaActual = methodPayment.value.find(m => m.codigo === formaPagoActual);;
+
+    let formaSeleccionada = null;
+    if (existeFormaActual) {
+      formaSeleccionada = existeFormaActual;
+    } else {
+      formaSeleccionada = methodPayment.value[0];
+      form.value.forma_pago_id = formaSeleccionada.codigo;
+    }
+
+    const descuentoCliente = Number.parseFloat(form.value.cliente.CLI_DSTO_COMERCIAL || 0);
+    const rebajaMetodo = Number.parseFloat(formaSeleccionada.porcentaje_rebaja || 0); // O 'porcentaje_rebaja'
 
     const nuevoDescuentoTotal = descuentoCliente + rebajaMetodo;
 
     form.value.descuento_original = nuevoDescuentoTotal;
     form.value.descuento_articulo = nuevoDescuentoTotal;
+
     if (form.value.items && form.value.items.length > 0) {
       form.value.items.forEach(articulo => {
         articulo.descuento = nuevoDescuentoTotal;
@@ -408,7 +419,6 @@ async function selectConditionPayment() {
     }
     calculateTotals();
   } else {
-    // Si la condición de pago no tiene métodos asociados
     form.value.forma_pago_id = null;
   }
 }
@@ -416,7 +426,7 @@ async function selectConditionPayment() {
 async function selectMethodPayment() {
   let selectedMethod = methodPayment.value.find(m => m.codigo === form.value.forma_pago_id);
   if (!selectedMethod) return;
-  const descuentoCliente = Number.parseFloat(infoClient.value.CLI_DSTO_COMERCIAL) || 0;
+  const descuentoCliente = Number.parseFloat(form.value.cliente.CLI_DSTO_COMERCIAL) || 0;
   const descuentoFormaPago = Number.parseFloat(selectedMethod.porcentaje_rebaja) || 0;
   const nuevoDescuentoTotal = descuentoCliente + descuentoFormaPago;
   if (nuevoDescuentoTotal < 0) return;
@@ -430,7 +440,6 @@ async function selectMethodPayment() {
   }
   calculateTotals();
 }
-
 
 
 
@@ -672,7 +681,7 @@ async function confirmarEliminarArticulo(item, i) {
 /** limpiar la cotizacion */
 
 async function clearCotizacion() {
-  clearForm(uploadedFiles, infoClient);
+  clearForm(uploadedFiles);
   showInfoClient.value = false;
   showResultClients.value = false;
   infoClient.value = null;
@@ -765,6 +774,9 @@ async function createQuotation() {
 }
 
 
+
+
+
 /**
  * 
  * guardar cotizacion a pedido y actualizar el pedido 
@@ -802,16 +814,14 @@ watch(uploadedFiles, (newFiles) => {
 
 
 onMounted(async () => {
-  await fetchWarehouseByPtoVtaUser();
-  await fetchConditionPayment();
+  await Promise.all([
+    fetchWarehouseByPtoVtaUser(),
+    fetchConditionPayment()
+  ]);
   //logica para recuperar datos en memoria
   if (form.value.cliente && form.value.cliente.CLI_RUC) {
     loadingSearch.value = false;
     loadingAvailableCredit.value = false;
-    infoClient.value = form.value.cliente;
-    if (form.value.segmento) {
-      infoSegmento.value = form.value.segmento;
-    }
     showInfoClient.value = true;
     showResultClients.value = false;
 
@@ -829,23 +839,30 @@ onMounted(async () => {
         });
       }
     }
+
     await nextTick();
     try {
+      const promises = [];
+      promises.push(fetchCustomerBranches(form.value.cliente.CLI_RUC));
+      if (form.value.condicion_pago_id) {
+        promises.push(fetchMethodPayment(form.value.condicion_pago_id));
+      }
 
-      await Promise.all([
-        fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC),
-        fetchCustomerBranches(form.value.cliente.CLI_RUC)
-      ]);
+      await Promise.all(promises);
+      if (form.value.forma_pago_id) {
+        const temp = form.value.forma_pago_id;
+        form.value.forma_pago_id = null;
+        await nextTick();
+        form.value.forma_pago_id = temp;
+      }
     } catch (e) {
       console.error("Error cargando datos del cliente recuperado", e);
     } finally {
       loadingSearch.value = false;
-      showInfoClient.value = true;
       loadingAvailableCredit.value = false;
 
     }
   }
-
 });
 
 </script>
@@ -1400,7 +1417,7 @@ onMounted(async () => {
                   <label for="metodoPagoSelect"
                     class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma
                     de pago</label>
-                  <span v-if="form.condicion_pago_id !== infoClient.CLI_CONDICION_PAGO" id="metodoPagoSelect"
+                  <span v-if="form.condicion_pago_id !== form.cliente.CLI_CONDICION_PAGO" id="metodoPagoSelect"
                     class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
                     Condición diferente
                   </span>

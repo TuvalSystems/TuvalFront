@@ -343,18 +343,16 @@ import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import {
-  swalSimple,
   swalInfo,
   swalSuccess,
   swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 import VerCotizacionModal from "../modals/VerCotizacionModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { formatPrice, format } from "@/functions";
+import {  format } from "@/functions";
 import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
@@ -369,7 +367,7 @@ const motivoStore = useMotivosStore()
 const tipoReservasStore = useTipoReservasStore()
 const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits()
 const { checkExistingReserve } = useValidatesReserved()
-const { verifyStockBeforeRequestReserve, loadingStockValidation } = useQuotationReserveRequestSale()
+const { verifyStockBeforeRequestReserve } = useQuotationReserveRequestSale()
 //** imports pra nuevos procesos */
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 
@@ -379,8 +377,6 @@ import { useImageUpload } from "@/composables/core/useImageUpload";
 
 const { fetchAndFillQuotation, loadDataForReorder } = useProcessCreateQuote();
 const { uploadedFiles } = useImageUpload();
-const { infoClient, infoSegmento } = useClientSearch();
-
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -622,7 +618,7 @@ async function recuperarcotizacion(cotizacion) {
     swalInfo('No puede recuperar la cotización: la cotización cuenta con una solicitud de reserva  ');
     return;
   }
-  const resRestore = await fetchAndFillQuotation(cotizacion.id, uploadedFiles, infoClient, infoSegmento);
+  const resRestore = await fetchAndFillQuotation(cotizacion.id, uploadedFiles);
   if (resRestore?.ok) {
     templateStore.pageLoader({ mode: "off" });
     router.push({

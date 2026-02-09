@@ -2,7 +2,7 @@ import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
-import { now, useSessionStorage } from '@vueuse/core';
+import {  useSessionStorage } from '@vueuse/core';
 import { useStore } from 'vuex'
 
 
@@ -82,15 +82,14 @@ export function useProcessCreateQuote() {
     const maxOrder = 20;
 
 
-    function clearForm(uploadedFilesRef = null, infoClienteRef = null) {
+
+    function clearForm(uploadedFilesRef = null) {
         sessionStorage.removeItem('quoteTemp_v1');
         form.value = getInitialState();
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
         }
-        if (infoClienteRef) {
-            infoClienteRef.value = null;
-        }
+       
         nextTick(() => {
             calculateTotals();
         });
@@ -151,18 +150,18 @@ export function useProcessCreateQuote() {
     }
 
 
-  watch(
-    () => form.value.cliente,
-    (newClient) => {
-        if (!newClient) {
-            form.value.factura_posterior_despacho = false;
-            form.value.alerta_facturar = '';
-            return;
-        }
-        validateBillingRules();
-    },
-    { deep: true, immediate: true }
-);
+    watch(
+        () => form.value.cliente,
+        (newClient) => {
+            if (!newClient) {
+                form.value.factura_posterior_despacho = false;
+                form.value.alerta_facturar = '';
+                return;
+            }
+            validateBillingRules();
+        },
+        { deep: true, immediate: true }
+    );
 
 
     //proceso de agregar items a mi form-items y me crea el registro en las tablas temporales
@@ -990,20 +989,19 @@ export function useProcessCreateQuote() {
      *  PROCESO DE RECUPERAR COTIZACION 
      * 
      */
-
+    const isRecoveringQuote = ref(false); // Variable para controlar la recuperación y manejarla en los watchs
     const apiGetQuoteData = 'cotizaciones/recuperar-cotizacion-v2';
     const loadingGetQuoteData = ref(false);
 
-    async function fetchAndFillQuotation(quoteId, uploadedFilesRef, infoClienteRef, infoSegmentoRef) {
+    async function fetchAndFillQuotation(quoteId, uploadedFilesRef) {
         return run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
-            onSuccess: (res) => {
+            onSuccess: async (res) => {
+                isRecoveringQuote.value = true;
                 const { cotizacion, cliente, items, segmento, imagenesOperaciones, mode } = res;
-                clearForm(uploadedFilesRef, infoClienteRef);
 
-                if (infoClienteRef) infoClienteRef.value = cliente;
-                if (infoSegmentoRef) infoSegmentoRef.value = segmento;
-
+                clearForm(uploadedFilesRef);
+             
                 //cargamos el cliente y los datos de identificacion 
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
@@ -1024,6 +1022,8 @@ export function useProcessCreateQuote() {
                     errorPrecio: false,
                     stockRowLoading: false,
                     disableOpenModalStock: false,
+                    descuento: Number(item.descuento || 0),
+                    descuento_original: Number(item.descuento_original || 0),
                     // Aseguramos que existan como arrays
                     proveedores: item.proveedores || [],
                     stock: item.stock || []
@@ -1039,11 +1039,9 @@ export function useProcessCreateQuote() {
                 form.value.tipo_entrega = esRetiro ? 'retiro' : 'despacho';
                 form.value.fecha_entrega = cotizacion.fecha_entrega;
 
-                // 5. Pagos y Descuentos
-                form.value.condicion_pago_id = cotizacion.CON_ID;
-                form.value.condicion_pago_original_id = cliente.CON_ID_ORIGINAL;
-                form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
-
+                //descuentos articulo y descuento original
+                form.value.descuento_articulo = Number(cotizacion.porcentage_descuento || 0);
+                form.value.descuento_original = Number(cotizacion.porcentage_descuentooriginal || 0);
                 // 6. Notas y Otros
                 form.value.nota_cliente = cotizacion.nota_cliente || '';
                 form.value.nota_interna = cotizacion.nota_interna || '';
@@ -1069,9 +1067,19 @@ export function useProcessCreateQuote() {
                 validateBillingRules();
                 calculateTotals();
 
+
+                //condicion de pago revision 
+                form.value.condicion_pago_id = cotizacion.COND_ID;
+                form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
+                form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
+                setTimeout(() => {
+                    isRecoveringQuote.value = false;
+                    console.log("✅ Recuperación completada. Watchers reactivados.");
+                }, 500);
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
+                isRecoveringQuote.value = false;
             }
         });
     }
@@ -1086,7 +1094,7 @@ export function useProcessCreateQuote() {
     const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef) {
-        clearForm(uploadedFilesRef, null);
+        clearForm(uploadedFilesRef);
         return run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
             loadingRef: loadingReorder,
             onSuccess: (res) => {
@@ -1104,9 +1112,9 @@ export function useProcessCreateQuote() {
 
                 form.value.punto_venta_id = cotizacion.PTO_VTA_ID;
                 form.value.bodega_facturacion = cotizacion.BOD_BODEGA;
-                form.value.condicion_pago_id = cotizacion.CON_ID;
+                form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
-                form.value.condicion_pago_original_id = cliente.CON_ID_ORIGINAL;
+                form.value.condicion_pago_original_id = cliente.COND_ID_ORIGINAL;
 
                 // Reseteamos fechas a HOY
                 form.value.fecha_entrega = cotizacion.fecha_entrega;
@@ -1115,6 +1123,9 @@ export function useProcessCreateQuote() {
                 form.value.direccion_facturacion_id = cotizacion.sucursal_facturacion_id;
                 form.value.direccion_entrega_id = cotizacion.sucursal_id;
                 form.value.tipo_entrega = cotizacion.despacho === 'Retiro en bodega' ? 'retiro' : 'despacho';
+
+                form.value.descuento_articulo = Number(cotizacion.porcentage_descuento || 0);
+                form.value.descuento_original = Number(cotizacion.porcentage_descuentooriginal || 0);
 
                 // Notas (Opcional: puedes limpiarlas o dejarlas)
                 form.value.nota_cliente = cotizacion.nota_cliente;
@@ -1279,9 +1290,9 @@ export function useProcessCreateQuote() {
 
                 form.value.punto_venta_id = pedido.PTO_VTA_ID;
                 form.value.bodega_facturacion = pedido.BOD_BODEGA;
-                form.value.condicion_pago_id = pedido.CON_ID;
+                form.value.condicion_pago_id = pedido.COND_ID;
                 form.value.forma_pago_id = pedido.DESC_FORMA_PAGO_CODIGO;
-                form.value.condicion_pago_original_id = pedido.CON_ID_ORIGINAL;
+                form.value.condicion_pago_original_id = pedido.COND_ID_ORIGINAL;
 
                 form.value.fecha_entrega = pedido.fecha_entrega;
 
@@ -1542,7 +1553,7 @@ export function useProcessCreateQuote() {
         createQuote,
 
         // proceso de recuperar cotizacion 
-
+        isRecoveringQuote,
         fetchAndFillQuotation,
         loadDataForReorder,
         copyRawQuoteOrOrder,
