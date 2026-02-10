@@ -633,7 +633,7 @@ export function useProcessCreateQuote() {
                 item.stock.forEach((bd) => {
                     // const seleccionado = Number.parseFloat(bd.seleccionado || 0);
                     const disponible = Number.parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
-                    currentItemQtyAsigned += seleccionado;
+                    // currentItemQtyAsigned += seleccionado;
 
                     const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
                     if (!globalStockUsage[key]) {
