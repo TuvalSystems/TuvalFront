@@ -189,7 +189,8 @@
                   </td>
                   <td>
                     <div style="text-align: center;">
-                      <button type="button" class="btn btn-sm btn-alt-secondary" @click="swalAlertResetPassword(usuario)">
+                      <button type="button" class="btn btn-sm btn-alt-secondary"
+                        @click="swalAlertResetPassword(usuario)">
                         <i class="fa fa-fw fa-redo"></i>
                       </button>
                     </div>
@@ -358,7 +359,7 @@ function swalAlertResetPassword(usuario) {
 
 async function resetPassword(usuario) {
   try {
-    const res = await store.dispatch('resetPassword', usuario.USERID);
+    const res = await store.dispatch('resetPassword', { USERID: usuario.USERID });
     await swalSuccess(res.data.message);
   } catch (err) {
     errorMsg.value = err.response?.data?.error || 'Error al resetear contraseña';
