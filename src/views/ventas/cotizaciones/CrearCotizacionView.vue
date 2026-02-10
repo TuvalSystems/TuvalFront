@@ -759,6 +759,14 @@ const btnDisabledStore = computed(() => {
   return false;
 });
 
+const btnDisableStoreQuotation  = computed(() => {
+  if (loadingStockMasivo.value) return true;
+  if (loadingCreateQuotation.value) return true;
+  if (!form.value.cliente) return true;
+  if (!form.value.condicion_pago_id) return true;
+  return false;
+});
+
 async function createQuotation() {
   const respCreate = await createQuote('create');
   if (!respCreate?.ok) {
@@ -1564,7 +1572,7 @@ onMounted(async () => {
             </button>
             <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
               <button type="button" class="btn btn-success px-4 fw-bold shadow-sm w-100 w-md-auto"
-                :disabled="btnDisabledStore" @click="createQuotation">
+                :disabled="btnDisableStoreQuotation" @click="createQuotation">
                 <i v-if="loadingCreateQuotation" class="fa fa-spinner fa-spin me-2"></i>
                 <i v-else class="fa fa-save me-2"></i>
                 Guardar Cotización
