@@ -2,7 +2,7 @@ import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
-import {  useSessionStorage } from '@vueuse/core';
+import { useSessionStorage } from '@vueuse/core';
 import { useStore } from 'vuex'
 
 
@@ -89,7 +89,7 @@ export function useProcessCreateQuote() {
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
         }
-       
+
         nextTick(() => {
             calculateTotals();
         });
@@ -631,7 +631,7 @@ export function useProcessCreateQuote() {
             let currentItemQtyAsigned = 0;
             if (item.stock && item.stock.length > 0) {
                 item.stock.forEach((bd) => {
-                    const seleccionado = Number.parseFloat(bd.seleccionado || 0);
+                    // const seleccionado = Number.parseFloat(bd.seleccionado || 0);
                     const disponible = Number.parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
                     currentItemQtyAsigned += seleccionado;
 
@@ -639,6 +639,12 @@ export function useProcessCreateQuote() {
                     if (!globalStockUsage[key]) {
                         globalStockUsage[key] = { used: 0, available: disponible, artCode: item.ART_CODIGO, bodegaName: bd.STO_ART_BODEGA };
                     }
+                    const stockRestante = globalStockUsage[key].available - globalStockUsage[key].used;
+                    if (stockRestante <= 0) {
+                        bd.seleccionado = 0;
+                    }
+                    const seleccionado = Number.parseFloat(bd.seleccionado || 0);
+                    currentItemQtyAsigned += seleccionado;
                     globalStockUsage[key].used += seleccionado;
                 });
             }
@@ -1001,7 +1007,7 @@ export function useProcessCreateQuote() {
                 const { cotizacion, cliente, items, segmento, imagenesOperaciones, mode } = res;
 
                 clearForm(uploadedFilesRef);
-             
+
                 //cargamos el cliente y los datos de identificacion 
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
@@ -1074,7 +1080,7 @@ export function useProcessCreateQuote() {
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
                 setTimeout(() => {
                     isRecoveringQuote.value = false;
-                    
+
                 }, 500);
             },
             onError: (err) => {
