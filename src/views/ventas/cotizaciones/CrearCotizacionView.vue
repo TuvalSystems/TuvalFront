@@ -618,15 +618,10 @@ const saveModifyPrice = async (element) => {
     return;
   }
   let nuevoModificar = calculateRowModifier(element, element.ART_VALOR);
-  nuevoModificar = Number.parseFloat(nuevoModificar.toFixed(4));
+  nuevoModificar = Number.parseFloat(nuevoModificar.toFixed(4) || 0);
   element.modificador = nuevoModificar;
   element.cambiar_valor = false;
-  const resp = await updateModifyPriceRowItem(element.id, element.ART_VALOR, nuevoModificar);
-  if (!resp?.ok) {
-    element.ART_VALOR = element.valor_temporal;
-    element.modificador = calculateRowModifier(element, element.valor_temporal);
-    swalError(resp?.message);
-  }
+  calculateTotals();
 }
 
 
