@@ -203,6 +203,14 @@ const routes = [
           title: "Ventas - Pedidos",
         },
       },
+       {
+        path: "pedidos-consulta",
+        name: "ventas-pedidos-consulta",
+         component: () => import("@/views/ventas/pedidos/consulta/PedidosViewConsulta.vue"),
+        meta: {
+          title: "Ventas - Pedidos",
+        },
+      },
       {
         path: "pedidos-reservas",
         name: "ventas-pedidos-reservas",
