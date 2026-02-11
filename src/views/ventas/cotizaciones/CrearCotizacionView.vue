@@ -172,7 +172,11 @@ const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRe
     calculateTotals();
   }
 })
-const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef)
+const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef,{
+  onHidden: () => {
+    calculateTotals();
+  }
+})
 const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
   backdrop: 'static',
   keyboard: false
@@ -557,6 +561,7 @@ async function openModalPesoRowItem(item, i) {
 
 async function handleWeightUpdate({ index, peso }) {
   form.value.items[index].ART_PESO = peso;
+  calculateTotals();
 }
 async function closeModalPesoRowItem() {
   dataPesoItem.value.item = {};
