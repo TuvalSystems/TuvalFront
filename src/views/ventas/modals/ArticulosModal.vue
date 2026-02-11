@@ -378,8 +378,8 @@ function consultarStock(articulo) {
     puntodeventa_id: store.state.puntodeventaselect,
   })
   store.dispatch('consultarStock', consulta).then(res => {
-    articulo.stock = res.stock;
-    articulo.ART_STOCK = res.ART_STOCK;
+    articulo.stock = res.data.stock;
+    articulo.ART_STOCK = res.data.ART_STOCK;
     articulo.loading = false;
   });
 }
