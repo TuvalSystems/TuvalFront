@@ -396,14 +396,14 @@ onMounted(() => {
 </script>
 <template>
   <!-- Hero -->
-  <BasePageHeading title="Pedidos">
+  <BasePageHeading title="Pedidos Consulta">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
           <li class="breadcrumb-item">
             <a class="link-fx" href="javascript:void(0)">Ventas</a>
           </li>
-          <li class="breadcrumb-item" aria-current="page">Pedidos</li>
+          <li class="breadcrumb-item" aria-current="page">Pedidos Consulta</li>
         </ol>
       </nav>
     </template>
@@ -414,7 +414,7 @@ onMounted(() => {
   <div class="content">
 
 
-    <BaseBlock title="Pedidos" content-full>
+    <BaseBlock title="Pedidos Consulta" content-full>
       <template #options>
 
         <div class="space-x-1">
