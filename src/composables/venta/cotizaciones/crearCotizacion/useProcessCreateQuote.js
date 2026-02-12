@@ -1057,7 +1057,8 @@ export function useProcessCreateQuote() {
                 form.value.nota_operaciones = cotizacion.nota_operaciones || '';
                 form.value.orden_de_compra = cotizacion.orden_de_compra || '';
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
-
+                //origen
+                form.value.origen = cotizacion.origen;
                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
                     if (uploadedFilesRef) {
                         uploadedFilesRef.value = imagenesOperaciones.map(img => ({
@@ -1213,8 +1214,8 @@ export function useProcessCreateQuote() {
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
 
-                form.value.punto_venta_id = ptoVtaSelect.value,
-                    form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
+                form.value.punto_venta_id = ptoVtaSelect.value;
+                form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
                 form.value.direccion_facturacion_id = sucursal_id;
                 form.value.direccion_entrega_id = sucursal_id;
                 form.value.tipo_entrega = 'retiro';
