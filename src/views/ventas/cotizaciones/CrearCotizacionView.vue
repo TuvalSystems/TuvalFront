@@ -255,7 +255,6 @@ async function processSelectClient(client) {
     return;
   }
   showInfoClient.value = true;
-  console.log(infoClient.value);
 
   //asignacion de cliente y segmento
   form.value.cliente = infoClient.value;
