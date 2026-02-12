@@ -860,6 +860,10 @@ onMounted(async () => {
     await nextTick();
     try {
       const promises = [];
+
+      const idEntregaRescatado = form.value.direccion_entrega_id;
+      const idFacturacionRescatado = form.value.direccion_facturacion_id;
+
       promises.push(fetchCustomerBranches(form.value.cliente.CLI_RUC));
       if (form.value.condicion_pago_id) {
         promises.push(fetchMethodPayment(form.value.condicion_pago_id));
@@ -873,6 +877,13 @@ onMounted(async () => {
         form.value.forma_pago_id = temp;
       } else if (methodPayment.value && methodPayment.value.length > 0) {
         form.value.forma_pago_id = methodPayment.value[0].codigo;
+      }
+      if (idEntregaRescatado) {
+        form.value.direccion_entrega_id = null;
+        if(idFacturacionRescatado) form.value.direccion_facturacion_id = null;        
+        await nextTick(); 
+        form.value.direccion_entrega_id = idEntregaRescatado;
+        if(idFacturacionRescatado) form.value.direccion_facturacion_id = idFacturacionRescatado;
       }
     } catch (e) {
       console.error("Error cargando datos del cliente recuperado", e);
