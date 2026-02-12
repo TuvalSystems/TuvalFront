@@ -265,8 +265,10 @@ async function processSelectClient(client) {
 
   //asignacion de sucursal 
   if (sucursales.value.length > 0) {
-   if(!form.value.direccion_facturacion_id && !isRecoveringQuote.value) {
+    if (!form.value.direccion_facturacion_id && !isRecoveringQuote.value) {
       form.value.direccion_facturacion_id = sucursales.value[0].id
+    }
+    if (!form.value.direccion_entrega_id && !isRecoveringQuote.value) {
       form.value.direccion_entrega_id = sucursales.value[0].id
     }
   }
@@ -481,7 +483,7 @@ const itemAlternativo = reactive({
   item: ''
 });
 async function openModalListItemAlternatives(item, i) {
-  itemAlternativo.item = ''; 
+  itemAlternativo.item = '';
   itemAlternativo.index = 0;
 
   // 2. Esperamos un "tick" del ciclo de vida de Vue

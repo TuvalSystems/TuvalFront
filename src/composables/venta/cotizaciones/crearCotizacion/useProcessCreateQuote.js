@@ -100,6 +100,7 @@ export function useProcessCreateQuote() {
     watch(
         () => form.value.tipo_entrega,
         (newVal) => {
+            if (isRecoveringQuote.value) return;
             if (newVal === 'retiro') {
                 form.value.direccion_entrega_id = form.value.direccion_facturacion_id;
                 form.value.fecha_entrega = null;
