@@ -66,7 +66,7 @@ const getInitialState = () => ({
 
     //imagenes de operaciones
     imagenesoperaciones: [],
-    origen: 'cotizacion',
+    origen: '',
 
 });
 export function useProcessCreateQuote() {
