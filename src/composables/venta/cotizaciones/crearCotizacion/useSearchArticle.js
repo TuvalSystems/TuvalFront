@@ -149,7 +149,10 @@ export function useSearchArticle() {
     }
 
     function resetSearch() {
-        Object.assign(payload, getInitialPayload());
+        payload.text_codigo = '';
+        payload.text_nombre = '';
+        payload.codigo3l = '';
+        payload.terminal = '';
         articles.value = [];
     }
 
@@ -172,7 +175,7 @@ export function useSearchArticle() {
 
     //function de consulta para listar todos los articulos de acuerdo a los filtros
     async function fetchSearchArticles() {
-        return  run(() => axiosClient.post(apiSearchArticles, payload), {
+        return await run(() => axiosClient.post(apiSearchArticles, payload), {
             loadingRef: loadingArt,
             onSuccess: (res) => {
                 articles.value = res;

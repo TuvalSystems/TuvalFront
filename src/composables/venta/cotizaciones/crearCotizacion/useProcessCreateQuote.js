@@ -1463,6 +1463,23 @@ export function useProcessCreateQuote() {
     }
 
 
+
+
+    /** proceso de cotizaciones de prospecto  */
+
+    const apiUpdateQuoteProspect = 'cotizaciones/prospecto/actualizar';
+    const loadingUpdateQuoteProspect = ref(false);
+
+    async function updateQuoteProspect(params){
+        return await run(()=> axiosClient.post(apiUpdateQuoteProspect, params),{
+            loadingRef: loadingUpdateQuoteProspect,
+            onError: (error) => {
+                console.error('Error al actualizar el pedido:', error);
+            },
+        });
+    }
+
+
     return {
         form,
         clearForm,
@@ -1568,7 +1585,11 @@ export function useProcessCreateQuote() {
         reOrder,
         //gaurdar una cotizacion a pedido
         loadingSaveOrder,
-        saveOrder
+        saveOrder,
+
+        //prospecto 
+        loadingUpdateQuoteProspect,
+        updateQuoteProspect
     };
 
 
