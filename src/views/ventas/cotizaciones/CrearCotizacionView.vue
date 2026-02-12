@@ -492,7 +492,6 @@ async function openModalListItemAlternatives(item, i) {
 }
 
 async function onSelectItemAlternativo(descripcion, i) {
-  console.log(descripcion, i , 'onSelectItemAlternativo');
   await updateDescriptionsForCheckAlternative(descripcion, i);
   clearSelectionItemalternative();
   verItemAltObj.hide();
