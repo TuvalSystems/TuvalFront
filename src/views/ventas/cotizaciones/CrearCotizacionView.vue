@@ -267,7 +267,9 @@ async function processSelectClient(client) {
   if (sucursales.value.length > 0) {
     if (!form.value.direccion_facturacion_id) {
       form.value.direccion_facturacion_id = sucursales.value[0].id
-      form.value.direccion_entrega_id = sucursales.value[0].id
+      if(form.value.direccion_entrega_id == null){
+        form.value.direccion_entrega_id = sucursales.value[0].id
+      }
     }
   }
 
