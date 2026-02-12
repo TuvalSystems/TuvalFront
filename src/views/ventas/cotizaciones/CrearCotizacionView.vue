@@ -67,6 +67,7 @@ const {
 
   //proceso item alternativo 
   updateDescriptionsForCheckAlternative,
+  clearSelectionItemalternative,
 
   //proceso de checkbox alternativos
   updateCheckAlternative,
@@ -166,13 +167,17 @@ const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
     dataSearchItem.value = null
   }
 })
-const verItemAltObj = useBootstrapModal(verItemAltRef)
+const verItemAltObj = useBootstrapModal(verItemAltRef, {
+  onHidden: () => {
+    clearSelectionItemalternative();
+  }
+})
 const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef, {
   onHidden: () => {
     calculateTotals();
   }
 })
-const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef,{
+const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef, {
   onHidden: () => {
     calculateTotals();
   }
@@ -251,7 +256,7 @@ async function processSelectClient(client) {
   }
   showInfoClient.value = true;
   console.log(infoClient.value);
-  
+
   //asignacion de cliente y segmento
   form.value.cliente = infoClient.value;
   if (infoSegmento.value) {
@@ -476,15 +481,20 @@ const itemAlternativo = reactive({
   item: ''
 });
 async function openModalListItemAlternatives(item, i) {
+  itemAlternativo.item = ''; 
+  itemAlternativo.index = 0;
+
+  // 2. Esperamos un "tick" del ciclo de vida de Vue
+  await nextTick();
   itemAlternativo.index = i;
   itemAlternativo.item = item.ART_CODIGO;
   verItemAltObj.show();
 }
 
 async function onSelectItemAlternativo(descripcion, i) {
+  console.log(descripcion, i , 'onSelectItemAlternativo');
   await updateDescriptionsForCheckAlternative(descripcion, i);
-  itemAlternativo.item = '';
-  itemAlternativo.index = 0;
+  clearSelectionItemalternative();
   verItemAltObj.hide();
 }
 
@@ -759,7 +769,7 @@ const btnDisabledStore = computed(() => {
   return false;
 });
 
-const btnDisableStoreQuotation  = computed(() => {
+const btnDisableStoreQuotation = computed(() => {
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
   if (!form.value.cliente) return true;
@@ -862,7 +872,7 @@ onMounted(async () => {
         form.value.forma_pago_id = null;
         await nextTick();
         form.value.forma_pago_id = temp;
-      }else if(methodPayment.value && methodPayment.value.length > 0){
+      } else if (methodPayment.value && methodPayment.value.length > 0) {
         form.value.forma_pago_id = methodPayment.value[0].codigo;
       }
     } catch (e) {

@@ -275,6 +275,7 @@ export function useProcessCreateQuote() {
 
     async function clearSelectionItemalternative() {
         listItemsAlternatives.value = [];
+        descripcionAlternativa.value = '';
     }
 
     async function updateCheckAlternative(event, element, i) {
