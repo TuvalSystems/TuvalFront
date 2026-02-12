@@ -95,7 +95,7 @@ const rules = computed(() => {
     },
     CLI_CORREO_ELECT_SRI: {
       required,
-      //email,
+      email,
       maxLength: maxLength(200),
     },
     CLI_CORREO_ELECT_NOTIFICACION_INTERNA: {
