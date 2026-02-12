@@ -923,7 +923,7 @@ export function useProcessCreateQuote() {
 
         //items de cotizacion
         formData.append('items', JSON.stringify(form.value.items));
-        formData.append('origen', form.value.origen);
+        formData.append('origen', form.value.origen ?? 'cotizacion');
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
             form.value.imagenesoperaciones.forEach((item, index) => {
