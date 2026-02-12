@@ -66,6 +66,7 @@ const getInitialState = () => ({
 
     //imagenes de operaciones
     imagenesoperaciones: [],
+    origen: 'cotizacion',
 
 });
 export function useProcessCreateQuote() {
@@ -922,7 +923,7 @@ export function useProcessCreateQuote() {
 
         //items de cotizacion
         formData.append('items', JSON.stringify(form.value.items));
-
+        formData.append('origen', form.value.origen);
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
             form.value.imagenesoperaciones.forEach((item, index) => {
@@ -1141,7 +1142,7 @@ export function useProcessCreateQuote() {
                 form.value.nota_operaciones = cotizacion.nota_operaciones;
 
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
-
+                form.value.origen = cotizacion.origen;
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
@@ -1227,7 +1228,7 @@ export function useProcessCreateQuote() {
                 form.value.nota_operaciones = '';
                 form.value.modificador_global = 0;
                 form.value.imagenesoperaciones = [];
-
+                form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
@@ -1311,7 +1312,7 @@ export function useProcessCreateQuote() {
                 form.value.nota_interna = pedido.nota_interna || '';
                 form.value.nota_operaciones = pedido.nota_operaciones || '';
                 form.value.modificador_global = Number(pedido.modificador_global || 0);
-
+                form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
@@ -1431,7 +1432,7 @@ export function useProcessCreateQuote() {
 
         //modificador global
         formData.append('modificador_global', form.value.modificador_global);
-
+        formData.append('origen', form.value.origen);
         formData.append('items', JSON.stringify(form.value.items));
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
@@ -1472,8 +1473,8 @@ export function useProcessCreateQuote() {
     const apiUpdateQuoteProspect = 'cotizaciones/prospecto/actualizar';
     const loadingUpdateQuoteProspect = ref(false);
 
-    async function updateQuoteProspect(params){
-        return await run(()=> axiosClient.post(apiUpdateQuoteProspect, params),{
+    async function updateQuoteProspect(params) {
+        return await run(() => axiosClient.post(apiUpdateQuoteProspect, params), {
             loadingRef: loadingUpdateQuoteProspect,
             onError: (error) => {
                 console.error('Error al actualizar el pedido:', error);
