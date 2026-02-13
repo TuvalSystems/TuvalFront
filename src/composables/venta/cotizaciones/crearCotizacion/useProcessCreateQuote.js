@@ -66,6 +66,7 @@ const getInitialState = () => ({
 
     //imagenes de operaciones
     imagenesoperaciones: [],
+    origen: '',
 
 });
 export function useProcessCreateQuote() {
@@ -100,6 +101,7 @@ export function useProcessCreateQuote() {
     watch(
         () => form.value.tipo_entrega,
         (newVal) => {
+            if (isRecoveringQuote.value) return;
             if (newVal === 'retiro') {
                 form.value.direccion_entrega_id = form.value.direccion_facturacion_id;
                 form.value.fecha_entrega = null;
@@ -275,6 +277,7 @@ export function useProcessCreateQuote() {
 
     async function clearSelectionItemalternative() {
         listItemsAlternatives.value = [];
+        descripcionAlternativa.value = '';
     }
 
     async function updateCheckAlternative(event, element, i) {
@@ -920,7 +923,7 @@ export function useProcessCreateQuote() {
 
         //items de cotizacion
         formData.append('items', JSON.stringify(form.value.items));
-
+        formData.append('origen', form.value.origen || 'cotizacion');
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
             form.value.imagenesoperaciones.forEach((item, index) => {
@@ -1054,7 +1057,8 @@ export function useProcessCreateQuote() {
                 form.value.nota_operaciones = cotizacion.nota_operaciones || '';
                 form.value.orden_de_compra = cotizacion.orden_de_compra || '';
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
-
+                //origen
+                form.value.origen = cotizacion.origen;
                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
                     if (uploadedFilesRef) {
                         uploadedFilesRef.value = imagenesOperaciones.map(img => ({
@@ -1139,7 +1143,7 @@ export function useProcessCreateQuote() {
                 form.value.nota_operaciones = cotizacion.nota_operaciones;
 
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
-
+                form.value.origen = cotizacion.origen;
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
@@ -1210,8 +1214,8 @@ export function useProcessCreateQuote() {
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
 
-                form.value.punto_venta_id = ptoVtaSelect.value,
-                    form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
+                form.value.punto_venta_id = ptoVtaSelect.value;
+                form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
                 form.value.direccion_facturacion_id = sucursal_id;
                 form.value.direccion_entrega_id = sucursal_id;
                 form.value.tipo_entrega = 'retiro';
@@ -1225,7 +1229,7 @@ export function useProcessCreateQuote() {
                 form.value.nota_operaciones = '';
                 form.value.modificador_global = 0;
                 form.value.imagenesoperaciones = [];
-
+                form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
@@ -1309,7 +1313,7 @@ export function useProcessCreateQuote() {
                 form.value.nota_interna = pedido.nota_interna || '';
                 form.value.nota_operaciones = pedido.nota_operaciones || '';
                 form.value.modificador_global = Number(pedido.modificador_global || 0);
-
+                form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
@@ -1429,7 +1433,7 @@ export function useProcessCreateQuote() {
 
         //modificador global
         formData.append('modificador_global', form.value.modificador_global);
-
+        formData.append('origen', 'cotizacion');
         formData.append('items', JSON.stringify(form.value.items));
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
@@ -1458,6 +1462,23 @@ export function useProcessCreateQuote() {
             loadingRef: loadingSaveOrder,
             onError: (error) => {
                 console.error('Error al crear el pedido:', error);
+            },
+        });
+    }
+
+
+
+
+    /** proceso de cotizaciones de prospecto  */
+
+    const apiUpdateQuoteProspect = 'cotizaciones/prospecto/actualizar';
+    const loadingUpdateQuoteProspect = ref(false);
+
+    async function updateQuoteProspect(params) {
+        return await run(() => axiosClient.post(apiUpdateQuoteProspect, params), {
+            loadingRef: loadingUpdateQuoteProspect,
+            onError: (error) => {
+                console.error('Error al actualizar el pedido:', error);
             },
         });
     }
@@ -1568,7 +1589,11 @@ export function useProcessCreateQuote() {
         reOrder,
         //gaurdar una cotizacion a pedido
         loadingSaveOrder,
-        saveOrder
+        saveOrder,
+
+        //prospecto 
+        loadingUpdateQuoteProspect,
+        updateQuoteProspect
     };
 
 

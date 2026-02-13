@@ -21,10 +21,10 @@ const emit = defineEmits(['seleccionarAlternativa']);
 
 watch(
     () => props.item,
-    (newVal) => {
+  async  (newVal) => {
         if (newVal) {
-            descripcionAlternativa.value = '';
-            getAlternativeDescriptions(props.item);
+            clearSelectionItemalternative();
+           await getAlternativeDescriptions(props.item);
         }
     }, { immediate: true }
 );
@@ -32,7 +32,7 @@ watch(
 
 const confirmarSeleccion = () => {
     if (!descripcionAlternativa.value) return;
-    emit('seleccionarAlternativa', descripcionAlternativa, props.indice)
+    emit('seleccionarAlternativa', descripcionAlternativa.value, props.indice)
     clearSelectionItemalternative();
 };
 
@@ -48,7 +48,7 @@ const confirmarSeleccion = () => {
         <template #content>
             <div class="block-content fs-sm text-muted">
                 <div v-if="loadingListAlternative" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
+                    <div class="spinner-border text-primary">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
                     <p class="text-muted mt-2 mb-0">Buscando alternativas...</p>
@@ -59,8 +59,8 @@ const confirmarSeleccion = () => {
                     <p class="text-muted mb-0">No se encontraron descripciones alternativas.</p>
                 </div>
                 <div v-else class="mb-4">
-                    <label class="form-label">Descripciones Alternativas</label>
-                    <select v-model="descripcionAlternativa" class="form-select">
+                    <label for="selectDescription" class="form-label">Descripciones Alternativas</label>
+                    <select id="selectDescription" v-model="descripcionAlternativa" class="form-select">
                         <option value="" disabled>-- Seleccione una opción --</option>
                         <option v-for="(item, index) in listItemsAlternatives" :key="item.tx_itm || index"
                             :value="item.tx_desLar">

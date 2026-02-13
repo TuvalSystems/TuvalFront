@@ -67,6 +67,7 @@ const {
 
   //proceso item alternativo 
   updateDescriptionsForCheckAlternative,
+  clearSelectionItemalternative,
 
   //proceso de checkbox alternativos
   updateCheckAlternative,
@@ -166,13 +167,21 @@ const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
     dataSearchItem.value = null
   }
 })
-const verItemAltObj = useBootstrapModal(verItemAltRef)
+const verItemAltObj = useBootstrapModal(verItemAltRef, {
+  onHidden: () => {
+    clearSelectionItemalternative();
+  }
+})
 const verSeleccionStockBodegasObj = useBootstrapModal(verSeleccionStockBodegasRef, {
   onHidden: () => {
     calculateTotals();
   }
 })
-const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef)
+const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef, {
+  onHidden: () => {
+    calculateTotals();
+  }
+})
 const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
   backdrop: 'static',
   keyboard: false
@@ -246,8 +255,7 @@ async function processSelectClient(client) {
     return;
   }
   showInfoClient.value = true;
-  console.log(infoClient.value);
-  
+
   //asignacion de cliente y segmento
   form.value.cliente = infoClient.value;
   if (infoSegmento.value) {
@@ -256,8 +264,10 @@ async function processSelectClient(client) {
 
   //asignacion de sucursal 
   if (sucursales.value.length > 0) {
-    if (!form.value.direccion_facturacion_id) {
+    if (!form.value.direccion_facturacion_id && !isRecoveringQuote.value) {
       form.value.direccion_facturacion_id = sucursales.value[0].id
+    }
+    if (!form.value.direccion_entrega_id && !isRecoveringQuote.value) {
       form.value.direccion_entrega_id = sucursales.value[0].id
     }
   }
@@ -472,6 +482,11 @@ const itemAlternativo = reactive({
   item: ''
 });
 async function openModalListItemAlternatives(item, i) {
+  itemAlternativo.item = '';
+  itemAlternativo.index = 0;
+
+  // 2. Esperamos un "tick" del ciclo de vida de Vue
+  await nextTick();
   itemAlternativo.index = i;
   itemAlternativo.item = item.ART_CODIGO;
   verItemAltObj.show();
@@ -479,8 +494,7 @@ async function openModalListItemAlternatives(item, i) {
 
 async function onSelectItemAlternativo(descripcion, i) {
   await updateDescriptionsForCheckAlternative(descripcion, i);
-  itemAlternativo.item = '';
-  itemAlternativo.index = 0;
+  clearSelectionItemalternative();
   verItemAltObj.hide();
 }
 
@@ -557,6 +571,7 @@ async function openModalPesoRowItem(item, i) {
 
 async function handleWeightUpdate({ index, peso }) {
   form.value.items[index].ART_PESO = peso;
+  calculateTotals();
 }
 async function closeModalPesoRowItem() {
   dataPesoItem.value.item = {};
@@ -754,7 +769,7 @@ const btnDisabledStore = computed(() => {
   return false;
 });
 
-const btnDisableStoreQuotation  = computed(() => {
+const btnDisableStoreQuotation = computed(() => {
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
   if (!form.value.cliente) return true;
@@ -857,7 +872,7 @@ onMounted(async () => {
         form.value.forma_pago_id = null;
         await nextTick();
         form.value.forma_pago_id = temp;
-      }else if(methodPayment.value && methodPayment.value.length > 0){
+      } else if (methodPayment.value && methodPayment.value.length > 0) {
         form.value.forma_pago_id = methodPayment.value[0].codigo;
       }
     } catch (e) {

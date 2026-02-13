@@ -25,7 +25,7 @@
     </table>
     
   </div>
-  <div v-if="orden_despacho.estado !== 'pendiente' && orden_despacho.estado !== 'cancelada'" class="fs-sm text-end py-2">
+  <div v-if="!['pendiente', 'cancelada', 'despachada'].includes(orden_despacho.estado)" class="fs-sm text-end py-2">
     <button class="btn btn-sm btn-success" @click="imprimirOrdendespacho(orden_despacho.id)"><i class="fa fa-print"></i> Imprimir Orden de Despacho</button>
   </div>
 </template>

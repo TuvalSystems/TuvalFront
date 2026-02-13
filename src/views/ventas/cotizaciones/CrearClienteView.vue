@@ -22,6 +22,11 @@ import {
 import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
 import useVuelidate from "@vuelidate/core";
 import { required, maxLength, email } from "@vuelidate/validators";
+import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
+import { useImageUpload } from "@/composables/core/useImageUpload";
+
+const { fetchAndFillQuotation, updateQuoteProspect } = useProcessCreateQuote();
+const { uploadedFiles } = useImageUpload();
 
 const store = useStore();
 const templateStore = useTemplateStore();
@@ -95,7 +100,7 @@ const rules = computed(() => {
     },
     CLI_CORREO_ELECT_SRI: {
       required,
-      //email,
+      email,
       maxLength: maxLength(200),
     },
     CLI_CORREO_ELECT_NOTIFICACION_INTERNA: {
@@ -219,8 +224,21 @@ async function onSubmit() {
         PTO_VTA_ID: store.state.puntodeventaselect,
         id: store.state.cotizacion_id,
       }
-
-      await store.dispatch('llenarcotizacionProspecto', payloadProspecto)
+      const respUpdate = await updateQuoteProspect(payloadProspecto);
+      if (!respUpdate?.ok) {
+        swalWarning(respUpdate.message);
+        return;
+      }
+      console.log('respUpdate', respUpdate.data.id);   
+      const resRestore = await fetchAndFillQuotation(respUpdate.data.id, uploadedFiles);
+      if (resRestore?.ok) {
+        templateStore.pageLoader({ mode: "off" });
+        router.push({
+          name: "ventas-crearcotizacion",
+        });
+      } else {
+        templateStore.pageLoader({ mode: "off" });
+      }
     }
     // 7. Apaga loader y redirige
     templateStore.pageLoader({ mode: 'off' })
