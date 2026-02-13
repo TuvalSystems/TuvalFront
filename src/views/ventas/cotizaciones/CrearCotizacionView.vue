@@ -595,7 +595,7 @@ async function applyModifyRow(item) {
   let decimales = (item.ART_DECIMAL_VALOR && item.ART_DECIMAL_VALOR > 0)
     ? item.ART_DECIMAL_VALOR
     : 4;
-  let originalPrice = item.ART_VALOR_ORIGINAL;
+  let originalPrice = Number(item.ART_VALOR_ORIGINAL);
   let calculatedPrice = calculatePriceFromModifier(originalPrice, modifierValue);
   calculatedPrice = Number.parseFloat(calculatedPrice.toFixed(decimales));
   item.ART_VALOR = calculatedPrice;
