@@ -768,6 +768,9 @@ export function useProcessCreateQuote() {
 
     const exitEditPrice = (row) => {
         row.ART_VALOR = row.valor_temporal;
+        if (row.ART_TIPO_COMPRA === 'l') {
+            row.ART_VALOR_ORIGINAL = row.valor_temporal
+        }
         row.cambiar_valor = false;
     }
 

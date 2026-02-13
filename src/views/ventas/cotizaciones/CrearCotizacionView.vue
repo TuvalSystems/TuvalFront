@@ -519,7 +519,9 @@ async function openModalProviders(item, i) {
 const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   form.value.items[index].proveedores = providers;
   if (nuevoPrecio) {
-    form.value.items[index].ART_VALOR = nuevoPrecio
+    form.value.items[index].ART_VALOR = nuevoPrecio;
+    form.value.items[index].valor_original_l = nuevoPrecio;
+    form.value.items[index].ART_VALOR_ORIGINAL = nuevoPrecio;
   }
   calculateTotals();
   verProveedoresObj.hide();
@@ -631,6 +633,9 @@ const saveModifyPrice = async (element) => {
   if (element.ART_VALOR === element.valor_temporal) {
     element.cambiar_valor = false;
     return;
+  }
+  if(element.ART_TIPO_COMPRA === 'L'){
+    element.ART_VALOR_ORIGINAL = element.ART_VALOR;
   }
   let nuevoModificar = calculateRowModifier(element, element.ART_VALOR);
   nuevoModificar = Number.parseFloat(nuevoModificar.toFixed(4) || 0);
@@ -952,7 +957,9 @@ onMounted(async () => {
                 <td class="fs-sm">{{ client.CLI_PROVINCIA }}</td>
                 <td class="fs-sm">{{ client.CLI_TELEFONO_1 }}</td>
                 <td class="fs-sm">
-                  <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI">{{ client.CLI_CORREO_ELECT_SRI }}</a>
+                  <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI">{{ client.CLI_CORREO_ELECT_SRI }} 
+                    <span class="badge bg-danger text-white" v-if="!client.emails_validated"> correo no valido</span>
+                  </a>
                 </td>
               </tr>
             </tbody>
@@ -1060,7 +1067,8 @@ onMounted(async () => {
                 <div class="input-group input-group-sm">
                   <select class="form-select" v-model="form.direccion_facturacion_id" :disabled="loadingSucursales">
                     <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
-                      {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
+                      {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }} 
+                       {{ !suc.emails_validated ? '⚠️ (Correo Inválido)' : '' }}
                     </option>
                   </select>
                   <button class="btn btn-outline-secondary" type="button"
