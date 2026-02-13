@@ -520,8 +520,8 @@ const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   form.value.items[index].proveedores = providers;
   if (nuevoPrecio) {
     form.value.items[index].ART_VALOR = nuevoPrecio;
-    form.value.items[index].valor_original_l = nuevoPrecio;
     form.value.items[index].ART_VALOR_ORIGINAL = nuevoPrecio;
+    form.value.items[index].valor_original_l = nuevoPrecio;
   }
   calculateTotals();
   verProveedoresObj.hide();
