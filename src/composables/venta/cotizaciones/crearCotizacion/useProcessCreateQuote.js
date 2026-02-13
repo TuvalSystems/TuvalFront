@@ -738,6 +738,7 @@ export function useProcessCreateQuote() {
 
     const calculatePriceFromModifier = (originalPrice, modifier) => {
         if (!originalPrice) return 0;
+        originalPrice = Number(originalPrice);
         if (modifier == 0) return originalPrice;
         let decimal = 1 - (modifier / 100);
         return originalPrice * decimal;
