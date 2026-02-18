@@ -166,7 +166,7 @@ async function generarGuia(verpedido) {
 
   // 3. bloquear UI
   // disabledGenerarGuia.value = true;
-  templateStore.pageLoader({ mode: "on" });
+  // templateStore.pageLoader({ mode: "on" });
 
   // 4. payload (objeto plano, no reactive)
   const data = {
@@ -184,29 +184,13 @@ async function generarGuia(verpedido) {
 
   const resp = await createGuideDispatch(data);
   if (!resp?.ok) {
-    swalError(resp.error);
+    templateStore.pageLoader({ mode: "off" });
+    swalError(resp?.error);
     return;
   }
+  emit("generarGuia");
   templateStore.pageLoader({ mode: "off" });
 
-  swalSuccess(resp.message);
-  return;
-
-  // disabledGenerarGuia.value = false;
-
-  // try {
-  //   await store.dispatch("generarGuiaVenta", data);
-  //   // emit("generarGuia");
-  // } catch (err) {
-  //   const msg =
-  //     err?.response?.data?.error ||
-  //     err?.message ||
-  //     "Error al generar la guía";
-  //   swalError(msg);
-  // } finally {
-  //   templateStore.pageLoader({ mode: "off" });
-  //   // disabledGenerarGuia.value = false;
-  // }
 }
 
 
