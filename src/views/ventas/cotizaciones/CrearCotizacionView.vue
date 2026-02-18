@@ -335,6 +335,19 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
     form.value.bodega_facturacion = warehouseSelect.relacion_bodega.BOD_BODEGA;
   }
 }
+
+//limpieza de form cuando cambia de punto de venta
+watch(
+  () => ptoVtaSelect.value, 
+  (newVal, oldVal) =>{
+    if (newVal && oldVal && newVal !== form.value.punto_venta_id) {
+       clearForm(uploadedFiles);
+       form.value.punto_venta_id = newVal;
+    }
+  }
+)
+
+
 watch(
   () => ptoVtaSelect.value,
   (nuevoPuntoVenta) => {
