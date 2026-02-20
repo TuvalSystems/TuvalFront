@@ -11,7 +11,7 @@ import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import draggable from 'vuedraggable'
-import { formatPrice4, format } from "@/functions";
+import { formatPrice4, format, formatCleanPrice4, formatClean } from "@/functions";
 import VueEasyLightbox from "vue-easy-lightbox";
 // imports modales
 import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
@@ -338,11 +338,11 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
 
 //limpieza de form cuando cambia de punto de venta
 watch(
-  () => ptoVtaSelect.value, 
-  (newVal, oldVal) =>{
+  () => ptoVtaSelect.value,
+  (newVal, oldVal) => {
     if (newVal && oldVal && newVal !== form.value.punto_venta_id) {
-       clearForm(uploadedFiles);
-       form.value.punto_venta_id = newVal;
+      clearForm(uploadedFiles);
+      form.value.punto_venta_id = newVal;
     }
   }
 )
@@ -530,9 +530,9 @@ async function openModalProviders(item, i) {
 }
 
 const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
- const item = form.value.items[index];
- item.proveedores = providers;
- if (nuevoPrecio && Number(nuevoPrecio) !== Number(item.valor_original_l)) {
+  const item = form.value.items[index];
+  item.proveedores = providers;
+  if (nuevoPrecio && Number(nuevoPrecio) !== Number(item.valor_original_l)) {
     item.ART_VALOR = nuevoPrecio;
     item.ART_VALOR_ORIGINAL = nuevoPrecio;
     item.valor_original_l = nuevoPrecio;
@@ -644,16 +644,17 @@ async function applyGeneraModifier() {
 //proceso de modificaicon de precios
 
 const saveModifyPrice = async (element) => {
-  if (element.ART_VALOR === element.valor_temporal) {
+  const valorFijo = formatCleanPrice4(element.ART_VALOR, 4);
+  if (valorFijo === element.valor_temporal) {
     element.cambiar_valor = false;
     return;
   }
-  if(element.ART_TIPO_COMPRA === 'L'){
+  element.ART_VALOR = valorFijo;
+  if (element.ART_TIPO_COMPRA === 'L') {
     element.ART_VALOR_ORIGINAL = element.ART_VALOR;
   }
   let nuevoModificar = calculateRowModifier(element, element.ART_VALOR);
-  nuevoModificar = Number.parseFloat(nuevoModificar.toFixed(4) || 0);
-  element.modificador = nuevoModificar;
+  element.modificador = formatClean(nuevoModificar, 4);
   element.cambiar_valor = false;
   calculateTotals();
 }
@@ -971,7 +972,7 @@ onMounted(async () => {
                 <td class="fs-sm">{{ client.CLI_PROVINCIA }}</td>
                 <td class="fs-sm">{{ client.CLI_TELEFONO_1 }}</td>
                 <td class="fs-sm">
-                  <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI">{{ client.CLI_CORREO_ELECT_SRI }} 
+                  <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI">{{ client.CLI_CORREO_ELECT_SRI }}
                     <span class="badge bg-danger text-white" v-if="!client.emails_validated"> correo no valido</span>
                   </a>
                 </td>
@@ -1081,8 +1082,8 @@ onMounted(async () => {
                 <div class="input-group input-group-sm">
                   <select class="form-select" v-model="form.direccion_facturacion_id" :disabled="loadingSucursales">
                     <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
-                      {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }} 
-                       {{ !suc.emails_validated ? '⚠️ (Correo Inválido)' : '' }}
+                      {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
+                      {{ !suc.emails_validated ? '⚠️ (Correo Inválido)' : '' }}
                     </option>
                   </select>
                   <button class="btn btn-outline-secondary" type="button"

@@ -563,8 +563,13 @@ export function useProcessCreateQuote() {
             } else {
                 let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
                 const modificador = Number.parseFloat(art.modificador || 0);
-                valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
-                art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
+                let precioCalculado = valorUnitario - ((valorUnitario * modificador) / 100);
+                const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
+                if (diferencia < 0.001) {
+                    art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
+                }else{
+                    art.ART_VALOR = redondear(precioCalculado, 4);
+                }
             }
 
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
@@ -634,9 +639,7 @@ export function useProcessCreateQuote() {
             let currentItemQtyAsigned = 0;
             if (item.stock && item.stock.length > 0) {
                 item.stock.forEach((bd) => {
-                    // const seleccionado = Number.parseFloat(bd.seleccionado || 0);
                     const disponible = Number.parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
-                    // currentItemQtyAsigned += seleccionado;
 
                     const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
                     if (!globalStockUsage[key]) {

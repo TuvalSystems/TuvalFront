@@ -56,12 +56,9 @@ export const format = (num) => num.toLocaleString('en-US', {
 });
 
 export const formatClean = (num, decimals) => {
-  if(decimals === 2)
-    return Math.round((num + Number.EPSILON) * 100) / 100
-  if(decimals === 3)
-    return Math.round((num + Number.EPSILON) * 1000) / 1000
-  if(decimals === 4)
-    return Math.round((num + Number.EPSILON) * 10000) / 10000
+ const n = Number(num) || 0;
+  const factor = Math.pow(10, decimals);
+  return Math.round((n+ Number.EPSILON)* factor) /factor;
 }
 
 export const formatClean3 = (num, decimals) => {
@@ -75,10 +72,14 @@ export const formatPrice = (value) => {
 
 export const formatPriceClean = (value) => {
     return formatClean(value * 1);
-    //return (value * 1).toFixed(2);
 }
 export const formatPrice4 = (value) => {
-  return formatClean(value * 1, 4)//.replace(',','').replace(',','');
+  const cleanValue =  formatCleanPrice4(value * 1, 4);
+  return cleanValue.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+}
+export const formatCleanPrice4 = (num, decimals = 4) => {
+  const n = Number(num) || 0;
+  return parseFloat(n.toFixed(decimals));
 }
 export const formatPrice3 = (value) => {
   return formatClean3(value * 1);
@@ -131,4 +132,4 @@ export const toNum =(v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
-export default {removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt,roundTo, toNum};
+export default {removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt,roundTo, toNum, formatCleanPrice4, formatClean};
