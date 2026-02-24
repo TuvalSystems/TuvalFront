@@ -7,6 +7,7 @@ import { useTemplateStore } from "@/stores/template";
 import { formatPrice } from "@/functions";
 import { swalSuccess, swalError, swalWarning } from "@/functions/swal-alert";
 import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
+import { useRepositionGuideProcess } from '@/composables/bodegas/reposiciones/useRepositionGuideProcess';
 
 const {
   tipoIdentificacion,
@@ -15,6 +16,10 @@ const {
   loadingVerifyGuide,
   verifyGuideTransfer
 } = useSalesTransfersGuideProcess();
+const {
+  loadingReposition,
+  createGuideReposition
+} = useRepositionGuideProcess();
 const store = useStore();
 const templateStore = useTemplateStore();
 const picking = computed(() => store.state.picking);
@@ -39,7 +44,6 @@ function changeVehiculo() {
   }
 }
 
-let disabledGenerarGuia = ref(false);
 async function generarGuia() {
 
   let vehi;
@@ -55,11 +59,7 @@ async function generarGuia() {
       return;
     }
   }
-  disabledGenerarGuia.value = true;
-  // boton_generar.value.classList.add('hide');
-  // templateStore.pageLoader({ mode: "on" });
 
-  // try {
   if (despacho.value == 'Retiro en bodega') {
     trans = transportista.value;
     vehi = vehiculo.value;
@@ -83,7 +83,6 @@ async function generarGuia() {
 
   // 2) generar guia de traslado de venta
   if (currentBodega.tipo == 'transferencia') {
-    // await store.dispatch('consultarGuiaTraslado', data);
 
     const respVerify = await verifyGuideTransfer(data);
     if (!respVerify.ok) {
@@ -108,26 +107,22 @@ async function generarGuia() {
         return;
       }
     }
+    emit('generarGuia');
   }
   if (currentBodega.tipo == 'reposicion') {
-   await store.dispatch('generarGuiaTraslado', data);
+    const respReposition = await createGuideReposition(data);
+    if (!respReposition.ok) {
+      if (respReposition?.status >= 400 && respReposition?.status < 500) {
+        swalWarning(respReposition?.message);
+        return
+      }
+      if (respReposition?.status >= 500) {
+        swalError(respReposition?.message);
+        return;
+      }
+    }
+    emit('generarGuia');
   }
-  emit('generarGuia');
-  // 2) generar
-  //   await store.dispatch('generarGuiaTraslado', data);
-  //   emit('generarGuia');
-
-  // } catch (err) {
-  //   const msg =
-  //     err?.response?.data?.error ||
-  //     err?.message ||
-  //     'Error al generar la guía';
-  //   swalError(msg);
-  // } finally {
-  //   templateStore.pageLoader({ mode: 'off' });
-  //   boton_generar.value?.classList.remove('hide');
-  //   disabledGenerarGuia.value = false;
-  // }
 
 }
 
@@ -274,6 +269,6 @@ const emit = defineEmits(["generarGuia"]);
   <div class="block-content block-content-full text-end bg-body">
     <button type="button" class="btn btn-secondary btn-sm mx-2" data-bs-dismiss="modal"> Cancelar</button>
     <button ref="boton_generar" type="button" class="btn btn-success btn-sm mx-2" @click="generarGuia()"
-      :disabled="loading ||loadingVerifyGuide"><i class="fa fa-file-lines"></i> Generar</button>
+      :disabled="loading || loadingVerifyGuide || loadingReposition"><i class="fa fa-file-lines"></i> Generar</button>
   </div>
 </template>
