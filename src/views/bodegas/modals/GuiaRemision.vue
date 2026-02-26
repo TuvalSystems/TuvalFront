@@ -192,10 +192,9 @@ async function generarGuia(verpedido) {
       swalError(resp?.message);
       return;
     }
-    emit("generarGuia");
-    templateStore.pageLoader({ mode: "off" });
-
   }
+  emit("generarGuia");
+  templateStore.pageLoader({ mode: "off" });
 }
 
 
