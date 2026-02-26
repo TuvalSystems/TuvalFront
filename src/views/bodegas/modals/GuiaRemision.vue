@@ -184,17 +184,18 @@ async function generarGuia(verpedido) {
 
   const resp = await createGuideDispatch(data);
   if (!resp.ok) {
-      if (resp?.status >= 400 && resp?.status < 500) {
-        swalWarning(resp?.message);
-        return
-      }
-      if (resp?.status >= 500) {
-        swalError(resp?.message);
-        return;
-      }
-  emit("generarGuia");
-  templateStore.pageLoader({ mode: "off" });
+    if (resp?.status >= 400 && resp?.status < 500) {
+      swalWarning(resp?.message);
+      return
+    }
+    if (resp?.status >= 500) {
+      swalError(resp?.message);
+      return;
+    }
+    emit("generarGuia");
+    templateStore.pageLoader({ mode: "off" });
 
+  }
 }
 
 
