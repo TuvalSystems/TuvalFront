@@ -13,8 +13,25 @@ export function useRepositionGuideProcess() {
             successMessage: "Proceso realizado exitosamente.",
         });
     }
+
+
+    const apiReceivedReposition = 'bodegas/reposiciones/guia-remision/recibir-guia-reposicion';
+    const loadingReceivedReposition = ref(false);
+    async function receivedGuideReposition(data){
+        return await run(() => axiosClient.post(apiReceivedReposition, data), {
+            loadingRef: loadingReceivedReposition,
+            successMessage: "Proceso realizado exitosamente.",
+        });
+    }
+
     return {
         loadingReposition,
-        createGuideReposition
+        createGuideReposition,
+        // recibir guia de reposicion 
+        loadingReceivedReposition,
+        receivedGuideReposition
     }
+
+
+
 }

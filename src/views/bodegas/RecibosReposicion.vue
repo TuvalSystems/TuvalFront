@@ -1,8 +1,6 @@
 <template>
   <!-- Hero -->
-  <BasePageHeading
-    title="Recibos por Reposición"
-  >
+  <BasePageHeading title="Recibos por Reposición">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
@@ -16,21 +14,18 @@
   </BasePageHeading>
   <!-- END Hero -->
 
-   <!-- Page Content -->
-   <div class="content" v-if="recibos_reposicion">
+  <!-- Page Content -->
+  <div class="content" v-if="recibos_reposicion">
     <!-- Full Table -->
     <BaseBlock title="Recibos por Reposición">
       <template #options>
         <div class="block-options-item">
-          <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i class="si si-refresh"></i></button>
+          <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i
+              class="si si-refresh"></i></button>
         </div>
       </template>
-      <Dataset
-        v-slot="{ ds }"
-        :ds-data="recibos_reposicion"
-        :ds-sortby="sortBy"
-        :ds-search-in="['bodega_origen', 'GUI_REM_GUIA_REMISION', 'GUI_REM_RAZON_SOCIAL_TRANSPORTISTA', 'pedidos', 'GUI_REM_PLACA', 'usuario']"
-        >
+      <Dataset v-slot="{ ds }" :ds-data="recibos_reposicion" :ds-sortby="sortBy"
+        :ds-search-in="['bodega_origen', 'GUI_REM_GUIA_REMISION', 'GUI_REM_RAZON_SOCIAL_TRANSPORTISTA', 'pedidos', 'GUI_REM_PLACA', 'usuario']">
         <div class="row" :data-page-count="ds.dsPagecount">
           <div id="datasetLength" class="col-md-8 py-2">
             <DatasetShow />
@@ -41,7 +36,8 @@
         </div>
         <hr />
         <div v-if="recibos_reposicion_loading" class="text-center">
-          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+          </div>
         </div>
         <div class="row" v-if="recibos_reposicion && !recibos_reposicion_loading">
           <div class="col-md-12">
@@ -49,13 +45,8 @@
               <table class="table table-sm fs-sm table-hover table-vcenter mb-0">
                 <thead>
                   <tr>
-                    <th
-                      v-for="(th, index) in cols"
-                      :key="th.field"
-                      :class="['sort', th.sort]"
-                      @click="onSort($event, index)"
-                      class="nowrap"
-                    >
+                    <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                      @click="onSort($event, index)" class="nowrap">
                       {{ th.name }} <i class="gg-select float-end"></i>
                     </th>
                     <th></th>
@@ -63,13 +54,11 @@
                 </thead>
                 <DatasetItem tag="tbody" class="fs-sm">
                   <template #default="{ row }">
-                    <tr
-                      :class="(row.reservado > 0 && row.reservado < row.cantidad ? 'table-warning': '') || 
-                      (row.reservado > 0 && row.reservado == row.cantidad ? 'table-success': '') ||
-                      (row.trasladado > 0 && row.trasladado < row.cantidad ? 'table-warning': '')"
-                      >
+                    <tr :class="(row.reservado > 0 && row.reservado < row.cantidad ? 'table-warning' : '') ||
+                      (row.reservado > 0 && row.reservado == row.cantidad ? 'table-success' : '') ||
+                      (row.trasladado > 0 && row.trasladado < row.cantidad ? 'table-warning' : '')">
                       <td>
-                        <a href="javascript:void(0)"  @click="verGuia(row)">{{ row.GUI_REM_GUIA_REMISION }}</a>
+                        <a href="javascript:void(0)" @click="verGuia(row)">{{ row.GUI_REM_GUIA_REMISION }}</a>
                       </td>
                       <td>
                         {{ row.bodega_origen }}
@@ -84,8 +73,10 @@
                         {{ row.GUI_REM_PLACA }}
                       </td>
                       <td class="nowrap text-end">
-                        <button type="button" class="btn btn-primary btn-sm mx-1" @click="imprimirGuia(row)"><i class="fa fa-print"></i></button>
-                        <button type="button" class="btn btn-sm btn-success nowrap mx-1" @click="verGuia(row);"><i class="fa fa-people-carry-box"></i> Recibir</button>
+                        <button type="button" class="btn btn-primary btn-sm mx-1" @click="imprimirGuia(row)"><i
+                            class="fa fa-print"></i></button>
+                        <button type="button" class="btn btn-sm btn-success nowrap mx-1" @click="verGuia(row);"><i
+                            class="fa fa-people-carry-box"></i> Recibir</button>
                       </td>
                     </tr>
                   </template>
@@ -103,41 +94,32 @@
     <!-- END Full Table -->
   </div>
   <!-- END Page Content -->
-  <div
-    class="modal"
-    id="modal-pedido"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-pedido"
-    aria-hidden="true"
-    ref="guiaRemisionModal"
-    >
+  <div class="modal" id="modal-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-pedido" aria-hidden="true"
+    ref="guiaRemisionModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
 
       <div class="modal-content">
         <div v-if="detalle_recibo_reposicion_loading" class="text-center">
-          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+          </div>
           <p>Consultando compartimientos...</p>
         </div>
-        <BaseBlock v-if="currentGuia && !detalle_recibo_reposicion_loading" :title="('Detalle de guía '+currentGuia.GUI_REM_GUIA_REMISION)" class="mb-0">
+        <BaseBlock v-if="currentGuia && !detalle_recibo_reposicion_loading"
+          :title="('Detalle de guía ' + currentGuia.GUI_REM_GUIA_REMISION)" class="mb-0">
           <template #options>
-            <button
-              type="button"
-              class="btn-block-option"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-              >
+            <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
               <i class="fa fa-fw fa-times"></i>
             </button>
           </template>
           <div class="row">
             <div class="col-md-12 text-end">
-              <button class="btn btn-sm btn-info float-end" @click="encerar()"><i class="fa fa-eraser"></i> Encerar recibidos</button>
+              <button class="btn btn-sm btn-info float-end" @click="encerar()"><i class="fa fa-eraser"></i> Encerar
+                recibidos</button>
             </div>
           </div>
           <div class="table-responsive">
-            
-            <table class="table table-striped table-sm table-vcenter mt-4 fs-sm">      
+
+            <table class="table table-striped table-sm table-vcenter mt-4 fs-sm">
               <thead>
                 <tr>
                   <th>Código</th>
@@ -152,168 +134,160 @@
                 </tr>
               </thead>
               <tbody>
-                
+
                 <tr v-for="(articulo, index) in currentGuia.detalle" :key="index">
                   <template v-if="articulo.pendiente > 0">
-                  <td>
+                    <td>
                       {{ articulo.GUI_REM_CODI_INTERNO }}
-                  </td>
-                  <td>
-                    {{ articulo.GUI_REM_CODI_ADICIONAL }}
-                  </td>
+                    </td>
+                    <td>
+                      {{ articulo.GUI_REM_CODI_ADICIONAL }}
+                    </td>
 
-                  <td>
-                    {{ articulo.GUI_REM_UNIDAD_MEDIDA }}
-                  </td>
-                  <td>
-                    {{ articulo.GUI_REM_DESCRIPCION }}
-                  </td>
+                    <td>
+                      {{ articulo.GUI_REM_UNIDAD_MEDIDA }}
+                    </td>
+                    <td>
+                      {{ articulo.GUI_REM_DESCRIPCION }}
+                    </td>
 
-                  <td>
-                    <select
-                      class="form-select form-select-sm" v-model="articulo.compartimiento"
-                      :class="{
+                    <td>
+                      <select class="form-select form-select-sm" v-model="articulo.compartimiento" :class="{
                         'is-invalid': articulo.repetido,
-                      }"
-                      @change="checkRepetidos"
-                      >{{ articulo.compartimientos }}
-                      <option
-                        v-for="(compartimiento, index) in articulo.compartimientos" :key="index"
-                        :value="compartimiento.compartimento"
-
-                        >{{ compartimiento.compartimento }}</option>
-                    </select>
-                  </td>
-                  <td class="text-end">
-                    {{ articulo.GUI_REM_CANTIDAD }}
-                  </td>
-                  <td class="text-end">
-                    {{ articulo.pendiente }}
-                  </td>
-                  <td style="width: 80px">
-                    <input
-                        type="text"
-                        class="form-control text-end"
-                        v-model="articulo.recibido"
-                        @change="aplicarrecibido(articulo)"
-                    />
-                  </td>
+                      }" @change="checkRepetidos">{{ articulo.compartimientos }}
+                        <option v-for="(compartimiento, index) in articulo.compartimientos" :key="index"
+                          :value="compartimiento.compartimento">{{ compartimiento.compartimento }}</option>
+                      </select>
+                    </td>
+                    <td class="text-end">
+                      {{ articulo.GUI_REM_CANTIDAD }}
+                    </td>
+                    <td class="text-end">
+                      {{ articulo.pendiente }}
+                    </td>
+                    <td style="width: 80px">
+                      <input type="text" class="form-control text-end" v-model="articulo.recibido"
+                        @change="aplicarrecibido(articulo)" />
+                    </td>
                   </template>
                 </tr>
               </tbody>
             </table>
           </div>
         </BaseBlock>
-        <div v-if="currentGuia && !detalle_recibo_reposicion_loading" class="block-content block-content-full text-end bg-body">
-          <button  type="button" class="btn btn-warning btn-sm mx-2" @click="confirmImprimirOrden(currentGuia)"><i class="fa fa-print"></i> Orden de almacenamiento</button>
-          <button  type="button" class="btn btn-success btn-sm mx-2" @click="confirmRecibirGuia(currentGuia)"><i class="fa fa-people-carry-box"></i> Recibir</button>
-          <button  type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cerrar</button>
+        <div v-if="currentGuia && !detalle_recibo_reposicion_loading"
+          class="block-content block-content-full text-end bg-body">
+          <button type="button" class="btn btn-warning btn-sm mx-2" @click="confirmImprimirOrden(currentGuia)"><i
+              class="fa fa-print"></i> Orden de almacenamiento</button>
+          <button type="button" :disabled="loadingReceivedReposition" class="btn btn-success btn-sm mx-2"
+            @click="confirmRecibirGuia(currentGuia)"><i class="fa fa-people-carry-box"></i> Recibir</button>
+          <button type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cerrar</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted  } from "vue";
-import { useStore} from 'vuex'
+import { ref, reactive, computed, onMounted } from "vue";
+import { useStore } from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 import { useRouter, useRoute } from "vue-router";
 import PickingTransferencias from "./modals/PickingTransferencias.vue"
 import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
-import {useTemplateStore} from "@/stores/template";
+import { useTemplateStore } from "@/stores/template";
+import { useRepositionGuideProcess } from '@/composables/bodegas/reposiciones/useRepositionGuideProcess';
 
-
+const {
+  loadingReceivedReposition,
+  receivedGuideReposition
+} = useRepositionGuideProcess();
 const store = useStore();
-const route = useRoute();
 const recibos_reposicion = computed(() => store.state.recibos_reposicion);
 const recibos_reposicion_loading = computed(() => store.state.recibos_reposicion_loading);
 const detalle_recibo_reposicion_loading = computed(() => store.state.detalle_recibo_reposicion_loading);
-const picking = computed(() => store.state.picking);
-const currentOrden = ref(null);
-const motivo = ref(null);
 const currentGuia = ref(null);
 const existenrepetidos = ref(true);
 const templateStore = useTemplateStore();
-let guiaRemisionModal= ref(null);
+let guiaRemisionModal = ref(null);
 let guiaRemisionModalObj = null;
 
-async function imprimirGuia(guia){
+async function imprimirGuia(guia) {
   templateStore.pageLoader({ mode: "on" });
-  store.dispatch('imprimir', '/bodegas/guiasderemision/imprimirguia/'+guia.id)
-  .then((response) => {
-    if(response.status == 200){
+  store.dispatch('imprimir', '/bodegas/guiasderemision/imprimirguia/' + guia.id)
+    .then((response) => {
+      if (response.status == 200) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'guia-'+guia.GUI_REM_GUIA_REMISION+'.pdf');
+        link.setAttribute('download', 'guia-' + guia.GUI_REM_GUIA_REMISION + '.pdf');
         document.body.appendChild(link);
         link.click();
-    }
-    templateStore.pageLoader({ mode: "off" });
-  });
+      }
+      templateStore.pageLoader({ mode: "off" });
+    });
 }
 
-function encerar(){
-  currentGuia.value.detalle.map( articulo => {
+function encerar() {
+  currentGuia.value.detalle.map(articulo => {
     articulo.recibido = 0;
   });
 }
-function confirmRecibirGuia(guia){
+function confirmRecibirGuia(guia) {
   checkRepetidos();
-  if(existenrepetidos.value){
+  if (existenrepetidos.value) {
     swalError('Existen items repetidos en un mismo compartimiento')
     return;
   }
   seguroRecibirGuia(guia)
 }
 
-function confirmImprimirOrden(guia){
+function confirmImprimirOrden(guia) {
   checkRepetidos();
-  if(existenrepetidos.value){
+  if (existenrepetidos.value) {
     swalError('Existen items repetidos en un mismo compartimiento')
     return;
   }
   imprimirOrden(guia)
 }
 
-function imprimirOrden(guia){
+function imprimirOrden(guia) {
   store.dispatch('imprimirorden', guia)
-      .then((response) => {
-        if(response.status == 200){
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'orden-almacenamiento-'+guia.GUI_REM_GUIA_REMISION+'.pdf');
-          document.body.appendChild(link);
-          link.click();
-        }
-      });
+    .then((response) => {
+      if (response.status == 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'orden-almacenamiento-' + guia.GUI_REM_GUIA_REMISION + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
 }
 
-function checkRepetidos(){
+function checkRepetidos() {
   const busqueda = currentGuia.value.detalle.reduce((acc, articulo) => {
-    if(parseFloat(articulo.recibido) > 0){
+    if (parseFloat(articulo.recibido) > 0) {
       acc[articulo.compartimiento] = ++acc[articulo.compartimiento] || 0;
     }
     return acc;
   }, {});
 
-  const duplicados = currentGuia.value.detalle.filter( (articulo) => {
+  const duplicados = currentGuia.value.detalle.filter((articulo) => {
     return busqueda[articulo.compartimiento];
   });
 
   existenrepetidos.value = false;
 
-  currentGuia.value.detalle.map( articulo => {
-    if(parseFloat(articulo.recibido) > 0) {
+  currentGuia.value.detalle.map(articulo => {
+    if (parseFloat(articulo.recibido) > 0) {
       if (duplicados.find((item) => item.id === articulo.id)) {
         articulo.repetido = true;
         existenrepetidos.value = true;
       } else {
         articulo.repetido = false;
       }
-    }else{
+    } else {
       articulo.repetido = false;
     }
   })
@@ -323,7 +297,7 @@ function seguroRecibirGuia(guia) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De recibir la guía de remisión "+guia.GUI_REM_GUIA_REMISION,
+      text: "De recibir la guía de remisión " + guia.GUI_REM_GUIA_REMISION,
       icon: "question",
       showCancelButton: true,
       customClass: {
@@ -348,28 +322,43 @@ function seguroRecibirGuia(guia) {
     });
 }
 
-function recibirGuia(guia){
-  templateStore.pageLoader({ mode: "on" });
-  store.dispatch('recibirGuiaRemision', guia).then( (res) => {
-    if(res.success === false){
-      swalError(res.message);
-      templateStore.pageLoader({ mode: "off" });
-    }else{
-      guiaRemisionModalObj.hide();
-      swalSuccess(res.message);
-      templateStore.pageLoader({ mode: "off" });
-      refrescar();
+async function recibirGuia(guia) {
+  // templateStore.pageLoader({ mode: "on" });
+  // store.dispatch('recibirGuiaRemision', guia).then((res) => {
+  //   if (res.success === false) {
+  //     swalError(res.message);
+  //     templateStore.pageLoader({ mode: "off" });
+  //   } else {
+  //     guiaRemisionModalObj.hide();
+  //     swalSuccess(res.message);
+  //     templateStore.pageLoader({ mode: "off" });
+  //     refrescar();
+  //   }
+  // }).catch(err => {
+  //   swalError(err.response.data.error);
+  //   templateStore.pageLoader({ mode: "off" });
+  // });
+
+  const resp = await receivedGuideReposition(guia);
+  if (!resp.ok) {
+    if (resp?.status >= 400 && resp?.status < 500) {
+      swalWarning(resp?.message);
+      return
     }
-  }).catch(err => {
-  swalError(err.response.data.error);
-  templateStore.pageLoader({ mode: "off" });
-});
+    if (resp?.status >= 500) {
+      swalError(resp?.message);
+      return;
+    }
+  }
+  guiaRemisionModalObj.hide();
+  swalSuccess(resp.message);
+  refrescar();
 }
 
 
 refrescar();
 
-function refrescar(){
+function refrescar() {
   store.dispatch('recibosReposicion').then(() => {
     document.querySelectorAll("#datasetLength label").forEach((el) => {
       el.remove();
@@ -389,8 +378,8 @@ function verGuia(bodega) {
   guiaRemisionModalObj.show();
   store.dispatch('detalleReciboReposicion', bodega.id).then((res) => {
     currentGuia.value = bodega;
-    res.detalle.map( articulo => {
-        articulo.compartimiento = articulo.compartimientos[0]?.compartimento || '';
+    res.detalle.map(articulo => {
+      articulo.compartimiento = articulo.compartimientos[0]?.compartimento || '';
     });
 
     currentGuia.value.detalle = res.detalle;
@@ -400,7 +389,7 @@ function verGuia(bodega) {
 
 
 const cols = reactive([
-  
+
   {
     name: "Guia Remisión",
     field: "GUI_REM_GUIA_REMISION",
@@ -411,7 +400,7 @@ const cols = reactive([
     field: "bodega_origen",
     sort: "",
   },
-  
+
   {
     name: "#Documentos",
     field: "Documentos",
@@ -435,7 +424,7 @@ function isInt(value) {
 }
 
 function aplicarrecibido(articulo) {
-  if(!isInt(articulo.recibido) && articulo.ART_DECIMAL_CANTIDAD === 0){
+  if (!isInt(articulo.recibido) && articulo.ART_DECIMAL_CANTIDAD === 0) {
     swalError('Ingresar un número entero');
     articulo.recibido = articulo.pendiente;
     return false;
@@ -448,12 +437,12 @@ function aplicarrecibido(articulo) {
   }
 
   if (articulo.recibido === '') {
-    articulo.recibido = 0 ;
+    articulo.recibido = 0;
     return;
   }
 
   if (articulo.recibido < 0) {
-    articulo.recibido = 0 ;
+    articulo.recibido = 0;
     swalError("El número ingresado no puede ser negativo");
     return;
   }
