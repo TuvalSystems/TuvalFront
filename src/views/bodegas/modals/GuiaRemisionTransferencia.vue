@@ -107,6 +107,7 @@ async function generarGuia() {
         return;
       }
     }
+    clearCampos();
     emit('generarGuia');
   }
   if (currentBodega.tipo == 'reposicion') {
@@ -121,9 +122,15 @@ async function generarGuia() {
         return;
       }
     }
+    clearCampos();
     emit('generarGuia');
   }
 
+}
+
+function clearCampos() {
+  observacion.value = '';
+  ruta.value = '';
 }
 
 const emit = defineEmits(["generarGuia"]);

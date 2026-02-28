@@ -323,21 +323,7 @@ function seguroRecibirGuia(guia) {
 }
 
 async function recibirGuia(guia) {
-  // templateStore.pageLoader({ mode: "on" });
-  // store.dispatch('recibirGuiaRemision', guia).then((res) => {
-  //   if (res.success === false) {
-  //     swalError(res.message);
-  //     templateStore.pageLoader({ mode: "off" });
-  //   } else {
-  //     guiaRemisionModalObj.hide();
-  //     swalSuccess(res.message);
-  //     templateStore.pageLoader({ mode: "off" });
-  //     refrescar();
-  //   }
-  // }).catch(err => {
-  //   swalError(err.response.data.error);
-  //   templateStore.pageLoader({ mode: "off" });
-  // });
+  
 
   const resp = await receivedGuideReposition(guia);
   if (!resp.ok) {
