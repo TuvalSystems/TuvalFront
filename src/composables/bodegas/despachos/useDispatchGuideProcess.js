@@ -7,7 +7,7 @@ import {
 
 export function useDispatchGuideProcess() {
     const { run } = useApiAction();
-   
+
     const tipoIdentificacion = [
         { value: "04", label: "Ruc" },
         { value: "05", label: "Cedula" },
@@ -15,16 +15,28 @@ export function useDispatchGuideProcess() {
     ];
     const apiCreateGuide = `bodegas/despachos/guia-remision/crear-guia-despacho`;
     const loading = ref(false);
-    async function createGuideDispatch(data){
+    async function createGuideDispatch(data) {
         return await run(() => axiosClient.post(apiCreateGuide, data), {
             loadingRef: loading,
             successMessage: "Proceso realizado exitosamente.",
         });
     }
 
+    const loadingDispatch = ref(false);
+    const apiDispatchGuide = 'bodegas/despachos/guia-remision/despachar-guia';
+    async function dispathGuide(id) {
+        return await run(() => axiosClient.post(apiDispatchGuide, { id: id }), {
+            loadingRef: loadingDispatch,
+            successMessage: "Proceso realizado exitosamente.",
+
+        });
+    }
+
     return {
         tipoIdentificacion,
         loading,
-        createGuideDispatch
+        createGuideDispatch,
+        loadingDispatch,
+        dispathGuide
     }
 }

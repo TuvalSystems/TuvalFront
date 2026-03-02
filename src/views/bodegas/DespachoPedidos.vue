@@ -168,7 +168,7 @@
                                   <i class="fa fa-print"></i> Imprimir
                                 </button>
                                 <button type="button" class="btn btn-outline-success btn-sm mx-2"
-                                  @click="confirmDespacharGuia(guia)">
+                                  :disabled="loadingDispatch" @click="confirmDespacharGuia(guia)">
                                   <i class="fa fa-print"></i> Despachar
                                 </button>
                                 <!-- <button  type="button" class="btn btn-outline-danger btn-sm mx-2" @click="confirmEliminarguiaGuia(guia)"><i class="fa fa-trash"></i> Eliminar</button> -->
@@ -246,6 +246,9 @@ import GuiaRemision from "./modals/GuiaRemision.vue";
 import OrdenDespacho from "./modals/OrdenDespacho.vue";
 import { formatPrice, formatPrice4 } from "@/functions";
 import VueEasyLightbox from "vue-easy-lightbox";
+import { useDispatchGuideProcess } from '@/composables/bodegas/despachos/useDispatchGuideProcess';
+
+const { loadingDispatch, dispathGuide } = useDispatchGuideProcess();
 // Helper variables
 const cols = reactive([
   {
@@ -514,7 +517,7 @@ function confirmDespacharGuia(guia) {
     })
     .then((result) => {
       if (result.value) {
-        templateStore.pageLoader({ mode: "on" });
+        // templateStore.pageLoader({ mode: "on" });
         despacharguiaGuia(guia);
       }
     });
@@ -522,34 +525,27 @@ function confirmDespacharGuia(guia) {
 
 
 
-function despacharguiaGuia(guia) {
-
+async function despacharguiaGuia(guia) {
   let indexorden = ordenes_despacho.value.findIndex((orden) => orden.pedido_id === parseInt(guia.pedido.replace('PED', '')));
+  const respDispatch = await dispathGuide(guia.id);
+  if (!respDispatch?.ok) {
+    if (respDispatch?.status === 400 && respDispatch?.status < 500) {
+      swalWarning(respDispatch?.message);
+      return;
+    }
+    if (respDispatch?.status >= 500) {
+      swalError(respDispatch?.message);
+      return;
+    }
+  }
 
-  store.dispatch("despacharGuiaRemision", guia).then((res) => {
-    if (!res.success) {
-      swalError(res.error);
-      templateStore.pageLoader({ mode: "off" });
-      return;
-    } else {
-      swalSuccess(res.message);
-      if (res.pedido.despachado) {
-        store.commit('eliminaDespacho', indexorden);
-      } else {
-        getDescripcion(ordenes_despacho.value[indexorden])
-      }
-      templateStore.pageLoader({ mode: "off" });
-    }
-  }).catch(err => {
-    let status = err.response.status || 500;
-    if (status === 422) {
-      swalWarning(err.response.data.error);
-      templateStore.pageLoader({ mode: "off" });
-      return;
-    }
-    swalError(err.response.data.error);
-    templateStore.pageLoader({ mode: "off" });
-  });
+  let order = respDispatch.data.pedido;
+  console.log(order, order.despachado);
+  if (order.despachado) {
+    store.commit('eliminaDespacho', indexorden);
+  } else {
+    getDescripcion(ordenes_despacho.value[indexorden]);
+  }
 }
 
 function confirmEliminarguiaGuia(guia) {
