@@ -540,12 +540,12 @@ async function despacharguiaGuia(guia) {
   }
 
   let order = respDispatch.data.pedido;
-  console.log(order, order.despachado);
   if (order.despachado) {
     store.commit('eliminaDespacho', indexorden);
   } else {
     getDescripcion(ordenes_despacho.value[indexorden]);
   }
+  swalSuccess(respDispatch.message);
 }
 
 function confirmEliminarguiaGuia(guia) {
