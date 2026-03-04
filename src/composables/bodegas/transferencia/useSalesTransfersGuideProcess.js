@@ -31,6 +31,16 @@ export function useSalesTransfersGuideProcess() {
     }
 
 
+    const apiSendSalesTransfer = 'bodegas/transferencia-venta/guia-remision/despachar-guia-transferencia-venta';
+    const loadingSendGuide = ref(false);
+    async function sendGuideSalesTransfer(id) {
+        return await run(() => axiosClient.post(apiSendSalesTransfer, { id: id }), {
+            loadingRef: loadingSendGuide,
+            successMessage: "Proceso realizado exitosamente.",
+        });
+    }
+
+
     const apiRecived = 'bodegas/transferencia-venta/guia-remision/recibir-guia-transferencia-venta';
     const loadingRecivedGuide = ref(false);
     async function receivedGuideSalesTransfer(data) {
@@ -46,6 +56,9 @@ export function useSalesTransfersGuideProcess() {
         createGuideTransfer,
         loadingVerifyGuide,
         verifyGuideTransfer,
+        // despachar guia de transferencia de venta
+        loadingSendGuide,
+        sendGuideSalesTransfer,
 
         // Recibir guia de transferencia de venta
         loadingRecivedGuide,

@@ -1,219 +1,3 @@
-<template>
-  <!-- Hero -->
-  <template v-if="transferencias_venta">
-    <BasePageHeading v-if="transferencias_venta[route.params.id]" title="Transferencias por Venta"
-      :subtitle="transferencias_venta[route.params.id].bodega">
-      <template #extra>
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb breadcrumb-alt">
-            <li class="breadcrumb-item">
-              <a class="link-fx" href="javascript:void(0)">Bodegas</a>
-            </li>
-            <li class="breadcrumb-item">
-              <router-link class="link-fx" :to="{ name: 'bodegas-transferenciasventa' }">
-                Transferencias por Venta
-              </router-link>
-            </li>
-            <li class="breadcrumb-item" aria-current="page">{{ transferencias_venta[route.params.id].bodega }}</li>
-          </ol>
-        </nav>
-      </template>
-    </BasePageHeading>
-    <!-- END Hero -->
-
-    <!-- Page Content -->
-    <div class="content" v-if="transferencias_venta">
-      <!-- Full Table -->
-      <BaseBlock :title="'Destino: ' + transferencias_venta[route.params.id].bodega">
-        <template #options>
-          <div class="block-options-item"><span class="badge bg-warning">Peso total: {{
-            formatPrice(transferencias_venta[route.params.id].peso_total) }}</span></div>
-          <div class="block-options-item">
-            <button type="button" class="btn btn-sm btn-primary"
-              @click="seleccionartodos(transferencias_venta[route.params.id].traslados)"><i
-                class="fa fa-hand-pointer"></i> Seleccionar todos</button>
-          </div>
-          <div class="block-options-item">
-            <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i
-                class="si si-refresh"></i></button>
-          </div>
-        </template>
-        <Dataset v-slot="{ ds }" :ds-data="transferencias_venta[route.params.id].traslados" :ds-sortby="sortBy"
-          :ds-search-in="['compartimiento', 'ART_CODIGO_TRES_LETRAS', 'ART_CODIGO', 'ART_DESCRIPCION', 'pedido', 'fecha', 'usuario']">
-          <div class="row">
-            <div class="col-sm-2">
-              <VueSelect v-model="buscarpedido" :options="transferencias_venta[route.params.id].pedidos"
-                placeholder="Buscar por pedido..." @keyup.enter="buscarPedido"></VueSelect>
-            </div>
-            <div class="col-sm-2">
-              <input type="text" class="form-control" v-model="buscarcompartimiento"
-                placeholder="Buscar por compartimiento..." @keyup.enter="buscarPedido" />
-              <!--              <VueSelect-->
-              <!--                  v-model="buscarcompartimiento"-->
-              <!--                  :options="transferencias_venta[route.params.id].compartimientos"-->
-              <!--                  placeholder="Buscar por compartimiento..."-->
-              <!--                  @keyup.enter="buscarPedido"-->
-              <!--              ></VueSelect>-->
-            </div>
-            <div class="col-sm-1">
-              <button type="button" @click="buscarPedido" class="btn btn-primary">Buscar</button>
-            </div>
-          </div>
-          <div class="row" :data-page-count="ds.dsPagecount">
-            <div id="datasetLength" class="col-md-8 py-2">
-              <DatasetShow />
-            </div>
-            <div class="col-md-4 py-2">
-              <DatasetSearch ds-search-placeholder="Buscar..." />
-            </div>
-          </div>
-          <hr />
-          <div class="row" v-if="transferencias_venta[route.params.id].traslados && !transferencias_venta_loading">
-            <div class="col-md-12">
-              <div class="table-responsive">
-                <table class="table table-sm fs-sm table-hover table-vcenter mb-0">
-                  <thead>
-                    <tr>
-                      <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
-                        @click="onSort($event, index)" class="nowrap">
-                        {{ th.name }} <i class="gg-select float-end"></i>
-                      </th>
-                      <th></th>
-                      <th></th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <DatasetItem tag="tbody" class="fs-sm">
-                    <template #default="{ row }">
-                      <tr :class="(row.reservado > 0 && row.reservado == row.cantidad ? 'table-success' : '') ||
-                        (row.reservado > 0 && row.pendiente == 0 && row.completado == 0 ? 'table-success' : '') ||
-                        (row.reservado > 0 && row.pendiente > 0 && row.completado == 0 ? 'table-warning' : '') ||
-                        (row.picking ? 'table-info' : '')
-                        ">
-                        <td>{{ row.ART_CODIGO_TRES_LETRAS }}</td>
-                        <td>
-                          {{ row.ART_CODIGO }}
-                        </td>
-                        <td>
-                          {{ row.ART_DESCRIPCION }}
-                        </td>
-                        <td>
-                          {{ row.compartimiento }}
-                        </td>
-                        <td>
-                          {{ row.pedido }}
-                        </td>
-                        <td>
-                          {{ row.created_at }}
-                        </td>
-                        <td>
-                          {{ row.usuario }}
-                        </td>
-                        <td class="text-end">
-                          {{ row.cantidad }}
-                        </td>
-                        <td class="text-end">
-                          {{ row.reservado }}
-                        </td>
-                        <td class="text-end">
-                          {{ row.trasladado }}
-                        </td>
-                        <td class="text-end">
-                          {{ row.pendiente }}
-                        </td>
-                        <td class="text-end">
-                          {{ formatPrice(row.pendiente * row.ART_PESO) }}
-                        </td>
-                        <td style="width: 31px;" class="text-center">
-                          <input v-if="(row.pendiente > 0)" type="checkbox" class="form-check-input"
-                            v-model="row.aplicar_todo" @change="aplicatodo(row)" />
-                        </td>
-                        <td style="width: 80px;">
-                          <input v-if="(row.pendiente > 0)" type="text" class="form-control form-control-sm text-end"
-                            v-model="row.seleccionado" @change="aplicartraslado(row)" />
-                        </td>
-                        <td style="width: 27px;">
-                          <button v-if="row.picking" class="btn btn-sm btn-danger" title="Cancelar Picking"
-                            @click="confirmCancelarPicking(row)"><i class="fa fa-xmark"></i></button>
-                        </td>
-                      </tr>
-                    </template>
-                  </DatasetItem>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div v-if="transferencias_venta_loading" class="text-center">
-            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-          <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
-            <DatasetInfo class="py-3 fs-sm" />
-            <DatasetPager class="flex-wrap py-3 fs-sm" />
-          </div>
-        </Dataset>
-        <div class="row">
-          <div class="col-md-12 text-end mb-2">
-            <button :disabled="!transferencias_venta[route.params.id].generar" type="button"
-              class="btn btn-sm btn-warning mx-2" @click="verPicking(transferencias_venta[route.params.id])">
-              <i class="fa fa-people-carry-box"></i> Picking
-            </button>
-            <button :disabled="!transferencias_venta[route.params.id].generar" type="button"
-              class="btn btn-sm btn-success mx-2" @click="guiaRemision(transferencias_venta[route.params.id])"><i
-                class="fa fa-file-lines"></i> Generar guía de remisión</button>
-          </div>
-        </div>
-        <div class="table-responsive">
-          <table v-if="transferencias_venta[route.params.id].guias.length" class="table table-sm fs-sm">
-            <thead>
-              <tr>
-                <th>No. de Guía</th>
-                <th>Fecha</th>
-                <th>Transportista</th>
-                <th>Vehículo</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(guia, index) in transferencias_venta[route.params.id].guias" :key="index">
-                <td>{{ guia.GUI_REM_GUIA_REMISION }}</td>
-                <td>{{ guia.GUI_REM_FECHA_INICIO }}</td>
-                <td>{{ guia.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
-                <td>{{ guia.GUI_REM_PLACA }}</td>
-                <td class="text-end">
-                  <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guia)"><i
-                      class="fa fa-print"></i> Imprimir</button>
-                  <button type="button" class="btn btn-outline-success btn-sm mx-2"
-                    @click="confirmDespacharGuia(guia)"><i class="fa fa-print"></i> Despachar</button>
-                  <!-- <button  type="button" class="btn btn-outline-danger btn-sm mx-2" @click="confirmEliminarguiaGuia(guia)"><i class="fa fa-trash"></i> Eliminar</button> -->
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </BaseBlock>
-      <!-- END Full Table -->
-    </div>
-    <!-- END Page Content -->
-    <div class="modal" id="modal-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-pedido" aria-hidden="true"
-      ref="guiaRemisionModal">
-      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content" v-if="currentBodega">
-          <GuiaRemisionTransferencia :currentBodega="currentBodega" @generarGuia="generarGuia()">
-          </GuiaRemisionTransferencia>
-        </div>
-      </div>
-    </div>
-    <div class="modal" id="modal-liberar" tabindex="-1" role="dialog" aria-labelledby="modal-liberar" aria-hidden="true"
-      ref="pickingModal">
-      <div class="modal-dialog modal-xl modal-md modal-dialog-centered" role="document">
-        <div class="modal-content" v-if="currentBodega">
-          <PickingTransferencias :currentBodega="currentBodega" @regrescarLista="refrescar()"></PickingTransferencias>
-        </div>
-      </div>
-    </div>
-  </template>
-</template>
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
@@ -225,6 +9,13 @@ import PickingTransferencias from "./modals/PickingTransferencias.vue"
 import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
 import VueSelect from "vue-select";
 import { formatPrice, formatPrice4 } from "@/functions";
+import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
+
+const {
+  // enviar guia de transferencia de venta
+  loadingSendGuide,
+  sendGuideSalesTransfer,
+} = useSalesTransfersGuideProcess();
 
 const store = useStore();
 const templateStore = useTemplateStore();
@@ -357,25 +148,20 @@ function confirmDespacharGuia(guia) {
     });
 }
 
-function despacharguiaGuia(guia) {
-  templateStore.pageLoader({ mode: "off" });
-  store.dispatch('despacharGuiaRemision', guia).then((res) => {
-    if (!res.success) {
-      swalError(res.message);
-    } else {
-      swalSuccess(res.message);
-      refrescar();
+async function despacharguiaGuia(guia) {
+  const resp = await sendGuideSalesTransfer(guia.id);
+  if (!resp.ok) {
+    if (resp?.status >= 400 && resp?.status < 500) {
+      swalWarning(resp.message);
+      return;
     }
-    templateStore.pageLoader({ mode: "off" });
-  }).catch(err => {
-    const msg =
-      err?.response?.data?.error ||
-      err?.response?.data?.message ||
-      err?.message ||
-      'Error al despachar la guía de remisión';
-    swalError(msg);
-    templateStore.pageLoader({ mode: "off" });
-  })
+    if (resp?.status >= 500) {
+      swalError(resp.message);
+      return;
+    }
+    swalSuccess(resp.message);
+    refrescar();
+  }
 }
 
 
@@ -666,3 +452,219 @@ onMounted(() => {
   selectLength.style.width = "80px";
 });
 </script>
+<template>
+  <!-- Hero -->
+  <template v-if="transferencias_venta">
+    <BasePageHeading v-if="transferencias_venta[route.params.id]" title="Transferencias por Ventas"
+      :subtitle="transferencias_venta[route.params.id].bodega">
+      <template #extra>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb breadcrumb-alt">
+            <li class="breadcrumb-item">
+              <a class="link-fx" href="javascript:void(0)">Bodegas</a>
+            </li>
+            <li class="breadcrumb-item">
+              <router-link class="link-fx" :to="{ name: 'bodegas-transferenciasventa' }">
+                Transferencias por Venta
+              </router-link>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">{{ transferencias_venta[route.params.id].bodega }}</li>
+          </ol>
+        </nav>
+      </template>
+    </BasePageHeading>
+    <!-- END Hero -->
+
+    <!-- Page Content -->
+    <div class="content" v-if="transferencias_venta">
+      <!-- Full Table -->
+      <BaseBlock :title="'Destino: ' + transferencias_venta[route.params.id].bodega">
+        <template #options>
+          <div class="block-options-item"><span class="badge bg-warning">Peso total: {{
+            formatPrice(transferencias_venta[route.params.id].peso_total) }}</span></div>
+          <div class="block-options-item">
+            <button type="button" class="btn btn-sm btn-primary"
+              @click="seleccionartodos(transferencias_venta[route.params.id].traslados)"><i
+                class="fa fa-hand-pointer"></i> Seleccionar todos</button>
+          </div>
+          <div class="block-options-item">
+            <button type="button" title="Refrescar tabla" @click="refrescar()" class="btn-block-option"><i
+                class="si si-refresh"></i></button>
+          </div>
+        </template>
+        <Dataset v-slot="{ ds }" :ds-data="transferencias_venta[route.params.id].traslados" :ds-sortby="sortBy"
+          :ds-search-in="['compartimiento', 'ART_CODIGO_TRES_LETRAS', 'ART_CODIGO', 'ART_DESCRIPCION', 'pedido', 'fecha', 'usuario']">
+          <div class="row">
+            <div class="col-sm-2">
+              <VueSelect v-model="buscarpedido" :options="transferencias_venta[route.params.id].pedidos"
+                placeholder="Buscar por pedido..." @keyup.enter="buscarPedido"></VueSelect>
+            </div>
+            <div class="col-sm-2">
+              <input type="text" class="form-control" v-model="buscarcompartimiento"
+                placeholder="Buscar por compartimiento..." @keyup.enter="buscarPedido" />
+              <!--              <VueSelect-->
+              <!--                  v-model="buscarcompartimiento"-->
+              <!--                  :options="transferencias_venta[route.params.id].compartimientos"-->
+              <!--                  placeholder="Buscar por compartimiento..."-->
+              <!--                  @keyup.enter="buscarPedido"-->
+              <!--              ></VueSelect>-->
+            </div>
+            <div class="col-sm-1">
+              <button type="button" @click="buscarPedido" class="btn btn-primary">Buscar</button>
+            </div>
+          </div>
+          <div class="row" :data-page-count="ds.dsPagecount">
+            <div id="datasetLength" class="col-md-8 py-2">
+              <DatasetShow />
+            </div>
+            <div class="col-md-4 py-2">
+              <DatasetSearch ds-search-placeholder="Buscar..." />
+            </div>
+          </div>
+          <hr />
+          <div class="row" v-if="transferencias_venta[route.params.id].traslados && !transferencias_venta_loading">
+            <div class="col-md-12">
+              <div class="table-responsive">
+                <table class="table table-sm fs-sm table-hover table-vcenter mb-0">
+                  <thead>
+                    <tr>
+                      <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                        @click="onSort($event, index)" class="nowrap">
+                        {{ th.name }} <i class="gg-select float-end"></i>
+                      </th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <DatasetItem tag="tbody" class="fs-sm">
+                    <template #default="{ row }">
+                      <tr :class="(row.reservado > 0 && row.reservado == row.cantidad ? 'table-success' : '') ||
+                        (row.reservado > 0 && row.pendiente == 0 && row.completado == 0 ? 'table-success' : '') ||
+                        (row.reservado > 0 && row.pendiente > 0 && row.completado == 0 ? 'table-warning' : '') ||
+                        (row.picking ? 'table-info' : '')
+                        ">
+                        <td>{{ row.ART_CODIGO_TRES_LETRAS }}</td>
+                        <td>
+                          {{ row.ART_CODIGO }}
+                        </td>
+                        <td>
+                          {{ row.ART_DESCRIPCION }}
+                        </td>
+                        <td>
+                          {{ row.compartimiento }}
+                        </td>
+                        <td>
+                          {{ row.pedido }}
+                        </td>
+                        <td>
+                          {{ row.created_at }}
+                        </td>
+                        <td>
+                          {{ row.usuario }}
+                        </td>
+                        <td class="text-end">
+                          {{ row.cantidad }}
+                        </td>
+                        <td class="text-end">
+                          {{ row.reservado }}
+                        </td>
+                        <td class="text-end">
+                          {{ row.trasladado }}
+                        </td>
+                        <td class="text-end">
+                          {{ row.pendiente }}
+                        </td>
+                        <td class="text-end">
+                          {{ formatPrice(row.pendiente * row.ART_PESO) }}
+                        </td>
+                        <td style="width: 31px;" class="text-center">
+                          <input v-if="(row.pendiente > 0)" type="checkbox" class="form-check-input"
+                            v-model="row.aplicar_todo" @change="aplicatodo(row)" />
+                        </td>
+                        <td style="width: 80px;">
+                          <input v-if="(row.pendiente > 0)" type="text" class="form-control form-control-sm text-end"
+                            v-model="row.seleccionado" @change="aplicartraslado(row)" />
+                        </td>
+                        <td style="width: 27px;">
+                          <button v-if="row.picking" class="btn btn-sm btn-danger" title="Cancelar Picking"
+                            @click="confirmCancelarPicking(row)"><i class="fa fa-xmark"></i></button>
+                        </td>
+                      </tr>
+                    </template>
+                  </DatasetItem>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div v-if="transferencias_venta_loading" class="text-center">
+            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
+            <DatasetInfo class="py-3 fs-sm" />
+            <DatasetPager class="flex-wrap py-3 fs-sm" />
+          </div>
+        </Dataset>
+        <div class="row">
+          <div class="col-md-12 text-end mb-2">
+            <button :disabled="!transferencias_venta[route.params.id].generar" type="button"
+              class="btn btn-sm btn-warning mx-2" @click="verPicking(transferencias_venta[route.params.id])">
+              <i class="fa fa-people-carry-box"></i> Picking
+            </button>
+            <button :disabled="!transferencias_venta[route.params.id].generar" type="button"
+              class="btn btn-sm btn-success mx-2" @click="guiaRemision(transferencias_venta[route.params.id])"><i
+                class="fa fa-file-lines"></i> Generar guía de remisión</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table v-if="transferencias_venta[route.params.id].guias.length" class="table table-sm fs-sm">
+            <thead>
+              <tr>
+                <th>No. de Guía</th>
+                <th>Fecha</th>
+                <th>Transportista</th>
+                <th>Vehículo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(guia, index) in transferencias_venta[route.params.id].guias" :key="index">
+                <td>{{ guia.GUI_REM_GUIA_REMISION }}</td>
+                <td>{{ guia.GUI_REM_FECHA_INICIO }}</td>
+                <td>{{ guia.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
+                <td>{{ guia.GUI_REM_PLACA }}</td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guia)"><i
+                      class="fa fa-print"></i> Imprimir</button>
+                  <button type="button" class="btn btn-outline-success btn-sm mx-2" :disabled="loadingSendGuide"
+                    @click="confirmDespacharGuia(guia)"><i class="fa fa-print"></i> Despachar</button>
+                  <!-- <button  type="button" class="btn btn-outline-danger btn-sm mx-2" @click="confirmEliminarguiaGuia(guia)"><i class="fa fa-trash"></i> Eliminar</button> -->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </BaseBlock>
+      <!-- END Full Table -->
+    </div>
+    <!-- END Page Content -->
+    <div class="modal" id="modal-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-pedido" aria-hidden="true"
+      ref="guiaRemisionModal">
+      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content" v-if="currentBodega">
+          <GuiaRemisionTransferencia :currentBodega="currentBodega" @generarGuia="generarGuia()">
+          </GuiaRemisionTransferencia>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="modal-liberar" tabindex="-1" role="dialog" aria-labelledby="modal-liberar" aria-hidden="true"
+      ref="pickingModal">
+      <div class="modal-dialog modal-xl modal-md modal-dialog-centered" role="document">
+        <div class="modal-content" v-if="currentBodega">
+          <PickingTransferencias :currentBodega="currentBodega" @regrescarLista="refrescar()"></PickingTransferencias>
+        </div>
+      </div>
+    </div>
+  </template>
+</template>
