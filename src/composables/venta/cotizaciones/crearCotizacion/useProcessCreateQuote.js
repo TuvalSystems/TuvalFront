@@ -401,62 +401,72 @@ export function useProcessCreateQuote() {
     /** proceso de actualizacion de stock por lote  */
     const loadingStockMasivo = ref(false);
 
-    async function updateStockByBatch() {
+   async function updateStockByBatch() {
         if (!form.value.items || form.value.items.length === 0) return;
+        
         loadingStockMasivo.value = true;
+        
         try {
-            const actualizaciones = form.value.items.map(async (item, index) => {
+            // 1. Iniciamos el estado de carga reasignando el arreglo completo
+            // Esto fuerza a Vue a detectar el cambio y mostrar los spinners de inmediato
+            form.value.items = form.value.items.map(item => {
                 if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
-                    form.value.items[index] = { ...form.value.items[index], stockRowLoading: false };
-                    return;
+                    return item; // Ignoramos estos tipos, tal cual tu lógica original
                 }
-                form.value.items[index] = {
-                    ...form.value.items[index],
-                    stockRowLoading: true,
-                    disableOpenModalStock: true,
-                    stockListo: false
+                return { 
+                    ...item, 
+                    stockRowLoading: true, 
+                    disableOpenModalStock: true, 
+                    stockListo: false 
                 };
-                try {
-                    const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-                    if (respLote?.ok && respLote.data) {
-                        form.value.items[index] = {
-                            ...form.value.items[index],
-                            stock: respLote.data.stock || [],
-                            ART_STOCK: respLote.data.ART_STOCK,
-                            stockRowLoading: false,
-                            disableOpenModalStock: false
-                        };
-                    } else {
-                        console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
-                        form.value.items[index] = {
-                            ...form.value.items[index],
-                            stockRowLoading: false,
-                            disableOpenModalStock: false
-                        };
-                    }
-                } catch (error) {
-                    console.error(`Fallo crítico en item ${item.ART_CODIGO}:`, error);
-                    form.value.items[index] = {
-                        ...form.value.items[index],
-                        stockRowLoading: false,
-                        disableOpenModalStock: false
-                    };
-                } finally {
-                    await nextTick();
-                    form.value.items[index].stockRowLoading = false;
-                    form.value.items[index].disableOpenModalStock = false;
-                }
             });
-            await Promise.all(actualizaciones);
+
+            // 2. Disparamos la consulta a la API para cada item y almacenamos el resultado
+            const itemsActualizados = await Promise.all(
+                form.value.items.map(async (item) => {
+                    if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
+                        return item;
+                    }
+                    
+                    try {
+                        const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
+                        
+                        if (respLote?.ok && respLote.data) {
+                            return {
+                                ...item,
+                                stock: respLote.data.stock || [],
+                                ART_STOCK: respLote.data.ART_STOCK,
+                                stockRowLoading: false, // Apagamos el spinner
+                                disableOpenModalStock: false
+                            };
+                        } else {
+                            console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
+                            return { ...item, stockRowLoading: false, disableOpenModalStock: false };
+                        }
+                    } catch (error) {
+                        console.error(`Fallo crítico en item ${item.ART_CODIGO}:`, error);
+                        return { ...item, stockRowLoading: false, disableOpenModalStock: false };
+                    }
+                })
+            );
+
+            // 3. Reemplazamos el array viejo con el nuevo.
+            // Aquí es donde Vue "se da cuenta" de que todo terminó y apaga los spinners de las filas
+            form.value.items = itemsActualizados;
 
         } catch (globalError) {
             console.error("Error global en updateStockByBatch:", globalError);
+            // Seguro en caso de error general: bajamos todos los spinners
+            form.value.items = form.value.items.map(item => ({
+                ...item,
+                stockRowLoading: false,
+                disableOpenModalStock: false
+            }));
         } finally {
-            // ESTA LÍNEA ES VITAL: Pase lo que pase, el botón principal se libera
+            // Liberamos el loading del botón general y recalculamos totales
             loadingStockMasivo.value = false;
-            calculateTotals();
+            calculateTotals(); 
         }
-
     }
 
 
