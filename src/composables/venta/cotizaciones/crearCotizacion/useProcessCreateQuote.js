@@ -1030,7 +1030,7 @@ export function useProcessCreateQuote() {
                     ...item,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
-                    stockListo: true, // Al ser recuperado, asumimos validación previa
+                    stockListo: cotizacion.origen !== 'reserva', // Al ser recuperado, asumimos validación previa
                     cambiar_descripcion: false,
                     cambiar_valor: false,
                     cambiar_descuento: false,
