@@ -900,7 +900,7 @@ onMounted(async () => {
         // Un pequeño delay para dejar que Vue termine de pintar la tabla
         setTimeout(() => {
           updateStockByBatch();
-        }, 800);
+        }, 500);
       }
     } catch (e) {
       console.error("Error cargando datos del cliente recuperado", e);
