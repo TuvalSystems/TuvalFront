@@ -567,7 +567,7 @@ export function useProcessCreateQuote() {
                 const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
                 if (diferencia < 0.001) {
                     art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
-                }else{
+                } else {
                     art.ART_VALOR = redondear(precioCalculado, 4);
                 }
             }
@@ -1083,6 +1083,11 @@ export function useProcessCreateQuote() {
 
                 validateBillingRules();
                 calculateTotals();
+
+                if (cotizacion.origen === 'reserva') {
+                    await nextTick(); // Esperamos a que Vue procese el mapeo de los items
+                    updateStockByBatch();
+                }
 
 
                 //condicion de pago revision 
