@@ -407,22 +407,40 @@ export function useProcessCreateQuote() {
         try {
             const actualizaciones = form.value.items.map(async (item, index) => {
                 if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
-                    item.stockRowLoading = false;
+                    form.value.items[index] = { ...form.value.items[index], stockRowLoading: false };
                     return;
                 }
-                form.value.items[index].stockRowLoading = true;
-                form.value.items[index].disableOpenModalStock = true;
-                form.value.items[index].stockListo = false;
+                form.value.items[index] = {
+                    ...form.value.items[index],
+                    stockRowLoading: true,
+                    disableOpenModalStock: true,
+                    stockListo: false
+                };
                 try {
                     const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
                     if (respLote?.ok && respLote.data) {
-                        form.value.items[index].stock = respLote.data.stock || [];
-                        form.value.items[index].ART_STOCK = respLote.data.ART_STOCK;
+                        form.value.items[index] = {
+                            ...form.value.items[index],
+                            stock: respLote.data.stock || [],
+                            ART_STOCK: respLote.data.ART_STOCK,
+                            stockRowLoading: false,
+                            disableOpenModalStock: false
+                        };
                     } else {
                         console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
+                        form.value.items[index] = {
+                            ...form.value.items[index],
+                            stockRowLoading: false,
+                            disableOpenModalStock: false
+                        };
                     }
                 } catch (error) {
                     console.error(`Fallo crítico en item ${item.ART_CODIGO}:`, error);
+                    form.value.items[index] = {
+                        ...form.value.items[index],
+                        stockRowLoading: false,
+                        disableOpenModalStock: false
+                    };
                 } finally {
                     await nextTick();
                     form.value.items[index].stockRowLoading = false;
