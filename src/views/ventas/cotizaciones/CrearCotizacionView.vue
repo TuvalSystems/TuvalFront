@@ -1202,7 +1202,7 @@ onMounted(async () => {
 
             </tr>
           </thead>
-          <draggable v-model="form.items" tag="tbody" :item-key="'id'" handle=".handle">
+          <draggable v-model="form.items" tag="tbody" item-key="_key" handle=".handle">
             <template #item="{ element, index }">
               <tr>
                 <td class="fs-sm text-center"> {{ index + 1 }}</td>

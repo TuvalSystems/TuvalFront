@@ -180,7 +180,7 @@ export function useProcessCreateQuote() {
         const artValorOriginal = Number.parseFloat(rawItem.ART_VALOR_ORIGINAL || 0);
         const itemEstandarizado = {
             ...rawItem,
-
+            _key: `row-${Math.random().toString(36).substring(2, 10)}`,
             //id: `temp-${Date.now()}`, //id temporal  // lo comentare para que use el id del backend en cao de que exista sino no asignamos id 
             ART_CANTIDAD: 0,
             ART_VALOR: artValor,
@@ -401,11 +401,11 @@ export function useProcessCreateQuote() {
     /** proceso de actualizacion de stock por lote  */
     const loadingStockMasivo = ref(false);
 
-   async function updateStockByBatch() {
+    async function updateStockByBatch() {
         if (!form.value.items || form.value.items.length === 0) return;
-        
+
         loadingStockMasivo.value = true;
-        
+
         try {
             // 1. Iniciamos el estado de carga reasignando el arreglo completo
             // Esto fuerza a Vue a detectar el cambio y mostrar los spinners de inmediato
@@ -413,11 +413,11 @@ export function useProcessCreateQuote() {
                 if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
                     return item; // Ignoramos estos tipos, tal cual tu lógica original
                 }
-                return { 
-                    ...item, 
-                    stockRowLoading: true, 
-                    disableOpenModalStock: true, 
-                    stockListo: false 
+                return {
+                    ...item,
+                    stockRowLoading: true,
+                    disableOpenModalStock: true,
+                    stockListo: false
                 };
             });
 
@@ -427,10 +427,10 @@ export function useProcessCreateQuote() {
                     if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
                         return item;
                     }
-                    
+
                     try {
                         const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-                        
+
                         if (respLote?.ok && respLote.data) {
                             return {
                                 ...item,
@@ -465,7 +465,7 @@ export function useProcessCreateQuote() {
         } finally {
             // Liberamos el loading del botón general y recalculamos totales
             loadingStockMasivo.value = false;
-            calculateTotals(); 
+            calculateTotals();
         }
     }
 
@@ -1079,6 +1079,7 @@ export function useProcessCreateQuote() {
                 // 3. Mapeamos los Items (inyectando estados de UI necesarios)
                 form.value.items = items.map(item => ({
                     ...item,
+                    _key: `row-${Math.random().toString(36).substring(2, 10)}`,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: false, // Al ser recuperado, asumimos validación previa
@@ -1291,6 +1292,7 @@ export function useProcessCreateQuote() {
                 form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
+                    _key: `row-${Math.random().toString(36).substring(2, 10)}`,
                     id: null,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
@@ -1375,6 +1377,7 @@ export function useProcessCreateQuote() {
                 form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
+                    _key: `row-${Math.random().toString(36).substring(2, 10)}`,
                     id: null,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
