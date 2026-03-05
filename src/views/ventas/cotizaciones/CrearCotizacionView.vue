@@ -1202,7 +1202,7 @@ onMounted(async () => {
 
             </tr>
           </thead>
-          <draggable v-model="form.items" tag="tbody" item-key="_key" handle=".handle">
+          <draggable v-model="form.items" tag="tbody" :item-key="'id'" handle=".handle">
             <template #item="{ element, index }">
               <tr>
                 <td class="fs-sm text-center"> {{ index + 1 }}</td>
@@ -1265,10 +1265,10 @@ onMounted(async () => {
                 <td class="fs-sm">
 
                   <!-- boton stock -->
-                  <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
+                 <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
                     :class="element.stockListo ? 'btn-success' : 'btn-warning'" title="Seleccionar stock por bodega"
-                    :disabled="element.disableOpenModalStock || element.stockRowLoading" @click="openModalStockRowItem(element, index)">
-                    <i v-if="element.stockRowLoading || element.disableOpenModalStock" class="fa fa-spinner fa-spin"></i>
+                    :disabled="isStockDisabled(element)" @click="openModalStockRowItem(element, index)">
+                    <i v-if="isStockDisabled(element)" class="fa fa-spinner fa-spin"></i>
                     <i v-else class="fa-solid fa-warehouse"></i>
                   </button>
 

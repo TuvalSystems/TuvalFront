@@ -180,7 +180,6 @@ export function useProcessCreateQuote() {
         const artValorOriginal = Number.parseFloat(rawItem.ART_VALOR_ORIGINAL || 0);
         const itemEstandarizado = {
             ...rawItem,
-            _key: `row-${Math.random().toString(36).substring(2, 10)}`,
             //id: `temp-${Date.now()}`, //id temporal  // lo comentare para que use el id del backend en cao de que exista sino no asignamos id 
             ART_CANTIDAD: 0,
             ART_VALOR: artValor,
@@ -403,70 +402,35 @@ export function useProcessCreateQuote() {
 
     async function updateStockByBatch() {
         if (!form.value.items || form.value.items.length === 0) return;
-
         loadingStockMasivo.value = true;
 
-        try {
-            // 1. Iniciamos el estado de carga reasignando el arreglo completo
-            // Esto fuerza a Vue a detectar el cambio y mostrar los spinners de inmediato
-            form.value.items = form.value.items.map(item => {
-                if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
-                    return item; // Ignoramos estos tipos, tal cual tu lógica original
-                }
-                return {
-                    ...item,
-                    stockRowLoading: true,
-                    disableOpenModalStock: true,
-                    stockListo: false
-                };
-            });
+        const actualizaciones = form.value.items.map(async (item, index) => {
+            if (item.ART_TIPO_COMPRA === 'L') {
+                item.stockRowLoading = false;
+                return;
+            };
+            form.value.items[index].stockRowLoading = true;
+            form.value.items[index].disableOpenModalStock = true;
+            form.value.items[index].stockListo = false;
+            const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
 
-            // 2. Disparamos la consulta a la API para cada item y almacenamos el resultado
-            const itemsActualizados = await Promise.all(
-                form.value.items.map(async (item) => {
-                    if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
-                        return item;
-                    }
+            if (!respLote?.ok) {
+                form.value.items[index].stockListo = false;
+                form.value.items[index].stockRowLoading = false;
+                form.value.items[index].disableOpenModalStock = false;
+                console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
+                return;
+            }
+            form.value.items[index].stock = respLote.data.stock || [];
+            form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
 
-                    try {
-                        const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
+            form.value.items[index].stockRowLoading = false;
+            form.value.items[index].disableOpenModalStock = false;
+        });
+        await Promise.all(actualizaciones);
+        loadingStockMasivo.value = false;
+        calculateTotals(); // Recalcular validaciones de la cotización
 
-                        if (respLote?.ok && respLote.data) {
-                            return {
-                                ...item,
-                                stock: respLote.data.stock || [],
-                                ART_STOCK: respLote.data.ART_STOCK,
-                                stockRowLoading: false, // Apagamos el spinner
-                                disableOpenModalStock: false
-                            };
-                        } else {
-                            console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
-                            return { ...item, stockRowLoading: false, disableOpenModalStock: false };
-                        }
-                    } catch (error) {
-                        console.error(`Fallo crítico en item ${item.ART_CODIGO}:`, error);
-                        return { ...item, stockRowLoading: false, disableOpenModalStock: false };
-                    }
-                })
-            );
-
-            // 3. Reemplazamos el array viejo con el nuevo.
-            // Aquí es donde Vue "se da cuenta" de que todo terminó y apaga los spinners de las filas
-            form.value.items = itemsActualizados;
-
-        } catch (globalError) {
-            console.error("Error global en updateStockByBatch:", globalError);
-            // Seguro en caso de error general: bajamos todos los spinners
-            form.value.items = form.value.items.map(item => ({
-                ...item,
-                stockRowLoading: false,
-                disableOpenModalStock: false
-            }));
-        } finally {
-            // Liberamos el loading del botón general y recalculamos totales
-            loadingStockMasivo.value = false;
-            calculateTotals();
-        }
     }
 
 
@@ -1044,23 +1008,7 @@ export function useProcessCreateQuote() {
     const apiGetQuoteData = 'cotizaciones/recuperar-cotizacion-v2';
     const loadingGetQuoteData = ref(false);
 
-    async function fetchAndFillQuotation(quoteId, uploadedFilesRef) {
-
-        const finalizeRecovery = async () => {
-            try {
-                await updateStockByBatch();
-            } catch (err) {
-                console.error("Error en carga de stock post-recuperación", err);
-            } finally {
-                await nextTick();
-                setTimeout(() => {
-                    isRecoveringQuote.value = false;
-                    loadingGetQuoteData.value = false;
-                }, 200);
-            }
-        };
-
-
+     async function fetchAndFillQuotation(quoteId, uploadedFilesRef) {
         return run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
             onSuccess: async (res) => {
@@ -1079,7 +1027,6 @@ export function useProcessCreateQuote() {
                 // 3. Mapeamos los Items (inyectando estados de UI necesarios)
                 form.value.items = items.map(item => ({
                     ...item,
-                    _key: `row-${Math.random().toString(36).substring(2, 10)}`,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: false, // Al ser recuperado, asumimos validación previa
@@ -1136,19 +1083,19 @@ export function useProcessCreateQuote() {
                 validateBillingRules();
                 calculateTotals();
 
-                //actualizacion de stock siempre en segundo plano
-
 
                 //condicion de pago revision 
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
-                finalizeRecovery();
+                setTimeout(() => {
+                    isRecoveringQuote.value = false;
+
+                }, 500);
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
                 isRecoveringQuote.value = false;
-                loadingGetQuoteData.value = false;
             }
         });
     }
@@ -1292,7 +1239,6 @@ export function useProcessCreateQuote() {
                 form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
-                    _key: `row-${Math.random().toString(36).substring(2, 10)}`,
                     id: null,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
@@ -1377,7 +1323,6 @@ export function useProcessCreateQuote() {
                 form.value.origen = 'cotizacion';
                 form.value.items = items.map(item => ({
                     ...item,
-                    _key: `row-${Math.random().toString(36).substring(2, 10)}`,
                     id: null,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
