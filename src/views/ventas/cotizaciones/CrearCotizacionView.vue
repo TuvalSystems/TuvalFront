@@ -1267,8 +1267,8 @@ onMounted(async () => {
                   <!-- boton stock -->
                   <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
                     :class="element.stockListo ? 'btn-success' : 'btn-warning'" title="Seleccionar stock por bodega"
-                    :disabled="isStockDisabled(element)" @click="openModalStockRowItem(element, index)">
-                    <i v-if="isStockDisabled(element)" class="fa fa-spinner fa-spin"></i>
+                    :disabled="element.disableOpenModalStock || element.stockRowLoading" @click="openModalStockRowItem(element, index)">
+                    <i v-if="element.stockRowLoading || element.disableOpenModalStock" class="fa fa-spinner fa-spin"></i>
                     <i v-else class="fa-solid fa-warehouse"></i>
                   </button>
 
