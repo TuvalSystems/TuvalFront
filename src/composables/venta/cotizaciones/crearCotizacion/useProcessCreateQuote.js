@@ -404,33 +404,40 @@ export function useProcessCreateQuote() {
     async function updateStockByBatch() {
         if (!form.value.items || form.value.items.length === 0) return;
         loadingStockMasivo.value = true;
-
-        const actualizaciones = form.value.items.map(async (item, index) => {
-            if (item.ART_TIPO_COMPRA === 'L') {
-                item.stockRowLoading = false;
-                return;
-            };
-            form.value.items[index].stockRowLoading = true;
-            form.value.items[index].disableOpenModalStock = true;
-            form.value.items[index].stockListo = false;
-            const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-
-            if (!respLote?.ok) {
+        try {
+            const actualizaciones = form.value.items.map(async (item, index) => {
+                if (item.ART_TIPO_COMPRA === 'L' || item.ART_TIPO_COMPRA === 'SERV') {
+                    item.stockRowLoading = false;
+                    return;
+                }
+                form.value.items[index].stockRowLoading = true;
+                form.value.items[index].disableOpenModalStock = true;
                 form.value.items[index].stockListo = false;
-                form.value.items[index].stockRowLoading = false;
-                form.value.items[index].disableOpenModalStock = false;
-                console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
-                return;
-            }
-            form.value.items[index].stock = respLote.data.stock || [];
-            form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
+                try {
+                    const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
+                    if (respLote?.ok && respLote.data) {
+                        form.value.items[index].stock = respLote.data.stock || [];
+                        form.value.items[index].ART_STOCK = respLote.data.ART_STOCK;
+                    } else {
+                        console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
+                    }
+                } catch (error) {
+                    console.error(`Fallo crítico en item ${item.ART_CODIGO}:`, error);
+                } finally {
+                    // Aseguramos liberar la fila individual incluso si falla la petición
+                    form.value.items[index].stockRowLoading = false;
+                    form.value.items[index].disableOpenModalStock = false;
+                }
+            });
+            await Promise.all(actualizaciones);
 
-            form.value.items[index].stockRowLoading = false;
-            form.value.items[index].disableOpenModalStock = false;
-        });
-        await Promise.all(actualizaciones);
-        loadingStockMasivo.value = false;
-        calculateTotals(); // Recalcular validaciones de la cotización
+        } catch (globalError) {
+            console.error("Error global en updateStockByBatch:", globalError);
+        } finally {
+            // ESTA LÍNEA ES VITAL: Pase lo que pase, el botón principal se libera
+            loadingStockMasivo.value = false;
+            calculateTotals();
+        }
 
     }
 
@@ -1084,11 +1091,10 @@ export function useProcessCreateQuote() {
                 validateBillingRules();
                 calculateTotals();
 
-                if (cotizacion.origen === 'reserva') {
-                    await nextTick(); // Esperamos a que Vue procese el mapeo de los items
+                //actualizacion de stock siempre en segundo plano
+                nextTick(() => {
                     updateStockByBatch();
-                }
-
+                });
 
                 //condicion de pago revision 
                 form.value.condicion_pago_id = cotizacion.COND_ID;
