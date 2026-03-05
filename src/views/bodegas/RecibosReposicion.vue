@@ -190,11 +190,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
-import { useRouter, useRoute } from "vue-router";
-import PickingTransferencias from "./modals/PickingTransferencias.vue"
-import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
 import { useTemplateStore } from "@/stores/template";
 import { useRepositionGuideProcess } from '@/composables/bodegas/reposiciones/useRepositionGuideProcess';
 
@@ -323,8 +320,6 @@ function seguroRecibirGuia(guia) {
 }
 
 async function recibirGuia(guia) {
-  
-
   const resp = await receivedGuideReposition(guia);
   if (!resp.ok) {
     if (resp?.status >= 400 && resp?.status < 500) {

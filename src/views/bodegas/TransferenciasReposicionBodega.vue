@@ -163,7 +163,8 @@
                   <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guia)"><i
                       class="fa fa-print"></i> Imprimir</button>
                   <button type="button" class="btn btn-outline-success btn-sm mx-2"
-                    @click="confirmDespacharGuia(guia)"><i class="fa fa-print"></i> Despachar</button>
+                    :disabled="loadingDispatchReposition" @click="confirmDespacharGuia(guia)"><i
+                      class="fa fa-print"></i> Despachar</button>
                   <!-- <button  type="button" class="btn btn-outline-danger btn-sm mx-2" @click="confirmEliminarguiaGuia(guia)"><i class="fa fa-trash"></i> Eliminar</button> -->
                 </td>
               </tr>
@@ -198,28 +199,29 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from 'vuex'
 import { useTemplateStore } from "@/stores/template";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
-import { useRouter, useRoute } from "vue-router";
+import { useRoute } from "vue-router";
 import PickingTransferencias from "./modals/PickingTransferencias.vue"
 import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
 import VueSelect from "vue-select"
 import { formatPrice } from "../../functions";
+import { useRepositionGuideProcess } from '@/composables/bodegas/reposiciones/useRepositionGuideProcess';
+const {
+  // despachar guia de reposicion
+  loadingDispatchReposition,
+  dispatchGuideReposition,
+} = useRepositionGuideProcess();
 
 const store = useStore();
 const templateStore = useTemplateStore();
 const route = useRoute();
 const transferencias_reposicion = computed(() => store.state.transferencias_reposicion);
-const picking = computed(() => store.state.picking);
-const currentOrden = ref(null);
-const motivo = ref(null);
 const currentBodega = ref(null);
 const buscardocumento = ref(null);
 
 store.dispatch('getTransportistas');
 
-let verpedidoModal = ref(null);
-let verpedidoModalObj = null;
 
 let pickingModal = ref(null);
 let pickingModalObj = null;
@@ -230,7 +232,6 @@ let loadingDoc = ref(false);
 function buscarDocumento() {
   loadingDoc.value = true;
   if (!buscardocumento.value) {
-    // refrescar();
     loadingDoc.value = false;
     return;
   }
@@ -328,24 +329,23 @@ function confirmDespacharGuia(guia) {
     });
 }
 
-function despacharguiaGuia(guia) {
-  templateStore.pageLoader({ mode: "on" });
-  store.dispatch('despacharGuiaRemision', guia).then((res) => {
-    if (res.success == false) {
-      swalError(res.message);
-    } else {
-      swalSuccess(res.message);
-      refrescar();
+async function despacharguiaGuia(guia) {
+  const resp = await dispatchGuideReposition(guia.id);
+  if (!resp.ok) {
+    if (resp?.status >= 400 && resp?.status < 500) {
+      swalWarning(resp?.message);
+      return
     }
-    templateStore.pageLoader({ mode: "off" });
-  }).catch(err => {
-    swalError(err.response.data.error);
-    templateStore.pageLoader({ mode: "off" });
-  })
+    if (resp?.status >= 500) {
+      swalError(resp?.message);
+      return;
+    }
+  }
+  swalSuccess(resp.message);
+  refrescar();
 }
 
 
-//refrescar();
 
 function refrescar(imprimir = false) {
   store.dispatch('transferenciasReposicion').then(() => {
@@ -446,8 +446,8 @@ function seleccionartodos(traslados) {
   checkgenerarguia();
 }
 
-function seleccionarPicking(traslados){
-   traslados.map(traslado => {
+function seleccionarPicking(traslados) {
+  traslados.map(traslado => {
     traslado.seleccionado = traslado.pendiente;
     traslado.aplicar_todo = true;
   });
