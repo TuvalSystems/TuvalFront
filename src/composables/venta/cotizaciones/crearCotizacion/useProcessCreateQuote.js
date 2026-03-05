@@ -1017,6 +1017,20 @@ export function useProcessCreateQuote() {
     const loadingGetQuoteData = ref(false);
 
     async function fetchAndFillQuotation(quoteId, uploadedFilesRef) {
+
+        const finalizeRecovery = async () => {
+            try {
+                await updateStockByBatch();
+            } catch (err) {
+                console.error("Error en carga de stock post-recuperación", err);
+            } finally {
+                await nextTick();
+                isRecoveringQuote.value = false;
+                loadingGetQuoteData.value = false;
+            }
+        };
+
+
         return run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
             onSuccess: async (res) => {
@@ -1037,7 +1051,7 @@ export function useProcessCreateQuote() {
                     ...item,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
-                    stockListo: cotizacion.origen !== 'reserva', // Al ser recuperado, asumimos validación previa
+                    stockListo: false, // Al ser recuperado, asumimos validación previa
                     cambiar_descripcion: false,
                     cambiar_valor: false,
                     cambiar_descuento: false,
@@ -1092,25 +1106,25 @@ export function useProcessCreateQuote() {
                 calculateTotals();
 
                 //actualizacion de stock siempre en segundo plano
-                nextTick(() => {
-                    updateStockByBatch();
-                });
+
 
                 //condicion de pago revision 
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
-                setTimeout(() => {
-                    isRecoveringQuote.value = false;
-
-                }, 500);
+                
+                nextTick(() => {
+                    finalizeRecovery();
+                });
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
                 isRecoveringQuote.value = false;
+                loadingGetQuoteData.value = false;
             }
         });
     }
+
 
 
 
