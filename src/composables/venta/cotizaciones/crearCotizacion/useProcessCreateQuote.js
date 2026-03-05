@@ -424,7 +424,7 @@ export function useProcessCreateQuote() {
                 } catch (error) {
                     console.error(`Fallo crítico en item ${item.ART_CODIGO}:`, error);
                 } finally {
-                    // Aseguramos liberar la fila individual incluso si falla la petición
+                    await nextTick();
                     form.value.items[index].stockRowLoading = false;
                     form.value.items[index].disableOpenModalStock = false;
                 }
@@ -1025,8 +1025,10 @@ export function useProcessCreateQuote() {
                 console.error("Error en carga de stock post-recuperación", err);
             } finally {
                 await nextTick();
-                isRecoveringQuote.value = false;
-                loadingGetQuoteData.value = false;
+                setTimeout(() => {
+                    isRecoveringQuote.value = false;
+                    loadingGetQuoteData.value = false;
+                }, 200);
             }
         };
 
@@ -1112,7 +1114,7 @@ export function useProcessCreateQuote() {
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
-                
+
                 nextTick(() => {
                     finalizeRecovery();
                 });
