@@ -1114,10 +1114,7 @@ export function useProcessCreateQuote() {
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
-
-                nextTick(() => {
-                    finalizeRecovery();
-                });
+                finalizeRecovery();
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
