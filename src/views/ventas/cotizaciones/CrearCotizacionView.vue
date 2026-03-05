@@ -895,6 +895,13 @@ onMounted(async () => {
       } else if (methodPayment.value && methodPayment.value.length > 0) {
         form.value.forma_pago_id = methodPayment.value[0].codigo;
       }
+
+      if (form.value.items && form.value.items.length > 0) {
+        // Un pequeño delay para dejar que Vue termine de pintar la tabla
+        setTimeout(() => {
+          updateStockByBatch();
+        }, 800);
+      }
     } catch (e) {
       console.error("Error cargando datos del cliente recuperado", e);
     } finally {
@@ -1265,7 +1272,7 @@ onMounted(async () => {
                 <td class="fs-sm">
 
                   <!-- boton stock -->
-                 <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
+                  <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
                     :class="element.stockListo ? 'btn-success' : 'btn-warning'" title="Seleccionar stock por bodega"
                     :disabled="isStockDisabled(element)" @click="openModalStockRowItem(element, index)">
                     <i v-if="isStockDisabled(element)" class="fa fa-spinner fa-spin"></i>
