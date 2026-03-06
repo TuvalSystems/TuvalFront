@@ -79,7 +79,7 @@ const cols = reactive([
     sort: "",
   },
   {
-    name: "Fecha",
+    name: "Fecha Creacion",
     field: "created_at",
     sort: "",
   },
@@ -467,6 +467,9 @@ function motivoEspera(pedido) {
   }
   if (pedido.factura_a_demanda) {
     msg += 'requiere factura a demanda posterior al despacho ';
+  }
+  if(pedido.origen === 'reserva') {
+    msg += 'Factura Demanda';
   }
   swalWarning(msg);
 }

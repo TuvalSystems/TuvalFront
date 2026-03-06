@@ -50,9 +50,9 @@
             <span v-else>{{ verpedido.porcentage_descuento }}</span>
           </td>
 
-          <th class="fs-sm">Fecha/hora</th>
+          <th class="fs-sm">Fecha Factura</th>
           <td class="fs-sm">
-            {{ verpedido.created_at }}
+            {{ verpedido.fecha_factura }}
           </td>
         </tr>
         <tr v-if="verpedido.despacho == 'Despacho en ruta'">
@@ -60,6 +60,42 @@
           <td colspan="5">{{ verpedido.direccion_entrega.CLI_SUC_DIRECCION }} - {{
             verpedido.direccion_entrega.CLI_SUC_CIUDAD }}</td>
         </tr>
+        <tr>
+          <th class="fs-sm">Origen</th>
+          <td class="fs-sm">
+            <span class="badge rounded-pill fw-semibold d-inline-block py-2 px-3 fs-xs bg-info-light text-info">
+              {{
+                verpedido.origen === 'reserva'
+                  ? 'Factura Demanda'
+                  : (verpedido.origen === 'cotizacion' && verpedido.cotizacion_origen === 'reserva' ? 'Reserva' :
+                    verpedido.origen)
+              }}
+            </span>
+          </td>
+          <th class="fs-sm">Factura Posterior Despacho</th>
+          <td class="fs-sm">
+            <span v-if="verpedido.factura_posterior_despacho == 1"
+              class="badge rounded-pill fw-bold py-2 px-3 bg-info-light text-info">
+              SI
+            </span>
+
+            <span v-else class="badge rounded-pill fw-medium py-2 px-3 bg-light text-danger border ">
+              NO
+            </span>
+          </td>
+          <th class="fs-sm">Factura Sgt. Mes</th>
+          <td class="fs-sm">
+            <span v-if="verpedido.factura_siguiente_mes == 1"
+              class="badge rounded-pill fw-bold py-2 px-3 bg-info-light text-info ">
+              SI
+            </span>
+            <span v-else class="badge rounded-pill fw-medium py-2 px-3 bg-light text-warning border ">
+              NO
+            </span>
+          </td>
+        </tr>
+
+
         <tr v-if="segmento && segmento.data && Object.keys(segmento.data).length">
           <th>Segmento</th>
           <td>{{ segmento.data.segmento }}</td>
@@ -69,6 +105,7 @@
         <tr v-else>
           <td colspan="5" class="text-muted">Sin segmento para este cliente</td>
         </tr>
+
       </tbody>
     </table>
   </div>
