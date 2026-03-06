@@ -91,10 +91,10 @@ let datosModalPedidoAcDate = ref({});
 
 const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
 function canRescheduleInvoice(row) {
-    return row.origen === 'reserva' && !BLOCKED_STATES.includes(row.estado);
+    return row.origen === 'factura_demanda' && !BLOCKED_STATES.includes(row.estado);
 }
 async function openModalUpdateDateInvoice(pedido) {
-    if (pedido.origen !== 'reserva') {
+    if (pedido.origen !== 'factura_demanda') {
         swalWarning('Solo se puede reprogramar la facturación de pedidos de origen reserva')
         return;
     }

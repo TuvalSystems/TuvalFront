@@ -371,7 +371,7 @@ let datosModalPedidoAcDate = ref({});
 
 const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
 function canRescheduleInvoice(row) {
-  return row.origen === 'reserva' && !BLOCKED_STATES.includes(row.estado);
+  return row.origen === 'factura_demanda' && !BLOCKED_STATES.includes(row.estado);
 }
 
 onMounted(() => {

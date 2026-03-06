@@ -468,7 +468,7 @@ function motivoEspera(pedido) {
   if (pedido.factura_a_demanda) {
     msg += 'requiere factura a demanda posterior al despacho ';
   }
-  if(pedido.origen === 'reserva') {
+  if(pedido.origen === 'factura_demanda') {
     msg += 'Factura Demanda';
   }
   swalWarning(msg);
@@ -500,10 +500,10 @@ let datosModalPedidoAcDate = ref({});
 
 const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
 function canRescheduleInvoice(row) {
-  return row.origen === 'reserva' && !BLOCKED_STATES.includes(row.estado);
+  return row.origen === 'factura_demanda' && !BLOCKED_STATES.includes(row.estado);
 }
 async function openModalUpdateDateInvoice(pedido) {
-  if (pedido.origen !== 'reserva') {
+  if (pedido.origen !== 'factura_demanda') {
     swalWarning('Solo se puede reprogramar la facturación de pedidos de origen reserva')
     return;
   }
@@ -782,7 +782,7 @@ const handleVisibilityChange = () => {
                         <button
                           v-if="((row.estado === 'espera' && (row.factura_posterior_despacho === 1 && row.factura_a_demanda === 1 && row.despachado === 1))
                             || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 1)
-                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 0 && row.origen === 'reserva'))
+                            || (row.estado === 'espera' && (row.factura_a_demanda === 0 || row.factura_a_demanda === null) && row.factura_siguiente_mes === 0 && row.origen === 'factura_demanda'))
 
                             && !((row.requiere_aprobacion_comercial === 'yes' && row.aprobado_comercial === 'no') || (row.requiere_aprobacion_crediticia === 'yes' && row.aprobado_crediticio === 'no'))"
                           type="button" class="btn btn-danger btn-sm mx-1" title="Enviar a facturar"
