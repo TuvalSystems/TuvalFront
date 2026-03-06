@@ -63,12 +63,19 @@
         <tr>
           <th class="fs-sm">Origen</th>
           <td class="fs-sm">
-            <span class="badge rounded-pill fw-semibold d-inline-block py-2 px-3 fs-xs bg-info-light text-info">
+            <span :class="[
+              'badge rounded-pill fw-semibold d-inline-block py-2 px-3 fs-xs text-uppercase',
+              {
+                'bg-info-light text-info': verpedido.origen === 'cotizacion',
+                'bg-warning-light text-warning': verpedido.origen === 'reserva',
+                'bg-success-light text-success': verpedido.origen === 'factura_demanda',
+                'bg-primary-light text-primary': verpedido.origen === 'facturar_existente',
+                'bg-danger-light text-danger': verpedido.origen === 'devolucion'
+              }
+            ]">
               {{
-                verpedido.origen === 'reserva'
-                  ? 'Factura Demanda'
-                  : (verpedido.origen === 'cotizacion' && verpedido.cotizacion_origen === 'reserva' ? 'Reserva' :
-                    verpedido.origen)
+                verpedido.origen === 'factura_demanda' ? 'Factura Demanda' :
+                  (verpedido.origen === 'facturar_existente' ? 'Facturar Existente' : verpedido.origen)
               }}
             </span>
           </td>
