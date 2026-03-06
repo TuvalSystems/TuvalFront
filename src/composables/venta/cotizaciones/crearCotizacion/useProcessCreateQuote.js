@@ -1440,7 +1440,7 @@ export function useProcessCreateQuote() {
 
         //modificador global
         formData.append('modificador_global', form.value.modificador_global);
-        formData.append('origen', 'cotizacion');
+        formData.append('origen', form.value.origen);
         formData.append('items', JSON.stringify(form.value.items));
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
