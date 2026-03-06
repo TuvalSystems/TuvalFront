@@ -456,6 +456,9 @@ function motivoEspera(pedido) {
   if (pedido.factura_siguiente_mes) {
     msg += 'factura a siguiente mes';
   }
+  if (pedido.origen === 'factura_demanda') {
+    msg += 'Factura Demanda';
+  }
   if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
     msg += ' requiere aprobación comercial ';
   }
@@ -468,9 +471,7 @@ function motivoEspera(pedido) {
   if (pedido.factura_a_demanda) {
     msg += 'requiere factura a demanda posterior al despacho ';
   }
-  if(pedido.origen === 'factura_demanda') {
-    msg += 'Factura Demanda';
-  }
+
   swalWarning(msg);
 }
 
