@@ -64,18 +64,20 @@
           <th class="fs-sm">Origen</th>
           <td class="fs-sm">
             <span :class="[
-              'badge rounded-pill fw-semibold d-inline-block py-2 px-3 fs-xs text-uppercase',
+              'badge rounded-pill fw-semibold d-inline-block py-2 px-3 fs-xs ',
               {
                 'bg-info-light text-info': verpedido.origen === 'cotizacion',
                 'bg-warning-light text-warning': verpedido.origen === 'reserva',
                 'bg-success-light text-success': verpedido.origen === 'factura_demanda',
-                'bg-primary-light text-primary': verpedido.origen === 'facturar_existente',
-                'bg-danger-light text-danger': verpedido.origen === 'devolucion'
+                'bg-light text-primary': verpedido.origen === 'facturar_existente',
+                'bg-light text-danger': verpedido.origen === 'devolucion'
               }
             ]">
               {{
                 verpedido.origen === 'factura_demanda' ? 'Factura Demanda' :
-                  (verpedido.origen === 'facturar_existente' ? 'Facturar Existente' : verpedido.origen)
+                  verpedido.origen === 'facturar_existente' ? 'Factura Existente' :
+                    verpedido.origen === 'devolucion' ? 'Refacturación' :
+                      verpedido.origen
               }}
             </span>
           </td>
@@ -99,6 +101,19 @@
             <span v-else class="badge rounded-pill fw-medium py-2 px-3 bg-light text-warning border ">
               NO
             </span>
+          </td>
+        </tr>
+        <tr v-if="verpedido.origen === 'devolucion'">
+          <th class="fs-sm">Factura Origen</th>
+          <td class="fs-sm">
+            {{ verpedido.factura_origen }}
+          </td>
+
+        </tr>
+        <tr v-if="verpedido.origen === 'facturar_existente'">
+          <th class="fs-sm">Pedido Origen</th>
+          <td class="fs-sm">
+            {{ verpedido.pedido_origen }}
           </td>
         </tr>
 
