@@ -529,14 +529,13 @@ async function despacharguiaGuia(guia) {
   let indexorden = ordenes_despacho.value.findIndex((orden) => orden.pedido_id === parseInt(guia.pedido.replace('PED', '')));
   const respDispatch = await dispathGuide(guia.id);
   if (!respDispatch?.ok) {
-    if (respDispatch?.status === 400 && respDispatch?.status < 500) {
+    if (respDispatch?.status >= 400 && respDispatch?.status < 500) {
       swalWarning(respDispatch?.message);
-      return;
     }
     if (respDispatch?.status >= 500) {
       swalError(respDispatch?.message);
-      return;
     }
+    return;
   }
 
   let order = respDispatch.data.pedido;
