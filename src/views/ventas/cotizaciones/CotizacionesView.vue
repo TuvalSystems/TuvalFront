@@ -632,7 +632,7 @@ async function volverapedir(cotizacion) {
     swalInfo('No puede volver a pedir la cotización ya que cuenta con una solicitud de reserva');
     return;
   }
-  templateStore.pageLoader({ mode: "on" });
+  templateStore.pageLoader({ mode: "off" });
   router.push({
     name: "ventas-crearcotizacion",
     query: { id: cotizacion.id, mode: 'reorder_quote' }
