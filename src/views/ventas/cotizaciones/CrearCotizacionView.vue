@@ -374,11 +374,15 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
 watch(
   () => ptoVtaSelect.value,
   (newVal, oldVal) => {
-    if (newVal && oldVal && newVal !== form.value.punto_venta_id) {
+    if (newVal && newVal !== oldVal) {
+     console.log("Cambiando punto de venta de:", oldVal, "a:", newVal);
+      
       clearForm(uploadedFiles);
       form.value.punto_venta_id = newVal;
+     console.log('Formulario reseteado para el nuevo punto de venta:', form.value.punto_venta_id);
+
     }
-  }
+  },{ immediate: false }
 )
 
 
