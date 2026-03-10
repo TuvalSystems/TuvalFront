@@ -373,16 +373,19 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
 //limpieza de form cuando cambia de punto de venta
 watch(
   () => ptoVtaSelect.value,
-  (newVal, oldVal) => {
+  async (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
-    //  console.log("Cambiando punto de venta de:", oldVal, "a:", newVal);
-      
-      clearForm(uploadedFiles);
+      isRecoveringQuote.value = true;
+      const newId = `draft_${Date.now()}`;
+      await clearForm(uploadedFiles, false, true);
+      form.value.draft_id = newId;
       form.value.punto_venta_id = newVal;
-    //  console.log('Formulario reseteado para el nuevo punto de venta:', form.value.punto_venta_id);
-
+      await router.replace({ query: { ...route.query, draft: newId } });
+      setTimeout(() => {
+        isRecoveringQuote.value = false;
+      }, 300);
     }
-  },{ immediate: false }
+  }, { immediate: false }
 )
 
 
@@ -974,7 +977,7 @@ watch(
       if (form.value.items && form.value.items.length > 0) {
         setTimeout(() => {
           updateStockByBatch();
-        }, 500);
+        }, 300);
       }
     } else if (!newDraftId && oldDraftId) {
       await clearForm(uploadedFiles, false);
@@ -1079,7 +1082,7 @@ onMounted(async () => {
         // Un pequeño delay para dejar que Vue termine de pintar la tabla
         setTimeout(() => {
           updateStockByBatch();
-        }, 500);
+        }, 400);
       }
     } catch (e) {
       console.error("Error cargando datos del cliente recuperado", e);

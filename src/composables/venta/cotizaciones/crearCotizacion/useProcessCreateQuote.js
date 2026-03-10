@@ -139,7 +139,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             }), {
                 loadingRef: loadingSyncDraft
             })
-        }, { deep: true, debounce: 1500 });
+        }, { deep: true, debounce: 1000 });
 
 
     const apiListDrafts = 'borradores/list';
@@ -175,7 +175,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
 
 
-    async function clearForm(uploadedFilesRef = null, forceDeleteBD = false) {
+    async function clearForm(uploadedFilesRef = null, forceDeleteBD = false, forceResetDraft = false) {
         if (forceDeleteBD) {
             const idToDelete = form.value.draft_id || route.query.draft;
             if (idToDelete) {
@@ -183,8 +183,14 @@ export function useProcessCreateQuote(draftId = 'default') {
             }
         }
         form.value = getInitialState();
-        form.value.draft_id = draftId
-        form.value.punto_venta_id = ptoVtaSelect.value
+        if (forceResetDraft) {
+            form.value.draft_id = null;
+        } else {
+            form.value.draft_id = route.query.draft || null;
+        }
+        if (ptoVtaSelect.value) {
+            form.value.punto_venta_id = ptoVtaSelect.value;
+        }
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
         }
