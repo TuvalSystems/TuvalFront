@@ -272,16 +272,12 @@ function refreshllenarpedidos() {
 
 async function recuperarpedido(pedido) {
   templateStore.pageLoader({ mode: "on" });
-  const respV = await reOrder(pedido.id, uploadedFiles);
-  if (respV?.ok) {
-    templateStore.pageLoader({ mode: "off" });
-    router.push({
-      name: "ventas-crearcotizacion",
-    });
-  } else {
-    templateStore.pageLoader({ mode: "off" });
-    swalError(respV.error);
-  }
+  router.push({
+    name: "ventas-crearcotizacion",
+    query: { id: pedido.id, mode: 'reorder_order' }
+  });
+  templateStore.pageLoader({ mode: "off" });
+
 }
 
 async function imprimirpedido(pedido) {
