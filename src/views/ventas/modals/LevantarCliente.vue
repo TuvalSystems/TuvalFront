@@ -151,18 +151,8 @@ import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from
 import { useStore } from 'vuex'
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
-import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
-  swalError,
-  toast,
-} from "@/functions/swal-alert.js";
-import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
-import { useImageUpload } from "@/composables/core/useImageUpload";
-const { copyRawQuoteOrOrder } = useProcessCreateQuote();
-const { uploadedFiles } = useImageUpload();
+// import { useImageUpload } from "@/composables/core/useImageUpload";
+// const { uploadedFiles } = useImageUpload();
 const { verpedido, tipo } = defineProps({
   verpedido: Object,
   tipo: String,
@@ -171,13 +161,13 @@ const { verpedido, tipo } = defineProps({
 const store = useStore();
 const templateStore = useTemplateStore();
 const router = useRouter();
-const detallepedido = computed(() => store.state.detallepedido);
+// const detallepedido = computed(() => store.state.detallepedido);
 const currentSucursal = ref(store.state.currentSucursal);
 const verclientes = ref(false);
 const clientes = computed(() => store.state.clientes);
 const condiciondepago_id = ref(store.state.condiciondepago_id);
 const condiciondepago_print = ref(store.state.condiciondepago_print);
-const bodegas = computed(() => store.state.bodegas);
+// const bodegas = computed(() => store.state.bodegas);
 const currentCliente = computed(() => store.state.currentCliente);
 
 const factura_siguiente_mes = ref(store.state.factura_siguiente_mes);
@@ -267,16 +257,18 @@ function selectsucursal(sucursal) {
 
 async function copiarPedido(pedido, tipo) {
   templateStore.pageLoader({ mode: "on" });
-  const resp = await copyRawQuoteOrOrder(pedido.id, tipo, currentCliente.value.id, currentSucursal.value, uploadedFiles);
-  if (resp?.ok) {
-    templateStore.pageLoader({ mode: "off" });
-    router.push({
-      name: "ventas-crearcotizacion",
-    });
-  } else {
-    templateStore.pageLoader({ mode: "off" });
-    swalError(resp.error);
-  }
+  router.push({
+    name: "ventas-crearcotizacion",
+    query: {
+      id: pedido.id,
+      mode: 'copy',
+      tipo: tipo,
+      cliente_id: currentCliente.value.id,
+      sucursal: currentSucursal.value
+    }
+  });
+  templateStore.pageLoader({ mode: "off" });
+
 }
 
 onMounted(() => {
