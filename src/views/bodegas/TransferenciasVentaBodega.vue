@@ -151,6 +151,7 @@ function confirmDespacharGuia(guia) {
 async function despacharguiaGuia(guia) {
   const resp = await sendGuideSalesTransfer(guia.id);
   if (!resp.ok) {
+    templateStore.pageLoader({ mode: "off" });
     if (resp?.status >= 400 && resp?.status < 500) {
       swalWarning(resp.message);
       return;
@@ -159,16 +160,18 @@ async function despacharguiaGuia(guia) {
       swalError(resp.message);
       return;
     }
-    swalSuccess(resp.message);
-    refrescar();
+    return;
   }
+  swalSuccess(resp.message);
+  refrescar();
+  // await store.dispatch('transferenciasVenta');
 }
 
 
 // refrescar();
 
-function refrescar(imprimir = false) {
-  store.dispatch('transferenciasVenta').then(() => {
+async function refrescar(imprimir = false) {
+  return store.dispatch('transferenciasVenta').then(() => {
     document.querySelectorAll("#datasetLength label").forEach((el) => {
       el.remove();
     });
@@ -180,18 +183,22 @@ function refrescar(imprimir = false) {
     selectLength.style.width = "80px";
 
     if (imprimir) {
-      imprimirGuia(transferencias_venta.value[route.params.id].ultimaguia);
-      despacharguiaGuia(transferencias_venta.value[route.params.id].ultimaguia);
+      const dataBodega = transferencias_venta.value[route.params.id];
+      if (dataBodega && dataBodega.ultimaguia) {
+        const guia = dataBodega.ultimaguia;
+        imprimirGuia(guia);
+        despacharguiaGuia(guia);
+      }
     }
   })
 }
 
 
 
-function generarGuia() {
+async function generarGuia() {
   guiaRemisionModalObj.hide();
   templateStore.pageLoader({ mode: "off" });
-  refrescar(true)
+  await refrescar(true)
 }
 
 function aplicatodo(traslado) {
