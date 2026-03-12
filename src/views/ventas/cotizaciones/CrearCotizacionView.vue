@@ -977,7 +977,7 @@ watch(
       }
       if (form.value.items && form.value.items.length > 0) {
         setTimeout(() => {
-          updateStockByBatch();
+          updateStockByBatchV2();
         }, 300);
       }
     } else if (!newDraftId && oldDraftId) {
@@ -1082,7 +1082,7 @@ onMounted(async () => {
       if (form.value.items && form.value.items.length > 0) {
         // Un pequeño delay para dejar que Vue termine de pintar la tabla
         setTimeout(() => {
-          updateStockByBatch();
+          updateStockByBatchV2();
         }, 400);
       }
     } catch (e) {
