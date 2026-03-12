@@ -554,11 +554,69 @@ export function useProcessCreateQuote(draftId = 'default') {
     }
 
 
+
+    async function updateStockByBatchV2() {
+        if (!form.value.items || form.value.items.length === 0) return;
+
+        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L');
+        if (itemsParaProcesar.length === 0) return;
+        loadingStockMasivo.value = true;
+
+        itemsParaProcesar.forEach(item => {
+            item.stockRowLoading = true;
+            item.disableOpenModalStock = true;
+            item.stockListo = false;
+        });
+        const response = await updateStockItemsBatchAPI(itemsParaProcesar, 'LOTE', form.value.cotizacion_id);
+
+        if (response?.ok) {
+            const resultados = response.data;
+
+            form.value.items.forEach(item => {
+                if (resultados[item.ART_CODIGO]) {
+                    const data = resultados[item.ART_CODIGO];
+                    item.stock = data.stock || [];
+                    item.ART_STOCK = data.ART_STOCK;
+                    item.stockListo = true;
+                }
+                item.stockRowLoading = false;
+                item.disableOpenModalStock = false;
+            });
+        } else {
+            itemsParaProcesar.forEach(item => {
+                item.stockRowLoading = false;
+                item.disableOpenModalStock = false;
+                item.stockListo = false;
+            });
+            console.error("Error en la petición por lote:", response?.message);
+        }
+
+        loadingStockMasivo.value = false;
+        calculateTotals();
+
+    }
+
+    const apiUpdateStockBatch = 'cotizaciones/articulo-stock-por-bodega-v2';
+    const loadingUpdateStockBatch = ref(false);
+
+    async function updateStockItemsBatchAPI(item, tipo, cotizacionId) {
+        const payloadBatch = {
+            'articulos': item,
+            'bodega': ptoVtaSelect.value,
+            'tipo': tipo,
+            'cotizacion_id': cotizacionId,
+        }
+        return await run(() => axiosClient.post(apiUpdateStockBatch, payloadBatch), {
+            loadingRef : loadingUpdateStockBatch,
+            onError: (err) => {
+                console.log(err, 'updateStockItemsByBatch');
+            }
+        });
+    }
+
+
+
     const dataPesoItem = ref({ item: {}, index: 0 });
-
-
-
-
 
 
     // proceso para apertura de modal de proveedores
@@ -1696,6 +1754,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         //update stock por lote
         updateStockByBatch,
         loadingStockMasivo,
+        updateStockByBatchV2,
 
         //global
         calculateTotals,

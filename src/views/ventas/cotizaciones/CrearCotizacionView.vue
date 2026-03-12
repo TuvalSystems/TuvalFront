@@ -121,6 +121,7 @@ const {
   //update stock por lote
   updateStockByBatch,
   loadingStockMasivo,
+  updateStockByBatchV2,
   //gloabl
   calculateTotals,
 
@@ -1377,7 +1378,7 @@ onMounted(async () => {
               Buscar
               Articulo</button>
             <button type="button" class="btn btn-outline-success" :disabled="loadingStockMasivo"
-              @click="updateStockByBatch"> <i class="fa fa-rotate me-1"></i>Stock</button>
+              @click="updateStockByBatchV2"> <i class="fa fa-rotate me-1"></i>Stock</button>
           </div>
         </div>
         <div class="table-responsive mt-1 mb-2">
