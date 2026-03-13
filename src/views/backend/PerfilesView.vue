@@ -396,7 +396,7 @@ function swalChangeStatus(usuario) {
 async function changeStatusUser(usuario) {
 
   try {
-    const res = await store.dispatch('changeStatusUser', usuario.USERID);
+    const res = await store.dispatch('changeStatusUser', { USERID: usuario.USERID });
     await swalSuccess(res.data.message);
   } catch (err) {
     errorMsg.value = err.response?.data?.error || 'Error al cambiar estado del usuario';
