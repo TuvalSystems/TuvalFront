@@ -229,7 +229,6 @@ async function onSubmit() {
         swalWarning(respUpdate.message);
         return;
       }
-      console.log('respUpdate', respUpdate.data.id);   
       const resRestore = await fetchAndFillQuotation(respUpdate.data.id, uploadedFiles);
       if (resRestore?.ok) {
         templateStore.pageLoader({ mode: "off" });
