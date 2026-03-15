@@ -4,7 +4,8 @@ import { useReservationTransferReceipt } from "@/composables/bodegas/reservas/us
 import {
     swalSuccess,
     swalError,
-    toast
+    toast,
+    swalWarning
 } from "@/functions/swal-alert.js";
 const emit = defineEmits(['closeModal', 'refresh']);
 const props = defineProps({
@@ -53,7 +54,7 @@ async function confirmarRecibir() {
         }).filter(r => r.recibir > 0);
 
     if (items.length === 0) {
-        return swalError('No se encontraron items para recibir.');
+        return swalWarning('No se encontraron items para recibir.');
     }
     const guideId = props.header?.id;
     const numeroGuia = props.header?.numero_guia ?? '';
@@ -97,8 +98,14 @@ async function confirmarRecibir() {
 async function procesar(payload) {
     const resp = await processReceivedItems(payload);
     if (!resp?.ok) {
-        swalError(resp?.message || 'No se pudo procesar la recepción.');
-        return;
+        if (resp?.status >= 400 && resp?.status < 500) {
+            swalWarning(resp?.message);
+            return
+        }
+        if (resp?.status >= 500) {
+            swalError(resp?.message || 'No se pudo procesar la recepción.');
+            return;
+        }
     }
     swalSuccess(resp?.message)
     emit('closeModal');

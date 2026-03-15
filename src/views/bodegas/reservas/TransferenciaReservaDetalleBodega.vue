@@ -6,6 +6,7 @@ import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import {
   swalSuccess,
   swalError,
+  swalWarning
 } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 /** modales */
@@ -129,8 +130,14 @@ async function printPdfGuiaRemision(id) {
 async function dispatchGuiaRemision(id) {
   const resp = await dispatchGuideReservedPending(id);
   if (!resp.ok) {
-    swalError(resp.message || 'No se pudo aplicar la transferencia.');
-    return;
+    if (resp.status >= 400 && resp.status < 500) {
+      swalWarning(resp.message);
+      return
+    }
+    if (resp.status >= 500) {
+      swalError(resp.message);
+      return;
+    }
   }
   swalSuccess(resp.message);
   refresh();

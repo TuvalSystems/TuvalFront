@@ -91,9 +91,9 @@ function calculaTotalProveedor(index) {
     const iva = totalNeto * (impuestoPorcentaje / 100);
     const totalFinal = totalNeto + iva;
 
-    row.TOTALCONIMPUESTO = format(totalFinal);
-    row.IMPUESTO = formatPrice4(iva);
-    row.TOTAL = formatPrice4(totalNeto);  //por ahora solo visualizamos el total neto
+    row.TOTALCONIMPUESTO = totalFinal;
+    row.IMPUESTO = iva;
+    row.TOTAL = totalNeto;  //por ahora solo visualizamos el total neto
 
 
     const denominadorMargen = 1 - (margen / 100);

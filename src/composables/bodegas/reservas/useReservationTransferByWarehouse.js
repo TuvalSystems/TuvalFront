@@ -307,7 +307,7 @@ export function useReservationTransferByWarehouse() {
   }
   function applyTransfer(row) {
     const reset = (msg) => {
-      if (msg) swalError(msg);
+      if (msg) swalWarning(msg);
       row.seleccionado = 0;
       row.check_seleccion = false;
       return false;

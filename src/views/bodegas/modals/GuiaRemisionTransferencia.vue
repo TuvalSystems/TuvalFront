@@ -1,3 +1,141 @@
+<script setup>
+import { computed, ref, reactive } from "vue";
+import { useStore } from 'vuex'
+import Swal from "sweetalert2";
+import flatPickr from 'vue-flatpickr-component';
+import { useTemplateStore } from "@/stores/template";
+import { formatPrice } from "@/functions";
+import { swalSuccess, swalError, swalWarning } from "@/functions/swal-alert";
+import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
+import { useRepositionGuideProcess } from '@/composables/bodegas/reposiciones/useRepositionGuideProcess';
+
+const {
+  tipoIdentificacion,
+  loading,
+  createGuideTransfer,
+  loadingVerifyGuide,
+  verifyGuideTransfer
+} = useSalesTransfersGuideProcess();
+const {
+  loadingReposition,
+  createGuideReposition
+} = useRepositionGuideProcess();
+const store = useStore();
+const templateStore = useTemplateStore();
+const picking = computed(() => store.state.picking);
+const despacho = ref(store.state.despacho);
+const transportistas = computed(() => store.state.transportistas);
+const vehiculos = computed(() => store.state.vehiculos);
+const transportista = computed(() => store.state.transportista);
+const vehiculo = computed(() => store.state.vehiculo);
+const flatPickrState = computed(() => store.state.flatPickrState);
+const observacion = ref('');
+const ruta = ref('');
+const boton_generar = ref('boton_generar');
+const { currentBodega } = defineProps({
+  currentBodega: Object,
+});
+
+
+function changeVehiculo() {
+  if (vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id) {
+    var id = vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id;
+    transportista.value.transportista_id = transportistas.value.find((item) => item.id === id).id;
+  }
+}
+
+async function generarGuia() {
+
+  let vehi;
+  let trans;
+  if (despacho.value == 'Retiro en bodega') {
+    if (!transportista.value.nombre || !transportista.value.identificacion || !transportista.value.tipo_identificacion || !vehiculo.value.placa) {
+      swalWarning('Llenar datos de transporte externo');
+      return;
+    }
+  } else {
+    if (!transportista.value.transportista_id) {
+      swalWarning('Seleccionar transportista');
+      return;
+    }
+  }
+
+  if (despacho.value == 'Retiro en bodega') {
+    trans = transportista.value;
+    vehi = vehiculo.value;
+  } else {
+    trans = transportistas.value.find(item => item.id === transportista.value.transportista_id);
+    vehi = vehiculos.value.find(item => item.id === vehiculo.value.vehiculo_id);
+  }
+
+  const data = {
+    transportista: trans,
+    vehiculo: vehi,
+    fecha_inicio: flatPickrState.value.horaInicio,
+    fecha_fin: flatPickrState.value.horaFin,
+    items: picking.value.data,
+    observacion: observacion.value,
+    ruta: ruta.value,
+    tipo: currentBodega.tipo,
+  };
+
+  // 1) consultar
+
+  // 2) generar guia de traslado de venta
+  if (currentBodega.tipo == 'transferencia') {
+
+    const respVerify = await verifyGuideTransfer(data);
+    if (!respVerify.ok) {
+      if (respVerify?.status >= 400 && respVerify?.status < 500) {
+        swalWarning(respVerify?.message);
+        return
+      }
+      if (respVerify?.status >= 500) {
+        swalError(respVerify?.message);
+        return;
+      }
+    }
+
+    const resp = await createGuideTransfer(data);
+    if (!resp.ok) {
+      if (resp?.status >= 400 && resp?.status < 500) {
+        swalWarning(resp?.message);
+        return
+      }
+      if (resp?.status >= 500) {
+        swalError(resp?.message);
+        return;
+      }
+    }
+    clearCampos();
+    emit('generarGuia');
+  }
+  if (currentBodega.tipo == 'reposicion') {
+    const respReposition = await createGuideReposition(data);
+    if (!respReposition.ok) {
+      if (respReposition?.status >= 400 && respReposition?.status < 500) {
+        swalWarning(respReposition?.message);
+        return
+      }
+      if (respReposition?.status >= 500) {
+        swalError(respReposition?.message);
+        return;
+      }
+    }
+    clearCampos();
+    emit('generarGuia');
+  }
+
+}
+
+function clearCampos() {
+  observacion.value = '';
+  ruta.value = '';
+}
+
+const emit = defineEmits(["generarGuia"]);
+
+</script>
 <template>
   <BaseBlock v-if="currentBodega.bodega && currentBodega.bodega != ''"
     :title="'Generar guía de remisión hacia: ' + currentBodega.bodega" class="mb-0">
@@ -116,7 +254,7 @@
                 :config="flatPickrState.configDateTime24" />
             </td>
             <td class="text-end">Fecha / Hora llegada: </td>
-            <td><flat-pickr id="example-flatpickr-datetime24" class="form-control" v-model="flatPickrState.horaFin"
+            <td><flat-pickr id="example-flatpickr-datetime25" class="form-control" v-model="flatPickrState.horaFin"
                 :config="flatPickrState.configDateTime24" /></td>
           </tr>
           <tr>
@@ -138,116 +276,6 @@
   <div class="block-content block-content-full text-end bg-body">
     <button type="button" class="btn btn-secondary btn-sm mx-2" data-bs-dismiss="modal"> Cancelar</button>
     <button ref="boton_generar" type="button" class="btn btn-success btn-sm mx-2" @click="generarGuia()"
-      :disabled="disabledGenerarGuia"><i class="fa fa-file-lines"></i> Generar</button>
+      :disabled="loading || loadingVerifyGuide || loadingReposition"><i class="fa fa-file-lines"></i> Generar</button>
   </div>
 </template>
-
-<script setup>
-import { computed, ref, reactive } from "vue";
-import { useStore } from 'vuex'
-import Swal from "sweetalert2";
-import flatPickr from 'vue-flatpickr-component';
-import { useTemplateStore } from "@/stores/template";
-import { formatPrice } from "@/functions";
-import { swalSuccess } from "@/functions/swal-alert";
-
-
-const store = useStore();
-const templateStore = useTemplateStore();
-const picking = computed(() => store.state.picking);
-const despacho = ref(store.state.despacho);
-const transportistas = computed(() => store.state.transportistas);
-const vehiculos = computed(() => store.state.vehiculos);
-const transportista = computed(() => store.state.transportista);
-const vehiculo = computed(() => store.state.vehiculo);
-const flatPickrState = computed(() => store.state.flatPickrState);
-const observacion = ref('');
-const ruta = ref('');
-const boton_generar = ref('boton_generar');
-const { currentBodega } = defineProps({
-  currentBodega: Object,
-});
-
-
-function changeVehiculo() {
-  if (vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id) {
-    var id = vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id;
-    transportista.value.transportista_id = transportistas.value.find((item) => item.id === id).id;
-  }
-}
-
-let disabledGenerarGuia = ref(false);
-async function generarGuia() {
-
-  let vehi;
-  let trans;
-  if (despacho.value == 'Retiro en bodega') {
-    if (!transportista.value.nombre || !transportista.value.identificacion || !transportista.value.tipo_identificacion || !vehiculo.value.placa) {
-      swalError('Llenar datos de transporte externo');
-      return;
-    }
-  } else {
-    if (!transportista.value.transportista_id) {
-      swalError('Seleccionar transportista');
-      return;
-    }
-  }
-  disabledGenerarGuia.value = true;
-  boton_generar.value.classList.add('hide');
-  templateStore.pageLoader({ mode: "on" });
-
-  try {
-    if (despacho.value == 'Retiro en bodega') {
-      trans = transportista.value;
-      vehi = vehiculo.value;
-    } else {
-      trans = transportistas.value.find(item => item.id === transportista.value.transportista_id);
-      vehi = vehiculos.value.find(item => item.id === vehiculo.value.vehiculo_id);
-    }
-
-    const data = {
-      transportista: trans,
-      vehiculo: vehi,
-      fecha_inicio: flatPickrState.value.horaInicio,
-      fecha_fin: flatPickrState.value.horaFin,
-      items: picking.value.data,
-      observacion: observacion.value,
-      ruta: ruta.value,
-      tipo: currentBodega.tipo,
-    };
-
-    // 1) consultar
-    await store.dispatch('consultarGuiaTraslado', data);
-    // 2) generar
-    await store.dispatch('generarGuiaTraslado', data);
-    emit('generarGuia');
-
-  } catch (err) {
-    const msg =
-      err?.response?.data?.error ||
-      err?.message ||
-      'Error al generar la guía';
-    swalError(msg);
-  } finally {
-    templateStore.pageLoader({ mode: 'off' });
-    boton_generar.value?.classList.remove('hide');
-    disabledGenerarGuia.value = false;
-  }
-
-}
-
-const emit = defineEmits(["generarGuia"]);
-
-function swalError(msg) {
-  toast.fire("Error", msg, "error");
-}
-let toast = Swal.mixin({
-  buttonsStyling: false,
-  target: "#page-container",
-  customClass: {
-    confirmButton: "btn btn-success m-1",
-    cancelButton: "btn btn-danger m-1",
-    input: "form-control",
-  },
-});
-</script>

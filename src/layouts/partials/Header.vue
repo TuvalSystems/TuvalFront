@@ -30,6 +30,14 @@ function selectpuntodeventa(event,) {
   actions.state.puntodeventaselect = puntosdeventa.value[event.target.value].PTO_VTA_ID;
   actions.state.bodegas = puntosdeventa.value[event.target.value].bodegas;
   sessionStorage.setItem('BODEGAS', JSON.stringify(puntosdeventa.value[event.target.value].bodegas));
+
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('draft')) {
+    url.searchParams.delete('draft'); // Borramos el rastro de California
+    // Reemplazamos la URL actual sin el draft para que al recargar empiece limpio
+    window.history.replaceState({}, '', url.toString());
+  }
+
   location.reload();
 }
 

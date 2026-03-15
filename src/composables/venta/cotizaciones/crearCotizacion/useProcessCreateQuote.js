@@ -4,13 +4,19 @@ import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
 import { useSessionStorage } from '@vueuse/core';
 import { useStore } from 'vuex'
-
+import { watchDebounced } from '@vueuse/core';
+import { useRoute } from "vue-router";
 
 function redondear(num, decimales = 2) {
     const factor = Math.pow(10, decimales);
     return Math.round((num + Number.EPSILON) * factor) / factor;
 }
 const getInitialState = () => ({
+    //variables nuevas para manejo de varias cotizaciones
+    created_temp_at: Date.now(),
+    draft_id: null,
+    nota_temporal: '',
+
     cotizacion_id: null,
     cotizacion_codigo: null,
     mode: 'crear',
@@ -69,12 +75,97 @@ const getInitialState = () => ({
     origen: '',
 
 });
-export function useProcessCreateQuote() {
+export function useProcessCreateQuote(draftId = 'default') {
     const store = useStore();
     const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
     const { run } = useApiAction();
-    const form = useSessionStorage('quoteTemp_v1', getInitialState());
     const today = new Date();
+    const route = useRoute();
+
+    // nuevo proceso para almacenar en bd 
+    const form = ref(getInitialState());
+    form.value.draft_id = draftId;
+
+    const loadingGetCurrentDraft = ref(false);
+    const apiDrafts = 'borradores/get';
+    async function fetchCurrentDraft() {
+        const idToFetch = route.query.draft || draftId;
+        isRecoveringQuote.value = true;
+        return await run(() => axiosClient.post(apiDrafts, { draft_id: idToFetch }), {
+            loadingRef: loadingGetCurrentDraft,
+            onSuccess: (info) => {
+                const rawData = info.data;
+                const savedForm = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+                const nextState = {
+                    ...getInitialState(),
+                    ...(savedForm || {}),
+                    draft_id: idToFetch
+                };
+                if (!nextState.items) nextState.items = [];
+                if (!nextState.imagenesoperaciones) nextState.imagenesoperaciones = [];
+                if (!nextState.orden_de_compra) nextState.orden_de_compra = '';
+                form.value = nextState;
+                nextTick(() => {
+                    calculateTotals();
+                    setTimeout(() => {
+                        isRecoveringQuote.value = false;
+                    }, 500);
+                });
+            },
+            onError: (err) => {
+                console.log("Iniciando borrador nuevo en blanco", err);
+                const emptyState = getInitialState();
+                emptyState.draft_id = idToFetch;
+                form.value = emptyState;
+                isRecoveringQuote.value = false;
+            }
+        })
+    }
+
+
+    const apiSyncDrafts = 'borradores/sync';
+    const loadingSyncDraft = ref(false);
+    watchDebounced(
+        () => form.value, async (newVal) => {
+            if (!newVal.cliente && newVal.items.length === 0) {
+                return;
+            }
+            const currentId = newVal.draft_id;
+            if (!currentId || currentId === 'undefined') return;
+            return await run(() => axiosClient.post(apiSyncDrafts, {
+                draft_id: currentId,
+                pto_vta_id: ptoVtaSelect.value,
+                data: newVal
+            }), {
+                loadingRef: loadingSyncDraft
+            })
+        }, { deep: true, debounce: 1000 });
+
+
+    const apiListDrafts = 'borradores/list';
+    const loadingListDrafts = ref(false);
+    async function getActiveDrafts() {
+        return await run(() => axiosClient.post(apiListDrafts, { pto_vta_id: ptoVtaSelect.value }), {
+            loadingRef: loadingListDrafts
+        });
+    }
+
+    const apiRemoveDraft = 'borradores/delete';
+    const loadingRemoveDraft = ref(false);
+    async function removeDraft(draftIdToRemove) {
+        return await run(() => axiosClient.post(apiRemoveDraft, { draft_id: draftIdToRemove }), {
+            loadingRef: loadingRemoveDraft,
+            onError: (err) => {
+                console.error("Error al eliminar borrador:", err);
+            }
+        });
+    }
+
+
+
+
+
+
 
 
     //validadores maximos para notas
@@ -84,16 +175,26 @@ export function useProcessCreateQuote() {
 
 
 
-    function clearForm(uploadedFilesRef = null) {
-        sessionStorage.removeItem('quoteTemp_v1');
+    async function clearForm(uploadedFilesRef = null, forceDeleteBD = false, forceResetDraft = false) {
+        if (forceDeleteBD) {
+            const idToDelete = form.value.draft_id || route.query.draft;
+            if (idToDelete) {
+                await removeDraft(idToDelete);
+            }
+        }
         form.value = getInitialState();
+        if (forceResetDraft) {
+            form.value.draft_id = null;
+        } else {
+            form.value.draft_id = route.query.draft || null;
+        }
+        if (ptoVtaSelect.value) {
+            form.value.punto_venta_id = ptoVtaSelect.value;
+        }
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
         }
-
-        nextTick(() => {
-            calculateTotals();
-        });
+        nextTick(() => calculateTotals());
     }
 
 
@@ -180,7 +281,6 @@ export function useProcessCreateQuote() {
         const artValorOriginal = Number.parseFloat(rawItem.ART_VALOR_ORIGINAL || 0);
         const itemEstandarizado = {
             ...rawItem,
-
             //id: `temp-${Date.now()}`, //id temporal  // lo comentare para que use el id del backend en cao de que exista sino no asignamos id 
             ART_CANTIDAD: 0,
             ART_VALOR: artValor,
@@ -454,11 +554,69 @@ export function useProcessCreateQuote() {
     }
 
 
+
+    async function updateStockByBatchV2() {
+        if (!form.value.items || form.value.items.length === 0) return;
+
+        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L');
+        if (itemsParaProcesar.length === 0) return;
+        loadingStockMasivo.value = true;
+
+        itemsParaProcesar.forEach(item => {
+            item.stockRowLoading = true;
+            item.disableOpenModalStock = true;
+            item.stockListo = false;
+        });
+        const response = await updateStockItemsBatchAPI(itemsParaProcesar, 'LOTE', form.value.cotizacion_id);
+
+        if (response?.ok) {
+            const resultados = response.data;
+
+            form.value.items.forEach(item => {
+                if (resultados[item.ART_CODIGO]) {
+                    const data = resultados[item.ART_CODIGO];
+                    item.stock = data.stock || [];
+                    item.ART_STOCK = data.ART_STOCK;
+                    item.stockListo = true;
+                }
+                item.stockRowLoading = false;
+                item.disableOpenModalStock = false;
+            });
+        } else {
+            itemsParaProcesar.forEach(item => {
+                item.stockRowLoading = false;
+                item.disableOpenModalStock = false;
+                item.stockListo = false;
+            });
+            console.error("Error en la petición por lote:", response?.message);
+        }
+
+        loadingStockMasivo.value = false;
+        calculateTotals();
+
+    }
+
+    const apiUpdateStockBatch = 'cotizaciones/articulo-stock-por-bodega-v2';
+    const loadingUpdateStockBatch = ref(false);
+
+    async function updateStockItemsBatchAPI(item, tipo, cotizacionId) {
+        const payloadBatch = {
+            'articulos': item,
+            'bodega': ptoVtaSelect.value,
+            'tipo': tipo,
+            'cotizacion_id': cotizacionId,
+        }
+        return await run(() => axiosClient.post(apiUpdateStockBatch, payloadBatch), {
+            loadingRef : loadingUpdateStockBatch,
+            onError: (err) => {
+                console.log(err, 'updateStockItemsByBatch');
+            }
+        });
+    }
+
+
+
     const dataPesoItem = ref({ item: {}, index: 0 });
-
-
-
-
 
 
     // proceso para apertura de modal de proveedores
@@ -563,8 +721,13 @@ export function useProcessCreateQuote() {
             } else {
                 let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
                 const modificador = Number.parseFloat(art.modificador || 0);
-                valorUnitario = valorUnitario - ((valorUnitario * modificador) / 100);
-                art.ART_VALOR = redondear(valorUnitario + 0.000001, 4);
+                let precioCalculado = valorUnitario - ((valorUnitario * modificador) / 100);
+                const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
+                if (diferencia < 0.001) {
+                    art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
+                } else {
+                    art.ART_VALOR = redondear(precioCalculado, 4);
+                }
             }
 
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
@@ -634,9 +797,7 @@ export function useProcessCreateQuote() {
             let currentItemQtyAsigned = 0;
             if (item.stock && item.stock.length > 0) {
                 item.stock.forEach((bd) => {
-                    // const seleccionado = Number.parseFloat(bd.seleccionado || 0);
                     const disponible = Number.parseFloat(bd.STO_ART_STOCK_DISPONIBLE || 0);
-                    // currentItemQtyAsigned += seleccionado;
 
                     const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
                     if (!globalStockUsage[key]) {
@@ -738,6 +899,7 @@ export function useProcessCreateQuote() {
 
     const calculatePriceFromModifier = (originalPrice, modifier) => {
         if (!originalPrice) return 0;
+        originalPrice = Number(originalPrice);
         if (modifier == 0) return originalPrice;
         let decimal = 1 - (modifier / 100);
         return originalPrice * decimal;
@@ -768,6 +930,9 @@ export function useProcessCreateQuote() {
 
     const exitEditPrice = (row) => {
         row.ART_VALOR = row.valor_temporal;
+        if (row.ART_TIPO_COMPRA === 'l') {
+            row.ART_VALOR_ORIGINAL = row.valor_temporal
+        }
         row.cambiar_valor = false;
     }
 
@@ -1007,9 +1172,13 @@ export function useProcessCreateQuote() {
             loadingRef: loadingGetQuoteData,
             onSuccess: async (res) => {
                 isRecoveringQuote.value = true;
+                const initialState = getInitialState();
+                Object.assign(form.value, initialState);
+                form.value.items = [];
+                form.value.imagenesoperaciones = [];
                 const { cotizacion, cliente, items, segmento, imagenesOperaciones, mode } = res;
 
-                clearForm(uploadedFilesRef);
+                // clearForm(uploadedFilesRef);
 
                 //cargamos el cliente y los datos de identificacion 
                 form.value.cliente = cliente;
@@ -1018,12 +1187,13 @@ export function useProcessCreateQuote() {
                 form.value.cotizacion_codigo = cotizacion.cotizacion;
                 form.value.mode = mode;
 
+                form.value.draft_id = route.query.draft;
                 // 3. Mapeamos los Items (inyectando estados de UI necesarios)
                 form.value.items = items.map(item => ({
                     ...item,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
-                    stockListo: true, // Al ser recuperado, asumimos validación previa
+                    stockListo: false, // Al ser recuperado, asumimos validación previa
                     cambiar_descripcion: false,
                     cambiar_valor: false,
                     cambiar_descuento: false,
@@ -1082,10 +1252,10 @@ export function useProcessCreateQuote() {
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
-                setTimeout(() => {
-                    isRecoveringQuote.value = false;
+                // setTimeout(() => {
+                //     isRecoveringQuote.value = false;
 
-                }, 500);
+                // }, 500);
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
@@ -1093,6 +1263,7 @@ export function useProcessCreateQuote() {
             }
         });
     }
+
 
 
 
@@ -1104,12 +1275,17 @@ export function useProcessCreateQuote() {
     const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef) {
-        clearForm(uploadedFilesRef);
+
         return run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
             loadingRef: loadingReorder,
             onSuccess: (res) => {
+                const initialState = getInitialState();
+                Object.assign(form.value, initialState);
+                form.value.items = [];
+                form.value.imagenesoperaciones = [];
                 const { cotizacion, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
 
+                form.value.draft_id = route.query.draft || initialState.draft_id;
 
                 form.value.mode = mode;
                 form.value.cotizacion_id = null; // Nueva cotización, sin ID previo
@@ -1204,7 +1380,12 @@ export function useProcessCreateQuote() {
         }), {
             loadingRef: loadingCopyQuoteOrOrder,
             onSuccess: (res) => {
+                const initialState = getInitialState();
+                Object.assign(form.value, initialState);
+                form.value.items = [];
                 const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones } = res;
+                form.value.draft_id = route.query.draft || initialState.draft_id;
+
                 form.value.mode = mode;
                 form.value.cotizacion_id = null;        // Nueva cotización, sin ID previo
                 form.value.cotizacion_codigo = null;    // Nueva cotización, sin código previo
@@ -1287,8 +1468,12 @@ export function useProcessCreateQuote() {
         return run(() => axiosClient.post(apiReorder, { id: rowId }), {
             loadingRef: loadingIsReordering,
             onSuccess: (res) => {
+                const initialState = getInitialState();
+                Object.assign(form.value, initialState);
                 const { pedido, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
 
+
+                form.value.draft_id = route.query.draft || initialState.draft_id;
                 form.value.mode = mode;
                 form.value.cotizacion_id = null;        // Nueva cotización, sin ID previo
                 form.value.cotizacion_codigo = null;    // Nueva cotización, sin código previo
@@ -1433,7 +1618,7 @@ export function useProcessCreateQuote() {
 
         //modificador global
         formData.append('modificador_global', form.value.modificador_global);
-        formData.append('origen', 'cotizacion');
+        formData.append('origen', form.value.origen);
         formData.append('items', JSON.stringify(form.value.items));
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
@@ -1569,6 +1754,7 @@ export function useProcessCreateQuote() {
         //update stock por lote
         updateStockByBatch,
         loadingStockMasivo,
+        updateStockByBatchV2,
 
         //global
         calculateTotals,
@@ -1593,7 +1779,13 @@ export function useProcessCreateQuote() {
 
         //prospecto 
         loadingUpdateQuoteProspect,
-        updateQuoteProspect
+        updateQuoteProspect,
+
+
+        //manejo de borradores 
+        fetchCurrentDraft,
+        getActiveDrafts,
+        removeDraft
     };
 
 

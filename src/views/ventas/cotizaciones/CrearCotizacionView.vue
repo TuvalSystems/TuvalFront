@@ -11,7 +11,7 @@ import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import draggable from 'vuedraggable'
-import { formatPrice4, format } from "@/functions";
+import { formatPrice4, format, formatCleanPrice4, formatClean } from "@/functions";
 import VueEasyLightbox from "vue-easy-lightbox";
 // imports modales
 import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
@@ -20,7 +20,16 @@ import verModalItemAlternativo from "@/views/ventas/modals/verModalItemAlternati
 import verModalSeleccionStockBodegas from "@/views/ventas/modals/verModalSeleccionStockBodegas.vue";
 import verModalModificacionPeso from "@/views/ventas/modals/verModalModificacionPeso.vue";
 import verModalProveedores from "@/views/ventas/modals/verModalProveedores.vue";
-import { useRouter } from "vue-router";
+import verModalListaBorradores from "@/views/ventas/modals/verModalListaBorradores.vue";
+import { useRouter, useRoute } from "vue-router";
+
+const router = useRouter();
+const route = useRoute();
+//logica para manejo de temps 
+const currentDraftId = computed(() => route.query.draft);
+
+
+
 
 const {
   clients,
@@ -112,6 +121,7 @@ const {
   //update stock por lote
   updateStockByBatch,
   loadingStockMasivo,
+  updateStockByBatchV2,
   //gloabl
   calculateTotals,
 
@@ -121,8 +131,20 @@ const {
   createQuote,
   loadingSaveOrder,
   saveOrder,
-  isRecoveringQuote
-} = useProcessCreateQuote();
+  isRecoveringQuote,
+
+  //temp 
+  fetchCurrentDraft,
+  getActiveDrafts,
+  removeDraft,
+
+  //recuperar cotizacion 
+  fetchAndFillQuotation,
+  loadDataForReorder,
+  copyRawQuoteOrOrder,
+  reOrder
+} = useProcessCreateQuote(currentDraftId.value);
+
 const {
   loadingConditionPayment,
   fetchConditionPayment,
@@ -151,7 +173,9 @@ const flatPickrState = reactive({
   dateFormat: "Y-m-d"
 });
 
-const router = useRouter();
+
+
+
 //variables de modales 
 const verModalActualizarSegmento = ref(null)
 const verModalCrearDireccionModal = ref(null)
@@ -160,6 +184,7 @@ const verItemAltRef = ref(null)
 const verSeleccionStockBodegasRef = ref(null)
 const verModalPesoItemRef = ref(null)
 const verProveedoresRef = ref(null);
+const verModalBorradoresRef = ref(null);
 const verModalActualizarSegmentoObj = useBootstrapModal(verModalActualizarSegmento)
 const verModalCrearDireccionModalObj = useBootstrapModal(verModalCrearDireccionModal)
 const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
@@ -167,6 +192,11 @@ const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
     dataSearchItem.value = null
   }
 })
+const verModalBorradoresObj = useBootstrapModal(verModalBorradoresRef);
+
+
+
+
 const verItemAltObj = useBootstrapModal(verItemAltRef, {
   onHidden: () => {
     clearSelectionItemalternative();
@@ -191,7 +221,7 @@ const showResultClients = ref(false);
 const showInfoClient = ref(false);
 
 async function searchFilterClientes() {
-  clearForm(uploadedFiles);//limpia el formulario 
+  // clearForm(uploadedFiles);//limpia el formulario 
   showResultClients.value = true;
   showInfoClient.value = false;
   if (dataSearch.search == null || dataSearch.search.length < 4) {
@@ -239,6 +269,11 @@ async function processSelectClient(client) {
   datosCliente.value = null;
   showResultClients.value = false;
 
+  if (form.value.cliente && form.value.cliente.CLI_RUC !== client.CLI_RUC) {
+    form.value.direccion_facturacion_id = null;
+    form.value.direccion_entrega_id = null;
+    form.value.forma_pago_id = null;
+  }
   const [respCredit, respBranches] = await Promise.all([
     fetchAvailableCreditCustomer(client.CLI_RUC), // Corregido 'Available'
     fetchCustomerBranches(client.CLI_RUC)
@@ -335,6 +370,26 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
     form.value.bodega_facturacion = warehouseSelect.relacion_bodega.BOD_BODEGA;
   }
 }
+
+//limpieza de form cuando cambia de punto de venta
+watch(
+  () => ptoVtaSelect.value,
+  async (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      isRecoveringQuote.value = true;
+      const newId = `draft_${Date.now()}`;
+      await clearForm(uploadedFiles, false, true);
+      form.value.draft_id = newId;
+      form.value.punto_venta_id = newVal;
+      await router.replace({ query: { ...route.query, draft: newId } });
+      setTimeout(() => {
+        isRecoveringQuote.value = false;
+      }, 300);
+    }
+  }, { immediate: false }
+)
+
+
 watch(
   () => ptoVtaSelect.value,
   (nuevoPuntoVenta) => {
@@ -517,9 +572,12 @@ async function openModalProviders(item, i) {
 }
 
 const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
-  form.value.items[index].proveedores = providers;
-  if (nuevoPrecio) {
-    form.value.items[index].ART_VALOR = nuevoPrecio
+  const item = form.value.items[index];
+  item.proveedores = providers;
+  if (nuevoPrecio && Number(nuevoPrecio) !== Number(item.valor_original_l)) {
+    item.ART_VALOR = nuevoPrecio;
+    item.ART_VALOR_ORIGINAL = nuevoPrecio;
+    item.valor_original_l = nuevoPrecio;
   }
   calculateTotals();
   verProveedoresObj.hide();
@@ -592,7 +650,7 @@ async function applyModifyRow(item) {
   let decimales = (item.ART_DECIMAL_VALOR && item.ART_DECIMAL_VALOR > 0)
     ? item.ART_DECIMAL_VALOR
     : 4;
-  let originalPrice = item.ART_VALOR_ORIGINAL;
+  let originalPrice = Number(item.ART_VALOR_ORIGINAL);
   let calculatedPrice = calculatePriceFromModifier(originalPrice, modifierValue);
   calculatedPrice = Number.parseFloat(calculatedPrice.toFixed(decimales));
   item.ART_VALOR = calculatedPrice;
@@ -628,13 +686,17 @@ async function applyGeneraModifier() {
 //proceso de modificaicon de precios
 
 const saveModifyPrice = async (element) => {
-  if (element.ART_VALOR === element.valor_temporal) {
+  const valorFijo = formatCleanPrice4(element.ART_VALOR, 4);
+  if (valorFijo === element.valor_temporal) {
     element.cambiar_valor = false;
     return;
   }
+  element.ART_VALOR = valorFijo;
+  if (element.ART_TIPO_COMPRA === 'L') {
+    element.ART_VALOR_ORIGINAL = element.ART_VALOR;
+  }
   let nuevoModificar = calculateRowModifier(element, element.ART_VALOR);
-  nuevoModificar = Number.parseFloat(nuevoModificar.toFixed(4) || 0);
-  element.modificador = nuevoModificar;
+  element.modificador = formatClean(nuevoModificar, 4);
   element.cambiar_valor = false;
   calculateTotals();
 }
@@ -691,7 +753,7 @@ async function confirmarEliminarArticulo(item, i) {
 /** limpiar la cotizacion */
 
 async function clearCotizacion() {
-  clearForm(uploadedFiles);
+  await clearForm(uploadedFiles, true);
   showInfoClient.value = false;
   showResultClients.value = false;
   infoClient.value = null;
@@ -831,7 +893,148 @@ watch(uploadedFiles, (newFiles) => {
 
 
 
+
+
+// --- LÓGICA PARA EL MODAL DE BORRADORES ---
+const createNewDraft = async () => {
+  const newId = `draft_${Date.now()}`;
+  await clearForm(uploadedFiles, false);
+  showInfoClient.value = false;
+  showResultClients.value = false;
+  router.push({ query: { ...route.query, draft: newId } });
+}
+
+
+const listaBorradores = ref([]);
+
+async function openDraftsModal() {
+  const respListDraft = await getActiveDrafts();
+  if (!respListDraft.ok) return;
+  listaBorradores.value = respListDraft.data;
+  verModalBorradoresObj.show();
+}
+
+const deleteDraftItem = (draftId) => {
+  toast.fire({
+    title: "¿Estás seguro?",
+    text: "Se perderán los datos no guardados de este borrador.",
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: "btn btn-danger m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  }).then(async (result) => {
+    if (result.value) {
+      await removeDraft(draftId);
+      const resp = await getActiveDrafts();
+      if (resp.ok) {
+        listaBorradores.value = resp.data;
+      }
+      if (draftId === currentDraftId) {
+        window.location.href = window.location.pathname;
+      }
+    }
+  });
+};
+
+const loadSelectedDraft = (draftId) => {
+  if (draftId === currentDraftId.value) {
+    verModalBorradoresObj.hide();
+    return;
+  }
+  verModalBorradoresObj.hide();
+  setTimeout(() => {
+    router.push({ query: { ...route.query, draft: draftId } });
+  }, 350);
+};
+
+//watch para vigilar los cambios en el id del borrador en la URL 
+watch(
+  () => route.query.draft,
+  async (newDraftId, oldDraftId) => {
+    if (isRecoveringQuote.value) return;
+    if (newDraftId && newDraftId !== oldDraftId) {
+      showInfoClient.value = false;
+      uploadedFiles.value = [];
+      await fetchCurrentDraft();
+      if (form.value.cliente?.CLI_RUC) {
+        showInfoClient.value = true;
+        await Promise.all([
+          fetchCustomerBranches(form.value.cliente.CLI_RUC),
+          fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC)
+        ]);
+
+        if (form.value.imagenesoperaciones?.length > 0) {
+          uploadedFiles.value = form.value.imagenesoperaciones.map((url, index) => ({
+            id: `restored-${index}`,
+            preview: url,
+            isPersisted: true
+          }));
+        }
+      }
+      if (form.value.items && form.value.items.length > 0) {
+        setTimeout(() => {
+          updateStockByBatchV2();
+        }, 300);
+      }
+    } else if (!newDraftId && oldDraftId) {
+      await clearForm(uploadedFiles, false);
+      showInfoClient.value = false;
+      showResultClients.value = false;
+      const nextId = `draft_${Date.now()}`;
+      router.replace({ query: { ...route.query, draft: nextId } });
+    }
+  }
+)
+
+
+
+
+
+
+
 onMounted(async () => {
+  const mode = route.query.mode;
+  const idDoc = route.query.id;
+  if (mode && idDoc) {
+    isRecoveringQuote.value = true;
+    const newId = `draft_${Date.now()}`;
+    if (mode === 'restore_quote') {
+      await fetchAndFillQuotation(idDoc, uploadedFiles);
+    }
+    else if (mode === 'reorder_quote') {
+      await loadDataForReorder(idDoc, uploadedFiles);
+    }
+    else if (mode === 'reorder_order') {
+      await reOrder(idDoc, uploadedFiles);
+    }
+    else if (mode === 'copy') {
+      const tipo = route.query.tipo; // 'cotizacion' o 'pedido'
+      const clienteId = route.query.cliente_id;
+      const sucursalId = route.query.sucursal;
+
+      await copyRawQuoteOrOrder(idDoc, tipo, clienteId, sucursalId, uploadedFiles);
+    }
+    form.value.draft_id = newId;
+    // 5. CAMBIAMOS LA URL (Transformándolo en un borrador activo normal)
+    await router.replace({ query: { draft: newId } });
+
+    // 6. 🟢 QUITAMOS EL CANDADO
+    setTimeout(() => {
+      isRecoveringQuote.value = false;
+    }, 500);
+  }
+  else {
+    if (!route.query.draft) {
+      const newId = `draft_${Date.now()}`;
+      await router.replace({ query: { ...route.query, draft: newId } });
+    }
+    await fetchCurrentDraft();
+  }
+
   await Promise.all([
     fetchWarehouseByPtoVtaUser(),
     fetchConditionPayment()
@@ -847,7 +1050,6 @@ onMounted(async () => {
     if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
       if (uploadedFiles.value.length === 0) {
         uploadedFiles.value = form.value.imagenesoperaciones.map((url, index) => {
-
           return {
             id: `restored-${index}`,
             preview: url,
@@ -862,6 +1064,7 @@ onMounted(async () => {
     try {
       const promises = [];
       promises.push(fetchCustomerBranches(form.value.cliente.CLI_RUC));
+      promises.push(fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC)); //opcional veamos que hace
       if (form.value.condicion_pago_id) {
         promises.push(fetchMethodPayment(form.value.condicion_pago_id));
       }
@@ -874,6 +1077,13 @@ onMounted(async () => {
         form.value.forma_pago_id = temp;
       } else if (methodPayment.value && methodPayment.value.length > 0) {
         form.value.forma_pago_id = methodPayment.value[0].codigo;
+      }
+
+      if (form.value.items && form.value.items.length > 0) {
+        // Un pequeño delay para dejar que Vue termine de pintar la tabla
+        setTimeout(() => {
+          updateStockByBatchV2();
+        }, 400);
       }
     } catch (e) {
       console.error("Error cargando datos del cliente recuperado", e);
@@ -888,716 +1098,738 @@ onMounted(async () => {
 </script>
 <template>
   <div class="content">
-    <BaseBlock title="Cliente" content-full rounded class="mb-3">
-      <div class="row g-2">
-        <div class="col">
-          <div class="input-group input-group-sm">
-            <input type="text" class="form-control" :class="errorSearchClient ? 'is-invalid' : ''"
-              placeholder="Buscar cliente..." autocomplete="off" @keyup.enter="searchFilterClientes"
-              v-model="dataSearch.search" />
-            <button class="btn btn-primary" type="button" @click="searchFilterClientes" :disabled="loadingSearch">
-              <i class="fa fa-search"></i>
+    <div :key="currentDraftId">
+      <BaseBlock title="Cliente" content-full rounded class="mb-3">
+        <div class="row g-2">
+          <div class="col">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" :class="errorSearchClient ? 'is-invalid' : ''"
+                placeholder="Buscar cliente..." autocomplete="off" @keyup.enter="searchFilterClientes"
+                v-model="dataSearch.search" />
+              <button class="btn btn-primary" type="button" @click="searchFilterClientes" :disabled="loadingSearch">
+                <i class="fa fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-auto d-flex gap-2">
+            <button class="btn btn-primary btn-sm fw-semibold" type="button" @click="createNewDraft"
+              title="Crear nueva cotización en blanco">
+              <i class="fa fa-file-circle-plus me-1"></i> Nuevo
             </button>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" type="button" @click="openDraftsModal"
+              title="Ver cotizaciones pendientes">
+              <i class="fa fa-folder-open text-warning me-1"></i> Borradores
+            </button>
+
+            <router-link :to="{ name: 'ventas-crearcliente' }" class="btn btn-success btn-sm"
+              :class="{ 'disabled': loadingSearch }">
+              <i class="fa fa-plus me-1"></i> Crear
+            </router-link>
           </div>
         </div>
-        <div class="col-auto">
-          <router-link :to="{ name: 'ventas-crearcliente' }" class="btn btn-success btn-sm"
-            :class="{ 'disabled': loadingSearch }">
-            <i class="fa fa-plus me-1"></i> Crear
-          </router-link>
+
+        <!-- loading de carga de clientes -->
+        <div v-if="loadingSearch && showResultClients && !form.cliente?.id" class="text-center py-4">
+          <output class="spinner-border text-primary mt-4">
+            <span class="visually-hidden">Loading...</span>
+          </output>
         </div>
-      </div>
 
-      <!-- loading de carga de clientes -->
-      <div v-if="loadingSearch && showResultClients && !form.cliente?.id" class="text-center py-4">
-        <output class="spinner-border text-primary mt-4">
-          <span class="visually-hidden">Loading...</span>
-        </output>
-      </div>
-
-      <!-- mensaje de visualizacion en caso de que no haya clientes -->
-      <div v-if="clients.length === 0 && !loadingSearch && showResultClients && !form.cliente?.id"
-        class="text-center py-4">
-        <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
-        <p class="text-muted mb-0">
-          No se encontraron registros para mostrar
-        </p>
-      </div>
-
-      <!-- table de clientes  -->
-      <BaseBlock v-if="showResultClients && clients.length > 0 && !loadingSearch" class="mb-2">
-        <div class="table-responsive">
-          <table class="table table-hover table-sm ">
-            <thead>
-              <tr>
-                <th>Ruc</th>
-                <th>Razón Social</th>
-                <th>Contacto</th>
-                <th>Ciudad</th>
-                <th>Provincia</th>
-                <th>Teléfono</th>
-                <th>Correo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(client, index) in clients" :key="index">
-                <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
-                  <span class="text-primary">{{ client.CLI_RUC }}</span>
-                </td>
-                <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
-                  <span class="text-primary">{{ client.CLI_RAZON_SOCIAL }}</span>
-                </td>
-                <td class="fs-sm">{{ client.CLI_CONTACTO }}</td>
-                <td class="fs-sm">{{ client.CLI_CIUDAD }}</td>
-                <td class="fs-sm">{{ client.CLI_PROVINCIA }}</td>
-                <td class="fs-sm">{{ client.CLI_TELEFONO_1 }}</td>
-                <td class="fs-sm">
-                  <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI">{{ client.CLI_CORREO_ELECT_SRI }}</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- mensaje de visualizacion en caso de que no haya clientes -->
+        <div v-if="clients.length === 0 && !loadingSearch && showResultClients && !form.cliente?.id"
+          class="text-center py-4">
+          <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+          <p class="text-muted mb-0">
+            No se encontraron registros para mostrar
+          </p>
         </div>
-      </BaseBlock>
+
+        <!-- table de clientes  -->
+        <BaseBlock v-if="showResultClients && clients.length > 0 && !loadingSearch" class="mb-2">
+          <div class="table-responsive">
+            <table class="table table-hover table-sm ">
+              <thead>
+                <tr>
+                  <th>Ruc</th>
+                  <th>Razón Social</th>
+                  <th>Contacto</th>
+                  <th>Ciudad</th>
+                  <th>Provincia</th>
+                  <th>Teléfono</th>
+                  <th>Correo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(client, index) in clients" :key="index">
+                  <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
+                    <span class="text-primary">{{ client.CLI_RUC }}</span>
+                  </td>
+                  <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
+                    <span class="text-primary">{{ client.CLI_RAZON_SOCIAL }}</span>
+                  </td>
+                  <td class="fs-sm">{{ client.CLI_CONTACTO }}</td>
+                  <td class="fs-sm">{{ client.CLI_CIUDAD }}</td>
+                  <td class="fs-sm">{{ client.CLI_PROVINCIA }}</td>
+                  <td class="fs-sm">{{ client.CLI_TELEFONO_1 }}</td>
+                  <td class="fs-sm">
+                    <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI">{{ client.CLI_CORREO_ELECT_SRI }}
+                      <span class="badge bg-danger text-white" v-if="!client.emails_validated"> correo no valido</span>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </BaseBlock>
 
 
-      <!-- detalle visual de informacion de cliente -->
-      <div v-if="loadingAvailableCredit && !form.cliente?.id" class="text-center py-4">
-        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+        <!-- detalle visual de informacion de cliente -->
+        <div v-if="loadingAvailableCredit && !form.cliente?.id" class="text-center py-4">
+          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+          </div>
         </div>
-      </div>
-      <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
-        <div class="content-fluid" :class="{ 'opacity-50': loadingAvailableCredit }">
-          <div class="row g-1 mb-2">
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Ruc</small>
-                <div class="fw-semibold text-truncate">{{ form.cliente.CLI_RUC }}</div>
+        <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
+          <div class="content-fluid" :class="{ 'opacity-50': loadingAvailableCredit }">
+            <div class="row g-1 mb-2">
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Ruc</small>
+                  <div class="fw-semibold text-truncate">{{ form.cliente.CLI_RUC }}</div>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Razón Social</small>
-                <div class="fw-semibold text-truncate">{{ form.cliente.CLI_RAZON_SOCIAL }}</div>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Razón Social</small>
+                  <div class="fw-semibold text-truncate">{{ form.cliente.CLI_RAZON_SOCIAL }}</div>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Descuento Comercial</small>
-                <div class="fw-semibold ">{{ form.cliente.CLI_DSTO_COMERCIAL }} %</div>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Descuento Comercial</small>
+                  <div class="fw-semibold ">{{ form.cliente.CLI_DSTO_COMERCIAL }} %</div>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Ciudad</small>
-                <div class="fw-semibold ">{{ form.cliente.CLI_CIUDAD }}</div>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Ciudad</small>
+                  <div class="fw-semibold ">{{ form.cliente.CLI_CIUDAD }}</div>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Provincia</small>
-                <div class="fw-semibold ">{{ form.cliente.CLI_PROVINCIA }}</div>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Provincia</small>
+                  <div class="fw-semibold ">{{ form.cliente.CLI_PROVINCIA }}</div>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Condición de Pago</small>
-                <div class="fw-semibold ">{{ form.cliente.CLI_CONDICION_PAGO }}</div>
-                <span class="badge bg-info" v-if="form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
-                  form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Condición de Pago</small>
+                  <div class="fw-semibold ">{{ form.cliente.CLI_CONDICION_PAGO }}</div>
+                  <span class="badge bg-info" v-if="form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
+                    form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Suspendido</small>
-                <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                  :class="getClientStatus(form.cliente.suspendido).class">
-                  {{ getClientStatus(form.cliente.suspendido).text }}
-                </span>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Suspendido</small>
+                  <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
+                    :class="getClientStatus(form.cliente.suspendido).class">
+                    {{ getClientStatus(form.cliente.suspendido).text }}
+                  </span>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Cupo Asignado</small>
-                <div class="fw-semibold ">${{
-                  form.cliente.cupo_asignado }}</div>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Cupo Asignado</small>
+                  <div class="fw-semibold ">${{
+                    form.cliente.cupo_asignado }}</div>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Cupo Disponible</small>
-                <div class="fw-semibold " :class="parseFloat(form.cliente.cupo_disponible) < 0 ? 'text-danger' : ''">${{
-                  form.cliente.cupo_disponible }}</div>
+              <div class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Cupo Disponible</small>
+                  <div class="fw-semibold " :class="parseFloat(form.cliente.cupo_disponible) < 0 ? 'text-danger' : ''">
+                    ${{
+                      form.cliente.cupo_disponible }}</div>
+                </div>
               </div>
-            </div>
-            <div v-if="infoSegmento" class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Segmento</small>
-                <div class="fw-semibold ">{{ form.segmento.segmento }}</div>
+              <div v-if="infoSegmento" class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Segmento</small>
+                  <div class="fw-semibold ">{{ form.segmento.segmento }}</div>
+                </div>
               </div>
-            </div>
-            <div v-if="infoSegmento" class="col-6 col-lg-4">
-              <div class="kv">
-                <small class="text-muted">Segmento</small>
-                <div class="fw-semibold ">{{ form.segmento.subsegmento }}</div>
+              <div v-if="infoSegmento" class="col-6 col-lg-4">
+                <div class="kv">
+                  <small class="text-muted">Segmento</small>
+                  <div class="fw-semibold ">{{ form.segmento.subsegmento }}</div>
+                </div>
               </div>
-            </div>
-            <div class="col-12 col-lg-4">
-              <div class="kv space-y-2">
-                <small class="text-muted">Bodegas</small>
-                <select class="form-select form-select-sm" v-model="form.bodega_facturacion"
-                  :disabled="loadingWarehouseByUser">
-                  <option v-for="(bod, index) in warehouseByUser" :key="index" :value="bod.relacion_bodega.BOD_BODEGA">
-                    {{ bod.relacion_bodega.BOD_BODEGA }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div class="col-12 col-lg-8">
-              <div class="kv space-y-2">
-                <small class="text-muted">Dirección de Facturación</small>
-                <div class="input-group input-group-sm">
-                  <select class="form-select" v-model="form.direccion_facturacion_id" :disabled="loadingSucursales">
-                    <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
-                      {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
+              <div class="col-12 col-lg-4">
+                <div class="kv space-y-2">
+                  <small class="text-muted">Bodegas</small>
+                  <select class="form-select form-select-sm" v-model="form.bodega_facturacion"
+                    :disabled="loadingWarehouseByUser">
+                    <option v-for="(bod, index) in warehouseByUser" :key="index"
+                      :value="bod.relacion_bodega.BOD_BODEGA">
+                      {{ bod.relacion_bodega.BOD_BODEGA }}
                     </option>
                   </select>
-                  <button class="btn btn-outline-secondary" type="button"
-                    :title="hasCoordinates ? 'Ver ubicación en mapa' : 'Dirección sin coordenadas'"
-                    :class="{ 'opacity-50': !hasCoordinates }">
-                    <img v-if="hasCoordinates" src="/assets/images/earth.png" alt="Tiene coordenadas" class="img-fluid"
-                      style="max-width: 18px;">
-                    <img v-else src="/assets/images/earth2.png" alt="No tiene coordenadas" class="img-fluid"
-                      style="max-width: 18px;">
-                  </button>
-                  <button class="btn btn-primary" type="button" @click="openModalCreateAddress">
-                    <i class="fa fa-plus"></i>
-                  </button>
                 </div>
               </div>
-            </div>
-            <div class="col-12 col-lg-4">
-              <div class="kv space-y-2">
-                <small class="text-muted">Modalidad de Entrega</small>
-                <div class="btn-group btn-group-sm" role="group">
-                  <input type="radio" class="btn-check" name="tipoEntrega" id="retiro" value="retiro"
-                    v-model="form.tipo_entrega" autocomplete="off">
-                  <label class="btn btn-outline-primary" for="retiro">
-                    <i class="fa fa-box me-2"></i>Retiro en Bodega
-                  </label>
 
-                  <input v-if="hasDispatch" type="radio" class="btn-check" name="tipoEntrega" id="despacho"
-                    value="despacho" v-model="form.tipo_entrega" autocomplete="off">
-                  <label v-if="hasDispatch" class="btn btn-outline-primary" for="despacho">
-                    <i class="fa fa-truck me-2"></i>Despacho en Ruta
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div v-show="form.tipo_entrega === 'retiro'"></div>
-            <div v-show="form.tipo_entrega === 'despacho'" class="row g-1 mb-2">
-              <div class="col-12 col-lg-6">
+              <div class="col-12 col-lg-8">
                 <div class="kv space-y-2">
-                  <small class="text-muted">Dirección de Entrega</small>
+                  <small class="text-muted">Dirección de Facturación</small>
                   <div class="input-group input-group-sm">
-                    <select class="form-select form-select-sm" v-model="form.direccion_entrega_id">
+                    <select class="form-select" v-model="form.direccion_facturacion_id" :disabled="loadingSucursales">
                       <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
                         {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
+                        {{ !suc.emails_validated ? '⚠️ (Correo Inválido)' : '' }}
                       </option>
                     </select>
-                    <button class="btn btn-outline-secondary btn-sm" type="button"
-                      :title="hasCoordinates2 ? 'Ver ubicación en mapa' : 'Dirección sin coordenadas'"
-                      :class="{ 'opacity-50': !hasCoordinates2 }">
-                      <img v-if="hasCoordinates2" src="/assets/images/earth.png" alt="Tiene coordenadas"
+                    <button class="btn btn-outline-secondary" type="button"
+                      :title="hasCoordinates ? 'Ver ubicación en mapa' : 'Dirección sin coordenadas'"
+                      :class="{ 'opacity-50': !hasCoordinates }">
+                      <img v-if="hasCoordinates" src="/assets/images/earth.png" alt="Tiene coordenadas"
                         class="img-fluid" style="max-width: 18px;">
                       <img v-else src="/assets/images/earth2.png" alt="No tiene coordenadas" class="img-fluid"
                         style="max-width: 18px;">
                     </button>
-
+                    <button class="btn btn-primary" type="button" @click="openModalCreateAddress">
+                      <i class="fa fa-plus"></i>
+                    </button>
                   </div>
                 </div>
               </div>
-              <div class="col-12 col-lg-6">
+              <div class="col-12 col-lg-4">
                 <div class="kv space-y-2">
-                  <small class="text-muted">Fecha de Entrega</small>
-                  <flat-pickr id="fecha_entrega" class="form-control form-control-sm" v-model="form.fecha_entrega"
-                    :config="flatPickrState" />
+                  <small class="text-muted">Modalidad de Entrega</small>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="tipoEntrega" id="retiro" value="retiro"
+                      v-model="form.tipo_entrega" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="retiro">
+                      <i class="fa fa-box me-2"></i>Retiro en Bodega
+                    </label>
+
+                    <input v-if="hasDispatch" type="radio" class="btn-check" name="tipoEntrega" id="despacho"
+                      value="despacho" v-model="form.tipo_entrega" autocomplete="off">
+                    <label v-if="hasDispatch" class="btn btn-outline-primary" for="despacho">
+                      <i class="fa fa-truck me-2"></i>Despacho en Ruta
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
+              <div v-show="form.tipo_entrega === 'retiro'"></div>
+              <div v-show="form.tipo_entrega === 'despacho'" class="row g-1 mb-2">
+                <div class="col-12 col-lg-6">
+                  <div class="kv space-y-2">
+                    <small class="text-muted">Dirección de Entrega</small>
+                    <div class="input-group input-group-sm">
+                      <select class="form-select form-select-sm" v-model="form.direccion_entrega_id">
+                        <option v-for="(suc, index) in sucursales" :key="index" :value="suc.id">
+                          {{ suc.CLI_SUC_ID_DIRECCION }} - {{ suc.CLI_SUC_DIRECCION }}
+                        </option>
+                      </select>
+                      <button class="btn btn-outline-secondary btn-sm" type="button"
+                        :title="hasCoordinates2 ? 'Ver ubicación en mapa' : 'Dirección sin coordenadas'"
+                        :class="{ 'opacity-50': !hasCoordinates2 }">
+                        <img v-if="hasCoordinates2" src="/assets/images/earth.png" alt="Tiene coordenadas"
+                          class="img-fluid" style="max-width: 18px;">
+                        <img v-else src="/assets/images/earth2.png" alt="No tiene coordenadas" class="img-fluid"
+                          style="max-width: 18px;">
+                      </button>
 
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                  <div class="kv space-y-2">
+                    <small class="text-muted">Fecha de Entrega</small>
+                    <flat-pickr id="fecha_entrega" class="form-control form-control-sm" v-model="form.fecha_entrega"
+                      :config="flatPickrState" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </BaseBlock>
+      </BaseBlock>
+      <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
+        <template #title>
+          <div class="d-flex flex-wrap align-items-center justify-content-between w-100">
+            <div class="d-flex align-items-center gap-3">
+              <span class="fw-semibold">Cotización</span>
+              <div v-if="form.cotizacion_id" class="d-flex align-items-center animate__animated animate__fadeIn">
+                <span
+                  class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-2 d-flex align-items-center shadow-sm">
+                  <i class="fa fa-pen-to-square me-2 opacity-75"></i>
+                  <span class="fs-sm fw-bold">Editando # {{ form.cotizacion_codigo || form.cotizacion_id }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </template>
+        <div class="d-flex align-items-center mb-4">
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-primary" @click="openModalSearchItem"><i
+                class="fa fa-search me-1"></i>
+              Buscar
+              Articulo</button>
+            <button type="button" class="btn btn-outline-success" :disabled="loadingStockMasivo"
+              @click="updateStockByBatchV2"> <i class="fa fa-rotate me-1"></i>Stock</button>
+          </div>
+        </div>
+        <div class="table-responsive mt-1 mb-2">
+          <table v-if="form.items.length > 0" class="table table-hover table-sm table-vcenter mt-0">
+            <thead>
+              <tr>
+                <th scope="col" class="text-center" style="width: 40px;">#</th>
+                <th scope="col" style="min-width: 100px;">Código</th>
+                <th scope="col">Descripción</th>
+                <th scope="col" style="width:3rem"></th>
+                <th scope="col" class="text-center" style="width: 50px;">ALT</th>
+                <th scope="col" class="text-center" style="width: 50px;">CTL</th>
+                <th scope="col" class="text-center" style="width: 50px;">UDM</th>
+                <th scope="col" style="width: 50px;"></th>
+                <th scope="col" class="text-center" style="width: 80px;">Cantidad</th>
+                <th scope="col" style="width: 50px;"></th>
+                <th scope="col" class="text-end" style="width: 60px;">Stock</th>
+                <th scope="col" class="text-center" style="width: 90px;">Mod %</th>
+                <th scope="col" class="text-end" style="width: 100px;">Precio</th>
+                <th scope="col" class="text-end" style="width: 80px;">% Desc.</th>
+                <th scope="col" class="text-end" style="width: 100px;">T. con Desc.</th>
+                <th scope="col" style="width: 50px;"></th>
+
+              </tr>
+            </thead>
+            <draggable v-model="form.items" tag="tbody" :item-key="'id'" handle=".handle">
+              <template #item="{ element, index }">
+                <tr>
+                  <td class="fs-sm text-center"> {{ index + 1 }}</td>
+                  <td class="fs-sm code">{{ element.ART_CODIGO }}</td>
+                  <!-- descripcion -->
+                  <td class="fs-sm">
+                    <div v-if="!isDescriptionEditable(index)" @click="enableEditModeDescription(index)"
+                      class="d-flex align-items-center" style="cursor:pointer" title="Click para editar">
+                      <div class="d-flex flex-column lh-sm">
+                        <span :class="getDescriptionClass(element)" class="fw-medium">
+                          {{ element.ART_DESCRIPCION }}
+                        </span>
+                        <small v-if="element.CHECK_ALTERNATIVO == 1" class="text-warning fst-italic"
+                          style="font-size: 0.75rem;">
+                          <i class="fa fa-info-circle me-1"></i>Alternativa
+                        </small>
+                      </div>
+                    </div>
+                    <input v-else type="text" :id="`updatedescripcion-${element.id}`"
+                      class="form-control form-control-sm" :class="{ 'is-invalid': element.errorDescripcion }"
+                      placeholder="Descripción del artículo" v-model="element.ART_DESCRIPCION" v-focus
+                      @blur="updateDescripcion($event, element, index)"
+                      @keyup.enter="updateDescripcion($event, element, index)">
+                  </td>
+                  <!-- obtener listado de descripciones -->
+                  <td class="fs-sm text-center">
+                    <button type="button" class="btn btn-sm btn-info"
+                      @click="openModalListItemAlternatives(element, index)">
+                      <i class="fa fa-search"></i>
+                    </button>
+                  </td>
+                  <!-- check alternativo -->
+                  <td class="fs-sm text-center">
+                    <input type="checkbox" class="form-check-input" :id="`checkAlternativo-${element.id}`"
+                      @click="updateCheckAlternative($event, element, index)" v-model="element.CHECK_ALTERNATIVO"
+                      :true-value="1" :false-value="0">
+                  </td>
+                  <!-- codigo 3 letras -->
+                  <td class="fs-sm"> {{ element.ART_CODIGO_TRES_LETRAS }} </td>
+                  <!-- unidad de medida UDM -->
+                  <td class="fs-sm">{{ element.ART_PLAN_UMEDIDA }}</td>
+                  <!-- abrir modal de proveedores -->
+                  <td class="fs-sm">
+                    <div v-if="isItemL(element)">
+                      <button type="button" class="btn btn-sm"
+                        :class="element.proveedores_listo ? 'btn-success' : 'btn-danger'"
+                        @click="openModalProviders(element, index)">
+                        <i class="fa fa-people-arrows-left-right"></i>
+                      </button>
+                    </div>
+                  </td>
+                  <!-- cantidad -->
+                  <td class="fs-sm">
+                    <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
+                      :class="{ 'is-invalid': element.errorCantidad }" placeholder="0" min="0"
+                      :value="element.ART_CANTIDAD" @change="changeQuantityItem($event, element, index)"
+                      :tablindex="index + 1">
+                  </td>
+
+                  <!-- modal para abrir stock de bodega -->
+                  <td class="fs-sm">
+
+                    <!-- boton stock -->
+                    <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
+                      :class="element.stockListo ? 'btn-success' : 'btn-warning'" title="Seleccionar stock por bodega"
+                      :disabled="isStockDisabled(element)" @click="openModalStockRowItem(element, index)">
+                      <i v-if="isStockDisabled(element)" class="fa fa-spinner fa-spin"></i>
+                      <i v-else class="fa-solid fa-warehouse"></i>
+                    </button>
+
+
+
+                    <!-- boton peso -->
+                    <button v-else class="btn btn-sm btn-info" title="Peso de artículo"
+                      @click="openModalPesoRowItem(element, index)">
+                      <i class="fa-solid fa-scale-unbalanced"></i>
+                    </button>
+
+
+                  </td>
+
+                  <!-- ART_STOCK -->
+                  <td class="fs-sm text-end">
+                    <span v-if="shouldShowStock(element)">
+                      {{ element.ART_STOCK }}
+                    </span>
+                    <span v-else class="text-muted" style="text-align:center" title="No aplica stock">
+                      &mdash;
+                    </span>
+                  </td>
+                  <!-- modificador -->
+                  <td class="fs-sm  text-end">
+                    <input v-if="element.ART_TIPO_COMPRA !== 'L'" type="number"
+                      class="form-control text-end no-spinners" step="0.01"
+                      :class="{ 'is-invalid': element.errorModificador }" placeholder="0.00"
+                      v-model.number="element.modificador" @focus="$event.target.select()"
+                      @change="applyModifyRow(element)" @keydown.enter="$event.target.blur()">
+                    <span v-else class="text-muted" style="text-align:center" title="No aplica modificador">
+                      &mdash;
+                    </span>
+                  </td>
+                  <!-- precio -->
+                  <td class="fs-sm text-end col-1">
+                    <div v-if="!isPriceEditable(element)" @click="enableEditPrice(element, index)"
+                      class="cursor-pointer" title="Clic para editar">
+                      <span :class="applyModifyPrice(element) ? 'text-danger' : 'text-primary'">
+                        ${{ formatPrice4(parseFloat(element.ART_VALOR)) }}
+                      </span>
+
+                    </div>
+                    <input v-else :id="`input-precio-${index}`" type="number" step="0.0001" min="0.0000"
+                      class="form-control text-end no-spinners p-1" :class="{ 'is-invalid': element.errorPrecio }"
+                      v-model.number="element.ART_VALOR" @focus="$event.target.select()"
+                      @blur="saveModifyPrice(element, index)" @keyup.enter="$event.target.blur()"
+                      @keyup.esc="exitEditPrice(element)">
+                  </td>
+                  <!-- descuento con opcion de cambiar descuento-->
+                  <td class="fs-sm text-end col-1">
+                    <div v-if="!isEditDiscount(element)" @click="enableEditDiscount(element, index)"
+                      class="cursor-pointer" title="Clic para editar">
+                      <span :class="applyModifyDiscount(element) ? 'text-danger' : 'text-primary'">
+                        {{ format(parseFloat(element.descuento)) }}%
+                      </span>
+
+                    </div>
+                    <input v-else :id="`input-descuento-${index}`" type="number" step="0.0000" min="0.0000"
+                      class="form-control text-end no-spinners p-1" :class="{ 'is-invalid': element.errorDescuento }"
+                      v-model.number="element.descuento" @focus="$event.target.select()"
+                      @blur="saveModifyDiscount(element, index)" @keyup.enter="$event.target.blur()"
+                      @keyup.esc="exitEditDiscount(element)">
+                  </td>
+                  <!-- total con descuento -->
+                  <td class="fs-sm  text-end col-1">
+                    ${{ (element.subtotal) }}
+                  </td>
+                  <!-- botones -->
+                  <td class="text-center align-middle">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Acciones del ítem">
+                      <button type="button " class="btn btn-danger btn-sm"
+                        @click="confirmarEliminarArticulo(element, index)" :disabled="element.disabled_delete"
+                        title="Eliminar">
+                        <i class="fa fa-trash-can"></i>
+                      </button>
+                      <a class="btn btn-primary btn-sm handle" style="cursor: move;">
+                        <i class="fa fa-arrows-up-down-left-right"></i>
+                      </a>
+                      <button v-if="element.imagenes && element.imagenes.length" class="btn btn-success btn-sm"
+                        type="button" @click="showPhoto(element.imagenes)">
+                        <i class="fa fa-search"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </draggable>
+            <!-- fotter -->
+            <tfoot v-if="form.items.length > 0">
+              <tr>
+                <th scope="col" colspan="15" class="fs-sm text-end border-0"> Subtotal sin Descuento</th>
+                <th scope="col" class="fs-sm text-end text-nowrap border-0"> ${{ format(form.subtotal + form.descuento)
+                }}
+                </th>
+                <th scope="col" class="border-0"></th>
+              </tr>
+              <tr>
+                <th scope="col" colspan="15" class="fs-sm text-end  border-0"> Descuento</th>
+                <th scope="col" class="fs-sm text-end  text-nowrap border-0"> ${{ format(form.descuento) }}
+                </th>
+                <th scope="col" class="border-0"></th>
+              </tr>
+              <tr>
+                <th scope="col" colspan="15" class="fs-sm text-end border-0">Subtotal Neto</th>
+                <th scope="col" class="fs-sm text-end text-nowrap border-0">
+                  ${{ format(form.subtotal) }}
+                </th>
+                <th scope="col" class="border-0"></th>
+              </tr>
+              <tr>
+                <th scope="col" colspan="15" class="fs-sm text-end border-0">IVA</th>
+                <th scope="col" class="fs-sm text-end text-nowrap border-0">
+                  ${{ format(form.iva) }}
+                </th>
+                <th scope="col" class="border-0"></th>
+              </tr>
+              <tr class="table-active">
+                <th scope="col" colspan="15" class="fs-sm text-end fw-bold">TOTAL</th>
+                <th scope="col" class="fs-sm text-end fw-bold text-nowrap">
+                  ${{ format(parseFloat(form.total)) }}
+                </th>
+                <th scope="col" class="border-0"></th>
+              </tr>
+              <tr>
+                <td colspan="16" class="border-0 p-1"></td>
+              </tr>
+              <tr>
+                <th scope="col" colspan="15" class="fs-sm text-end text-muted fst-italic border-0">Peso total aprox.
+                </th>
+                <th scope="col" class="fs-sm text-end text-muted fst-italic text-nowrap border-0">
+                  {{ format(form.peso) }} Kg
+                </th>
+                <th scope="col" class="border-0"></th>
+              </tr>
+            </tfoot>
+            <!-- end fotter -->
+          </table>
+        </div>
+
+        <!-- condiciones de pago  -->
+        <div v-if="form.items.length > 0" class="row mb-2">
+          <div class="col-12">
+            <div class="mb-4" v-if="(form.alerta_facturar != '') || form.pregunta_facturar">
+
+              <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
+
+                <div v-if="form.alerta_facturar != ''" class="d-flex align-items-center gap-2">
+                  <i class="fa fa-exclamation-triangle"></i>
+                  <span class="fw-bold">Factura a demanda posterior al despacho</span>
+                </div>
+
+                <div v-if="form.pregunta_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
+                  <span class="small">
+                    Último día: <strong class="text-dark">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
+                  </span>
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="switch-facturar" :true-value="0"
+                      :false-value="1" v-model="form.factura_siguiente_mes">
+                    <label class="form-check-label fw-bold text-dark" for="switch-facturar">
+                      Facturar ahora
+                    </label>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+            <BaseBlock class="mb-4">
+              <template #title>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa fa-file-invoice-dollar text-body-secondary"></i>
+                  <span class="fw-semibold">Condiciones de venta</span>
+                </div>
+              </template>
+
+              <div class="row g-4">
+                <div class="col-md-6 col-xl-3">
+                  <label for="condicionPagoSelect"
+                    class="form-label small text-uppercase fw-bold text-body-secondary">Condición
+                    de pago</label>
+                  <select id="condicionPagoSelect" class="form-select" :disabled="form.cliente.suspendido == 1"
+                    v-model="form.condicion_pago_id">
+
+                    <option v-for="(cod, index) in conditionPayment" :key="index" :value="cod.condId">{{ cod.condId }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-md-6 col-xl-5">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="metodoPagoSelect"
+                      class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma
+                      de pago</label>
+                    <span v-if="form.condicion_pago_id !== form.cliente.CLI_CONDICION_PAGO" id="metodoPagoSelect"
+                      class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+                      Condición diferente
+                    </span>
+                  </div>
+
+                  <select class="form-select mb-2" v-model="form.forma_pago_id" :disabled="loadingMethodPayment"
+                    @change="selectMethodPayment">
+                    <option v-for="(me, index) in methodPayment" :key="index" :value="me.codigo"> {{ me.tipo }}</option>
+                  </select>
+
+                  <div class="d-flex align-items-center justify-content-end small">
+                    <span v-if="!isEditingGlobalDiscount">
+                      <span class="text-body-secondary me-2">Descuento aplicado:</span>
+                      <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info"
+                        @click="enableGlobalDiscountEdit" title="Clic para editar descuento global manualmente">{{
+                          Number(form.descuento_articulo).toFixed(2) }}%</a>
+                    </span>
+                    <div v-else class="d-flex align-items-center">
+                      <span class="text-body-secondary me-2">Nuevo %:</span>
+                      <input id="input-global-discount" ref="inputGlobalDiscountRef" type="number"
+                        class="form-control form-control-sm text-end no-spinners p-1" style="width: 80px;"
+                        :value="form.descuento_articulo" @blur="updateGlobalDiscount($event)"
+                        @keyup.enter="$event.target.blur()" @keyup.esc="cancelGlobalDiscountEdit">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-5 col-xl-2">
+                  <label for="descuentoGeneralInput"
+                    class="form-label small text-uppercase fw-bold text-body-secondary">Desc.
+                    General PVP</label>
+                  <div class="input-group">
+                    <input id="descuentoGeneralInput" type="number" class="form-control text-end no-spinners"
+                      placeholder="0.00" value="0.00" v-model.number="form.modificador_global"
+                      @change="applyGeneraModifier">
+                    <span class="input-group-text bg-body-tertiary text-body-secondary">%</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6 col-xl-2">
+                  <label for="ordenCompraInput"
+                    class="form-label small text-uppercase fw-bold text-body-secondary">Orden
+                    de
+                    Compra</label>
+                  <div class="position-relative">
+                    <input id="ordenCompraInput" type="text" class="form-control " placeholder="Opcional"
+                      value="OC-2024-999" v-model="form.orden_de_compra" :maxlength="maxOrder">
+                    <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
+                      {{ maxOrder -
+                        form.orden_de_compra.length
+                      }}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            </BaseBlock>
+            <BaseBlock class="mb-4">
+              <template #title>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa fa-sticky-note text-body-secondary"></i>
+                  <span class="fw-semibold">Notas</span>
+                </div>
+              </template>
+              <div class="row g-4">
+                <div class="col-md-4">
+                  <div class="d-flex justify-content-between mb-1">
+                    <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Cliente</label>
+                    <span v-if="form.nota_cliente" class="small text-body-secondary" style="font-size: 0.7rem;">{{
+                      maxLengthNote
+                      - form.nota_cliente.length }}</span>
+                  </div>
+                  <textarea class="form-control border-start border-4 border-primary" rows="3"
+                    placeholder="Visible en factura..." v-model.trim="form.nota_cliente"
+                    :maxlength="maxLengthNote"></textarea>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Interna</label>
+                  <textarea class="form-control border-start border-4 border-warning" rows="3"
+                    placeholder="Uso administrativo..." v-model.trim="form.nota_interna"></textarea>
+                </div>
+                <div class="col-md-4">
+                  <div class="d-flex justify-content-between mb-1">
+                    <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
+                    <span v-if="form.nota_operaciones" class="small text-body-secondary" style="font-size: 0.7rem;">{{
+                      maxLengthNote
+                      - form.nota_operaciones.length }}</span>
+                  </div>
+                  <textarea class="form-control border-start border-4 border-danger" rows="3"
+                    placeholder="Logística y bodega..." v-model.trim="form.nota_operaciones"
+                    :maxlength="maxLengthNote"></textarea>
+                </div>
+              </div>
+            </BaseBlock>
+            <!-- seccion de manejo de imagenes de operaciones -->
+            <BaseBlock title="Imágenes" content-full rounded class="mb-3">
+              <div
+                class="upload-zone position-relative d-flex align-items-center justify-content-center p-3 border border-2 border-dashed rounded-3"
+                :class="isDragging ? 'border-primary bg-primary bg-opacity-10' : 'border-secondary border-opacity-25 bg-body-tertiary'"
+                @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @drop.prevent="handleDrop"
+                @click="triggerFileInput" style="cursor: pointer; transition: all 0.2s ease;">
+                <input type="file" ref="fileInput" class="d-none" multiple accept="image/*" @change="handleInputFiles">
+
+                <div class="d-flex align-items-center gap-3 pointer-events-none text-muted">
+                  <i class="fa fa-cloud-upload-alt fs-3 text-primary"></i>
+
+                  <div class="lh-1 text-start">
+                    <span class="fw-semibold text-primary">Adjuntar imágenes</span>
+                    <span class="d-none d-sm-inline ms-1 text-muted small">(Clic o arrastrar)</span>
+                    <div class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">JPG, PNG (Máx 5MB)</div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="uploadedFiles.length > 0 || isCompressing" class="d-flex flex-wrap gap-3 mt-3">
+
+                <div v-for="(file, index) in uploadedFiles" :key="index"
+                  class="position-relative border border-secondary border-opacity-25 rounded bg-body overflow-hidden group-hover-container"
+                  style="width: 80px; height: 80px;" @click="previewUploadedImages(index)">
+                  <img :src="file.preview" class="img-fluid w-100 h-100 object-fit-cover" alt="Preview"
+                    style="opacity: 0.9;" title="Clic para ampliar">
+
+                  <button @click.stop="removeFile(index)" type="button"
+                    class="btn btn-sm btn-danger p-0 position-absolute top-0 end-0 d-flex align-items-center justify-content-center btn-remove-img"
+                    style="width: 20px; height: 20px; border-radius: 0 0 0 4px; z-index: 10;" title="Eliminar imagen">
+                    <i class="fa fa-times" style="font-size: 10px;"></i>
+                  </button>
+                </div>
+                <div v-if="isCompressing"
+                  class="d-flex flex-column align-items-center justify-content-center border rounded bg-light text-info"
+                  style="width: 80px; height: 80px; font-size: 0.7rem;">
+                  <i class="fa fa-circle-notch fa-spin fs-4 mb-1"></i>
+                  <span>Procesando</span>
+                </div>
+              </div>
+            </BaseBlock>
+
+            <div
+              class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3 mb-2">
+              <button type="button" class="btn btn-danger px-4 w-100 w-md-auto order-2 order-md-1"
+                @click="clearCotizacion">
+                Limpiar cotización
+              </button>
+              <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
+                <button type="button" class="btn btn-success px-4 fw-bold shadow-sm w-100 w-md-auto"
+                  :disabled="btnDisableStoreQuotation" @click="createQuotation">
+                  <i v-if="loadingCreateQuotation" class="fa fa-spinner fa-spin me-2"></i>
+                  <i v-else class="fa fa-save me-2"></i>
+                  Guardar Cotización
+                </button>
+                <button v-if="form.cotizacion_id" type="button"
+                  class="btn btn-warning px-4 fw-bold text-white shadow-sm w-100 w-md-auto" :disabled="btnDisabledStore"
+                  @click="saveToOrderAndUpdateQuotation">
+                  <i v-if="loadingSaveOrder" class="fa fa-spinner fa-spin me-2"></i>
+                  <i v-else class="fa fa-check-circle me-2"></i>Guardar Pedido
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </BaseBlock>
-    </BaseBlock>
-    <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
-      <template #title>
-        <div class="d-flex flex-wrap align-items-center justify-content-between w-100">
-          <div class="d-flex align-items-center gap-3">
-            <span class="fw-semibold">Cotización</span>
-            <div v-if="form.cotizacion_id" class="d-flex align-items-center animate__animated animate__fadeIn">
-              <span
-                class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-2 d-flex align-items-center shadow-sm">
-                <i class="fa fa-pen-to-square me-2 opacity-75"></i>
-                <span class="fs-sm fw-bold">Editando # {{ form.cotizacion_codigo || form.cotizacion_id }}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </template>
-      <div class="d-flex align-items-center mb-4">
-        <div class="btn-group btn-group-sm" role="group">
-          <button type="button" class="btn btn-outline-primary" @click="openModalSearchItem"><i
-              class="fa fa-search me-1"></i>
-            Buscar
-            Articulo</button>
-          <button type="button" class="btn btn-outline-success" :disabled="loadingStockMasivo"
-            @click="updateStockByBatch"> <i class="fa fa-rotate me-1"></i>Stock</button>
-        </div>
-      </div>
-      <div class="table-responsive mt-1 mb-2">
-        <table v-if="form.items.length > 0" class="table table-hover table-sm table-vcenter mt-0">
-          <thead>
-            <tr>
-              <th scope="col" class="text-center" style="width: 40px;">#</th>
-              <th scope="col" style="min-width: 100px;">Código</th>
-              <th scope="col">Descripción</th>
-              <th scope="col" style="width:3rem"></th>
-              <th scope="col" class="text-center" style="width: 50px;">ALT</th>
-              <th scope="col" class="text-center" style="width: 50px;">CTL</th>
-              <th scope="col" class="text-center" style="width: 50px;">UDM</th>
-              <th scope="col" style="width: 50px;"></th>
-              <th scope="col" class="text-center" style="width: 80px;">Cantidad</th>
-              <th scope="col" style="width: 50px;"></th>
-              <th scope="col" class="text-end" style="width: 60px;">Stock</th>
-              <th scope="col" class="text-center" style="width: 90px;">Mod %</th>
-              <th scope="col" class="text-end" style="width: 100px;">Precio</th>
-              <th scope="col" class="text-end" style="width: 80px;">% Desc.</th>
-              <th scope="col" class="text-end" style="width: 100px;">T. con Desc.</th>
-              <th scope="col" style="width: 50px;"></th>
+    </div>
 
-            </tr>
-          </thead>
-          <draggable v-model="form.items" tag="tbody" :item-key="'id'" handle=".handle">
-            <template #item="{ element, index }">
-              <tr>
-                <td class="fs-sm text-center"> {{ index + 1 }}</td>
-                <td class="fs-sm code">{{ element.ART_CODIGO }}</td>
-                <!-- descripcion -->
-                <td class="fs-sm">
-                  <div v-if="!isDescriptionEditable(index)" @click="enableEditModeDescription(index)"
-                    class="d-flex align-items-center" style="cursor:pointer" title="Click para editar">
-                    <div class="d-flex flex-column lh-sm">
-                      <span :class="getDescriptionClass(element)" class="fw-medium">
-                        {{ element.ART_DESCRIPCION }}
-                      </span>
-                      <small v-if="element.CHECK_ALTERNATIVO == 1" class="text-warning fst-italic"
-                        style="font-size: 0.75rem;">
-                        <i class="fa fa-info-circle me-1"></i>Alternativa
-                      </small>
-                    </div>
-                  </div>
-                  <input v-else type="text" :id="`updatedescripcion-${element.id}`" class="form-control form-control-sm"
-                    :class="{ 'is-invalid': element.errorDescripcion }" placeholder="Descripción del artículo"
-                    v-model="element.ART_DESCRIPCION" v-focus @blur="updateDescripcion($event, element, index)"
-                    @keyup.enter="updateDescripcion($event, element, index)">
-                </td>
-                <!-- obtener listado de descripciones -->
-                <td class="fs-sm text-center">
-                  <button type="button" class="btn btn-sm btn-info"
-                    @click="openModalListItemAlternatives(element, index)">
-                    <i class="fa fa-search"></i>
-                  </button>
-                </td>
-                <!-- check alternativo -->
-                <td class="fs-sm text-center">
-                  <input type="checkbox" class="form-check-input" :id="`checkAlternativo-${element.id}`"
-                    @click="updateCheckAlternative($event, element, index)" v-model="element.CHECK_ALTERNATIVO"
-                    :true-value="1" :false-value="0">
-                </td>
-                <!-- codigo 3 letras -->
-                <td class="fs-sm"> {{ element.ART_CODIGO_TRES_LETRAS }} </td>
-                <!-- unidad de medida UDM -->
-                <td class="fs-sm">{{ element.ART_PLAN_UMEDIDA }}</td>
-                <!-- abrir modal de proveedores -->
-                <td class="fs-sm">
-                  <div v-if="isItemL(element)">
-                    <button type="button" class="btn btn-sm"
-                      :class="element.proveedores_listo ? 'btn-success' : 'btn-danger'"
-                      @click="openModalProviders(element, index)">
-                      <i class="fa fa-people-arrows-left-right"></i>
-                    </button>
-                  </div>
-                </td>
-                <!-- cantidad -->
-                <td class="fs-sm">
-                  <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
-                    :class="{ 'is-invalid': element.errorCantidad }" placeholder="0" min="0"
-                    :value="element.ART_CANTIDAD" @change="changeQuantityItem($event, element, index)"
-                    :tablindex="index + 1">
-                </td>
-
-                <!-- modal para abrir stock de bodega -->
-                <td class="fs-sm">
-
-                  <!-- boton stock -->
-                  <button v-if="shouldShowStock(element)" type="button" class="btn btn-sm"
-                    :class="element.stockListo ? 'btn-success' : 'btn-warning'" title="Seleccionar stock por bodega"
-                    :disabled="isStockDisabled(element)" @click="openModalStockRowItem(element, index)">
-                    <i v-if="isStockDisabled(element)" class="fa fa-spinner fa-spin"></i>
-                    <i v-else class="fa-solid fa-warehouse"></i>
-                  </button>
-
-
-
-                  <!-- boton peso -->
-                  <button v-else class="btn btn-sm btn-info" title="Peso de artículo"
-                    @click="openModalPesoRowItem(element, index)">
-                    <i class="fa-solid fa-scale-unbalanced"></i>
-                  </button>
-
-
-                </td>
-
-                <!-- ART_STOCK -->
-                <td class="fs-sm text-end">
-                  <span v-if="shouldShowStock(element)">
-                    {{ element.ART_STOCK }}
-                  </span>
-                  <span v-else class="text-muted" style="text-align:center" title="No aplica stock">
-                    &mdash;
-                  </span>
-                </td>
-                <!-- modificador -->
-                <td class="fs-sm  text-end">
-                  <input v-if="element.ART_TIPO_COMPRA !== 'L'" type="number" class="form-control text-end no-spinners"
-                    step="0.01" :class="{ 'is-invalid': element.errorModificador }" placeholder="0.00"
-                    v-model.number="element.modificador" @focus="$event.target.select()"
-                    @change="applyModifyRow(element)" @keydown.enter="$event.target.blur()">
-                  <span v-else class="text-muted" style="text-align:center" title="No aplica modificador">
-                    &mdash;
-                  </span>
-                </td>
-                <!-- precio -->
-                <td class="fs-sm text-end col-1">
-                  <div v-if="!isPriceEditable(element)" @click="enableEditPrice(element, index)" class="cursor-pointer"
-                    title="Clic para editar">
-                    <span :class="applyModifyPrice(element) ? 'text-danger' : 'text-primary'">
-                      ${{ formatPrice4(parseFloat(element.ART_VALOR)) }}
-                    </span>
-
-                  </div>
-                  <input v-else :id="`input-precio-${index}`" type="number" step="0.0001" min="0.0000"
-                    class="form-control text-end no-spinners p-1" :class="{ 'is-invalid': element.errorPrecio }"
-                    v-model.number="element.ART_VALOR" @focus="$event.target.select()"
-                    @blur="saveModifyPrice(element, index)" @keyup.enter="$event.target.blur()"
-                    @keyup.esc="exitEditPrice(element)">
-                </td>
-                <!-- descuento con opcion de cambiar descuento-->
-                <td class="fs-sm text-end col-1">
-                  <div v-if="!isEditDiscount(element)" @click="enableEditDiscount(element, index)"
-                    class="cursor-pointer" title="Clic para editar">
-                    <span :class="applyModifyDiscount(element) ? 'text-danger' : 'text-primary'">
-                      {{ format(parseFloat(element.descuento)) }}%
-                    </span>
-
-                  </div>
-                  <input v-else :id="`input-descuento-${index}`" type="number" step="0.0000" min="0.0000"
-                    class="form-control text-end no-spinners p-1" :class="{ 'is-invalid': element.errorDescuento }"
-                    v-model.number="element.descuento" @focus="$event.target.select()"
-                    @blur="saveModifyDiscount(element, index)" @keyup.enter="$event.target.blur()"
-                    @keyup.esc="exitEditDiscount(element)">
-                </td>
-                <!-- total con descuento -->
-                <td class="fs-sm  text-end col-1">
-                  ${{ (element.subtotal) }}
-                </td>
-                <!-- botones -->
-                <td class="text-center align-middle">
-                  <div class="btn-group btn-group-sm" role="group" aria-label="Acciones del ítem">
-                    <button type="button " class="btn btn-danger btn-sm"
-                      @click="confirmarEliminarArticulo(element, index)" :disabled="element.disabled_delete"
-                      title="Eliminar">
-                      <i class="fa fa-trash-can"></i>
-                    </button>
-                    <a class="btn btn-primary btn-sm handle" style="cursor: move;">
-                      <i class="fa fa-arrows-up-down-left-right"></i>
-                    </a>
-                    <button v-if="element.imagenes && element.imagenes.length" class="btn btn-success btn-sm"
-                      type="button" @click="showPhoto(element.imagenes)">
-                      <i class="fa fa-search"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </draggable>
-          <!-- fotter -->
-          <tfoot v-if="form.items.length > 0">
-            <tr>
-              <th scope="col" colspan="15" class="fs-sm text-end border-0"> Subtotal sin Descuento</th>
-              <th scope="col" class="fs-sm text-end text-nowrap border-0"> ${{ format(form.subtotal + form.descuento) }}
-              </th>
-              <th scope="col" class="border-0"></th>
-            </tr>
-            <tr>
-              <th scope="col" colspan="15" class="fs-sm text-end  border-0"> Descuento</th>
-              <th scope="col" class="fs-sm text-end  text-nowrap border-0"> ${{ format(form.descuento) }}
-              </th>
-              <th scope="col" class="border-0"></th>
-            </tr>
-            <tr>
-              <th scope="col" colspan="15" class="fs-sm text-end border-0">Subtotal Neto</th>
-              <th scope="col" class="fs-sm text-end text-nowrap border-0">
-                ${{ format(form.subtotal) }}
-              </th>
-              <th scope="col" class="border-0"></th>
-            </tr>
-            <tr>
-              <th scope="col" colspan="15" class="fs-sm text-end border-0">IVA</th>
-              <th scope="col" class="fs-sm text-end text-nowrap border-0">
-                ${{ format(form.iva) }}
-              </th>
-              <th scope="col" class="border-0"></th>
-            </tr>
-            <tr class="table-active">
-              <th scope="col" colspan="15" class="fs-sm text-end fw-bold">TOTAL</th>
-              <th scope="col" class="fs-sm text-end fw-bold text-nowrap">
-                ${{ format(parseFloat(form.total)) }}
-              </th>
-              <th scope="col" class="border-0"></th>
-            </tr>
-            <tr>
-              <td colspan="16" class="border-0 p-1"></td>
-            </tr>
-            <tr>
-              <th scope="col" colspan="15" class="fs-sm text-end text-muted fst-italic border-0">Peso total aprox.</th>
-              <th scope="col" class="fs-sm text-end text-muted fst-italic text-nowrap border-0">
-                {{ format(form.peso) }} Kg
-              </th>
-              <th scope="col" class="border-0"></th>
-            </tr>
-          </tfoot>
-          <!-- end fotter -->
-        </table>
-      </div>
-
-      <!-- condiciones de pago  -->
-      <div v-if="form.items.length > 0" class="row mb-2">
-        <div class="col-12">
-          <div class="mb-4" v-if="(form.alerta_facturar != '') || form.pregunta_facturar">
-
-            <div class="alert alert-warning d-flex align-items-center flex-wrap gap-3 shadow-sm border-0 mb-0">
-
-              <div v-if="form.alerta_facturar != ''" class="d-flex align-items-center gap-2">
-                <i class="fa fa-exclamation-triangle"></i>
-                <span class="fw-bold">Factura a demanda posterior al despacho</span>
-              </div>
-
-              <div v-if="form.pregunta_facturar" class="d-flex align-items-center gap-3 flex-wrap ms-md-auto">
-                <span class="small">
-                  Último día: <strong class="text-dark">{{ form.cliente.CLI_DIA_MAXIMO_MES_FACTURACION }}</strong>
-                </span>
-                <div class="form-check form-switch mb-0">
-                  <input class="form-check-input" type="checkbox" id="switch-facturar" :true-value="0" :false-value="1"
-                    v-model="form.factura_siguiente_mes">
-                  <label class="form-check-label fw-bold text-dark" for="switch-facturar">
-                    Facturar ahora
-                  </label>
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-          <BaseBlock class="mb-4">
-            <template #title>
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa fa-file-invoice-dollar text-body-secondary"></i>
-                <span class="fw-semibold">Condiciones de venta</span>
-              </div>
-            </template>
-
-            <div class="row g-4">
-              <div class="col-md-6 col-xl-3">
-                <label for="condicionPagoSelect"
-                  class="form-label small text-uppercase fw-bold text-body-secondary">Condición
-                  de pago</label>
-                <select id="condicionPagoSelect" class="form-select" :disabled="form.cliente.suspendido == 1"
-                  v-model="form.condicion_pago_id">
-
-                  <option v-for="(cod, index) in conditionPayment" :key="index" :value="cod.condId">{{ cod.condId }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="col-md-6 col-xl-5">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <label for="metodoPagoSelect"
-                    class="form-label small text-uppercase fw-bold text-body-secondary mb-0">Forma
-                    de pago</label>
-                  <span v-if="form.condicion_pago_id !== form.cliente.CLI_CONDICION_PAGO" id="metodoPagoSelect"
-                    class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
-                    Condición diferente
-                  </span>
-                </div>
-
-                <select class="form-select mb-2" v-model="form.forma_pago_id" :disabled="loadingMethodPayment"
-                  @change="selectMethodPayment">
-                  <option v-for="(me, index) in methodPayment" :key="index" :value="me.codigo"> {{ me.tipo }}</option>
-                </select>
-
-                <div class="d-flex align-items-center justify-content-end small">
-                  <span v-if="!isEditingGlobalDiscount">
-                    <span class="text-body-secondary me-2">Descuento aplicado:</span>
-                    <a href="javascript:void(0)" class="fw-bold text-decoration-none text-info"
-                      @click="enableGlobalDiscountEdit" title="Clic para editar descuento global manualmente">{{
-                        Number(form.descuento_articulo).toFixed(2) }}%</a>
-                  </span>
-                  <div v-else class="d-flex align-items-center">
-                    <span class="text-body-secondary me-2">Nuevo %:</span>
-                    <input id="input-global-discount" ref="inputGlobalDiscountRef" type="number"
-                      class="form-control form-control-sm text-end no-spinners p-1" style="width: 80px;"
-                      :value="form.descuento_articulo" @blur="updateGlobalDiscount($event)"
-                      @keyup.enter="$event.target.blur()" @keyup.esc="cancelGlobalDiscountEdit">
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-5 col-xl-2">
-                <label for="descuentoGeneralInput"
-                  class="form-label small text-uppercase fw-bold text-body-secondary">Desc.
-                  General PVP</label>
-                <div class="input-group">
-                  <input id="descuentoGeneralInput" type="number" class="form-control text-end no-spinners"
-                    placeholder="0.00" value="0.00" v-model.number="form.modificador_global"
-                    @change="applyGeneraModifier">
-                  <span class="input-group-text bg-body-tertiary text-body-secondary">%</span>
-                </div>
-              </div>
-
-              <div class="col-md-6 col-xl-2">
-                <label for="ordenCompraInput" class="form-label small text-uppercase fw-bold text-body-secondary">Orden
-                  de
-                  Compra</label>
-                <div class="position-relative">
-                  <input id="ordenCompraInput" type="text" class="form-control " placeholder="Opcional"
-                    value="OC-2024-999" v-model="form.orden_de_compra" :maxlength="maxOrder">
-                  <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
-                    {{ maxOrder -
-                      form.orden_de_compra.length
-                    }}
-                  </span>
-                </div>
-              </div>
-
-            </div>
-          </BaseBlock>
-          <BaseBlock class="mb-4">
-            <template #title>
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa fa-sticky-note text-body-secondary"></i>
-                <span class="fw-semibold">Notas</span>
-              </div>
-            </template>
-            <div class="row g-4">
-              <div class="col-md-4">
-                <div class="d-flex justify-content-between mb-1">
-                  <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Cliente</label>
-                  <span v-if="form.nota_cliente" class="small text-body-secondary" style="font-size: 0.7rem;">{{
-                    maxLengthNote
-                    - form.nota_cliente.length }}</span>
-                </div>
-                <textarea class="form-control border-start border-4 border-primary" rows="3"
-                  placeholder="Visible en factura..." v-model.trim="form.nota_cliente"
-                  :maxlength="maxLengthNote"></textarea>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Interna</label>
-                <textarea class="form-control border-start border-4 border-warning" rows="3"
-                  placeholder="Uso administrativo..." v-model.trim="form.nota_interna"></textarea>
-              </div>
-              <div class="col-md-4">
-                <div class="d-flex justify-content-between mb-1">
-                  <label class="form-label small text-uppercase fw-bold text-body-secondary">Nota Operaciones</label>
-                  <span v-if="form.nota_operaciones" class="small text-body-secondary" style="font-size: 0.7rem;">{{
-                    maxLengthNote
-                    - form.nota_operaciones.length }}</span>
-                </div>
-                <textarea class="form-control border-start border-4 border-danger" rows="3"
-                  placeholder="Logística y bodega..." v-model.trim="form.nota_operaciones"
-                  :maxlength="maxLengthNote"></textarea>
-              </div>
-            </div>
-          </BaseBlock>
-          <!-- seccion de manejo de imagenes de operaciones -->
-          <BaseBlock title="Imágenes" content-full rounded class="mb-3">
-            <div
-              class="upload-zone position-relative d-flex align-items-center justify-content-center p-3 border border-2 border-dashed rounded-3"
-              :class="isDragging ? 'border-primary bg-primary bg-opacity-10' : 'border-secondary border-opacity-25 bg-body-tertiary'"
-              @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @drop.prevent="handleDrop"
-              @click="triggerFileInput" style="cursor: pointer; transition: all 0.2s ease;">
-              <input type="file" ref="fileInput" class="d-none" multiple accept="image/*" @change="handleInputFiles">
-
-              <div class="d-flex align-items-center gap-3 pointer-events-none text-muted">
-                <i class="fa fa-cloud-upload-alt fs-3 text-primary"></i>
-
-                <div class="lh-1 text-start">
-                  <span class="fw-semibold text-primary">Adjuntar imágenes</span>
-                  <span class="d-none d-sm-inline ms-1 text-muted small">(Clic o arrastrar)</span>
-                  <div class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">JPG, PNG (Máx 5MB)</div>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="uploadedFiles.length > 0 || isCompressing" class="d-flex flex-wrap gap-3 mt-3">
-
-              <div v-for="(file, index) in uploadedFiles" :key="index"
-                class="position-relative border border-secondary border-opacity-25 rounded bg-body overflow-hidden group-hover-container"
-                style="width: 80px; height: 80px;" @click="previewUploadedImages(index)">
-                <img :src="file.preview" class="img-fluid w-100 h-100 object-fit-cover" alt="Preview"
-                  style="opacity: 0.9;" title="Clic para ampliar">
-
-                <button @click.stop="removeFile(index)" type="button"
-                  class="btn btn-sm btn-danger p-0 position-absolute top-0 end-0 d-flex align-items-center justify-content-center btn-remove-img"
-                  style="width: 20px; height: 20px; border-radius: 0 0 0 4px; z-index: 10;" title="Eliminar imagen">
-                  <i class="fa fa-times" style="font-size: 10px;"></i>
-                </button>
-              </div>
-              <div v-if="isCompressing"
-                class="d-flex flex-column align-items-center justify-content-center border rounded bg-light text-info"
-                style="width: 80px; height: 80px; font-size: 0.7rem;">
-                <i class="fa fa-circle-notch fa-spin fs-4 mb-1"></i>
-                <span>Procesando</span>
-              </div>
-            </div>
-          </BaseBlock>
-
-          <div
-            class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3 mb-2">
-            <button type="button" class="btn btn-danger px-4 w-100 w-md-auto order-2 order-md-1"
-              @click="clearCotizacion">
-              Limpiar cotización
-            </button>
-            <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
-              <button type="button" class="btn btn-success px-4 fw-bold shadow-sm w-100 w-md-auto"
-                :disabled="btnDisableStoreQuotation" @click="createQuotation">
-                <i v-if="loadingCreateQuotation" class="fa fa-spinner fa-spin me-2"></i>
-                <i v-else class="fa fa-save me-2"></i>
-                Guardar Cotización
-              </button>
-              <button v-if="form.cotizacion_id" type="button"
-                class="btn btn-warning px-4 fw-bold text-white shadow-sm w-100 w-md-auto" :disabled="btnDisabledStore"
-                @click="saveToOrderAndUpdateQuotation">
-                <i v-if="loadingSaveOrder" class="fa fa-spinner fa-spin me-2"></i>
-                <i v-else class="fa fa-check-circle me-2"></i>Guardar Pedido
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseBlock>
   </div>
 
 
@@ -1683,6 +1915,17 @@ onMounted(async () => {
         </verModalProveedores>
 
         <!-- </div> -->
+      </div>
+    </div>
+  </div>
+
+
+  <!-- modal de borradores -->
+  <div class="modal fade" id="verModalBorradoresObj" tabindex="-1" aria-hidden="true" ref="verModalBorradoresRef">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-xl">
+        <verModalListaBorradores :borradores="listaBorradores" @cargar="loadSelectedDraft" @eliminar="deleteDraftItem">
+        </verModalListaBorradores>
       </div>
     </div>
   </div>
