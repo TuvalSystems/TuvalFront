@@ -978,6 +978,7 @@ watch(
       if (form.value.items && form.value.items.length > 0) {
         setTimeout(() => {
           updateStockByBatchV2();
+          console.log('cargar precios de articulos', form.value.cliente.CLI_NIVEL_PRECIO);
         }, 300);
       }
     } else if (!newDraftId && oldDraftId) {
