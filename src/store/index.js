@@ -996,6 +996,7 @@ const store = createStore({
         commit("setSegmentoCliente", res.data.segmento);
         commit("setNivelPrecioClienteDetalle", res.data.nivelPrecio);
         commit("setImagenesOperaciones", res.data.imagenesOperaciones);
+        commit("setDocumentosPdf", res.data.documentosPdf);
         return res;
       });
     },
@@ -2365,6 +2366,10 @@ const store = createStore({
     },
     setImagenesOperaciones : (state, data) =>{
       state.imagenesOperaciones = data;
+    },
+
+    setDocumentosPdf : (state, data) => {
+      state.documentosPdf = data;
     },
 
 

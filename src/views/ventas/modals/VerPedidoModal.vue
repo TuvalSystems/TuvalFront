@@ -50,6 +50,12 @@
             Imagenes Operaciones
           </button>
         </li>
+         <li v-if="documentosPdf && documentosPdf.length" class="nav-item">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'documentos_pdf' }"
+            @click="tabActual = 'documentos_pdf'">
+            Documento(s)
+          </button>
+        </li>
       </ul>
 
       <div class="block-content tab-content fs-sm">
@@ -204,6 +210,9 @@
           </div>
 
         </div>
+        <div v-if="documentosPdf && documentosPdf.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'documentos_pdf' }">
+          <DocumentosPdf v-if="documentosPdf" :documentos="documentosPdf"></DocumentosPdf>
+        </div>
       </div>
     </template>
   </BaseBlock>
@@ -226,7 +235,7 @@
         <div class="row">
           <label for="nota-interna" class="col-sm-3 col-form-label text-right">Nota interna:</label>
           <div class="col-sm-9">
-            <input v-model="verpedido.nota_interna" type="text" id="orden-de-compra" class="form-control"
+            <input v-model="verpedido.nota_interna" type="text" id="nota-interna" class="form-control"
               :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
               @change="guardarOrdenDeCompra(verpedido)" />
           </div>
@@ -273,6 +282,7 @@ import Traslados from "./tabs/Traslados.vue"
 import OrdenDespacho from "./tabs/OrdenDespacho.vue"
 import GuiasRemision from "./tabs/GuiasRemision.vue"
 import Devoluciones from "./tabs/Devoluciones.vue";
+import DocumentosPdf from "./tabs/DocumentosPdf.vue";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 const { verpedido, indexPedido, tipo } = defineProps({
@@ -293,6 +303,7 @@ const existentes = computed(() => store.state.existentes);
 const segmentocliente = computed(() => store.state.segmentocliente);
 const has_guide_dispatched = computed(() => store.state.has_guide_dispatched);
 const imagenesOperaciones = computed(() => store.state.imagenesOperaciones);
+const documentosPdf = computed(() => store.state.documentosPdf);
 const max_length = ref(20);
 const emit = defineEmits(["consultarExistente", "cancelarPedido", "consultarDespachado"]);
 
