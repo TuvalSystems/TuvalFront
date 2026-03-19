@@ -255,7 +255,7 @@
             <button v-if="
               !['facturado', 'eliminado', 'orden_de_compra', 'rechazado', 'anulada'].includes(verpedido.estado)
               && !verpedido.despacho_en_proceso
-              && !verpedido.transferencia_en_proceso
+              && verpedido.transferencia_en_proceso != 1
               && !verpedido.despachado
               && verpedido.imprimir === 'yes'
               && !verpedido.item_l_recibido
