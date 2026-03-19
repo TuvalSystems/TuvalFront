@@ -288,7 +288,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         const artValorOriginal = Number.parseFloat(rawItem.ART_VALOR_ORIGINAL || 0);
         const itemEstandarizado = {
             ...rawItem,
-            //id: `temp-${Date.now()}`, //id temporal  // lo comentare para que use el id del backend en cao de que exista sino no asignamos id 
+            id_temp: `temp-${Date.now()}-${Math.floor(Math.random() * 1000)}`, //id temporal  
             ART_CANTIDAD: 0,
             ART_VALOR: artValor,
             ART_VALOR_ORIGINAL: artValorOriginal,
@@ -580,8 +580,8 @@ export function useProcessCreateQuote(draftId = 'default') {
             const resultados = response.data;
 
             form.value.items.forEach(item => {
-                if (resultados[item.ART_CODIGO]) {
-                    const data = resultados[item.ART_CODIGO];
+                if (resultados[item.id_temp]) {
+                    const data = resultados[item.id_temp];
                     item.stock = data.stock || [];
                     item.ART_STOCK = data.ART_STOCK;
                     item.stockListo = true;
@@ -1219,6 +1219,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 // 3. Mapeamos los Items (inyectando estados de UI necesarios)
                 form.value.items = items.map(item => ({
                     ...item,
+                    id_temp: item.id ? `db-${item.id}` : `temp-${Date.now()}-${Math.random()}`,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: false, // Al ser recuperado, asumimos validación previa
@@ -1371,6 +1372,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
+                    id_temp: `loadData-${Date.now()}-${index}`,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
                         ...st,
@@ -1449,7 +1451,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 const initialState = getInitialState();
                 Object.assign(form.value, initialState);
                 form.value.items = [];
-                const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones , documentosPdf} = res;
+                const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones, documentosPdf } = res;
                 form.value.draft_id = route.query.draft || initialState.draft_id;
 
                 form.value.mode = mode;
@@ -1480,6 +1482,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
+                    id_temp: `copy-${Date.now()}-${index}`,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
                         ...st,
@@ -1513,7 +1516,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                     form.value.imagenesoperaciones = [];
                 }
 
-                 //documentos pdf
+                //documentos pdf
                 if (documentosPdf && documentosPdf.length > 0) {
                     if (uploadedPdfsRef) {
                         uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
@@ -1586,6 +1589,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.items = items.map(item => ({
                     ...item,
                     id: null,
+                    id_temp: `reorder-${Date.now()}-${index}`,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
                         ...st,
