@@ -33,7 +33,7 @@ const getPdfViewerUrl = (url) => {
 </script>
 
 <template>
-    <BaseBlock title="Documentos PDF" class="mb-0" content-class="p-0">
+    <BaseBlock title="Documentos PDF" class="mb-0 mt-n3 shadow-none border" content-class="p-0">
         <template #options>
             <span class="badge bg-primary">{{ documentos.length }}</span>
         </template>
@@ -75,7 +75,7 @@ const getPdfViewerUrl = (url) => {
                 No hay documentos PDF cargados.
             </div>
         </template>
-    </BaseBlock>
+    // </BaseBlock>
 
     <div ref="modalPreviewRef" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -94,8 +94,8 @@ const getPdfViewerUrl = (url) => {
                 </div>
 
                 <div class="modal-body p-0">
-                    <iframe v-if="selectedPdf?.url" title="Documento Pdf" :src="getPdfViewerUrl(selectedPdf.url)" width="100%" height="700"
-                        style="border: 0;" />
+                    <iframe v-if="selectedPdf?.url" title="Documento Pdf" :src="getPdfViewerUrl(selectedPdf.url)"
+                        width="100%" height="700" style="border: 0;" />
                 </div>
 
                 <div class="modal-footer">

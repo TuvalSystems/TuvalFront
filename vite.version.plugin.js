@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { writeFileSync } from 'fs';
+import { writeFileSync, existsSync, mkdirSync } from 'fs'; // Añadimos estas dos
 import { resolve } from 'path';
 
 export default function versionPlugin() {
@@ -12,10 +12,22 @@ export default function versionPlugin() {
         environment: process.env.NODE_ENV || 'development',
       };
 
-      const filePath = resolve(__dirname, 'vue', 'version.json');
-      writeFileSync(filePath, JSON.stringify(versionData, null, 2));
+      // 1. Definimos la ruta de la carpeta
+      const dirPath = resolve(__dirname, 'vue');
+      const filePath = resolve(dirPath, 'version.json');
 
-      console.log('✅ Archivo version.json generado:', versionData);
+      try {
+        // 2. Si la carpeta 'vue' no existe, la creamos
+        if (!existsSync(dirPath)) {
+          mkdirSync(dirPath, { recursive: true });
+        }
+
+        // 3. Ahora sí, escribimos el archivo
+        writeFileSync(filePath, JSON.stringify(versionData, null, 2));
+        console.log('✅ Archivo version.json generado con éxito en:', filePath);
+      } catch (error) {
+        console.error('❌ Error al generar version.json:', error.message);
+      }
     },
   };
 }

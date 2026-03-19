@@ -198,8 +198,8 @@
         <div v-if="devoluciones.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'devoluciones' }">
           <Devoluciones></Devoluciones>
         </div>
-        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade d-flex flex-wrap gap-2 p-3"
-          :class="{ 'active show': tabActual === 'imagenes_operaciones' }">
+         <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade p-3"
+          :class="{ 'active show d-flex flex-wrap gap-2': tabActual === 'imagenes_operaciones' }">
 
           <div v-for="(img, index) in imagenesOperaciones" :key="img.id"
             class="border border-secondary border-opacity-25 rounded bg-body overflow-hidden shadow-sm"
