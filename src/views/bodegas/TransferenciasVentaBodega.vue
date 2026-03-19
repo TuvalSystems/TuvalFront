@@ -10,7 +10,7 @@ import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
 import VueSelect from "vue-select";
 import { formatPrice, formatPrice4 } from "@/functions";
 import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
-import { useSalesTransfersProcess } from "@/composables/bodegas/transferencia/useSalesTRansferProcess";
+import { useSalesTransfersProcess } from "@/composables/bodegas/transferencia/useSalesTransferProcess";
 const {
   // enviar guia de transferencia de venta
   loadingSendGuide,
