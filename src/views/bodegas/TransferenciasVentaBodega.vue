@@ -10,12 +10,16 @@ import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
 import VueSelect from "vue-select";
 import { formatPrice, formatPrice4 } from "@/functions";
 import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
-
+import { useSalesTransfersProcess } from "@/composables/bodegas/transferencia/useSalesTRansferProcess";
 const {
   // enviar guia de transferencia de venta
   loadingSendGuide,
   sendGuideSalesTransfer,
 } = useSalesTransfersGuideProcess();
+const {
+    loadingCancelPicking,
+        cancelPicking
+} = useSalesTransfersProcess();
 
 const store = useStore();
 const templateStore = useTemplateStore();
@@ -434,14 +438,19 @@ function confirmCancelarPicking(row) {
     });
 }
 
-function cancelarPicking(row) {
-  row.picking = null;
-  store.dispatch('cancelarPicking', row).then(() => {
-    row.picking = null;
-  }).catch(err => {
-    swalError(err.response.data.error);
-    row.picking = 1;
-  });
+async function cancelarPicking(row) {
+  const response = await cancelPicking(row);
+  if(!response.ok){
+    if(response.status >= 400 && response.status < 500){
+      swalWarning(response.message);
+      return;
+    }
+    if (response.status >= 500) {
+      swalError(response.message);
+      return;
+    }
+  }
+  row.picking = 0;
 }
 
 onMounted(() => {
