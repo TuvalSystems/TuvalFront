@@ -1369,7 +1369,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
                 form.value.origen = cotizacion.origen;
-                form.value.items = items.map(item => ({
+                form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
                     id_temp: `loadData-${Date.now()}-${index}`,
@@ -1479,7 +1479,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.modificador_global = 0;
                 form.value.imagenesoperaciones = [];
                 form.value.origen = 'cotizacion';
-                form.value.items = items.map(item => ({
+                form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
                     id_temp: `copy-${Date.now()}-${index}`,
@@ -1586,10 +1586,10 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.nota_operaciones = pedido.nota_operaciones || '';
                 form.value.modificador_global = Number(pedido.modificador_global || 0);
                 form.value.origen = 'cotizacion';
-                form.value.items = items.map(item => ({
+                form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
-                    id_temp: `reorder-${Date.now()}-${index}`,
+                    id_temp: `reorder-pedido-${Date.now()}-${index}`,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
                         ...st,
