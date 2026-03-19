@@ -123,7 +123,12 @@
           <DocumentosPdf v-if="documentosPedidos" :documentos="documentosPedidos"></DocumentosPdf>
         </div>
       </div>
+      <div class="block-content block-content-full text-end bg-body">
+      <button  type="button" class="btn btn-success btn-sm mx-2" @click="imprimirOrdendespacho(currentOrden.id)"><i class="fa fa-print"></i> Imprimir</button>
+      <button  type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cerrar</button>
+    </div>
     </template>
+    
   </BaseBlock>
 </template>
 <script setup>
