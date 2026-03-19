@@ -102,11 +102,11 @@ export function useProcessCreateQuote(draftId = 'default') {
                 const nextState = {
                     ...getInitialState(),
                     ...(savedForm || {}),
-                    draft_id: idToFetch
+                    draft_id: idToFetch,
+                    imagenesoperaciones: [],
+                    documentos_pdf: []
                 };
                 if (!nextState.items) nextState.items = [];
-                if (!nextState.imagenesoperaciones) nextState.imagenesoperaciones = [];
-                if (!nextState.documentos_pdf) nextState.documentos_pdf = [];
                 if (!nextState.orden_de_compra) nextState.orden_de_compra = '';
                 form.value = nextState;
                 nextTick(() => {
@@ -136,10 +136,15 @@ export function useProcessCreateQuote(draftId = 'default') {
             }
             const currentId = newVal.draft_id;
             if (!currentId || currentId === 'undefined') return;
+            const { imagenesoperaciones, documentos_pdf, ...cleanData } = newVal;
             return await run(() => axiosClient.post(apiSyncDrafts, {
                 draft_id: currentId,
                 pto_vta_id: ptoVtaSelect.value,
-                data: newVal
+                data: {
+                ...cleanData,
+                imagenesoperaciones: [], // Aseguramos que viajen vacíos
+                documentos_pdf: []      // Aseguramos que viajen vacíos
+            }
             }), {
                 loadingRef: loadingSyncDraft
             })
