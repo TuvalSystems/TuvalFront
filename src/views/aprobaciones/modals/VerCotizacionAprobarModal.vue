@@ -307,19 +307,33 @@ function verPorcentajesDeCambio(articulo) {
   const discount = Number(articulo.discountChange ?? 0);
   const price = Number(articulo.priceChange ?? 0);
 
-  // Si quieres 2 decimales siempre
   const discountLabel = `${discount.toFixed(3)}%`;
   const priceLabel = `${price.toFixed(3)}%`;
 
+  const reglas = articulo.reglasAprobacion || {};
+  const reglaDescuento = reglas.regla_descuento || { min: 0, max: 0 };
+  const reglaPrecio = reglas.regla_precio || { min: 0, max: 0 };
+
   const html = `
-    <p>
-      <strong>Descuento:</strong> ${discountLabel}<br>
-      <strong>Precio:</strong> ${priceLabel}
-    </p>
+    <div style="text-align: left; font-size: 15px;">
+      <p class="mb-1"><b>Modificación del artículo:</b></p>
+      <ul style="margin-bottom: 15px;">
+        <li>Cambio en Descuento: <b>${discountLabel}</b></li>
+        <li>Cambio en Precio: <b>${priceLabel}</b></li>
+      </ul>
+      
+      <hr>
+      
+      <p class="mb-1"><b>Tus límites permitidos:</b></p>
+      <ul>
+        <li>Descuento: Desde <b class="text-primary">${reglaDescuento.min}%</b> hasta <b class="text-primary">${reglaDescuento.max}%</b></li>
+        <li>Precio: Desde <b class="text-primary">${reglaPrecio.min}%</b> hasta <b class="text-primary">${reglaPrecio.max}%</b></li>
+      </ul>
+    </div>
   `;
 
   swalInfo(
-    'Porcentajes de cambio del artículo',
+    'Análisis de Aprobación',
     html
   );
 }
