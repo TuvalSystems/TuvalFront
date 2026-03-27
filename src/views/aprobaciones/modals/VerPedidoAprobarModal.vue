@@ -137,7 +137,7 @@
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
                   <td class="fs-sm">
-                    <span  v-if="Math.abs(articulo.priceChange) > 0 || Math.abs(articulo.discountChange) > 0"
+                    <span  v-if="hasChangePorcentil(articulo)"
                       @click="verPorcentajesDeCambio(articulo)" class="text-danger">{{ articulo.ART_CODIGO }}</span>
                     <span v-else>{{ articulo.ART_CODIGO }}</span>
 
@@ -314,6 +314,13 @@ function verdiferenciadescuento(articulo) {
   swalInfo('Cambio de porcentaje de descuento', 'de <b>' + articulo.descuento_original + '%</b> a <b>' + articulo.descuento + '%</b>');
 }
 
+
+const hasChangePorcentil = (articulo) => {
+ const pChange = Number.parseFloat(articulo.priceChange) || 0;
+  const dChange = Number.parseFloat(articulo.discountChange) || 0;
+
+  return Math.abs(pChange) > 0.01 || Math.abs(dChange) > 0.01;
+};
 function verPorcentajesDeCambio(articulo) {
   const discount = Number(articulo.discountChange ?? 0);
   const price = Number(articulo.priceChange ?? 0);
