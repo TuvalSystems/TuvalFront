@@ -141,10 +141,10 @@ export function useProcessCreateQuote(draftId = 'default') {
                 draft_id: currentId,
                 pto_vta_id: ptoVtaSelect.value,
                 data: {
-                ...cleanData,
-                imagenesoperaciones: [], // Aseguramos que viajen vacíos
-                documentos_pdf: []      // Aseguramos que viajen vacíos
-            }
+                    ...cleanData,
+                    imagenesoperaciones: [], // Aseguramos que viajen vacíos
+                    documentos_pdf: []      // Aseguramos que viajen vacíos
+                }
             }), {
                 loadingRef: loadingSyncDraft
             })
@@ -733,7 +733,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             } else {
                 let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
                 const modificador = Number.parseFloat(art.modificador || 0);
-                let precioCalculado = valorUnitario - ((valorUnitario * modificador) / 100);
+                let precioCalculado = valorUnitario + ((valorUnitario * modificador) / 100);
                 const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
                 if (diferencia < 0.001) {
                     art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
@@ -911,10 +911,10 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const calculatePriceFromModifier = (originalPrice, modifier) => {
         if (!originalPrice) return 0;
-        originalPrice = Number(originalPrice);
-        if (modifier == 0) return originalPrice;
-        let decimal = 1 - (modifier / 100);
-        return originalPrice * decimal;
+        const original = Number(originalPrice);
+        const mod = Number(modifier);
+        let factor = 1 + (mod / 100);
+        return original * factor;
     }
     const calculateRowModifier = (row, newPrice) => {
         if (row.ART_TIPO_COMPRA === 'L') {
