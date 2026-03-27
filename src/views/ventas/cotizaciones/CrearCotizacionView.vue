@@ -995,11 +995,15 @@ watch(
       await fetchCurrentDraft();
       if (form.value.cliente?.CLI_RUC) {
         showInfoClient.value = true;
-        await Promise.all([
+        const promises = [
           fetchCustomerBranches(form.value.cliente.CLI_RUC),
           fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC)
-        ]);
+        ];
+        if (form.value.condicion_pago_id) {
+          promises.push(fetchMethodPayment(form.value.condicion_pago_id));
+        }
 
+        await Promise.all(promises);
         if (form.value.imagenesoperaciones?.length > 0) {
           uploadedFiles.value = form.value.imagenesoperaciones.map((url, index) => ({
             id: `restored-${index}`,
@@ -1019,6 +1023,7 @@ watch(
           );
         }
       }
+
       if (form.value.items && form.value.items.length > 0) {
         setTimeout(() => {
           updateStockByBatchV2();
