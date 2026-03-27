@@ -313,8 +313,8 @@ function verPorcentajesDeCambio(articulo) {
   const discount = Number(articulo.discountChange ?? 0);
   const price = Number(articulo.priceChange ?? 0);
 
-  const discountLabel = `${discount.toFixed(3)}%`;
-  const priceLabel = `${price.toFixed(3)}%`;
+  const discountLabel = `${discount.toFixed(2)}%`;
+  const priceLabel = `${price.toFixed(2)}%`;
 
   const reglas = articulo.reglasAprobacion || {};
   const reglaDescuento = reglas.regla_descuento || { min: 0, max: 0 };
