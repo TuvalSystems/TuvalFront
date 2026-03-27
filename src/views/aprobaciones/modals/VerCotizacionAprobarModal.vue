@@ -135,7 +135,7 @@
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
                   <td class="fs-sm">
-                    <span v-if="( articulo.priceChange !== 0.00 || articulo.priceChange !== -0.00) || (articulo.discountChange !== 0.00 || articulo.discountChange !== -0.00)"
+                    <span v-if="Math.abs(articulo.priceChange) > 0 || Math.abs(articulo.discountChange) > 0"
                       @click="verPorcentajesDeCambio(articulo)" class="text-danger">{{ articulo.ART_CODIGO }}</span>
                     <span v-else>{{ articulo.ART_CODIGO }}</span>
 
