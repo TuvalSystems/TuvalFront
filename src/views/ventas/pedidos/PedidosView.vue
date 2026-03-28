@@ -453,7 +453,7 @@ function motivoEspera(pedido) {
     msg += 'factura a siguiente mes';
   }
   if (pedido.origen === 'factura_demanda') {
-    msg += 'Factura Demanda';
+    msg += ' factura Demanda';
   }
   if (pedido.requiere_aprobacion_comercial === 'yes' && pedido.aprobado_comercial === 'no') {
     msg += ' requiere aprobación comercial ';
