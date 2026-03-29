@@ -1,92 +1,3 @@
-<template>
-  <Dataset v-slot="{ ds }" :ds-data="pedidos.data" :ds-sortby="sortBy"
-    :ds-search-in="['pedido', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at']">
-    <div class="row" :data-page-count="ds.dsPagecount">
-      <div id="datasetLengthPedidos" class="col-md-8 py-2">
-        <DatasetShow />
-      </div>
-      <div class="col-md-4 py-2">
-        <DatasetSearch ds-search-placeholder="Buscar..." />
-      </div>
-    </div>
-    <hr />
-    <!-- <div v-if="pedidos.loading" class="text-center">
-      <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
-    </div> -->
-    <div class="row" v-if="pedidos.data.length">
-      <div class="col-md-12">
-        <div class="table-responsive">
-          <table class="table table-hover table-sm table-vcenter mb-0">
-            <thead>
-              <tr>
-                <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
-                  @click="onSort($event, index)">
-                  {{ th.name }} <i class="gg-select float-end"></i>
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <DatasetItem tag="tbody" class="fs-sm">
-              <template #default="{ row, index }">
-                <tr :id="'pedido-' + index" :class="row.chao ? 'hide' : ''">
-                  <td class="fs-sm">
-                    <a href="javascript:void(0);" @click="funcionverpedido(row)">{{ row.pedido }}</a>
-                  </td>
-                  <td class="fs-sm">
-                    {{ row.CLI_RAZON_SOCIAL }}
-                  </td>
-                  <td class="fs-sm">
-                    {{ row.CLI_RUC }}
-                  </td>
-                  <td class="fs-sm">
-                    {{ row.USERID }}
-                  </td>
-                   <td class="fs-sm">
-                    {{ row.segmento }}
-                  </td>
-                  <td class="fs-sm">
-                    {{ row.subsegmento }}
-                  </td>
-                  <td class="fs-sm" :class="row.COND_ID != row.COND_ID_ORIGINAL ? 'text-danger' : ''">
-                    <a class="text-danger" v-if="row.COND_ID != row.COND_ID_ORIGINAL"
-                      @click="verdiferenciacondicion(row)" href="javascript:void(0);">{{ row.COND_ID }}</a>
-                    <span v-else>{{ row.COND_ID }}</span>
-                  </td>
-                  <td class="fs-sm">
-                    {{ row.created_at }}
-                  </td>
-                  <td class="fs-sm">
-                    ${{ format(parseFloat(row.total)) }}
-                  </td>
-                  <td class="fs-sm text-end nowrap">
-                    <button type="button" class="btn btn-success btn-sm " @click="aprobarPedido(row)"><i
-                        class="fa fa-check"></i> Aprobar</button>
-                    <button type="button" class="btn btn-danger btn-sm mx-2 nowrap" @click="rechazarPedido(row)"><i
-                        class="fa fa-times"></i> Rechazar</button>
-                  </td>
-                </tr>
-              </template>
-            </DatasetItem>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
-      <DatasetInfo class="py-3 fs-sm" />
-      <DatasetPager class="flex-wrap py-3 fs-sm" />
-    </div>
-  </Dataset>
-  <!-- Large Block Modal -->
-  <div class="modal" id="modal-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-pedido" aria-hidden="true"
-    ref="verpedidoModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <VerPedidoAprobarModal :verpedido="verpedido" :indexPedido="indexPedido" :tipo="tipo"
-          @rechazar="rechazarPedido(verpedido)" @aprobar="aprobarPedido(verpedido)"></VerPedidoAprobarModal>
-      </div>
-    </div>
-  </div>
-</template>
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
@@ -94,8 +5,13 @@ import { Modal } from "bootstrap";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import VerPedidoAprobarModal from "../modals/VerPedidoAprobarModal.vue";
 import { formatPrice, format } from "@/functions";
+import { useApprovalOrder } from "@/composables/aprobaciones/pedidos/useApprovalOrder";
 
-
+const {
+  loadingOrders,
+  fetchListOrders,
+  orders
+} = useApprovalOrder();
 // Helper variables
 const cols = reactive([
   {
@@ -131,6 +47,11 @@ const cols = reactive([
   {
     name: "Cond. Pago",
     field: "COND_ID",
+    sort: "",
+  },
+  {
+    name: "Autorizadores",
+    field: "users_autorizadores",
     sort: "",
   },
   {
@@ -306,7 +227,7 @@ let verpedidoModal = ref(null);
 let verpedidoModalObj = null;
 
 onMounted(() => {
-
+  fetchListOrders();
   verpedidoModalObj = new Modal(verpedidoModal.value);
 
   // Remove labels from
@@ -323,8 +244,98 @@ onMounted(() => {
 
 });
 
-onBeforeUnmount(() => {
-  store.dispatch('llenarpedidosporaprobarStop');
-});
+
 
 </script>
+<template>
+  <Dataset v-slot="{ ds }" :ds-data="orders" :ds-sortby="sortBy"
+    :ds-search-in="['pedido', 'CLI_RAZON_SOCIAL', 'CLI_RUC', 'USERID', 'COND_ID', 'created_at']">
+    <div class="row" :data-page-count="ds.dsPagecount">
+      <div id="datasetLengthPedidos" class="col-md-8 py-2">
+        <DatasetShow />
+      </div>
+      <div class="col-md-4 py-2">
+        <DatasetSearch ds-search-placeholder="Buscar..." />
+      </div>
+    </div>
+    <hr />
+    <div v-if="loadingOrders" class="text-center">
+      <div class="spinner-border text-primary mt-4"><span class="visually-hidden">Loading...</span></div>
+    </div>
+    <div class="row" v-if="orders.length">
+      <div class="col-md-12">
+        <div class="table-responsive">
+          <table class="table table-hover table-sm table-vcenter mb-0">
+            <thead>
+              <tr>
+                <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                  @click="onSort($event, index)">
+                  {{ th.name }} <i class="gg-select float-end"></i>
+                </th>
+                <th></th>
+              </tr>
+            </thead>
+            <DatasetItem tag="tbody" class="fs-sm">
+              <template #default="{ row, index }">
+                <tr :id="'pedido-' + index" :class="row.chao ? 'hide' : ''">
+                  <td class="fs-sm">
+                    <a href="javascript:void(0);" @click="funcionverpedido(row)">{{ row.pedido }}</a>
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.CLI_RAZON_SOCIAL }}
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.CLI_RUC }}
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.USERID }}
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.segmento }}
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.subsegmento }}
+                  </td>
+                  <td class="fs-sm" :class="row.COND_ID != row.COND_ID_ORIGINAL ? 'text-danger' : ''">
+                    <a class="text-danger" v-if="row.COND_ID != row.COND_ID_ORIGINAL"
+                      @click="verdiferenciacondicion(row)" href="javascript:void(0);">{{ row.COND_ID }}</a>
+                    <span v-else>{{ row.COND_ID }}</span>
+                  </td>
+                  <td class="fs-sm">
+                    <code>{{ row.users_autorizadores }}</code>
+                  </td>
+                  <td class="fs-sm">
+                    {{ row.created_at }}
+                  </td>
+                  <td class="fs-sm">
+                    ${{ format(parseFloat(row.total)) }}
+                  </td>
+                  <td class="fs-sm text-end nowrap space-x-1">
+                    <button type="button" class="btn btn-success btn-sm " @click="aprobarPedido(row)"><i
+                        class="fa fa-check"></i> </button>
+                    <button type="button" class="btn btn-danger btn-sm " @click="rechazarPedido(row)"><i
+                        class="fa fa-times"></i> </button>
+                  </td>
+                </tr>
+              </template>
+            </DatasetItem>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
+      <DatasetInfo class="py-3 fs-sm" />
+      <DatasetPager class="flex-wrap py-3 fs-sm" />
+    </div>
+  </Dataset>
+  <!-- Large Block Modal -->
+  <div class="modal" id="modal-pedido" tabindex="-1" aria-labelledby="modal-pedido" aria-hidden="true"
+    ref="verpedidoModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <VerPedidoAprobarModal :verpedido="verpedido" :indexPedido="indexPedido" :tipo="tipo"
+          @rechazar="rechazarPedido(verpedido)" @aprobar="aprobarPedido(verpedido)"></VerPedidoAprobarModal>
+      </div>
+    </div>
+  </div>
+</template>

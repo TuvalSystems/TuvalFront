@@ -135,7 +135,7 @@
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
                   <td class="fs-sm">
-                    <span v-if="articulo.priceChange !== 0.00 || articulo.discountChange !== 0.00"
+                    <span v-if="hasChangePorcentil(articulo)"
                       @click="verPorcentajesDeCambio(articulo)" class="text-danger">{{ articulo.ART_CODIGO }}</span>
                     <span v-else>{{ articulo.ART_CODIGO }}</span>
 
@@ -303,23 +303,43 @@ function verdiferenciadescuento(articulo) {
   swalInfo('Cambio de descuento de artículo', 'de <b>' + articulo.descuento_original + '%</b> a <b>$' + articulo.descuento + '%</b>');
 }
 
+const hasChangePorcentil = (articulo) => {
+ const pChange = Number.parseFloat(articulo.priceChange) || 0;
+  const dChange = Number.parseFloat(articulo.discountChange) || 0;
+
+  return Math.abs(pChange) > 0.01 || Math.abs(dChange) > 0.01;
+};
 function verPorcentajesDeCambio(articulo) {
   const discount = Number(articulo.discountChange ?? 0);
   const price = Number(articulo.priceChange ?? 0);
 
-  // Si quieres 2 decimales siempre
-  const discountLabel = `${discount.toFixed(3)}%`;
-  const priceLabel = `${price.toFixed(3)}%`;
+  const discountLabel = `${discount.toFixed(2)}%`;
+  const priceLabel = `${price.toFixed(2)}%`;
+
+  const reglas = articulo.reglasAprobacion || {};
+  const reglaDescuento = reglas.regla_descuento || { min: 0, max: 0 };
+  const reglaPrecio = reglas.regla_precio || { min: 0, max: 0 };
 
   const html = `
-    <p>
-      <strong>Descuento:</strong> ${discountLabel}<br>
-      <strong>Precio:</strong> ${priceLabel}
-    </p>
+    <div style="text-align: left; font-size: 15px;">
+      <p class="mb-1"><b>Modificación del artículo:</b></p>
+      <ul style="margin-bottom: 15px;">
+        <li>Cambio en Descuento: <b>${discountLabel}</b></li>
+        <li>Cambio en Precio: <b>${priceLabel}</b></li>
+      </ul>
+      
+      <hr>
+      
+      <p class="mb-1"><b>Tus límites permitidos:</b></p>
+      <ul>
+        <li>Descuento: Desde <b class="text-primary">${reglaDescuento.min}%</b> hasta <b class="text-primary">${reglaDescuento.max}%</b></li>
+        <li>Precio: Desde <b class="text-primary">${reglaPrecio.min}%</b> hasta <b class="text-primary">${reglaPrecio.max}%</b></li>
+      </ul>
+    </div>
   `;
 
   swalInfo(
-    'Porcentajes de cambio del artículo',
+    'Análisis de Aprobación',
     html
   );
 }

@@ -50,6 +50,12 @@
             Imagenes Operaciones
           </button>
         </li>
+        <li v-if="documentosPdf && documentosPdf.length" class="nav-item">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'documentos_pdf' }"
+            @click="tabActual = 'documentos_pdf'">
+            Documento(s)
+          </button>
+        </li>
       </ul>
 
       <div class="block-content tab-content fs-sm">
@@ -192,8 +198,8 @@
         <div v-if="devoluciones.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'devoluciones' }">
           <Devoluciones></Devoluciones>
         </div>
-        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade d-flex flex-wrap gap-2 p-3"
-          :class="{ 'active show': tabActual === 'imagenes_operaciones' }">
+        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade p-3"
+          :class="{ 'active show d-flex flex-wrap gap-2': tabActual === 'imagenes_operaciones' }">
 
           <div v-for="(img, index) in imagenesOperaciones" :key="img.id"
             class="border border-secondary border-opacity-25 rounded bg-body overflow-hidden shadow-sm"
@@ -203,6 +209,10 @@
               @error="handleImageError" title="Ver en pantalla completa">
           </div>
 
+        </div>
+        <div v-if="documentosPdf && documentosPdf.length" class="tab-pane fade p-0"
+          :class="{ 'active show': tabActual === 'documentos_pdf' }">
+          <DocumentosPdf :documentos="documentosPdf"></DocumentosPdf>
         </div>
       </div>
     </template>
@@ -227,7 +237,7 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useStore } from 'vuex'
-import {  swalInfo } from "@/functions/swal-alert.js";
+import { swalInfo } from "@/functions/swal-alert.js";
 import { formatPrice, format, format4 } from "@/functions";
 import ReciboDeCompraL from "../tabs/ReciboDeCompraL.vue"
 import Traslados from "../tabs/Traslados.vue"
@@ -235,6 +245,8 @@ import OrdenDespacho from "../tabs/OrdenDespacho.vue"
 import GuiasRemision from "../tabs/GuiasRemision.vue"
 import Devoluciones from "../tabs/Devoluciones.vue";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
+import DocumentosPdf from "@/views/ventas/modals/tabs/DocumentosPdf.vue";
+
 import VueEasyLightbox from "vue-easy-lightbox";
 const { verpedido, indexPedido, tipo } = defineProps({
   verpedido: Object,
@@ -251,6 +263,8 @@ const guias_remision = computed(() => store.state.guias_remision);
 const devoluciones = computed(() => store.state.devoluciones_pedido);
 const segmentocliente = computed(() => store.state.segmentocliente);
 const imagenesOperaciones = computed(() => store.state.imagenesOperaciones);
+const documentosPdf = computed(() => store.state.documentosPdf);
+
 
 const tabActual = ref('detalle');
 let errorMsg = ref('');

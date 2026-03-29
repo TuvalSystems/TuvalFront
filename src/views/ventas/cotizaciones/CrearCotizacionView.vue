@@ -6,6 +6,7 @@ import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCot
 import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import { useImageUpload } from "@/composables/core/useImageUpload";
+import { usePdfUpload } from "@/composables/core/usePdfUpload";
 import actualizarSegmentoClienteComponent from "@/views/ventas/modals/actualizarSegmentoClienteModal.vue";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
@@ -164,6 +165,23 @@ const {
   removeFile,
   clearFiles
 } = useImageUpload();
+
+const {
+  uploadedPdfs,
+  isDraggingPdf,
+  isProcessingPdf,
+  handleDropPdf,
+  handleInputPdf,
+  removePdf,
+  clearPdfs,
+  restorePersistedPdfs
+} = usePdfUpload();
+
+const pdfInput = ref(null);
+
+const triggerPdfInput = () => {
+  pdfInput.value?.click();
+};
 
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 const flatPickrState = reactive({
@@ -378,7 +396,7 @@ watch(
     if (newVal && newVal !== oldVal) {
       isRecoveringQuote.value = true;
       const newId = `draft_${Date.now()}`;
-      await clearForm(uploadedFiles, false, true);
+      await clearForm(uploadedFiles, false, true, uploadedPdfs);
       form.value.draft_id = newId;
       form.value.punto_venta_id = newVal;
       await router.replace({ query: { ...route.query, draft: newId } });
@@ -753,7 +771,7 @@ async function confirmarEliminarArticulo(item, i) {
 /** limpiar la cotizacion */
 
 async function clearCotizacion() {
-  await clearForm(uploadedFiles, true);
+  await clearForm(uploadedFiles, true, false, uploadedPdfs);
   showInfoClient.value = false;
   showResultClients.value = false;
   infoClient.value = null;
@@ -893,12 +911,27 @@ watch(uploadedFiles, (newFiles) => {
 
 
 
+/** proceso de carga de pdfs */
+
+watch(uploadedPdfs, (newFiles) => {
+  const procesados = newFiles.map(item => {
+    if (item.file) return item.file;
+    if (item.isPersisted) return item.preview;
+    return null;
+  }).filter(f => f !== null);
+  form.value.documentos_pdf = procesados;
+}, { deep: true });
+
+
+
+
+
 
 
 // --- LÓGICA PARA EL MODAL DE BORRADORES ---
 const createNewDraft = async () => {
   const newId = `draft_${Date.now()}`;
-  await clearForm(uploadedFiles, false);
+  await clearForm(uploadedFiles, false, false, uploadedPdfs);
   showInfoClient.value = false;
   showResultClients.value = false;
   router.push({ query: { ...route.query, draft: newId } });
@@ -962,11 +995,15 @@ watch(
       await fetchCurrentDraft();
       if (form.value.cliente?.CLI_RUC) {
         showInfoClient.value = true;
-        await Promise.all([
+        const promises = [
           fetchCustomerBranches(form.value.cliente.CLI_RUC),
           fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC)
-        ]);
+        ];
+        if (form.value.condicion_pago_id) {
+          promises.push(fetchMethodPayment(form.value.condicion_pago_id));
+        }
 
+        await Promise.all(promises);
         if (form.value.imagenesoperaciones?.length > 0) {
           uploadedFiles.value = form.value.imagenesoperaciones.map((url, index) => ({
             id: `restored-${index}`,
@@ -974,14 +1011,27 @@ watch(
             isPersisted: true
           }));
         }
+
+        if (form.value.documentos_pdf?.length > 0) {
+          restorePersistedPdfs(
+            form.value.documentos_pdf.map((url, index) => ({
+              id: `pdf-restored-${index}`,
+              url,
+              nombre: `Documento ${index + 1}.pdf`,
+              mime_type: 'application/pdf'
+            }))
+          );
+        }
       }
+
       if (form.value.items && form.value.items.length > 0) {
         setTimeout(() => {
           updateStockByBatchV2();
+          console.log('cargar precios de articulos', form.value.cliente.CLI_NIVEL_PRECIO);
         }, 300);
       }
     } else if (!newDraftId && oldDraftId) {
-      await clearForm(uploadedFiles, false);
+      await clearForm(uploadedFiles, false, false, uploadedPdfs);
       showInfoClient.value = false;
       showResultClients.value = false;
       const nextId = `draft_${Date.now()}`;
@@ -996,6 +1046,9 @@ watch(
 
 
 
+
+
+
 onMounted(async () => {
   const mode = route.query.mode;
   const idDoc = route.query.id;
@@ -1003,20 +1056,20 @@ onMounted(async () => {
     isRecoveringQuote.value = true;
     const newId = `draft_${Date.now()}`;
     if (mode === 'restore_quote') {
-      await fetchAndFillQuotation(idDoc, uploadedFiles);
+      await fetchAndFillQuotation(idDoc, uploadedFiles, uploadedPdfs);
     }
     else if (mode === 'reorder_quote') {
-      await loadDataForReorder(idDoc, uploadedFiles);
+      await loadDataForReorder(idDoc, uploadedFiles, uploadedPdfs);
     }
     else if (mode === 'reorder_order') {
-      await reOrder(idDoc, uploadedFiles);
+      await reOrder(idDoc, uploadedFiles, uploadedPdfs);
     }
     else if (mode === 'copy') {
       const tipo = route.query.tipo; // 'cotizacion' o 'pedido'
       const clienteId = route.query.cliente_id;
       const sucursalId = route.query.sucursal;
 
-      await copyRawQuoteOrOrder(idDoc, tipo, clienteId, sucursalId, uploadedFiles);
+      await copyRawQuoteOrOrder(idDoc, tipo, clienteId, sucursalId, uploadedFiles, uploadedPdfs);
     }
     form.value.draft_id = newId;
     // 5. CAMBIAMOS LA URL (Transformándolo en un borrador activo normal)
@@ -1055,6 +1108,20 @@ onMounted(async () => {
             preview: url,
             name: `Imagen recuperada ${index + 1}`,
             isPersisted: true
+          };
+        });
+      }
+    }
+
+    //esto es para asegurar la carga de los pdfs si viene de la tabla 
+    if (form.value.documentos_pdf && form.value.documentos_pdf.length > 0) {
+      if (uploadedPdfs.value.length === 0) {
+        uploadedPdfs.value = form.value.documentos_pdf.map((url, index) => {
+          return {
+            id: `pdf-restored-${index}`,
+            url,
+            name: `Documento recuperado  ${index + 1}.pdf`,
+            mime_type: 'application/pdf'
           };
         });
       }
@@ -1378,7 +1445,8 @@ onMounted(async () => {
               Buscar
               Articulo</button>
             <button type="button" class="btn btn-outline-success" :disabled="loadingStockMasivo"
-              @click="updateStockByBatchV2"> <i class="fa fa-rotate me-1"></i>Stock</button>
+              @click="updateStockByBatchV2">
+              <i class="fa fa-rotate me-1"></i>Stock</button>
           </div>
         </div>
         <div class="table-responsive mt-1 mb-2">
@@ -1804,6 +1872,57 @@ onMounted(async () => {
               </div>
             </BaseBlock>
 
+            <!-- seccion de manejo de documentos pdf -->
+            <BaseBlock title="Documentos PDF" content-full rounded class="mb-3">
+              <div
+                class="upload-zone position-relative d-flex align-items-center justify-content-center p-3 border border-2 border-dashed rounded-3"
+                :class="isDraggingPdf ? 'border-danger bg-danger bg-opacity-10' : 'border-secondary border-opacity-25 bg-body-tertiary'"
+                @dragover.prevent="isDraggingPdf = true" @dragleave.prevent="isDraggingPdf = false"
+                @drop.prevent="handleDropPdf" @click="triggerPdfInput"
+                style="cursor: pointer; transition: all 0.2s ease;">
+                <input type="file" ref="pdfInput" class="d-none" multiple accept=".pdf,application/pdf"
+                  @change="handleInputPdf" />
+
+                <div class="d-flex align-items-center gap-3 pointer-events-none text-muted">
+                  <i class="fa fa-file-pdf fs-3 text-danger"></i>
+
+                  <div class="lh-1 text-start">
+                    <span class="fw-semibold text-danger">Adjuntar documentos PDF</span>
+                    <span class="d-none d-sm-inline ms-1 text-muted small">(Clic o arrastrar)</span>
+                    <div class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">
+                      PDF (Máx 10MB)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="uploadedPdfs.length > 0 || isProcessingPdf" class="d-flex flex-wrap gap-3 mt-3">
+                <div v-for="(file, index) in uploadedPdfs" :key="file.id || index"
+                  class="position-relative border border-secondary border-opacity-25 rounded bg-body overflow-hidden"
+                  style="width: 120px; min-height: 90px;">
+                  <a :href="file.preview" target="_blank"
+                    class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-danger p-2">
+                    <i class="fa fa-file-pdf fs-2 mb-2"></i>
+                    <small class="text-center" style="font-size: 10px; line-height: 1.1;">
+                      {{ file.name }}
+                    </small>
+                  </a>
+
+                  <button @click.stop="removePdf(index)" type="button"
+                    class="btn btn-sm btn-danger p-0 position-absolute top-0 end-0 d-flex align-items-center justify-content-center"
+                    style="width: 20px; height: 20px; border-radius: 0 0 0 4px; z-index: 10;" title="Eliminar PDF">
+                    <i class="fa fa-times" style="font-size: 10px;"></i>
+                  </button>
+                </div>
+
+                <div v-if="isProcessingPdf"
+                  class="d-flex flex-column align-items-center justify-content-center border rounded bg-light text-danger"
+                  style="width: 120px; min-height: 90px; font-size: 0.7rem;">
+                  <i class="fa fa-circle-notch fa-spin fs-4 mb-1"></i>
+                  <span>Procesando</span>
+                </div>
+              </div>
+            </BaseBlock>
             <div
               class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3 mb-2">
               <button type="button" class="btn btn-danger px-4 w-100 w-md-auto order-2 order-md-1"

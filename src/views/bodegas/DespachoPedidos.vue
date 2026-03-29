@@ -136,11 +136,12 @@
                           title="Consultar detalle">
                           <i class="fa fa-eye"></i> Consultar
                         </button>
+                      </td>
+                      <td>
                         <button v-if="row.pedido_imagenes && row.pedido_imagenes.length" class="btn btn-success btn-sm"
                           type="button" @click="showPhoto(row.pedido_imagenes)">
                           <i class="fa fa-search"></i>
                         </button>
-
                       </td>
                     </tr>
 
@@ -225,11 +226,11 @@
     </div>
   </div>
 
-  <div class="modal" id="modal-ordendespacho" tabindex="-1" role="dialog" aria-labelledby="modal-ordendespacho"
+  <div class="modal" id="modal-ordendespacho" tabindex="-1"  aria-labelledby="modal-ordendespacho"
     aria-hidden="true" ref="ordendespachoModal">
-    <div class="modal-dialog modal-xl modal-md modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-md modal-dialog-centered">
       <div class="modal-content">
-        <OrdenDespacho :verpedido="verpedido" :currentOrden="currentOrden"></OrdenDespacho>
+        <OrdenDespacho v-if="currentOrden && documentosPdf" :verpedido="verpedido" :currentOrden="currentOrden" :documentosPedidos="documentosPdf"></OrdenDespacho>
       </div>
     </div>
   </div>
@@ -372,11 +373,13 @@ let guiaremisionModalObj = null;
 let ordendespachoModal = ref(null);
 let ordendespachoModalObj = null;
 
+const documentosPdf = ref(null);
 function verOrdenDespacho(orden) {
   currentOrden.value = orden;
   verpedido.value = orden.pedido;
+  documentosPdf.value = orden.documentosPdf;
   ordendespachoModalObj.show();
-  ordendespachoModalObj.show();
+  // ordendespachoModalObj.show();
   store.dispatch("verOrdenDespacho", orden.id);
 
 }

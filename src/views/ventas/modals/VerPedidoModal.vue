@@ -50,6 +50,12 @@
             Imagenes Operaciones
           </button>
         </li>
+         <li v-if="documentosPdf && documentosPdf.length" class="nav-item">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'documentos_pdf' }"
+            @click="tabActual = 'documentos_pdf'">
+            Documento(s)
+          </button>
+        </li>
       </ul>
 
       <div class="block-content tab-content fs-sm">
@@ -192,8 +198,8 @@
         <div v-if="devoluciones.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'devoluciones' }">
           <Devoluciones></Devoluciones>
         </div>
-        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade d-flex flex-wrap gap-2 p-3"
-          :class="{ 'active show': tabActual === 'imagenes_operaciones' }">
+         <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade p-3"
+          :class="{ 'active show d-flex flex-wrap gap-2': tabActual === 'imagenes_operaciones' }">
 
           <div v-for="(img, index) in imagenesOperaciones" :key="img.id"
             class="border border-secondary border-opacity-25 rounded bg-body overflow-hidden shadow-sm"
@@ -203,6 +209,9 @@
               @error="handleImageError" title="Ver en pantalla completa">
           </div>
 
+        </div>
+        <div v-if="documentosPdf && documentosPdf.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'documentos_pdf' }">
+          <DocumentosPdf v-if="documentosPdf" :documentos="documentosPdf"></DocumentosPdf>
         </div>
       </div>
     </template>
@@ -226,7 +235,7 @@
         <div class="row">
           <label for="nota-interna" class="col-sm-3 col-form-label text-right">Nota interna:</label>
           <div class="col-sm-9">
-            <input v-model="verpedido.nota_interna" type="text" id="orden-de-compra" class="form-control"
+            <input v-model="verpedido.nota_interna" type="text" id="nota-interna" class="form-control"
               :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
               @change="guardarOrdenDeCompra(verpedido)" />
           </div>
@@ -246,7 +255,7 @@
             <button v-if="
               !['facturado', 'eliminado', 'orden_de_compra', 'rechazado', 'anulada'].includes(verpedido.estado)
               && !verpedido.despacho_en_proceso
-              && !verpedido.transferencia_en_proceso
+              && verpedido.transferencia_en_proceso != 1
               && !verpedido.despachado
               && verpedido.imprimir === 'yes'
               && !verpedido.item_l_recibido
@@ -273,6 +282,7 @@ import Traslados from "./tabs/Traslados.vue"
 import OrdenDespacho from "./tabs/OrdenDespacho.vue"
 import GuiasRemision from "./tabs/GuiasRemision.vue"
 import Devoluciones from "./tabs/Devoluciones.vue";
+import DocumentosPdf from "./tabs/DocumentosPdf.vue";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 const { verpedido, indexPedido, tipo } = defineProps({
@@ -293,6 +303,7 @@ const existentes = computed(() => store.state.existentes);
 const segmentocliente = computed(() => store.state.segmentocliente);
 const has_guide_dispatched = computed(() => store.state.has_guide_dispatched);
 const imagenesOperaciones = computed(() => store.state.imagenesOperaciones);
+const documentosPdf = computed(() => store.state.documentosPdf);
 const max_length = ref(20);
 const emit = defineEmits(["consultarExistente", "cancelarPedido", "consultarDespachado"]);
 

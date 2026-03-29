@@ -2,7 +2,6 @@ import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
-import { useSessionStorage } from '@vueuse/core';
 import { useStore } from 'vuex'
 import { watchDebounced } from '@vueuse/core';
 import { useRoute } from "vue-router";
@@ -74,6 +73,9 @@ const getInitialState = () => ({
     imagenesoperaciones: [],
     origen: '',
 
+    //pdf
+    documentos_pdf: []
+
 });
 export function useProcessCreateQuote(draftId = 'default') {
     const store = useStore();
@@ -99,10 +101,11 @@ export function useProcessCreateQuote(draftId = 'default') {
                 const nextState = {
                     ...getInitialState(),
                     ...(savedForm || {}),
-                    draft_id: idToFetch
+                    draft_id: idToFetch,
+                    imagenesoperaciones: [],
+                    documentos_pdf: []
                 };
                 if (!nextState.items) nextState.items = [];
-                if (!nextState.imagenesoperaciones) nextState.imagenesoperaciones = [];
                 if (!nextState.orden_de_compra) nextState.orden_de_compra = '';
                 form.value = nextState;
                 nextTick(() => {
@@ -132,10 +135,15 @@ export function useProcessCreateQuote(draftId = 'default') {
             }
             const currentId = newVal.draft_id;
             if (!currentId || currentId === 'undefined') return;
+            const { imagenesoperaciones, documentos_pdf, ...cleanData } = newVal;
             return await run(() => axiosClient.post(apiSyncDrafts, {
                 draft_id: currentId,
                 pto_vta_id: ptoVtaSelect.value,
-                data: newVal
+                data: {
+                    ...cleanData,
+                    imagenesoperaciones: [], // Aseguramos que viajen vacíos
+                    documentos_pdf: []      // Aseguramos que viajen vacíos
+                }
             }), {
                 loadingRef: loadingSyncDraft
             })
@@ -175,7 +183,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
 
 
-    async function clearForm(uploadedFilesRef = null, forceDeleteBD = false, forceResetDraft = false) {
+    async function clearForm(uploadedFilesRef = null, forceDeleteBD = false, forceResetDraft = false, uploadedPdfsRef = null) {
         if (forceDeleteBD) {
             const idToDelete = form.value.draft_id || route.query.draft;
             if (idToDelete) {
@@ -193,6 +201,9 @@ export function useProcessCreateQuote(draftId = 'default') {
         }
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
+        }
+        if (uploadedPdfsRef) {
+            uploadedPdfsRef.value = [];
         }
         nextTick(() => calculateTotals());
     }
@@ -281,7 +292,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         const artValorOriginal = Number.parseFloat(rawItem.ART_VALOR_ORIGINAL || 0);
         const itemEstandarizado = {
             ...rawItem,
-            //id: `temp-${Date.now()}`, //id temporal  // lo comentare para que use el id del backend en cao de que exista sino no asignamos id 
+            id_temp: `temp-${Date.now()}-${Math.floor(Math.random() * 1000)}`, //id temporal  
             ART_CANTIDAD: 0,
             ART_VALOR: artValor,
             ART_VALOR_ORIGINAL: artValorOriginal,
@@ -573,8 +584,8 @@ export function useProcessCreateQuote(draftId = 'default') {
             const resultados = response.data;
 
             form.value.items.forEach(item => {
-                if (resultados[item.ART_CODIGO]) {
-                    const data = resultados[item.ART_CODIGO];
+                if (resultados[item.id_temp]) {
+                    const data = resultados[item.id_temp];
                     item.stock = data.stock || [];
                     item.ART_STOCK = data.ART_STOCK;
                     item.stockListo = true;
@@ -607,7 +618,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             'cotizacion_id': cotizacionId,
         }
         return await run(() => axiosClient.post(apiUpdateStockBatch, payloadBatch), {
-            loadingRef : loadingUpdateStockBatch,
+            loadingRef: loadingUpdateStockBatch,
             onError: (err) => {
                 console.log(err, 'updateStockItemsByBatch');
             }
@@ -721,7 +732,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             } else {
                 let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
                 const modificador = Number.parseFloat(art.modificador || 0);
-                let precioCalculado = valorUnitario - ((valorUnitario * modificador) / 100);
+                let precioCalculado = valorUnitario + ((valorUnitario * modificador) / 100);
                 const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
                 if (diferencia < 0.001) {
                     art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
@@ -899,10 +910,10 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const calculatePriceFromModifier = (originalPrice, modifier) => {
         if (!originalPrice) return 0;
-        originalPrice = Number(originalPrice);
-        if (modifier == 0) return originalPrice;
-        let decimal = 1 - (modifier / 100);
-        return originalPrice * decimal;
+        const original = Number(originalPrice);
+        const mod = Number(modifier);
+        let factor = 1 + (mod / 100);
+        return original * factor;
     }
     const calculateRowModifier = (row, newPrice) => {
         if (row.ART_TIPO_COMPRA === 'L') {
@@ -1112,6 +1123,27 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
+
+
+        //archivos pdf
+        if (form.value.documentos_pdf && form.value.documentos_pdf.length > 0) {
+            form.value.documentos_pdf.forEach((item, index) => {
+                let archivoReal = (item && item.file) ? item.file : item;
+                if (archivoReal instanceof File || archivoReal instanceof Blob) {
+                    let nombre = archivoReal.name || `documento_${index}.pdf`;
+                    const archivoLimpio = new File([archivoReal], nombre, {
+                        type: archivoReal.type || 'application/pdf',
+                        lastModified: new Date().getTime()
+                    });
+
+                    formData.append('pdfs_nuevos[]', archivoLimpio);
+                } else if (typeof item === 'string') {
+                    formData.append('pdfs_existentes[]', item);
+                } else {
+                    console.log('Objeto PDF ignorado al guardar:', item);
+                }
+            });
+        }
         return run(() => axiosClient.post(apiCreateQuote, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
@@ -1167,7 +1199,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     const apiGetQuoteData = 'cotizaciones/recuperar-cotizacion-v2';
     const loadingGetQuoteData = ref(false);
 
-    async function fetchAndFillQuotation(quoteId, uploadedFilesRef) {
+    async function fetchAndFillQuotation(quoteId, uploadedFilesRef, uploadedPdfsRef) {
         return run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
             onSuccess: async (res) => {
@@ -1176,7 +1208,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 Object.assign(form.value, initialState);
                 form.value.items = [];
                 form.value.imagenesoperaciones = [];
-                const { cotizacion, cliente, items, segmento, imagenesOperaciones, mode } = res;
+                const { cotizacion, cliente, items, segmento, imagenesOperaciones, documentosPdf, mode } = res;
 
                 // clearForm(uploadedFilesRef);
 
@@ -1191,6 +1223,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 // 3. Mapeamos los Items (inyectando estados de UI necesarios)
                 form.value.items = items.map(item => ({
                     ...item,
+                    id_temp: item.id ? `db-${item.id}` : `temp-${Date.now()}-${Math.random()}`,
                     ART_CANTIDAD: Number(item.ART_CANTIDAD).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     ART_STOCK: Number(item.ART_STOCK || 0).toFixed(Number(item.ART_DECIMAL_CANTIDAD)),
                     stockListo: false, // Al ser recuperado, asumimos validación previa
@@ -1229,6 +1262,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
                 //origen
                 form.value.origen = cotizacion.origen;
+
+                //imagenes
                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
                     if (uploadedFilesRef) {
                         uploadedFilesRef.value = imagenesOperaciones.map(img => ({
@@ -1242,6 +1277,24 @@ export function useProcessCreateQuote(draftId = 'default') {
                 } else {
                     if (uploadedFilesRef) uploadedFilesRef.value = [];
                     form.value.imagenesoperaciones = [];
+                }
+
+                //documentos pdf
+                if (documentosPdf && documentosPdf.length > 0) {
+                    if (uploadedPdfsRef) {
+                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                            id: doc.id,
+                            preview: doc.url,
+                            name: doc.nombre,
+                            type: doc.mime_type || 'application/pdf',
+                            size: doc.size || 0,
+                            isPersisted: true
+                        }));
+                    }
+                    form.value.documentos_pdf = documentosPdf.map(doc => doc.url);
+                } else {
+                    if (uploadedPdfsRef) uploadedPdfsRef.value = [];
+                    form.value.documentos_pdf = [];
                 }
 
                 validateBillingRules();
@@ -1274,7 +1327,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
     const loadingReorder = ref(false);
-    async function loadDataForReorder(quoteId, uploadedFilesRef) {
+    async function loadDataForReorder(quoteId, uploadedFilesRef, uploadedPdfsRef) {
 
         return run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
             loadingRef: loadingReorder,
@@ -1283,7 +1336,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 Object.assign(form.value, initialState);
                 form.value.items = [];
                 form.value.imagenesoperaciones = [];
-                const { cotizacion, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
+                const { cotizacion, cliente, items, imagenesOperaciones, documentosPdf, segmento, registro_copia, mode } = res;
 
                 form.value.draft_id = route.query.draft || initialState.draft_id;
 
@@ -1320,9 +1373,10 @@ export function useProcessCreateQuote(draftId = 'default') {
 
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
                 form.value.origen = cotizacion.origen;
-                form.value.items = items.map(item => ({
+                form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
+                    id_temp: `loadData-${Date.now()}-${index}`,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
                         ...st,
@@ -1340,6 +1394,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
                 }));
 
+                //imagenes
                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
                     if (uploadedFilesRef) {
 
@@ -1354,6 +1409,23 @@ export function useProcessCreateQuote(draftId = 'default') {
                 } else {
                     if (uploadedFilesRef) uploadedFilesRef.value = [];
                     form.value.imagenesoperaciones = [];
+                }
+                //documentos pdf
+                if (documentosPdf && documentosPdf.length > 0) {
+                    if (uploadedPdfsRef) {
+                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                            id: doc.id,
+                            preview: doc.url,
+                            name: doc.nombre,
+                            type: doc.mime_type || 'application/pdf',
+                            size: doc.size || 0,
+                            isPersisted: true
+                        }));
+                    }
+                    form.value.documentos_pdf = documentosPdf.map(doc => doc.url);
+                } else {
+                    if (uploadedPdfsRef) uploadedPdfsRef.value = [];
+                    form.value.documentos_pdf = [];
                 }
                 validateBillingRules();
                 calculateTotals();
@@ -1371,7 +1443,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     const apiCopyRawQuoteOrOrder = 'pedidos/copiar-cotizacion-o-pedido-v2';
     const loadingCopyQuoteOrOrder = ref(false);
 
-    async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId, uploadedFilesRef) {
+    async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId, uploadedFilesRef, uploadedPdfsRef) {
         return run(() => axiosClient.post(apiCopyRawQuoteOrOrder, {
             rowId: originalId,
             tipo: type,
@@ -1383,7 +1455,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 const initialState = getInitialState();
                 Object.assign(form.value, initialState);
                 form.value.items = [];
-                const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones } = res;
+                const { cliente, segmento, mode, registro_copia, sucursal_id, items, imagenesOperaciones, documentosPdf } = res;
                 form.value.draft_id = route.query.draft || initialState.draft_id;
 
                 form.value.mode = mode;
@@ -1411,9 +1483,10 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.modificador_global = 0;
                 form.value.imagenesoperaciones = [];
                 form.value.origen = 'cotizacion';
-                form.value.items = items.map(item => ({
+                form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
+                    id_temp: `copy-${Date.now()}-${index}`,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
                         ...st,
@@ -1447,6 +1520,24 @@ export function useProcessCreateQuote(draftId = 'default') {
                     form.value.imagenesoperaciones = [];
                 }
 
+                //documentos pdf
+                if (documentosPdf && documentosPdf.length > 0) {
+                    if (uploadedPdfsRef) {
+                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                            id: doc.id,
+                            preview: doc.url,
+                            name: doc.nombre,
+                            type: doc.mime_type || 'application/pdf',
+                            size: doc.size || 0,
+                            isPersisted: true
+                        }));
+                    }
+                    form.value.documentos_pdf = documentosPdf.map(doc => doc.url);
+                } else {
+                    if (uploadedPdfsRef) uploadedPdfsRef.value = [];
+                    form.value.documentos_pdf = [];
+                }
+
                 validateBillingRules();
                 calculateTotals();
             },
@@ -1464,13 +1555,13 @@ export function useProcessCreateQuote(draftId = 'default') {
     const apiReorder = 'pedidos/voler-a-pedir-pedido-v2'
     const loadingIsReordering = ref(false);
 
-    async function reOrder(rowId, uploadedFilesRef) {
+    async function reOrder(rowId, uploadedFilesRef, uploadedPdfsRef) {
         return run(() => axiosClient.post(apiReorder, { id: rowId }), {
             loadingRef: loadingIsReordering,
             onSuccess: (res) => {
                 const initialState = getInitialState();
                 Object.assign(form.value, initialState);
-                const { pedido, cliente, items, imagenesOperaciones, segmento, registro_copia, mode } = res;
+                const { pedido, cliente, items, imagenesOperaciones, documentosPdf, segmento, registro_copia, mode } = res;
 
 
                 form.value.draft_id = route.query.draft || initialState.draft_id;
@@ -1499,9 +1590,10 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.nota_operaciones = pedido.nota_operaciones || '';
                 form.value.modificador_global = Number(pedido.modificador_global || 0);
                 form.value.origen = 'cotizacion';
-                form.value.items = items.map(item => ({
+                form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
+                    id_temp: `reorder-pedido-${Date.now()}-${index}`,
                     cotizacion_id: null,
                     stock: (item.stock || []).map(st => ({
                         ...st,
@@ -1533,6 +1625,21 @@ export function useProcessCreateQuote(draftId = 'default') {
                 } else {
                     if (uploadedFilesRef) uploadedFilesRef.value = [];
                     form.value.imagenesoperaciones = [];
+                }
+
+                if (documentosPdf && documentosPdf.length > 0) {
+                    if (uploadedPdfsRef) {
+                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                            id: doc.id || `pdf-restored-${index}`,
+                            preview: doc.url,
+                            name: doc.nombre || `Documento ${index + 1}.pdf`,
+                            isPersisted: true
+                        }));
+                    }
+                    form.value.documentos_pdf = documentosPdf.map(doc => doc.url);
+                } else {
+                    if (uploadedPdfsRef) uploadedPdfsRef.value = [];
+                    form.value.documentos_pdf = [];
                 }
                 validateBillingRules();
                 calculateTotals();
@@ -1640,6 +1747,28 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
                 else {
                     console.log('Objeto ignorado al guardar (no es archivo ni url):', item);
+                }
+            });
+        }
+
+
+
+        //logica de guarado de pdf
+        if (form.value.documentos_pdf && form.value.documentos_pdf.length > 0) {
+            form.value.documentos_pdf.forEach((item, index) => {
+                let archivoReal = (item && item.file) ? item.file : item;
+                if (archivoReal instanceof File || archivoReal instanceof Blob) {
+                    let nombre = archivoReal.name || `documento_${index}.pdf`;
+                    const archivoLimpio = new File([archivoReal], nombre, {
+                        type: archivoReal.type || 'application/pdf',
+                        lastModified: new Date().getTime()
+                    });
+
+                    formData.append('pdfs_nuevos[]', archivoLimpio);
+                } else if (typeof item === 'string') {
+                    formData.append('pdfs_existentes[]', item);
+                } else {
+                    console.log('Objeto PDF ignorado al guardar:', item);
                 }
             });
         }
