@@ -871,18 +871,18 @@ const store = createStore({
     llenarpedidosporaprobarStop({ commit }) {
       commit("llenarpedidosporaprobarStop");
     },
-    llenarpedidosporaprobar({ commit }) {
-      const consulta = {
-        puntodeventa_id: this.state.puntodeventaselect,
-      };
-      return axiosClient
-        .post("/verpedidosycotizacionesporaprobar", consulta)
-        .then((res) => {
-          commit("getPedidos", res.data.data.pedidos);
-          commit("getVercotizaciones", res.data.data.cotizaciones);
-          return res;
-        });
-    },
+    // llenarpedidosporaprobar({ commit }) {
+    //   const consulta = {
+    //     puntodeventa_id: this.state.puntodeventaselect,
+    //   };
+    //   return axiosClient
+    //     .post("/verpedidosycotizacionesporaprobar", consulta)
+    //     .then((res) => {
+    //       commit("getPedidos", res.data.data.pedidos);
+    //       commit("getVercotizaciones", res.data.data.cotizaciones);
+    //       return res;
+    //     });
+    // },
 
     llenarpedidosporaprobarcrediticiosInterval({ commit, dispatch }) {
        commit(
@@ -911,7 +911,7 @@ const store = createStore({
       return axiosClient
         .post("/aprobaciones/aprobarpedido", pedido)
         .then((res) => {
-          dispatch("llenarpedidosporaprobar");
+          // dispatch("llenarpedidosporaprobar");
           return res;
         });
     },
@@ -920,7 +920,7 @@ const store = createStore({
       return axiosClient
         .post("/aprobaciones/aprobarcotizacion", cotizacion)
         .then((res) => {
-          dispatch("llenarpedidosporaprobar");
+          // dispatch("llenarpedidosporaprobar");
           return res;
         });
     },
@@ -928,7 +928,7 @@ const store = createStore({
       return axiosClient
         .post("/aprobaciones/rechazarcotizacion", cotizacion)
         .then((res) => {
-          dispatch("llenarpedidosporaprobar");
+          // dispatch("llenarpedidosporaprobar");
           return res;
         });
     },
@@ -936,7 +936,7 @@ const store = createStore({
       return axiosClient
         .post("/aprobaciones/rechazarpedido", cotizacion)
         .then((res) => {
-          dispatch("llenarpedidosporaprobar");
+          // dispatch("llenarpedidosporaprobar");
           return res;
         });
     },
@@ -944,7 +944,7 @@ const store = createStore({
       return axiosClient
         .post("/aprobaciones/rechazarpedidoporstock", pedido)
         .then((res) => {
-          dispatch("llenarpedidosporaprobar");
+          // dispatch("llenarpedidosporaprobar");
           return res;
         });
     },
