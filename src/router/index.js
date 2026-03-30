@@ -52,6 +52,9 @@ const LiberarOrdenDespacho = () =>
 
 const AprobacionesComerciales = () =>
   import("@/views/aprobaciones/ComercialesView.vue");
+
+const AprobacionesComercialesConsulta = () =>
+  import("@/views/aprobaciones/ComercialesConsultaView.vue");
 const AprobacionesCrediticias = () =>
   import("@/views/aprobaciones/CrediticiasView.vue");
 
@@ -203,10 +206,10 @@ const routes = [
           title: "Ventas - Pedidos",
         },
       },
-       {
+      {
         path: "pedidos-consulta",
         name: "ventas-pedidos-consulta",
-         component: () => import("@/views/ventas/pedidos/consulta/PedidosViewConsulta.vue"),
+        component: () => import("@/views/ventas/pedidos/consulta/PedidosViewConsulta.vue"),
         meta: {
           title: "Ventas - Pedidos",
         },
@@ -312,6 +315,14 @@ const routes = [
         component: AprobacionesComerciales,
         meta: {
           title: "Aprobaciones - Comerciales",
+        },
+      },
+      {
+        path: "comerciales-consulta",
+        name: "aprobaciones-comerciales-consulta",
+        component: AprobacionesComercialesConsulta,
+        meta: {
+          title: "Aprobaciones - Comerciales - Consulta",
         },
       },
       {
@@ -531,8 +542,8 @@ const routes = [
     component: () => import("@/views/bodegas/dashboard/PendingDispatchDashboard.vue"),
     props: true,
     meta: {
-      layout: 'simple', 
-      public: true    
+      layout: 'simple',
+      public: true
     }
   },
 ];

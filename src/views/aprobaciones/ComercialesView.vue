@@ -54,8 +54,6 @@
   <!-- END Page Content -->
 </template>
 <script setup>
-import { ref, reactive, computed } from "vue";
-import { useStore } from 'vuex'
 import AprobacionComercialPedidos from "./tablas/AprobacionComercialPedidos.vue";
 import AprobacionComercialCotizaciones from "./tablas/AprobacionComercialCotizaciones.vue";
 import { useApprovalOrder } from "@/composables/aprobaciones/pedidos/useApprovalOrder";

@@ -5,6 +5,9 @@ import { useStore } from 'vuex'
 
 const loading = ref(false);
 const quotes = ref([]);
+const quotesConsult = ref([]);
+const loadingConsult = ref(false);
+
 export function useApprovalQuote() {
     const { run } = useApiAction();
     const store = useStore();
@@ -19,13 +22,32 @@ export function useApprovalQuote() {
             successMessage: "Proceso realizado exitosamente.",
         })
     }
-
     const countQuotes = computed(() => quotes.value.length);
+
+
+
+
+    const apiListQuotesConsult = "aprobaciones/cotizaciones/consulta/lista-cotizaciones-pendientes";
+    async function fetchListQuotesConsult() {
+        return run(() => axiosClient.post(apiListQuotesConsult, { puntodeventa_id: ptoVtaSelect.value }), {
+            loadingRef: loadingConsult,
+            onSuccess: (info) => {
+                quotesConsult.value = info
+            },
+            successMessage: "Proceso realizado exitosamente.",
+        })
+    }
+    const countQuotesConsult = computed(() => quotesConsult.value.length);
+
 
     return {
         loading,
         fetchListQuotes,
         quotes,
-        countQuotes
+        countQuotes,
+        fetchListQuotesConsult,
+        loadingConsult,
+        quotesConsult,
+        countQuotesConsult,
     };
 }
