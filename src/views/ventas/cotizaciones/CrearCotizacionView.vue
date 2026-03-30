@@ -712,9 +712,13 @@ const saveModifyPrice = async (element) => {
   element.ART_VALOR = valorFijo;
   if (element.ART_TIPO_COMPRA === 'L') {
     element.ART_VALOR_ORIGINAL = element.ART_VALOR;
+  }else {
+    const original = Number.parseFloat(element.ART_VALOR_ORIGINAL || 0);
+    if(original > 0) {
+      let nuevoModificar = ((Number(element.ART_VALOR) / original) - 1) * 100;
+      element.modificador = formatClean(nuevoModificar, 4);
+    }
   }
-  let nuevoModificar = calculateRowModifier(element, element.ART_VALOR);
-  element.modificador = formatClean(nuevoModificar, 4);
   element.cambiar_valor = false;
   calculateTotals();
 }

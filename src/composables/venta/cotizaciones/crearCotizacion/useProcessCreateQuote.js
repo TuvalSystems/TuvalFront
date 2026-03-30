@@ -734,11 +734,16 @@ export function useProcessCreateQuote(draftId = 'default') {
                 const modificador = Number.parseFloat(art.modificador || 0);
                 let precioCalculado = valorUnitario + ((valorUnitario * modificador) / 100);
                 const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
-                if (diferencia < 0.001) {
-                    art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
+                if (art.cambiar_valor) {
+                        
                 } else {
-                    art.ART_VALOR = redondear(precioCalculado, 4);
+                    if (diferencia < 0.001) {
+                        art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
+                    } else {
+                        art.ART_VALOR = redondear(precioCalculado, 4);
+                    }
                 }
+
             }
 
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
