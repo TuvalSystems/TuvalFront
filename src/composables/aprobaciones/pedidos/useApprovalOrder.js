@@ -4,6 +4,8 @@ import { ref, computed } from "vue";
 import { useStore } from 'vuex'
 const orders = ref([]);
 const loadingOrders = ref(false);
+const orderConsult = ref([]);
+const loadingOrderConsult = ref(false);
 export function useApprovalOrder() {
     const { run } = useApiAction();
     const store = useStore();
@@ -16,12 +18,29 @@ export function useApprovalOrder() {
             successMessage: "Proceso realizado exitosamente.",
         })
     }
-
     const countOrders = computed(() => orders.value.length);
+
+
+    const apiListOrdersConsult = "aprobaciones/pedidos/consulta/lista-pedidos-pendientes";
+    async function fetchListOrdersConsult() {
+        return run(() => axiosClient.post(apiListOrdersConsult, { puntodeventa_id: ptoVtaSelect.value }), {
+            loadingRef: loadingOrderConsult,
+            onSuccess: (info) => (orderConsult.value = info),
+            successMessage: "Proceso realizado exitosamente.",
+        })
+    }
+
+    const countOrdersConsult = computed(() => orderConsult.value.length);
+
+
     return {
         loadingOrders,
         fetchListOrders,
         orders,
-        countOrders
+        countOrders,
+        fetchListOrdersConsult,
+        orderConsult,
+        loadingOrderConsult,
+        countOrdersConsult
     };
 }
