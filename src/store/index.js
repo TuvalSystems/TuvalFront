@@ -2236,7 +2236,7 @@ const store = createStore({
       state.transferencias_venta_loading = loading;
     },
     getPedidos: (state, pedidos) => {
-      state.pedidos.data = pedidos;
+      state.pedidos.data = Object.freeze(pedidos);
     },
     setDevoluciones: (state, devoluciones) => {
       state.devoluciones.data = devoluciones;
