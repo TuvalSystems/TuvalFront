@@ -434,25 +434,19 @@ watch(
   () => form.value.cliente, (newVal) => {
     if (!newVal) return;
     form.value.condicion_pago_original_id = newVal.CLI_CONDICION_PAGO;
-    if (isRecoveringQuote.value) return;
 
     if (newVal.suspendido === 1) {
       form.value.condicion_pago_id = 'CONTADO';
       return; // Salimos aquí, ya cumplimos la prioridad máxima
     }
+    if (isRecoveringQuote.value) return;
     const modosIncludes = ['restore_quote', 'volver_a_pedir'];
     if (modosIncludes.includes(form.value.mode) && form.value.condicion_pago_id) {
       if (newVal.CLI_RUC === form.value.cliente.CLI_RUC) {
         return;
       }
     }
-    // Lógica normal
-    // if (newVal.suspendido === 1) {
-    //   form.value.condicion_pago_id = 'CONTADO';
-    // } else {
     form.value.condicion_pago_id = newVal.CLI_CONDICION_PAGO;
-    // }
-
   }, { deep: true, immediate: true });
 
 
