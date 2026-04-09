@@ -49,11 +49,7 @@ const {
     isButtonStockWarehouse,
     isEmptyStockWarehouse,
 
-    //opciones stock import
-    fetchStockImport,
-    isShowStockImport,
-    isButtonStockImport,
-    isEmptyStockImport,
+
 
     //opciones exposicion
     isEmptyStockExposicion,
@@ -98,16 +94,6 @@ async function searchStockWarehouse(row) {
         swalError(resp.message);
         return
     }
-}
-
-async function searchStockImport(row) {
-
-
-    // const resp = await fetchStockImport(row, props.form);
-    // if (!resp.ok) {
-    //     swalError(resp.message);
-    //     return;
-    // }
 }
 
 async function searchStockExposicion(row) {

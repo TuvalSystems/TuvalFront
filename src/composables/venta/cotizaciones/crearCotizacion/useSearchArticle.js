@@ -273,47 +273,7 @@ export function useSearchArticle() {
     }
 
 
-    //funciones para consultas de stock Import
-    const apiStockImport = 'consultas/stock-import';
-    async function fetchStockImport(row, form) {
-        const loadingRowImportRef = toRef(row, 'loadingStockImport');
-        const payloadImport = {
-            articulo: row, // O el campo que necesites
-            sucursal_id: form.direccion_facturacion_id, // Asumiendo que tienes esto en tu form
-            cliente_id: form.cliente.id,   // Asumiendo que tienes esto
-            puntodeventa_id: store.state.puntodeventaselect // O de tu store
-        };
-        return run(() => axiosClient.post(apiStockImport, payloadImport), {
-            loadingRef: loadingRowImportRef,
-            onSuccess: (res) => {
-
-                row.stockImport = Array.isArray(res.stock) ? res.stock : [];
-                row.ART_STOCK_IMPORT = res.ART_STOCK
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        });
-
-
-    }
-    const isShowStockImport = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stockImport)
-            && row.stockImport.length > 0;
-    }
-
-    const isButtonStockImport = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && !row.loadingStockImport
-            && !row.stockImport;
-    }
-
-    const isEmptyStockImport = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stockImport)
-            && row.stockImport.length === 0
-            && !row.loadingStockImport;
-    }
-
+   
 
     //exposicion 
     const isShowStockExposicion = (row) => {
@@ -391,12 +351,6 @@ export function useSearchArticle() {
         isShowStock,
         isButtonStockWarehouse,
         isEmptyStockWarehouse,
-
-        //opciones stock import
-        fetchStockImport,
-        isShowStockImport,
-        isButtonStockImport,
-        isEmptyStockImport,
 
         //opciones exposicion
         isEmptyStockExposicion,
