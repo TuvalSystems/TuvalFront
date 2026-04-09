@@ -344,8 +344,6 @@ export function useSearchArticle() {
         return run(() => axiosClient.post(apiStockExposicion, payloadExposicion), {
             loadingRef: loadingRowExposicionRef,
             onSuccess: (info) => {
-                console.log(info);
-
                 row.stockExposicion = info;
             },
             successMessage: 'Proceso realizado exitosamente',
