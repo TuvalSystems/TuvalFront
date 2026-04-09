@@ -434,21 +434,19 @@ watch(
   () => form.value.cliente, (newVal) => {
     if (!newVal) return;
     form.value.condicion_pago_original_id = newVal.CLI_CONDICION_PAGO;
-    if (isRecoveringQuote.value) return;
 
+    if (newVal.suspendido === 1) {
+      form.value.condicion_pago_id = 'CONTADO';
+      return; // Salimos aquí, ya cumplimos la prioridad máxima
+    }
+    if (isRecoveringQuote.value) return;
     const modosIncludes = ['restore_quote', 'volver_a_pedir'];
     if (modosIncludes.includes(form.value.mode) && form.value.condicion_pago_id) {
       if (newVal.CLI_RUC === form.value.cliente.CLI_RUC) {
         return;
       }
     }
-    // Lógica normal
-    if (newVal.suspendido === 1) {
-      form.value.condicion_pago_id = 'CONTADO';
-    } else {
-      form.value.condicion_pago_id = newVal.CLI_CONDICION_PAGO;
-    }
-
+    form.value.condicion_pago_id = newVal.CLI_CONDICION_PAGO;
   }, { deep: true, immediate: true });
 
 
@@ -712,9 +710,9 @@ const saveModifyPrice = async (element) => {
   element.ART_VALOR = valorFijo;
   if (element.ART_TIPO_COMPRA === 'L') {
     element.ART_VALOR_ORIGINAL = element.ART_VALOR;
-  }else {
+  } else {
     const original = Number.parseFloat(element.ART_VALOR_ORIGINAL || 0);
-    if(original > 0) {
+    if (original > 0) {
       let nuevoModificar = ((Number(element.ART_VALOR) / original) - 1) * 100;
       element.modificador = formatClean(nuevoModificar, 4);
     }
@@ -1476,9 +1474,10 @@ onMounted(async () => {
 
               </tr>
             </thead>
-            <draggable v-model="form.items" tag="tbody" :item-key="'id'" handle=".handle">
+            <draggable v-model="form.items" tag="tbody" :item-key="'id_temp'" handle=".handle"
+              ghost-class="bg-light-info">
               <template #item="{ element, index }">
-                <tr>
+                <tr :key="element.id_temp">
                   <td class="fs-sm text-center"> {{ index + 1 }}</td>
                   <td class="fs-sm code">{{ element.ART_CODIGO }}</td>
                   <!-- descripcion -->

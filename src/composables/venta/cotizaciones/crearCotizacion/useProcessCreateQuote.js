@@ -582,13 +582,12 @@ export function useProcessCreateQuote(draftId = 'default') {
 
         if (response?.ok) {
             const resultados = response.data;
-
             form.value.items.forEach(item => {
                 if (resultados[item.id_temp]) {
                     const data = resultados[item.id_temp];
                     item.stock = data.stock || [];
                     item.ART_STOCK = data.ART_STOCK;
-                    item.stockListo = true;
+                    // item.stockListo = true;
                 }
                 item.stockRowLoading = false;
                 item.disableOpenModalStock = false;
@@ -597,7 +596,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             itemsParaProcesar.forEach(item => {
                 item.stockRowLoading = false;
                 item.disableOpenModalStock = false;
-                item.stockListo = false;
+                // item.stockListo = false;
             });
             console.error("Error en la petición por lote:", response?.message);
         }
@@ -819,10 +818,10 @@ export function useProcessCreateQuote(draftId = 'default') {
                     if (!globalStockUsage[key]) {
                         globalStockUsage[key] = { used: 0, available: disponible, artCode: item.ART_CODIGO, bodegaName: bd.STO_ART_BODEGA };
                     }
-                    const stockRestante = globalStockUsage[key].available - globalStockUsage[key].used;
-                    if (stockRestante <= 0) {
-                        bd.seleccionado = 0;
-                    }
+                    // const stockRestante = globalStockUsage[key].available - globalStockUsage[key].used;
+                    // if (stockRestante <= 0) {
+                    //     bd.seleccionado = 0;
+                    // }
                     const seleccionado = Number.parseFloat(bd.seleccionado || 0);
                     currentItemQtyAsigned += seleccionado;
                     globalStockUsage[key].used += seleccionado;
@@ -843,7 +842,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
                 globalOverstock = true;
                 isValid = false;
-                if (!silent) return false; // Si no es silent, cortamos la ejecución aquí
+                // if (!silent) return false; // No hacemos return aquí para que el Paso 3 pueda limpiar los campos
             }
         }
 
@@ -861,11 +860,17 @@ export function useProcessCreateQuote(draftId = 'default') {
             if (globalOverstock && item.stock) {
                 itemHasError = item.stock.some(bd => {
                     const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
-                    return globalStockUsage[key].used > globalStockUsage[key].available;
+                    const infoGlobal = globalStockUsage[key];
+                    if (infoGlobal && infoGlobal.used > infoGlobal.available) {
+                    if (Number(bd.seleccionado) > 0) {
+                        bd.seleccionado = 0;
+                        itemHasError = true;
+                    }
+                }
                 });
             }
 
-            if (qtyRequired > 0 && matchesRequired && !itemHasError) {
+          if (qtyRequired > 0 && matchesRequired && !itemHasError && !globalOverstock) {
                 item.stockListo = true;
             } else {
                 item.stockListo = false;
