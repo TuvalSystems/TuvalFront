@@ -66,8 +66,8 @@ export function useSearchArticle() {
             sort: "",
         },
         {
-            name: "Import.",
-            field: "ART_STOCK_IMPORT",
+            name: "Exposición",
+            field: "stockExposicion",
             sort: "",
         },
         {
@@ -196,7 +196,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return  run(() => axiosClient.post(apiStockTransit, payloadTransit), {
+        return run(() => axiosClient.post(apiStockTransit, payloadTransit), {
             loadingRef: loadingRowRef,
             onSuccess: (res) => {
                 row.stockTransito = res || null;
@@ -229,7 +229,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return  run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+        return run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             onSuccess: (res) => {
                 row.stock = Array.isArray(res.stock) ? res.stock : [];
@@ -239,7 +239,7 @@ export function useSearchArticle() {
         });
     }
 
-     async function fetchStockWarehouseConsult(row) {
+    async function fetchStockWarehouseConsult(row) {
         const loadingRowStockRef = toRef(row, 'loadingStockWarehouse');
         const payloadWarehouse = {
             articulo: row, // O el campo que necesites
@@ -247,7 +247,7 @@ export function useSearchArticle() {
             cliente_id: null,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return  run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+        return run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             successMessage: 'Proceso realizado exitosamente',
         });
@@ -283,7 +283,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return  run(() => axiosClient.post(apiStockImport, payloadImport), {
+        return run(() => axiosClient.post(apiStockImport, payloadImport), {
             loadingRef: loadingRowImportRef,
             onSuccess: (res) => {
 
@@ -312,6 +312,46 @@ export function useSearchArticle() {
             && Array.isArray(row.stockImport)
             && row.stockImport.length === 0
             && !row.loadingStockImport;
+    }
+
+
+    //exposicion 
+    const isShowStockExposicion = (row) => {
+        return row.ART_TIPO_COMPRA !== 'L'
+            && row.stockExposicion
+            && typeof row.stockExposicion === 'object'
+            && row.stockExposicion.disponible !== undefined;
+    }
+
+    const isButtonStockExposicion = (row) => {
+        return row.ART_TIPO_COMPRA !== 'L'
+            && !row.loadingStockExposicion
+            && !row.stockExposicion;
+    }
+
+    const isEmptyStockExposicion = (row) => {
+        return row.ART_TIPO_COMPRA !== 'L' 
+        && row.stockExposicion?.disponible >= 0;
+    }
+
+    const apiStockExposicion = 'consultas/stock-exposicion';
+    async function fetchStockExposicion(row) {
+        const loadingRowExposicionRef = toRef(row, 'loadingStockExposicion');
+        const payloadExposicion = {
+            articulo: row.ART_CODIGO, // O el campo que necesites
+            puntoventa: store.state.puntodeventaselect // O de tu store
+        };
+        return run(() => axiosClient.post(apiStockExposicion, payloadExposicion), {
+            loadingRef: loadingRowExposicionRef,
+            onSuccess: (info) => {
+                console.log(info);
+
+                row.stockExposicion = info;
+            },
+            successMessage: 'Proceso realizado exitosamente',
+        });
+
+
     }
 
 
@@ -358,7 +398,13 @@ export function useSearchArticle() {
         fetchStockImport,
         isShowStockImport,
         isButtonStockImport,
-        isEmptyStockImport
+        isEmptyStockImport,
+
+        //opciones exposicion
+        isEmptyStockExposicion,
+        isButtonStockExposicion,
+        isShowStockExposicion,
+        fetchStockExposicion
 
 
     }
