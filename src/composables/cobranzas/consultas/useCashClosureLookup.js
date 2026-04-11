@@ -83,20 +83,27 @@ export function useCashClosureLookup() {
 
 
     const apiPrintConsultByUser = 'cobranzas/pdf/cierre-caja-usuario';
-    const loadingPrintConsultByUser  = ref(false);
+    const loadingPrintConsultByUser = ref(false);
     async function printPdfConsultByUser() {
-        return await run (async () => {
+        return await run(async () => {
             const res = await downloadPdfFromApi({
-                url :  apiPrintConsultByUser,
+                url: apiPrintConsultByUser,
                 method: "POST",
                 payload: filters,
                 filenameFallback: "consulta-cierre-caja.pdf",
             });
 
-            if (!res.ok) throw new Error(res.message);
+            if (!res.ok) {
+                return {
+                    data: {
+                        success: false,
+                        error: res.message || "La caja no se encuentra cerrada"
+                    }
+                };
+            }
             return { data: { success: true, data: res.filename } };
-        },{
-            loadingRef :loadingPrintConsultByUser,
+        }, {
+            loadingRef: loadingPrintConsultByUser,
             successMessage: "Documento generado exitosamente.",
             onError: (error) => {
                 console.log(error);
@@ -105,21 +112,28 @@ export function useCashClosureLookup() {
     }
 
 
- const apiPrintConsult = 'cobranzas/pdf/cierre-caja';
-    const loadingPrintConsult  = ref(false);
-    async function printPdfCashClosure() { 
-          return await run (async () => {
+    const apiPrintConsult = 'cobranzas/pdf/cierre-caja';
+    const loadingPrintConsult = ref(false);
+    async function printPdfCashClosure() {
+        return await run(async () => {
             const res = await downloadPdfFromApi({
-                url :  apiPrintConsult,
+                url: apiPrintConsult,
                 method: "POST",
                 payload: filters,
                 filenameFallback: "cierre-de-caja.pdf",
             });
 
-            if (!res.ok) throw new Error(res.message);
+            if (!res.ok) {
+                return {
+                    data: {
+                        success: false,
+                        error: res.message || "La caja no se encuentra cerrada"
+                    }
+                };
+            }
             return { data: { success: true, data: res.filename } };
-        },{
-            loadingRef :loadingPrintConsult,
+        }, {
+            loadingRef: loadingPrintConsult,
             successMessage: "Documento generado exitosamente.",
             onError: (error) => {
                 console.log(error);
