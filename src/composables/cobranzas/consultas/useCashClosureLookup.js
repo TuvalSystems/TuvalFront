@@ -92,14 +92,25 @@ export function useCashClosureLookup() {
                 payload: filters,
                 filenameFallback: "consulta-cierre-caja.pdf",
             });
-
             if (!res.ok) {
-                return {
-                    data: {
-                        success: false,
-                        error: res.message || "La caja no se encuentra cerrada"
+                let mensajeLimpio = res.message;
+                try {
+                    const dataError = JSON.parse(res.message);
+                    mensajeLimpio = dataError.error || "La caja no se encuentra cerrada";
+                } catch (e) {
+                    mensajeLimpio = res.message;
+                }
+
+                // Creamos un objeto Error real pero con la estructura de Axios
+                const customError = new Error(mensajeLimpio);
+                Object.assign(customError, {
+                    response: {
+                        status: 400,
+                        data: { error: mensajeLimpio }
                     }
-                };
+                });
+
+                throw customError; // 👈 Esto ya no da warning
             }
             return { data: { success: true, data: res.filename } };
         }, {
@@ -124,12 +135,24 @@ export function useCashClosureLookup() {
             });
 
             if (!res.ok) {
-                return {
-                    data: {
-                        success: false,
-                        error: res.message || "La caja no se encuentra cerrada"
+                let mensajeLimpio = res.message;
+                try {
+                    const dataError = JSON.parse(res.message);
+                    mensajeLimpio = dataError.error || "La caja no se encuentra cerrada";
+                } catch (e) {
+                    mensajeLimpio = res.message;
+                }
+
+                // Creamos un objeto Error real pero con la estructura de Axios
+                const customError = new Error(mensajeLimpio);
+                Object.assign(customError, {
+                    response: {
+                        status: 400,
+                        data: { error: mensajeLimpio }
                     }
-                };
+                });
+
+                throw customError; // 👈 Esto ya no da warning
             }
             return { data: { success: true, data: res.filename } };
         }, {

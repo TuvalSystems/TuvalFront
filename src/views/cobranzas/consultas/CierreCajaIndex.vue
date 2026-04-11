@@ -84,7 +84,7 @@ async function consultarFiltros() {
 async function printBoxByUser() {
   const resp = await printPdfConsultByUser();
   if (!resp?.ok) {
-    if (resp.status >= 400 || resp.status <= 499) {
+    if (resp.status >= 400 && resp.status <= 499) {
       swalWarning(resp.message);
       return;
     }
@@ -103,7 +103,7 @@ async function printBoxByUser() {
 async function downloadCashClosure() {
   const resp = await printPdfCashClosure();
   if (!resp?.ok) {
-    if (resp.status >= 400 || resp.status <= 499) {
+    if (resp.status >= 400 && resp.status <= 499) {
       swalWarning(resp.message);
       return;
     }
