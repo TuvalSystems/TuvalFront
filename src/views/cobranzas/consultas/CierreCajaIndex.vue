@@ -3,7 +3,7 @@ import { onMounted, reactive } from 'vue';
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useCashClosureLookup } from "@/composables/cobranzas/consultas/useCashClosureLookup";
-import { swalWarning, swalError } from "@/functions/swal-alert";
+import { swalWarning, swalError, swalSuccess } from "@/functions/swal-alert";
 import { formatPrice } from "@/functions";
 
 //importacion de componentes 
@@ -81,33 +81,41 @@ async function consultarFiltros() {
 }
 
 
-async function printBoxByUser(){
- const resp = await printPdfConsultByUser();
- if(!resp?.ok){
-  if (resp.status >= 400 || resp.status <= 499) {
-    swalWarning(resp.message);
+async function printBoxByUser() {
+  const resp = await printPdfConsultByUser();
+  if (!resp?.ok) {
+    if (resp.status >= 400 || resp.status <= 499) {
+      swalWarning(resp.message);
+      return;
+    }
+    if (resp.status >= 500) {
+      swalError(resp.message);
+      return;
+    }
+    swalError(resp.message || "Error desconocido");
     return;
   }
-  if (resp.status >= 500) {
-    swalError(resp.message);
-    return;
-  }
- }
+
+  swalSuccess("Consulta impresa correctamente");
 
 }
 
-async function downloadCashClosure(){
-const resp = await printPdfCashClosure();
- if(!resp?.ok){
-  if (resp.status >= 400 || resp.status <= 499) {
-    swalWarning(resp.message);
+async function downloadCashClosure() {
+  const resp = await printPdfCashClosure();
+  if (!resp?.ok) {
+    if (resp.status >= 400 || resp.status <= 499) {
+      swalWarning(resp.message);
+      return;
+    }
+    if (resp.status >= 500) {
+      swalError(resp.message);
+      return;
+    }
+    swalError(resp.message || "Error desconocido");
     return;
   }
-  if (resp.status >= 500) {
-    swalError(resp.message);
-    return;
-  }
- }
+  swalSuccess("Consulta impresa correctamente");
+
 }
 
 onMounted(() => {
@@ -229,13 +237,14 @@ onMounted(() => {
         <div v-if="cashClosure.cheques_aldia.length" class="mt-2">
           <CashClosureCheques :data="cashClosure.cheques_aldia" :total="cashClosure.cheques_aldia_total" :type="1" />
         </div>
-         <div v-if="cashClosure.cheques_posfechados.length" class="mt-2">
-          <CashClosureCheques :data="cashClosure.cheques_posfechados" :total="cashClosure.cheques_posfechados_total" :type="2" />
+        <div v-if="cashClosure.cheques_posfechados.length" class="mt-2">
+          <CashClosureCheques :data="cashClosure.cheques_posfechados" :total="cashClosure.cheques_posfechados_total"
+            :type="2" />
         </div>
-         <div v-if="cashClosure.efectivo.length" class="mt-2">
+        <div v-if="cashClosure.efectivo.length" class="mt-2">
           <CashClosureEfectivo :data="cashClosure.efectivo" :total="cashClosure.efectivo_total" />
         </div>
-          <div v-if="cashClosure.retenciones.length" class="mt-2">
+        <div v-if="cashClosure.retenciones.length" class="mt-2">
           <CashClosureRetenciones :data="cashClosure.retenciones" :total="cashClosure.retenciones_total" />
         </div>
 
