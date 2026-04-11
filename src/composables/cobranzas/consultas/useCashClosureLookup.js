@@ -82,15 +82,38 @@ export function useCashClosureLookup() {
     }
 
 
-    const apiPrintConsult = 'cobranzas/consultas/pdf/cierre-caja';
-    const loadingPrintConsult  = ref(false);
-    async function printPdfConsult() {
+    const apiPrintConsultByUser = 'cobranzas/pdf/cierre-caja-usuario';
+    const loadingPrintConsultByUser  = ref(false);
+    async function printPdfConsultByUser() {
         return await run (async () => {
+            const res = await downloadPdfFromApi({
+                url :  apiPrintConsultByUser,
+                method: "POST",
+                payload: filters,
+                filenameFallback: "consulta-cierre-caja.pdf",
+            });
+
+            if (!res.ok) throw new Error(res.message);
+            return { data: { success: true, data: res.filename } };
+        },{
+            loadingRef :loadingPrintConsultByUser,
+            successMessage: "Documento generado exitosamente.",
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+    }
+
+
+ const apiPrintConsult = 'cobranzas/pdf/cierre-caja';
+    const loadingPrintConsult  = ref(false);
+    async function printPdfCashClosure() { 
+          return await run (async () => {
             const res = await downloadPdfFromApi({
                 url :  apiPrintConsult,
                 method: "POST",
                 payload: filters,
-                filenameFallback: "consulta-cierre-caja.pdf",
+                filenameFallback: "cierre-de-caja.pdf",
             });
 
             if (!res.ok) throw new Error(res.message);
@@ -103,10 +126,6 @@ export function useCashClosureLookup() {
             }
         });
     }
-
-
-
-    async function printPdfCashClosure() { }
 
 
     return {
@@ -130,7 +149,8 @@ export function useCashClosureLookup() {
         clearCashClosure,
 
         //print
-        printPdfConsult
+        printPdfConsultByUser,
+        printPdfCashClosure
 
     };
 }

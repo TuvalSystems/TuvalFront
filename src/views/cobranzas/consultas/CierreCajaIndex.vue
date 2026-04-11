@@ -38,7 +38,11 @@ const {
   loadingCashClosure,
   fetchCashClosure,
   cashClosure,
-  clearCashClosure
+  clearCashClosure,
+
+  //pdf
+  printPdfConsultByUser,
+  printPdfCashClosure
 } = useCashClosureLookup();
 
 
@@ -77,12 +81,33 @@ async function consultarFiltros() {
 }
 
 
-async function printBox(){
+async function printBoxByUser(){
+ const resp = await printPdfConsultByUser();
+ if(!resp?.ok){
+  if (resp.status >= 400 || resp.status <= 499) {
+    swalWarning(resp.message);
+    return;
+  }
+  if (resp.status >= 500) {
+    swalError(resp.message);
+    return;
+  }
+ }
 
 }
 
 async function downloadCashClosure(){
-
+const resp = await printPdfCashClosure();
+ if(!resp?.ok){
+  if (resp.status >= 400 || resp.status <= 499) {
+    swalWarning(resp.message);
+    return;
+  }
+  if (resp.status >= 500) {
+    swalError(resp.message);
+    return;
+  }
+ }
 }
 
 onMounted(() => {
@@ -183,10 +208,10 @@ onMounted(() => {
             </span>
 
             <div class="d-flex flex-column flex-sm-row gap-2 gap-sm-1">
-              <button class="btn btn-sm btn-outline-primary w-100 w-sm-auto" type="button">
+              <button class="btn btn-sm btn-outline-primary w-100 w-sm-auto" type="button" @click="printBoxByUser">
                 <i class="fa fa-print opacity-100 me-1"></i> Imprimir Consulta
               </button>
-              <button class="btn btn-sm btn-outline-warning w-100 w-sm-auto" type="button">
+              <button class="btn btn-sm btn-outline-warning w-100 w-sm-auto" type="button" @click="downloadCashClosure">
                 <i class="fa fa-check-circle opacity-100 me-1"></i> Imprimir Cierre
               </button>
             </div>
