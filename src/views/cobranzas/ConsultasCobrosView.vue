@@ -488,6 +488,7 @@ const cobros_caja_usuario_loading = ref(false);
 const cobros_caja_usuario = ref(null);
 const currentCaja = computed(() => store.state.currentCaja);
 const set_fecha = ref(fecha);
+const puntoVenta = computed(() => store.state.puntodeventaselect);
 
 store.dispatch('estadoCaja').catch(err => {
   swalError(err.response.data.error)
@@ -542,6 +543,7 @@ function selectcliente(cliente){
     cliente: cliente,
     fecha_inicio: set_fecha_inicio,
     fecha_fin: set_fecha_fin,
+    puntoVenta: puntoVenta.value
   })
   store.dispatch('consultacobroscliente', consulta).then((res) => {
     currentCliente.value = cliente;

@@ -49,11 +49,13 @@ const {
     isButtonStockWarehouse,
     isEmptyStockWarehouse,
 
-    //opciones stock import
-    fetchStockImport,
-    isShowStockImport,
-    isButtonStockImport,
-    isEmptyStockImport
+
+
+    //opciones exposicion
+    isEmptyStockExposicion,
+    isButtonStockExposicion,
+    isShowStockExposicion,
+    fetchStockExposicion
 } = useSearchArticle();
 
 watch(
@@ -94,16 +96,16 @@ async function searchStockWarehouse(row) {
     }
 }
 
-async function searchStockImport(row) {
-    const resp = await fetchStockImport(row, props.form);
+async function searchStockExposicion(row) {
+    const resp = await fetchStockExposicion(row);
     if (!resp.ok) {
         swalError(resp.message);
-        return
+        return;
     }
 }
 
-async function addItemToQuote(row){
-    
+async function addItemToQuote(row) {
+
     if (row.ART_TIPO_COMPRA !== 'L' || row.ART_TIPO_COMPRA === 'SERV') {
         await searchStockWarehouse(row);
     }
@@ -123,7 +125,8 @@ onMounted(() => { });
 <template>
     <BaseBlock title="Seleccionar artículo" class="mb-0" transparent>
         <template #options>
-            <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close"  @click="closeModal">
+            <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close"
+                @click="closeModal">
                 <i class="fa fa-fw fa-times"></i>
             </button>
         </template>
@@ -165,8 +168,7 @@ onMounted(() => { });
                         v-model="payload.terminal" @keyup.enter="buscarArticulo" />
                 </div>
                 <div class="col-12 text-end mt-3 ">
-                    <button class="btn btn-sm btn-alt-secondary me-2" @click="resetSearch"
-                        aria-placeholder="Limpiar Filtros">
+                    <button class="btn btn-sm btn-alt-secondary me-2" @click="resetSearch">
                         <i class="fa fa-eraser"></i>
                     </button>
                     <button class="btn btn-sm btn-primary px-4" @click="buscarArticulo">
@@ -177,7 +179,7 @@ onMounted(() => { });
         </div>
 
         <div v-if="loadingArt" class="text-center py-4">
-            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+            <div class="spinner-border text-primary mt-4"><span class="visually-hidden">Loading...</span>
             </div>
         </div>
 
@@ -206,7 +208,7 @@ onMounted(() => { });
                             <tr>
                                 <th></th>
                                 <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
-                                    @click="onSort($event, index)">
+                                    @click="onSort($event, index)" class="text-center">
                                     {{ th.name }} <i class="gg-select float-end"></i>
                                 </th>
                             </tr>
@@ -221,17 +223,20 @@ onMounted(() => { });
                                         </a>
                                     </td>
                                     <td class="fs-sm " style="width: 7.5rem;justify-content: center;">
-                                        <a v-if="isSelectable(row)" href="javascript:void(0)" @click="addItemToQuote(row)">{{ row.ART_CODIGO }}</a>
+                                        <a v-if="isSelectable(row)" href="javascript:void(0)"
+                                            @click="addItemToQuote(row)">{{ row.ART_CODIGO }}</a>
                                         <span v-else>{{ row.ART_CODIGO }}</span>
                                     </td>
                                     <td class="fs-sm " style="width: 7.5rem;justify-content: center;">
-                                        <a v-if="isSelectable(row)" href="javascript:void(0)"  @click="addItemToQuote(row)">{{ row.ART_CODIGO_ZAFIRO
+                                        <a v-if="isSelectable(row)" href="javascript:void(0)"
+                                            @click="addItemToQuote(row)">{{ row.ART_CODIGO_ZAFIRO
                                             }}</a>
                                         <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
                                     </td>
                                     <td class="fs-sm">
-                                        <a v-if="isSelectable(row)" href="javascript:void(0)"  @click="addItemToQuote(row)">{{ row.ART_DESCRIPCION
-                                        }}</a>
+                                        <a v-if="isSelectable(row)" href="javascript:void(0)"
+                                            @click="addItemToQuote(row)">{{ row.ART_DESCRIPCION
+                                            }}</a>
                                         <span v-else>{{ row.ART_DESCRIPCION }}</span>
                                     </td>
                                     <td class="fs-sm" style="width: 4rem;justify-content: center;">{{
@@ -242,7 +247,7 @@ onMounted(() => { });
                                     <td class="fs-sm fw-medium text-muted mb-0 text-center"
                                         style="width: 7rem;justify-content: center;">
                                         <div v-if="row.loadingStockTransit" class="text-center">
-                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <div class="spinner-border spinner-border-sm text-primary">
                                                 <span class="visually-hidden">Loading...</span>
                                             </div>
                                         </div>
@@ -263,13 +268,12 @@ onMounted(() => { });
                                     <td class="fs-sm fw-medium text-muted mb-0 text-center"
                                         style="width: 7.5rem; justify-content: center;">
                                         <div v-if="row.loadingStockWarehouse" class="text-center">
-                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <div class="spinner-border spinner-border-sm text-primary">
                                                 <span class="visually-hidden">Loading...</span>
                                             </div>
                                         </div>
                                         <div v-else-if="isShowStock(row)">
-                                            <code v-for="stock in row.stock"
-                                                class="d-block mb-0 fs-xs text-nowrap"
+                                            <code v-for="stock in row.stock" class="d-block mb-0 fs-xs text-nowrap"
                                                 :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}</code>
                                         </div>
                                         <div v-else-if="isButtonStockWarehouse(row)">
@@ -282,25 +286,24 @@ onMounted(() => { });
                                         </div>
                                     </td>
 
-                                    <!-- stock Import -->
+                                    <!-- stock Exposicion -->
                                     <td class="fs-sm fw-medium text-muted mb-0 text-center"
                                         style="width: 7.5rem; justify-content: center;">
-                                        <div v-if="row.loadingStockImport" class="text-center">
-                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <div v-if="row.loadingStockExposicion" class="text-center">
+                                            <div class="spinner-border spinner-border-sm text-primary">
                                                 <span class="visually-hidden">Loading...</span>
                                             </div>
                                         </div>
-                                        <div v-else-if="isShowStockImport(row)">
-                                            <code v-for="stock in row.stockImport"
-                                                class="d-block mb-0 fs-xs text-nowrap"
-                                                :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}</code>
+                                        <div v-else-if="isShowStockExposicion(row)">
+                                            <code
+                                                class="d-block mb-0 fs-xs text-nowrap">{{ row.stockExposicion.bodega }} - {{ row.stockExposicion.disponible }}</code>
                                         </div>
-                                        <div v-else-if="isButtonStockImport(row)">
-                                            <button class="btn btn-sm btn-primary" @click="searchStockImport(row)">
+                                        <div v-else-if="isButtonStockExposicion(row)">
+                                            <button class="btn btn-sm btn-primary" @click="searchStockExposicion(row)">
                                                 <i class="fa fa-search"></i>
                                             </button>
                                         </div>
-                                        <div v-else-if="isEmptyStockImport(row)">
+                                        <div v-else-if="isEmptyStockExposicion(row)">
                                             <code> - </code>
                                         </div>
                                     </td>
@@ -336,4 +339,3 @@ onMounted(() => { });
     </div>
     <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
-

@@ -1,4 +1,5 @@
-import axiosClient from "@/axios";
+import axiosPrint from "@/axiosPrint"; // 1. Cambiamos la instancia
+
 export function getFilenameFromDisposition(disposition, fallback = 'documento.pdf') {
   if (!disposition) return fallback
   const m = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i.exec(disposition)
@@ -9,6 +10,8 @@ export function getFilenameFromDisposition(disposition, fallback = 'documento.pd
 export async function ensurePdfBlob(res) {
   const ct = (res && res.headers && res.headers['content-type']) || ''
   const blob = res && res.data
+  
+  // Si la respuesta no es PDF, intentamos leer el error JSON dentro del blob
   if (!ct.includes('application/pdf')) {
     try {
       const text = typeof blob?.text === 'function' ? await blob.text() : ''
@@ -30,16 +33,8 @@ function ensurePdfExtension(name) {
   return /\.pdf$/i.test(name) ? name : `${name}.pdf`;
 }
 
-
 /**
- * Llama a tu API Laravel, valida que sea PDF y descarga el archivo
- * @param {Object} opts
- * @param {string} opts.url - endpoint Laravel
- * @param {'POST'|'GET'} [opts.method='POST']
- * @param {any} [opts.payload] - body (POST) o params (GET)
- * @param {string} [opts.filenameFallback='documento.pdf']
- * @param {Object} [opts.headers={}]
- * @returns {Promise<{ok: boolean, filename?: string, message?: string}>}
+ * Usa axiosPrint para descargar y validar el PDF
  */
 export async function downloadPdfFromApi(opts) {
   const {
@@ -52,16 +47,17 @@ export async function downloadPdfFromApi(opts) {
 
   try {
     const config = {
-      responseType: 'blob',
+      // Nota: responseType: 'blob' ya viene heredado de axiosPrint
       headers: { Accept: 'application/pdf', ...headers },
       validateStatus: s => s < 500
     }
 
+    // 2. Usamos axiosPrint en lugar de axiosClient
     const res = method === 'GET'
-      ? await axiosClient.get(url, { ...config, params: payload })
-      : await axiosClient.post(url, payload, config)
+      ? await axiosPrint.get(url, { ...config, params: payload })
+      : await axiosPrint.post(url, payload, config)
 
-    const blob = await ensurePdfBlob(res) // lanza si no es PDF
+    const blob = await ensurePdfBlob(res) 
 
     const cd = res.headers && res.headers['content-disposition']
     let filename = getFilenameFromDisposition(cd, filenameFallback)
@@ -71,13 +67,14 @@ export async function downloadPdfFromApi(opts) {
     const a = document.createElement('a')
     a.href = href
     a.download = filename
-    document.body.appendChild(a); // más compatible con Safari
+    document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(href);
 
     return { ok: true, filename }
   } catch (err) {
+    // Si Axios arroja un error (ej. 401, 500), intentamos extraer el mensaje
     const msg =
       (err && err.response && err.response.data && err.response.data.error) ||
       (err && err.message) ||

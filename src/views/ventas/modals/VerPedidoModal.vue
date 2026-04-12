@@ -63,7 +63,7 @@
           <CabeceraPedido :verpedido="verpedido" :segmento="segmentocliente"></CabeceraPedido>
           <div class="table-responsive">
             <div v-if="detallepedido.loading" class="text-center">
-              <div class="spinner-border text-primary mt-2" role="status"><span
+              <div class="spinner-border text-primary mt-2"><span
                   class="visually-hidden">Loading...</span></div>
             </div>
             <table v-if="detallepedido.data.length && !detallepedido.loading"

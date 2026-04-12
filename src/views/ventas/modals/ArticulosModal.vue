@@ -155,21 +155,22 @@
 
 
                         <td class="fs-sm fw-medium text-muted mb-0 text-center"
-                          style="width: 7rem;justify-content: center;">
-                          <div v-if="(row.ART_TIPO_COMPRA != 'L' && row.stockImport)">
-                            <code v-for="stock in row.stockImport"
-                              :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}<br></code>
+                          style="width: 7.5rem; justify-content: center;">
+                          <div v-if="row.loadingStockExposicion" class="text-center">
+                            <div class="spinner-border spinner-border-sm text-primary">
+                              <span class="visually-hidden">Loading...</span>
+                            </div>
                           </div>
-                          <div v-if="row.ART_TIPO_COMPRA != 'L' && !row.stockImport && !row.loading1">
-                            <button class="btn btn-sm btn-primary" @click="consultOtherStocksImports(row)"><i
-                                class="fa fa-magnifying-glass"></i></button>
+                          <div v-else-if="isShowStockExposicion(row)">
+                            <code
+                              class="d-block mb-0 fs-xs text-nowrap">{{ row.stockExposicion.bodega }} - {{ row.stockExposicion.disponible }}</code>
                           </div>
-                          <div v-if="row.loading1" class="text-center">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status"><span
-                                class="visually-hidden">Loading...</span></div>
+                          <div v-else-if="isButtonStockExposicion(row)">
+                            <button class="btn btn-sm btn-primary" @click="searchStockExposicion(row)">
+                              <i class="fa fa-search"></i>
+                            </button>
                           </div>
-                          <div
-                            v-if="row.ART_TIPO_COMPRA != 'L' && Array.isArray(row.stockImport) && row.stockImport.length === 0 && !row.loading1">
+                          <div v-else-if="isEmptyStockExposicion(row)">
                             <code> - </code>
                           </div>
                         </td>
@@ -214,6 +215,16 @@ const descuentoarticulo = computed(() => store.state.descuentoarticulo);
 const currentSucursal = computed(() => store.state.currentSucursal);
 const buscar_articulo = computed(() => store.state.buscar_articulo);
 const emit = defineEmits(["verificarProveedores", "verificarStock", "calcTotales"]);
+import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle";
+
+const {
+    
+    //opciones exposicion
+    isEmptyStockExposicion,
+    isButtonStockExposicion,
+    isShowStockExposicion,
+    fetchStockExposicion
+} = useSearchArticle();
 // Sort by functionality
 const sortBy = computed(() => {
   return cols.reduce((acc, o) => {
@@ -342,8 +353,8 @@ const cols = reactive([
     sort: "",
   },
   {
-    name: "Import.",
-    field: "ART_STOCK_IMPORT",
+    name: "Exposición",
+    field: "stockExposicion",
     sort: "",
   },
   {
@@ -519,6 +530,14 @@ async function selectArticulo(articulo) {
       emit('verificarStock')
     });
   }
+}
+
+async function searchStockExposicion(row) {
+    const resp = await fetchStockExposicion(row);
+    if (!resp.ok) {
+        swalError(resp.message);
+        return;
+    }
 }
 
 </script>
