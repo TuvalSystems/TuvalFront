@@ -9,7 +9,6 @@ import {
 import { useReservationProcessor } from "@/composables/venta/cotizaciones/reservas/useReservationProcessor";
 import verTabTrasladosReservas from "@/views/ventas/reservas/modal/tab/verTabTrasladosReservas.vue";
 import { useRouter } from "vue-router";
-import { Modal } from "bootstrap";
 
 const props = defineProps({
   reserva: {
@@ -101,7 +100,7 @@ async function procesar() {
     </template>
     <template #content>
       <!-- prueba de nav start -->
-      <ul class="nav nav-tabs nav-tabs-alt" role="tablist">
+      <ul class="nav nav-tabs nav-tabs-alt">
         <li class="nav-item">
           <button type="button" class="nav-link" :class="{ 'active': tabActual === 'detalle' }"
             @click="tabActual = 'detalle'">
@@ -265,8 +264,8 @@ async function procesar() {
                         v-model="selectAllInvoice" @change="applySelectAllInvoice" />
                     </th>
                     <th class="fs-sm" style="font-size: 10px; text-align: center">Liberar
-                      <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default1"
-                        name="example-checkbox-default1" @change="applySelectAllRelease" v-model="selectAllRelease"
+                      <input class="form-check-input" type="checkbox" value="" id="example-checkbox-default2"
+                         @change="applySelectAllRelease" v-model="selectAllRelease"
                         :disabled="infoReserva.cotizacion.reserva_disabled" />
                     </th>
                   </tr>
@@ -351,7 +350,7 @@ async function procesar() {
       Cerrar
     </button>
     <button type="button" class="btn btn-sm btn-primary" @click="procesar" :disabled="loadingReservedProcess">
-      <span v-if="loadingReservedProcess" class="spinner-border spinner-border-sm me-2" role="status"
+      <span v-if="loadingReservedProcess" class="spinner-border spinner-border-sm me-2"
         aria-hidden="true"></span>
       Procesar
     </button>
