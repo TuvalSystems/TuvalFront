@@ -2,7 +2,7 @@
   <!-- Hero -->
   <BasePageHeading
     title="Sincronizar"
-    subtitle="SIncronización de datos desde Dynamics GP"
+    subtitle="Sincronización de datos desde Dynamics GP"
   >
     <template #extra>
       <nav aria-label="breadcrumb">
