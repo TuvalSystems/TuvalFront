@@ -240,6 +240,8 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
+import { swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+
 import Picking from "./modals/Picking.vue";
 import GuiaRemision from "./modals/GuiaRemision.vue";
 import OrdenDespacho from "./modals/OrdenDespacho.vue";
@@ -373,7 +375,7 @@ let ordendespachoModalObj = null;
 
 const documentosPdf = ref(null);
 const direccionEnvio = ref(null);
-function verOrdenDespacho(orden) {  
+function verOrdenDespacho(orden) {
   currentOrden.value = orden;
   verpedido.value = orden.pedido;
   documentosPdf.value = orden.documentosPdf;
