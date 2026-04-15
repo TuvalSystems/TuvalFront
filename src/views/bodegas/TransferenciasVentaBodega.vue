@@ -453,19 +453,24 @@ async function cancelarPicking(row) {
   row.picking = 0;
 }
 
-onMounted(() => {
-  pickingModalObj = new Modal(pickingModal.value);
+onMounted(async () => {
+  await store.dispatch('transferenciasVenta');
+  setTimeout(() => {
+    if (pickingModal.value) {
+      pickingModalObj = new Modal(pickingModal.value);
+    }
+    
+    if (guiaRemisionModal.value) {
+      guiaRemisionModalObj = new Modal(guiaRemisionModal.value);
+    }
 
-  guiaRemisionModalObj = new Modal(guiaRemisionModal.value);
-  document.querySelectorAll("#datasetLength label").forEach((el) => {
-    el.remove();
-  });
-  // Replace select classes
-  let selectLength = document.querySelector("#datasetLength select");
-
-  selectLength.classList = "";
-  selectLength.classList.add("form-select");
-  selectLength.style.width = "80px";
+    // Estilos de la tabla (Dataset)
+    let selectLength = document.querySelector("#datasetLength select");
+    if (selectLength) {
+      selectLength.classList = "form-select";
+      selectLength.style.width = "80px";
+    }
+  }, 200);
 });
 </script>
 <template>

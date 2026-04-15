@@ -1,98 +1,105 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useStore } from 'vuex'
 import { useTemplateStore } from "@/stores/template";
 import { useRoute, useRouter } from "vue-router";
 import actions from '@/store'
 import BaseLayout from "@/layouts/BaseLayout.vue";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalWarning, } from "@/functions/swal-alert.js";
 
 const route = useRoute();
 const router = useRouter();
-
-// Main store
 const templateStore = useTemplateStore();
 const store = useStore();
 
-// Set default elements for this layout
-templateStore.setLayout({
-  header: true,
-  sidebar: true,
-  sideOverlay: true,
-  footer: true,
-});
 
-// Set various template options for this layout variation
+
+// Layout Setup
+templateStore.setLayout({ header: true, sidebar: true, sideOverlay: true, footer: true });
 templateStore.headerStyle({ mode: "light" });
 templateStore.mainContent({ mode: "full" });
+
+
 
 const toast1 = ref(null);
 const titulo = ref(null);
 const mensaje = ref(null);
 
-// setInterval(() => {
 
-// store.dispatch('notificaciones').then((res) => {
-//   if(res.notificacion === true){
-//     titulo.value = res.titulo;
-//     mensaje.value = res.mensaje;
-//     toast1.value.show();
-//   }
-// });
-// }, "10000")
-onMounted(() => {
-  toast1.value = new window.bootstrap.Toast(
-    document.getElementById("toast-example-1")
-  );
-});
 
-const navigation = store.state.menu;
-const path = computed(() => route.name).value
 
-if (!seguridad()) {
-  swalWarning('Su usuario no tiene permisos para esta sección, ha sido redirigido a su sección inicial');
-  router.push({
-    name: actions.state.home
-  })
-}
-function seguridad() {
+// Usamos un computed para que navigation sea reactivo y no undefined
+const navigation = computed(() => store.state.menu);
+const currentPath = computed(() => route.name);
 
-  if (path === 'notificaciones') {
+function checkSecurity() {
+  const path = currentPath.value;
+  if (path === 'notificaciones' || path === 'Login' || path === actions.state.home) {
     return true;
   }
+  const menu = navigation.value;
+  if (!menu || !Array.isArray(menu)) return true;
 
-  let estoy = false;
-  navigation.map(padre => {
-    padre.sub.map(url => {
-      if (url.to === path) {
-        estoy = true;
-      }
-    })
-  });
-  return estoy;
+  return isPathInMenu(menu, path);
 }
 
+function isPathInMenu(items, targetPath) {
+  for (const item of items) {
+    // Si el item tiene el destino que buscamos
+    if (item.to === targetPath) {
+      return true;
+    }
+    // Si tiene submenú, buscamos dentro (Recursividad)
+    if (item.sub && Array.isArray(item.sub)) {
+      if (isPathInMenu(item.sub, targetPath)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
+watch([() => route.name, () => store.state.menu], ([newPath, newMenu]) => {
+
+  if (!newMenu || newMenu.length === 0) return;
+  const excepciones = ['Login', 'notificaciones', actions.state.home];
+  if (excepciones.includes(newPath)) return;
+
+  // Ejecutamos la validación real
+  if (!isPathInMenu(newMenu, newPath)) {
+    swalWarning('Acceso denegado: No tienes permisos para esta sección.');
+    router.push({ name: actions.state.home });
+  }
+}, { immediate: true });
+
+onMounted(() => {
+  const toastEl = document.getElementById("toast-example-1");
+  if (toastEl) {
+    toast1.value = new window.bootstrap.Toast(toastEl);
+  }
+
+  if (route.name !== actions.state.home) {
+    if (!checkSecurity()) {
+      swalWarning('Su usuario no tiene permisos para esta sección.');
+      router.push({ name: actions.state.home });
+    }
+  }
+
+});
 
 
 </script>
 
 <template>
   <BaseLayout />
-
   <div class="position-fixed bottom-0 end-0 p-3 space-y-3" style="z-index: 9999">
-    <!-- Toast Example 1 -->
-    <div id="toast-example-1" class="toast fade hide" data-bs-autohide="false" role="alert" aria-live="assertive"
-      aria-atomic="true">
+    <div id="toast-example-1" class="toast fade hide" role="alert">
       <div class="toast-header">
-        <i class="fa fa-message text-primary me-2"></i>
         <strong class="me-auto">{{ titulo }}</strong>
-        <small class="text-muted">Ahora</small>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
       </div>
-      <div class="toast-body">
-        <p v-html="mensaje"></p>
-      </div>
+      <div class="toast-body" v-html="mensaje"></div>
     </div>
-    <!-- END Toast Example 1 -->
   </div>
 </template>

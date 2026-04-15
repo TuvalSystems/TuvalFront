@@ -157,6 +157,7 @@ const routes = [
           title: "Secciones",
         },
       },
+
     ],
   },
   {
@@ -276,7 +277,7 @@ const routes = [
           title: "Cobros - Cierre de caja",
         },
       },
-    
+
       {
         path: "consulta-cierre-caja",
         name: "cobranza-consulta-cierre-caja",
@@ -505,6 +506,31 @@ const routes = [
     ],
   },
 
+  //** SISTEMAS */
+ {
+  path: "/sistemas", // Nivel 1 (ID 48)
+  component: LayoutBackend,
+  meta: { requiresAuth: true },
+  children: [
+    {
+      path: "logs", // Nivel 2 (ID 49)
+      name: "sistemas-logs", // Coincide con 'to' de ID 49
+      // IMPORTANTE: Como es un padre, necesita un RouterView para mostrar al hijo
+      component: RouterView,
+      children: [
+        {
+          path: "sync-logs", // Nivel 3 (ID 50)
+          name: "sistemas-sync-logs", // Coincide con 'to' de ID 50
+          component: () => import("@/views/sistemas/logs/LogsSyncView.vue"),
+          meta: { title: "Logs de Sincronización" },
+        },
+      ],
+    },
+  ],
+},
+
+  //login
+
   {
     path: "/auth",
     redirect: "/login",
@@ -593,7 +619,12 @@ router.beforeEach((to, from, next) => {
   }
 
   // Setear título y continuar normalmente
-  document.title = "Web Transaccional Tuval | " + to.meta.title;
+  const pageTitle = to.meta?.title || 'Inicio';
+  const finalTitle = typeof pageTitle === 'string'
+    ? pageTitle
+    : (pageTitle.text || 'Inicio');
+  document.title = `Web Transaccional Tuval | ${finalTitle}`;
+
   return next();
 });
 

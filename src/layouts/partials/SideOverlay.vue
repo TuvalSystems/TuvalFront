@@ -4,7 +4,7 @@ import { useTemplateStore } from "@/stores/template";
 
 // SimpleBar, for more info and examples you can check out https://github.com/Grsmto/simplebar/tree/master/packages/simplebar-vue
 import SimpleBar from "simplebar";
-
+let simpleBarInstance = null;
 // Grab example data
 import activity from "@/data/activity";
 import sales from "@/data/sales";
@@ -39,49 +39,48 @@ function eventSideOverlay(event) {
 
 // Init SimpleBar (custom scrolling) and attach ESCAPE key event listener
 onMounted(() => {
-  new SimpleBar(document.getElementById("side-overlay"));
+  const container = document.getElementById("side-overlay");
 
+  if (container && !simpleBarInstance) {
+    try {
+      simpleBarInstance = new SimpleBar(container);
+    } catch (error) {
+      console.log("SimpleBar no pudo inicializarse:", error);
+    }
+  }
   document.addEventListener("keydown", eventSideOverlay);
 });
 
-// Remove keydown event listener
 onUnmounted(() => {
   document.removeEventListener("keydown", eventSideOverlay);
+  if (simpleBarInstance) {
+    simpleBarInstance = null;
+  }
 });
 </script>
 
 <template>
   <!-- Side Overlay-->
-  <aside id="side-overlay">
+  <aside id="side-overlay" data-simplebar-auto-hide="false">
     <slot>
       <!-- Side Header -->
       <div class="content-header border-bottom">
         <slot name="header">
           <!-- User Avatar -->
           <a class="img-link me-1" href="javascript:void(0)">
-            <img
-              class="img-avatar img-avatar32"
-              src="/assets/media/avatars/avatar10.jpg"
-              alt="Avatar"
-            />
+            <img class="img-avatar img-avatar32" src="/assets/media/avatars/avatar10.jpg" alt="Avatar" />
           </a>
           <!-- END User Avatar -->
 
           <!-- User Info -->
           <div class="ms-2">
-            <a class="text-dark fw-semibold fs-sm" href="javascript:void(0)"
-              >John Smith</a
-            >
+            <a class="text-dark fw-semibold fs-sm" href="javascript:void(0)">John Smith</a>
           </div>
           <!-- END User Info -->
         </slot>
 
         <!-- Close Side Overlay -->
-        <button
-          type="button"
-          class="ms-auto btn btn-sm btn-alt-danger"
-          @click="store.sideOverlay({ mode: 'close' })"
-        >
+        <button type="button" class="ms-auto btn btn-sm btn-alt-danger" @click="store.sideOverlay({ mode: 'close' })">
           <i class="fa fa-fw fa-times"></i>
         </button>
         <!-- END Close Side Overlay -->
@@ -94,68 +93,33 @@ onUnmounted(() => {
           <!-- Side Overlay Tabs -->
           <BaseBlock transparent :rounded="false" class="pull-x pull-t">
             <template #content>
-              <ul
-                class="nav nav-tabs nav-tabs-block nav-justified"
-                role="tablist"
-              >
+              <ul class="nav nav-tabs nav-tabs-block nav-justified" role="tablist">
                 <li class="nav-item">
-                  <button
-                    type="button"
-                    class="nav-link active"
-                    id="so-overview-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#so-overview"
-                    role="tab"
-                    aria-controls="so-overview"
-                    aria-selected="true"
-                  >
+                  <button type="button" class="nav-link active" id="so-overview-tab" data-bs-toggle="tab"
+                    data-bs-target="#so-overview" role="tab" aria-controls="so-overview" aria-selected="true">
                     <i class="fa fa-fw fa-coffee text-gray opacity-75 me-1"></i>
                     Overview
                   </button>
                 </li>
                 <li class="nav-item">
-                  <button
-                    type="button"
-                    class="nav-link"
-                    id="so-sales-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#so-sales"
-                    role="tab"
-                    aria-controls="so-sales"
-                    aria-selected="false"
-                  >
-                    <i
-                      class="fa fa-fw fa-chart-line text-gray opacity-75 me-1"
-                    ></i>
+                  <button type="button" class="nav-link" id="so-sales-tab" data-bs-toggle="tab"
+                    data-bs-target="#so-sales" role="tab" aria-controls="so-sales" aria-selected="false">
+                    <i class="fa fa-fw fa-chart-line text-gray opacity-75 me-1"></i>
                     Sales
                   </button>
                 </li>
               </ul>
               <div class="block-content tab-content overflow-hidden">
                 <!-- Overview Tab -->
-                <div
-                  class="tab-pane pull-x fade fade-left show active"
-                  id="so-overview"
-                  role="tabpanel"
-                  aria-labelledby="so-overview-tab"
-                >
+                <div class="tab-pane pull-x fade fade-left show active" id="so-overview" role="tabpanel"
+                  aria-labelledby="so-overview-tab">
                   <!-- Activity -->
-                  <BaseBlock
-                    title="Recent Activity"
-                    header-bg
-                    transparent
-                    btn-option-content
-                  >
+                  <BaseBlock title="Recent Activity" header-bg transparent btn-option-content>
                     <ul class="nav-items mb-0">
-                      <li
-                        v-for="(appEvent, index) in activity"
-                        :key="`event-${index}`"
-                      >
+                      <li v-for="(appEvent, index) in activity" :key="`event-${index}`">
                         <a class="text-dark d-flex py-2" :href="appEvent.href">
                           <div class="flex-shrink-0 me-3 ms-2">
-                            <i
-                              :class="`${appEvent.icon} text-${appEvent.color}`"
-                            ></i>
+                            <i :class="`${appEvent.icon} text-${appEvent.color}`"></i>
                           </div>
                           <div class="flex-grow-1 fs-sm">
                             <div class="fw-semibold">{{ appEvent.title }}</div>
@@ -171,29 +135,15 @@ onUnmounted(() => {
                   <!-- END Activity -->
 
                   <!-- Online Friends -->
-                  <BaseBlock
-                    title="Online Friends"
-                    header-bg
-                    transparent
-                    btn-option-content
-                  >
+                  <BaseBlock title="Online Friends" header-bg transparent btn-option-content>
                     <ul class="nav-items mb-0">
-                      <li
-                        v-for="(user, index) in users"
-                        :key="`userlist-${index}`"
-                      >
+                      <li v-for="(user, index) in users" :key="`userlist-${index}`">
                         <a class="d-flex py-2" :href="`${user.href}`">
-                          <div
-                            class="me-3 ms-2 overlay-container overlay-bottom"
-                          >
-                            <img
-                              class="img-avatar img-avatar48"
-                              :src="`/assets/media/avatars/${user.avatar}.jpg`"
-                              alt="User Photo"
-                            />
+                          <div class="me-3 ms-2 overlay-container overlay-bottom">
+                            <img class="img-avatar img-avatar48" :src="`/assets/media/avatars/${user.avatar}.jpg`"
+                              alt="User Photo" />
                             <span
-                              :class="`overlay-item item item-tiny item-circle border border-2 border-white bg-${user.statusColor}`"
-                            ></span>
+                              :class="`overlay-item item item-tiny item-circle border border-2 border-white bg-${user.statusColor}`"></span>
                           </div>
                           <div class="flex-grow-1 fs-sm">
                             <div class="fw-semibold">{{ user.name }}</div>
@@ -206,99 +156,44 @@ onUnmounted(() => {
                   <!-- END Online Friends -->
 
                   <!-- Quick Settings -->
-                  <BaseBlock
-                    title="Quick Settings"
-                    header-bg
-                    transparent
-                    btn-option-content
-                  >
+                  <BaseBlock title="Quick Settings" header-bg transparent btn-option-content>
                     <div class="mb-4">
                       <p class="fs-sm fw-semibold mb-2">Online Status</p>
                       <div class="form-check form-switch">
-                        <input
-                          class="form-check-input"
-                          type="checkbox"
-                          value
-                          id="so-settings-check1"
-                          name="so-settings-check1"
-                          v-model="state.settings.status"
-                        />
-                        <label
-                          class="form-check-label fs-sm"
-                          for="so-settings-check1"
-                          >Show your status to all</label
-                        >
+                        <input class="form-check-input" type="checkbox" value id="so-settings-check1"
+                          name="so-settings-check1" v-model="state.settings.status" />
+                        <label class="form-check-label fs-sm" for="so-settings-check1">Show your status to all</label>
                       </div>
                     </div>
                     <div class="mb-4">
                       <p class="fs-sm fw-semibold mb-2">Auto Updates</p>
                       <div class="form-check form-switch">
-                        <input
-                          class="form-check-input"
-                          type="checkbox"
-                          value
-                          id="so-settings-check2"
-                          name="so-settings-check2"
-                          v-model="state.settings.updated"
-                        />
-                        <label
-                          class="form-check-label fs-sm"
-                          for="so-settings-check2"
-                          >Keep up to date</label
-                        >
+                        <input class="form-check-input" type="checkbox" value id="so-settings-check2"
+                          name="so-settings-check2" v-model="state.settings.updated" />
+                        <label class="form-check-label fs-sm" for="so-settings-check2">Keep up to date</label>
                       </div>
                     </div>
                     <div class="mb-4">
                       <p class="fs-sm fw-semibold mb-1">Application Alerts</p>
                       <div class="space-y-2">
                         <div class="form-check form-switch">
-                          <input
-                            class="form-check-input"
-                            type="checkbox"
-                            value
-                            id="so-settings-check3"
-                            name="so-settings-check3"
-                            v-model="state.settings.notifications.email"
-                          />
-                          <label
-                            class="form-check-label fs-sm"
-                            for="so-settings-check3"
-                            >Email Notifications</label
-                          >
+                          <input class="form-check-input" type="checkbox" value id="so-settings-check3"
+                            name="so-settings-check3" v-model="state.settings.notifications.email" />
+                          <label class="form-check-label fs-sm" for="so-settings-check3">Email Notifications</label>
                         </div>
                         <div class="form-check form-switch">
-                          <input
-                            class="form-check-input"
-                            type="checkbox"
-                            value
-                            id="so-settings-check4"
-                            name="so-settings-check4"
-                            v-model="state.settings.notifications.sms"
-                          />
-                          <label
-                            class="form-check-label fs-sm"
-                            for="so-settings-check4"
-                            >SMS Notifications</label
-                          >
+                          <input class="form-check-input" type="checkbox" value id="so-settings-check4"
+                            name="so-settings-check4" v-model="state.settings.notifications.sms" />
+                          <label class="form-check-label fs-sm" for="so-settings-check4">SMS Notifications</label>
                         </div>
                       </div>
                     </div>
                     <div class="mb-4">
                       <p class="fs-sm fw-semibold mb-1">API</p>
                       <div class="form-check form-switch">
-                        <input
-                          class="form-check-input"
-                          type="checkbox"
-                          value
-                          id="so-settings-check5"
-                          name="so-settings-check5"
-                          v-model="state.settings.api"
-                        />
-                        <label
-                          class="form-check-label fs-sm"
-                          for="so-settings-check5"
-                          >Enable access</label
-                        >
+                        <input class="form-check-input" type="checkbox" value id="so-settings-check5"
+                          name="so-settings-check5" v-model="state.settings.api" />
+                        <label class="form-check-label fs-sm" for="so-settings-check5">Enable access</label>
                       </div>
                     </div>
                   </BaseBlock>
@@ -307,12 +202,8 @@ onUnmounted(() => {
                 <!-- END Overview Tab -->
 
                 <!-- Sales Tab -->
-                <div
-                  class="tab-pane pull-x fade fade-right"
-                  id="so-sales"
-                  role="tabpanel"
-                  aria-labelledby="so-sales-tab"
-                >
+                <div class="tab-pane pull-x fade fade-right" id="so-sales" role="tabpanel"
+                  aria-labelledby="so-sales-tab">
                   <!-- Stats -->
                   <BaseBlock>
                     <div class="row pull-t">
@@ -340,10 +231,7 @@ onUnmounted(() => {
                     </template>
 
                     <ul class="nav-items mb-0">
-                      <li
-                        v-for="(sale, index) in salesToday"
-                        :key="`sale-today-${index}`"
-                      >
+                      <li v-for="(sale, index) in salesToday" :key="`sale-today-${index}`">
                         <a class="text-dark d-flex py-2" :href="`${sale.href}`">
                           <div class="flex-shrink-0 me-3 ms-2">
                             <i :class="`${sale.icon}`"></i>
@@ -365,10 +253,7 @@ onUnmounted(() => {
                     </template>
 
                     <ul class="nav-items">
-                      <li
-                        v-for="(sale, index) in salesYesterday"
-                        :key="`sale-today-${index}`"
-                      >
+                      <li v-for="(sale, index) in salesYesterday" :key="`sale-today-${index}`">
                         <a class="text-dark d-flex py-2" :href="`${sale.href}`">
                           <div class="flex-shrink-0 me-3 ms-2">
                             <i :class="`${sale.icon}`"></i>
@@ -381,10 +266,7 @@ onUnmounted(() => {
                       </li>
                     </ul>
                     <div class="text-center">
-                      <a
-                        class="btn btn-sm btn-alt-secondary"
-                        href="javascript:void(0)"
-                      >
+                      <a class="btn btn-sm btn-alt-secondary" href="javascript:void(0)">
                         <i class="fa fa-arrow-down opacity-50 me-1"></i> Load
                         More..
                       </a>
