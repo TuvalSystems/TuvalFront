@@ -529,7 +529,7 @@ const routes = [
           {
             path: "sync-logs", // Nivel 3 (ID 50)
             name: "sistemas-sync-logs", // Coincide con 'to' de ID 50
-            component: () => import("@/views/sistemas/logs/LogsSyncView.vue"),
+            component: () => import("@/views/sistemas/logs/LogsSyncIndex.vue"),
             meta: { title: "Logs de Sincronización" },
           },
         ],
