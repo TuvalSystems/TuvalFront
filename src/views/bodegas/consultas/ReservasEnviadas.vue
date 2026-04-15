@@ -201,7 +201,7 @@ onMounted(() => {
                         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
                             title="Reprogramar Fecha Factura" @click="printPdfGuiaRemision(row.id)"
                             :disabled="isTestLocked(row)">
-                            <span v-if="isTestLocked(row)" class="spinner-border spinner-border-sm" role="status"
+                            <span v-if="isTestLocked(row)" class="spinner-border spinner-border-sm"
                                 aria-hidden="true"></span>
                             <i v-else class="fa fa-print mx-1"></i>
                         </button>

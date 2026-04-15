@@ -324,7 +324,7 @@ onBeforeUnmount(() => {
                 <template #cell-estado="{ value, row }">
                     <span :class="estadoClass(value)" style="font-size:12px">{{
                         row.estado ?? "N/A"
-                    }}</span>
+                        }}</span>
                 </template>
                 <template #cell-total="{ value, row }">
                     <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
@@ -333,8 +333,8 @@ onBeforeUnmount(() => {
                 <template #cell-bodegas_uso="{ value, row }">
                     <code v-for="(bod, index) in value" :key="`${row.id}-bodega-${index}`" class="d-block mb-1"
                         style="width: fit-content;">
-        {{ bod }}
-    </code>
+                        {{ bod }}
+                        </code>
                 </template>
                 <template #actions="{ row }">
                     <!-- <button type="button" class="btn btn-primary btn-sm mx-1" title="Usar Reserva"
@@ -357,10 +357,10 @@ onBeforeUnmount(() => {
                         </li>
                         <li v-if="row.estado === 'pendiente'">
                             <div class="dropdown-divider my-2"></div>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
-                                    @click="cancelarReserva(row.id)">
-                                    <i class="fa-solid fa-ban fa-fw"></i> <span class="fw-semibold">Cancelar</span>
-                                </button>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                                @click="cancelarReserva(row.id)">
+                                <i class="fa-solid fa-ban fa-fw"></i> <span class="fw-semibold">Cancelar</span>
+                            </button>
                         </li>
                     </ul>
                 </template>
