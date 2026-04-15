@@ -33,14 +33,18 @@ const navigation = computed(() => store.state.menu);
 const currentPath = computed(() => route.name);
 
 function checkSecurity() {
-  const path = currentPath.value;
-  if (path === 'notificaciones' || path === 'Login' || path === actions.state.home) {
+  const pathToValidate = route.meta.extends || currentPath.value;
+  if (
+    pathToValidate === 'notificaciones' ||
+    pathToValidate === 'Login' ||
+    pathToValidate === 'password-change' ||
+    pathToValidate === actions.state.home
+  ) {
     return true;
   }
   const menu = navigation.value;
-  if (!menu || !Array.isArray(menu)) return true;
-
-  return isPathInMenu(menu, path);
+  if (!menu || !Array.isArray(menu) || menu.length === 0) return true;
+  return isPathInMenu(menu, pathToValidate);
 }
 
 function isPathInMenu(items, targetPath) {
@@ -62,12 +66,13 @@ function isPathInMenu(items, targetPath) {
 
 watch([() => route.name, () => store.state.menu], ([newPath, newMenu]) => {
 
-  if (!newMenu || newMenu.length === 0) return;
+  if (!newMenu || !Array.isArray(newMenu) || newMenu.length === 0) {
+    return;
+  }
   const excepciones = ['Login', 'notificaciones', actions.state.home];
   if (excepciones.includes(newPath)) return;
 
-  // Ejecutamos la validación real
-  if (!isPathInMenu(newMenu, newPath)) {
+  if (!checkSecurity()) {
     swalWarning('Acceso denegado: No tienes permisos para esta sección.');
     router.push({ name: actions.state.home });
   }
@@ -77,13 +82,6 @@ onMounted(() => {
   const toastEl = document.getElementById("toast-example-1");
   if (toastEl) {
     toast1.value = new window.bootstrap.Toast(toastEl);
-  }
-
-  if (route.name !== actions.state.home) {
-    if (!checkSecurity()) {
-      swalWarning('Su usuario no tiene permisos para esta sección.');
-      router.push({ name: actions.state.home });
-    }
   }
 
 });

@@ -433,6 +433,7 @@ const routes = [
         component: TransferenciasVentaBodega,
         meta: {
           title: "Bodegas - Transferencias por venta bodega",
+          extends: "bodegas-transferenciasventa",
         },
       },
       {
@@ -457,6 +458,8 @@ const routes = [
         component: TransferenciasReposicionBodega,
         meta: {
           title: "Bodegas - Transferencias por reposición bodega",
+          extends: "bodegas-transferenciasreposicion",
+
         },
       },
       {
@@ -496,12 +499,17 @@ const routes = [
         name: "bodegas-reservas-transferencias-detalle",
         component: () => import("@/views/bodegas/reservas/TransferenciaReservaDetalleBodega.vue"),
         props: true,
+        meta: {
+          title: "Bodegas - Detalle Reserva",
+          extends: "bodegas-reservas-transferencias",
+        }
       },
       {
         path: "/bodegas/transferencias/reservas/recibir",
         name: "bodegas-reservas-transferencias-recibir",
         component: () => import("@/views/bodegas/reservas/RecibirReservasIndex.vue"),
         props: true,
+
       },
     ],
   },
