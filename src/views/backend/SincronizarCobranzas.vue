@@ -55,36 +55,6 @@
                 <tr>
                   <td>
                     <button
-                      type="button"
-                      class="btn btn-sm btn-alt-secondary w-100"
-                      @click="sincronizaDataGP(testBlock,'/llenaclientesgp')"
-                      :disabled="isDisabled"
-                    >
-                      Sincronizar Clientes
-                    </button>
-                  </td>
-                  <td>
-                    <code>/api/llenaclientesgp()</code>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-alt-secondary w-100"
-                        @click="sincronizaDataGP(testBlock,'/llenaclientesucursalgp')"
-                        :disabled="isDisabled"
-                    >
-                      Sincronizar Sucursales de clientes
-                    </button>
-                  </td>
-                  <td>
-                    <code>/api/llenaclientesucursalgp()</code>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <button
                         type="button"
                         class="btn btn-sm btn-alt-secondary w-100"
                         @click="sincronizaDataGP(testBlock,'/llenadescuentoformapagogp')"
