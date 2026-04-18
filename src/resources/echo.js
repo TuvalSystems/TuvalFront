@@ -24,7 +24,9 @@ export const echo = new Echo({
   encrypted: isTLS,
   enabledTransports: ['ws', 'wss'],
   disableStats: true,
-  wsPath: '/ws-soketi',
+  wsPath: '/ws-soketi/',
+  activityTimeout: 30000,
+  pongTimeout: 10000,
   // ⚡ Authorizer personalizado con Bearer desde tu store
   // (evita depender de cookies/CSRF y funciona aunque el token cambie)
 

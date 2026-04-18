@@ -19,6 +19,12 @@
             Documento(s)
           </button>
         </li>
+        <li v-if="direccionEnvio && direccionEnvio.id" class="nav-item">
+          <button type="button" class="nav-link" :class="{ 'active': tabActual === 'direccion_envio' }"
+            @click="tabActual = 'direccion_envio'">
+            Dirección Envío
+          </button>
+        </li>
       </ul>
       <div class="block-content tab-content fs-sm">
         <div class="tab-pane fade" :class="{ 'active show': tabActual === 'detalle' }">
@@ -26,35 +32,35 @@
             <table class="table table-striped table-sm table-vcenter">
               <tbody>
                 <tr v-if="verpedido.factura != ''">
-                  <th class="fs-sm">Factura</th>
+                  <th scope class="fs-sm">Factura</th>
                   <td class="fs-sm">{{ verpedido.factura }}</td>
-                  <th v-if="verpedido.cotizacion" class="fs-sm">Cotización Origen</th>
+                  <th scope v-if="verpedido.cotizacion" class="fs-sm">Cotización Origen</th>
                   <td v-if="verpedido.cotizacion" class="fs-sm" colspan="3">{{ verpedido.cotizacion }}</td>
                   <td v-if="!verpedido.cotizacion" class="fs-sm" colspan="4"></td>
                 </tr>
                 <tr>
-                  <th class="fs-sm">Pedido</th>
+                  <th scope class="fs-sm">Pedido</th>
                   <td class="fs-sm">{{ verpedido.pedido }}</td>
-                  <th class="fs-sm">RUC</th>
+                  <th scope class="fs-sm">RUC</th>
                   <td class="fs-sm">{{ verpedido.CLI_RUC }}</td>
-                  <th class="fs-sm">Razón Social</th>
+                  <th scope class="fs-sm">Razón Social</th>
                   <td class="fs-sm">{{ verpedido.CLI_RAZON_SOCIAL }}</td>
                 </tr>
                 <tr>
-                  <th class="fs-sm">Bodega</th>
+                  <th scope class="fs-sm">Bodega</th>
                   <td class="fs-sm">
                     {{ verpedido.BOD_BODEGA }}
                   </td>
-                  <th class="fs-sm">Fecha/hora</th>
+                  <th scope class="fs-sm">Fecha/hora</th>
                   <td class="fs-sm">
                     {{ verpedido.created_at }}
                   </td>
-                  <th class="fs-sm">Usuario</th>
+                  <th scope class="fs-sm">Usuario</th>
                   <td class="fs-sm">{{ verpedido.USERID }}</td>
 
                 </tr>
                 <tr>
-                  <th class="fs-sm">Nota Operaciones</th>
+                  <th scope class="fs-sm">Nota Operaciones</th>
                   <td class="fs-sm">
                     {{ verpedido.nota_operaciones }}
                   </td>
@@ -63,7 +69,7 @@
             </table>
           </div>
           <div v-if="detalle_orden_despacho_loading" class="text-center">
-            <div class="spinner-border text-primary mt-4" role="status">
+            <div class="spinner-border text-primary mt-4">
               <span class="visually-hidden">Loading...</span>
             </div>
           </div>
@@ -72,13 +78,13 @@
               class="table table-striped table-sm table-vcenter fs-sm">
               <thead>
                 <tr>
-                  <th>Código</th>
-                  <th>3L</th>
-                  <th>Descripción</th>
-                  <th class="text-end">Cantidad</th>
-                  <th>Bodega</th>
-                  <th>Compartimiento</th>
-                  <th class="text-end">Peso</th>
+                  <th scope>Código</th>
+                  <th scope>3L</th>
+                  <th scope>Descripción</th>
+                  <th scope class="text-end">Cantidad</th>
+                  <th scope>Bodega</th>
+                  <th scope>Compartimiento</th>
+                  <th scope class="text-end">Peso</th>
                 </tr>
               </thead>
               <tbody>
@@ -108,40 +114,48 @@
                   </tr>
                 </template>
                 <tr>
-                  <th colspan="7">&nbsp;</th>
+                  <th scope colspan="7">&nbsp;</th>
                 </tr>
                 <tr>
-                  <th colspan="6" class="fs-sm text-end">Peso total del despacho</th>
-                  <th class="fs-sm text-end">{{ formatPrice(detalle_orden_despacho.orden.peso) }}Kg</th>
+                  <th scope colspan="6" class="fs-sm text-end">Peso total del despacho</th>
+                  <th scope class="fs-sm text-end">{{ formatPrice(detalle_orden_despacho.orden.peso) }}Kg</th>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-        <div v-if="documentosPedidos && documentosPedidos.length" class="tab-pane fade flex-wrap gap-2 p-3" 
+        <div v-if="documentosPedidos && documentosPedidos.length" class="tab-pane fade flex-wrap gap-2 p-3"
           :class="{ 'active show': tabActual === 'documentos_pdf' }">
           <DocumentosPdf v-if="documentosPedidos" :documentos="documentosPedidos"></DocumentosPdf>
         </div>
+        <div v-if="direccionEnvio && direccionEnvio.id" class="tab-pane fade flex-wrap gap-2 p-3"
+          :class="{ 'active show': tabActual === 'direccion_envio' }">
+          <DireccionEnvioOrd v-if="direccionEnvio" :direccion="direccionEnvio"></DireccionEnvioOrd>
+        </div>
       </div>
       <div class="block-content block-content-full text-end bg-body">
-      <button  type="button" class="btn btn-success btn-sm mx-2" @click="imprimirOrdendespacho(currentOrden.id)"><i class="fa fa-print"></i> Imprimir</button>
-      <button  type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cerrar</button>
-    </div>
+        <button type="button" class="btn btn-success btn-sm mx-2" @click="imprimirOrdendespacho(currentOrden.id)"><i
+            class="fa fa-print"></i> Imprimir</button>
+        <button type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cerrar</button>
+      </div>
+
+      
     </template>
-    
+
   </BaseBlock>
 </template>
 <script setup>
 import { computed, ref } from "vue";
 import { useStore } from 'vuex'
-import { formatPrice, formatPrice4 } from "@/functions";
+import { formatPrice } from "@/functions";
 import DocumentosPdf from "@/views/ventas/modals/tabs/DocumentosPdf.vue";
+import DireccionEnvioOrd from "@/views/ventas/modals/tabs/DireccionEnvioOrd.vue";
 
 const store = useStore();
 const picking = computed(() => store.state.picking);
 const detalle_orden_despacho = computed(() => store.state.detalle_orden_despacho);
-// const documentosPdf = computed(() => store.state.detalle_orden_despacho.orden.documentosPdf);
 const detalle_orden_despacho_loading = computed(() => store.state.detalle_orden_despacho_loading);
+const direccionEnvio = computed(() => store.state.detalle_orden_despacho?.orden?.sucursal);
 const pesototal = ref(0);
 const { verpedido, currentOrden, documentosPedidos } = defineProps({
   verpedido: Object,

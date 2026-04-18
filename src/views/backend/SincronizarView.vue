@@ -2,7 +2,7 @@
   <!-- Hero -->
   <BasePageHeading
     title="Sincronizar"
-    subtitle="SIncronización de datos desde Dynamics GP"
+    subtitle="Sincronización de datos desde Dynamics GP"
   >
     <template #extra>
       <nav aria-label="breadcrumb">
@@ -146,7 +146,7 @@
                     <code>/api/llenaarticulosgp()</code>
                   </td>
                 </tr>
-                <tr>
+                <!-- <tr>
                   <td>
                     <button
                       type="button"
@@ -160,7 +160,7 @@
                   <td>
                     <code>/api/llenaclientesgp()</code>
                   </td>
-                </tr>
+                </tr> -->
                 <tr>
                   <td>
                     <button
@@ -180,7 +180,7 @@
                     <code>/api/llenaudatositemsl()</code>
                   </td>
                 </tr>
-                <tr>
+                <!-- <tr>
                   <td>
                     <button
                       type="button"
@@ -194,7 +194,7 @@
                   <td>
                     <code>/api/llenaclientesucursalgp()</code>
                   </td>
-                </tr>
+                </tr> -->
                 <tr>
                   <td>
                     <button

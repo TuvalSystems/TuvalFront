@@ -77,8 +77,7 @@
                 <DatasetItem tag="tbody" class="fs-sm">
                   <template #default="{ row, index }">
                     <tr :class="(row.guias && row.guias.length) ? 'table-success' : ''
-                      || (row.guias && row.enviadas) ? 'table-warning' : ''
-                      ">
+                      || (row.guias && row.enviadas) ? 'table-warning' : ''">
                       <td>{{ index + 1 }}</td>
                       <td class="fs-sm">
                         <a href="javascript:void(0);" @click="verOrdenDespacho(row)">{{ row.orden }}</a>
@@ -128,7 +127,7 @@
                       </td>
                       <td v-else style="min-width: 146px;" class="text-center">
                         <div v-if="row.loading" class="text-center">
-                          <div class="spinner-border spinner-border-sm text-primary " role="status">
+                          <div class="spinner-border spinner-border-sm text-primary ">
                             <span class="visually-hidden">Loading...</span>
                           </div>
                         </div>
@@ -172,7 +171,6 @@
                                   :disabled="loadingDispatch" @click="confirmDespacharGuia(guia)">
                                   <i class="fa fa-print"></i> Despachar
                                 </button>
-                                <!-- <button  type="button" class="btn btn-outline-danger btn-sm mx-2" @click="confirmEliminarguiaGuia(guia)"><i class="fa fa-trash"></i> Eliminar</button> -->
                               </td>
                             </tr>
                           </tbody>
@@ -189,7 +187,7 @@
           No hay datos
         </div>
         <div v-if="ordenes_despacho_loading" class="text-center">
-          <div class="spinner-border text-primary mt-4" role="status">
+          <div class="spinner-border text-primary mt-4">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
@@ -208,29 +206,30 @@
     <!-- END Full Table -->
   </div>
   <!-- END Page Content -->
-  <div class="modal" id="modal-liberar" tabindex="-1" role="dialog" aria-labelledby="modal-liberar" aria-hidden="true"
+  <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-liberar" aria-hidden="true"
     ref="pickingModal">
-    <div class="modal-dialog modal-xl modal-md modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-md modal-dialog-centered">
       <div class="modal-content">
         <Picking :verpedido="verpedido"></Picking>
       </div>
     </div>
   </div>
 
-  <div class="modal" id="modal-guiaremision" tabindex="-1" role="dialog" aria-labelledby="modal-guiaremision"
-    aria-hidden="true" ref="guiaremisionModal">
-    <div class="modal-dialog modal-xl modal-md modal-dialog-centered" role="document">
+  <div class="modal" id="modal-guiaremision" tabindex="-1" aria-labelledby="modal-guiaremision" aria-hidden="true"
+    ref="guiaremisionModal">
+    <div class="modal-dialog modal-xl modal-md modal-dialog-centered">
       <div class="modal-content">
         <GuiaRemision :verpedido="verpedido" @generarGuia="generarGuia"></GuiaRemision>
       </div>
     </div>
   </div>
 
-  <div class="modal" id="modal-ordendespacho" tabindex="-1"  aria-labelledby="modal-ordendespacho"
-    aria-hidden="true" ref="ordendespachoModal">
+  <div class="modal" id="modal-ordendespacho" tabindex="-1" aria-labelledby="modal-ordendespacho" aria-hidden="true"
+    ref="ordendespachoModal">
     <div class="modal-dialog modal-xl modal-md modal-dialog-centered">
       <div class="modal-content">
-        <OrdenDespacho v-if="currentOrden && documentosPdf" :verpedido="verpedido" :currentOrden="currentOrden" :documentosPedidos="documentosPdf"></OrdenDespacho>
+        <OrdenDespacho v-if="currentOrden && documentosPdf" :verpedido="verpedido" :currentOrden="currentOrden"
+          :documentosPedidos="documentosPdf"></OrdenDespacho>
       </div>
     </div>
   </div>
@@ -240,12 +239,13 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useTemplateStore } from "@/stores/template";
-import swalAlert, { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
+import { swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+
 import Picking from "./modals/Picking.vue";
 import GuiaRemision from "./modals/GuiaRemision.vue";
 import OrdenDespacho from "./modals/OrdenDespacho.vue";
-import { formatPrice, formatPrice4 } from "@/functions";
+import { formatPrice } from "@/functions";
 import VueEasyLightbox from "vue-easy-lightbox";
 import { useDispatchGuideProcess } from '@/composables/bodegas/despachos/useDispatchGuideProcess';
 
@@ -374,12 +374,12 @@ let ordendespachoModal = ref(null);
 let ordendespachoModalObj = null;
 
 const documentosPdf = ref(null);
+const direccionEnvio = ref(null);
 function verOrdenDespacho(orden) {
   currentOrden.value = orden;
   verpedido.value = orden.pedido;
   documentosPdf.value = orden.documentosPdf;
   ordendespachoModalObj.show();
-  // ordendespachoModalObj.show();
   store.dispatch("verOrdenDespacho", orden.id);
 
 }
@@ -434,12 +434,6 @@ function getDescripcion(orden) {
 
 function getDescripcionTodas() {
   loading_todas.value = true;
-
-  // dsRows.map( (row) => {
-  //   if(ordenes_despacho.value[row].sindetalle){
-  //     getDescripcion(ordenes_despacho.value[row]);
-  //   }
-  // })
   ordenes_despacho.value.map(async (orden) => {
     if (orden.sindetalle) {
       getDescripcion(orden);
@@ -520,7 +514,6 @@ function confirmDespacharGuia(guia) {
     })
     .then((result) => {
       if (result.value) {
-        // templateStore.pageLoader({ mode: "on" });
         despacharguiaGuia(guia);
       }
     });

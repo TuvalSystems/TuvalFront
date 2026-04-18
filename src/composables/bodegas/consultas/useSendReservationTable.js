@@ -11,7 +11,7 @@ export function useSendReservationTable() {
     const apiList = "despachos/reservas-enviadas";
     const ptoVtaId = store.state.puntodeventaselect;
     const columns = reactive([
-        { label: "Guia", key: "numero_guia", sortable: true,  clickable: true },
+        { label: "Guia", key: "numero_guia", sortable: true, clickable: true },
         { label: "Destino", key: "bodega_destino", sortable: true },
         { label: "Cliente", key: "razon_social_destinatario", sortable: true },
         { label: "Dirección", key: "direccion_destinatario", sortable: true },
@@ -62,7 +62,7 @@ export function useSendReservationTable() {
             fecha_hasta: table.filters.fecha_hasta,
             ptoVtaDestino: table.filters.ptoVtaDestino
         }
-        return  run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,                         // 👈 activa takeLatest
             key: `lista-reservas-enviadas`,      // 👈 clave para este endpoint
@@ -77,13 +77,13 @@ export function useSendReservationTable() {
     }
 
     const refresh = () => {
-        table.searchTerm = "",
-            table.perPage = "10",
-            table.sortOrder = "desc",
-            table.ptovta = ptoVtaId,
-            table.sortField = "",
-            table.currentPage = 1,
-            table.filters.fecha_hasta = null;
+        table.searchTerm = "";
+        table.perPage = "10";
+        table.sortOrder = "desc";
+        table.ptovta = ptoVtaId;
+        table.sortField = "";
+        table.currentPage = 1;
+        table.filters.fecha_hasta = null;
         table.filters.fecha_desde = null;
         fetchList(1);
     };
