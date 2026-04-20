@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useStore } from 'vuex'
 import { useTemplateStore } from "@/stores/template";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
@@ -17,8 +17,8 @@ const {
   sendGuideSalesTransfer,
 } = useSalesTransfersGuideProcess();
 const {
-    loadingCancelPicking,
-        cancelPicking
+  loadingCancelPicking,
+  cancelPicking
 } = useSalesTransfersProcess();
 
 const store = useStore();
@@ -284,16 +284,17 @@ function checkgenerarguia() {
 }
 
 
-function verPicking(bodega) {
+async function verPicking(bodega) {
   currentBodega.value = bodega;
-  pickingModalObj.show();
-
-  let arreglo = [];
-  bodega.traslados.map(item => {
-    if (item.aplicar_todo) {
-      arreglo.push(item);
-    }
-  })
+  await nextTick();
+  if (pickingModalObj) {
+    pickingModalObj.show();
+  } else {
+    // Si por alguna razón es null, lo re-instanciamos
+    pickingModalObj = new Modal(pickingModal.value);
+    pickingModalObj.show();
+  }
+  let arreglo = bodega.traslados.filter(item => item.aplicar_todo);
   store.dispatch('detallePickingTransferencia', arreglo)
 }
 
@@ -440,8 +441,8 @@ function confirmCancelarPicking(row) {
 
 async function cancelarPicking(row) {
   const response = await cancelPicking(row);
-  if(!response.ok){
-    if(response.status >= 400 && response.status < 500){
+  if (!response.ok) {
+    if (response.status >= 400 && response.status < 500) {
       swalWarning(response.message);
       return;
     }
@@ -459,7 +460,7 @@ onMounted(async () => {
     if (pickingModal.value) {
       pickingModalObj = new Modal(pickingModal.value);
     }
-    
+
     if (guiaRemisionModal.value) {
       guiaRemisionModalObj = new Modal(guiaRemisionModal.value);
     }
