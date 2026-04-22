@@ -455,7 +455,7 @@ async function cancelarPicking(row) {
 }
 
 onMounted(async () => {
-  await store.dispatch('transferenciasVenta');
+  // await store.dispatch('transferenciasVenta');
   setTimeout(() => {
     if (pickingModal.value) {
       pickingModalObj = new Modal(pickingModal.value);
