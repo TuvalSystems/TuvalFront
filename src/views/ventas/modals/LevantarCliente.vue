@@ -251,8 +251,12 @@ async function copiarPedido(pedido, tipo) {
           </div>
         </BaseBlock>
 
+
         <!-- sucursales a seleccionar  -->
         <BaseBlock v-if="showInfoSucursales && sucursales.length > 0 && !loadingAvailableCredit" class="mt-4 mb-0">
+          <h5 class="fw-bold mb-3 fs-sm text-uppercase text-muted">
+            <i class="fa fa-building me-1"></i> Lista de sucursales activas
+          </h5>
           <div class="row items-push">
             <div class="col-md-4" v-for="sucursal in sucursales" :key="sucursal.id">
               <div class="form-check form-block p-0">
