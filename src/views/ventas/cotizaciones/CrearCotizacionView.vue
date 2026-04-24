@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
-import { swalWarning, swalError, toast, swalSuccess } from "@/functions/swal-alert.js";
+import {  swalError, toast, swalSuccess } from "@/functions/swal-alert.js";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
@@ -211,10 +211,6 @@ const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
   }
 })
 const verModalBorradoresObj = useBootstrapModal(verModalBorradoresRef);
-
-
-
-
 const verItemAltObj = useBootstrapModal(verItemAltRef, {
   onHidden: () => {
     clearSelectionItemalternative();
@@ -294,7 +290,7 @@ async function processSelectClient(client) {
   }
   const [respCredit, respBranches] = await Promise.all([
     fetchAvailableCreditCustomer(client.CLI_RUC), // Corregido 'Available'
-    fetchCustomerBranches(client.CLI_RUC)
+    fetchCustomerBranches(client.CLI_RUC, 'cotizacion')
   ]);
 
   if (!respCredit?.ok) {
@@ -367,7 +363,7 @@ async function openModalCreateAddress() {
 async function closeModalCreateAddress(client) {
   verModalCrearDireccionModalObj.hide();
   if (client && client.CLI_RUC) {
-    await fetchCustomerBranches(client.CLI_RUC);
+    await fetchCustomerBranches(client.CLI_RUC, 'cotizacion');
   }
   dataClient.value = {};
 
@@ -998,7 +994,7 @@ watch(
       if (form.value.cliente?.CLI_RUC) {
         showInfoClient.value = true;
         const promises = [
-          fetchCustomerBranches(form.value.cliente.CLI_RUC),
+          fetchCustomerBranches(form.value.cliente.CLI_RUC, 'cotizacion'),
           fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC)
         ];
         if (form.value.condicion_pago_id) {
@@ -1132,7 +1128,7 @@ onMounted(async () => {
     await nextTick();
     try {
       const promises = [];
-      promises.push(fetchCustomerBranches(form.value.cliente.CLI_RUC));
+      promises.push(fetchCustomerBranches(form.value.cliente.CLI_RUC, 'cotizacion'));
       promises.push(fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC)); //opcional veamos que hace
       if (form.value.condicion_pago_id) {
         promises.push(fetchMethodPayment(form.value.condicion_pago_id));
@@ -1254,7 +1250,7 @@ onMounted(async () => {
 
         <!-- detalle visual de informacion de cliente -->
         <div v-if="loadingAvailableCredit && !form.cliente?.id" class="text-center py-4">
-          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+          <div class="spinner-border text-primary mt-4" ><span class="visually-hidden">Loading...</span>
           </div>
         </div>
         <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
@@ -1441,7 +1437,7 @@ onMounted(async () => {
           </div>
         </template>
         <div class="d-flex align-items-center mb-4">
-          <div class="btn-group btn-group-sm" role="group">
+          <div class="btn-group btn-group-sm">
             <button type="button" class="btn btn-outline-primary" @click="openModalSearchItem"><i
                 class="fa fa-search me-1"></i>
               Buscar
@@ -1613,7 +1609,7 @@ onMounted(async () => {
                   </td>
                   <!-- botones -->
                   <td class="text-center align-middle">
-                    <div class="btn-group btn-group-sm" role="group" aria-label="Acciones del ítem">
+                    <div class="btn-group btn-group-sm" aria-label="Acciones del ítem">
                       <button type="button " class="btn btn-danger btn-sm"
                         @click="confirmarEliminarArticulo(element, index)" :disabled="element.disabled_delete"
                         title="Eliminar">

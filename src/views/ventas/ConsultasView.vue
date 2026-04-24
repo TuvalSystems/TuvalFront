@@ -65,7 +65,7 @@
                                         </div>
                                     </form>
                                     <div v-if="clientes.loading" class="text-center">
-                                        <div class="spinner-border text-primary mt-4" role="status"><span
+                                        <div class="spinner-border text-primary mt-4"><span
                                                 class="visually-hidden">Loading...</span></div>
                                     </div>
                                     <BaseBlock v-if="verclientes && !clientes.loading">
@@ -107,8 +107,8 @@
                                                             {{ cliente.CLI_TELEFONO_1 }}
                                                         </td>
                                                         <td class="fs-sm">
-                                                            <a
-                                                                :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{ cliente.CLI_CORREO_ELECT_SRI }}</a>
+                                                            <a :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{
+                                                                cliente.CLI_CORREO_ELECT_SRI }}</a>
                                                         </td>
 
                                                     </tr>
@@ -133,9 +133,9 @@
     <!-- END Page Content -->
 
     <!-- Large Block Modal -->
-    <div class="modal" id="modal-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-cliente" aria-hidden="true"
+    <div class="modal" id="modal-cliente" tabindex="-1" aria-labelledby="modal-cliente" aria-hidden="true"
         ref="thisModal">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <BaseBlock title="Detalle de cliente" transparent class="mb-0" v-if="currentCliente">
                     <template #options>
@@ -176,7 +176,8 @@
                                         <th class="fs-sm">Estado</th>
                                         <td class="fs-sm">
                                             <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                                                :class="currentCliente.CLI_ESTADO == 'ACTIVO' ? 'bg-success-light text-success' : 'bg-danger-light text-danger'">{{ currentCliente.CLI_ESTADO }}</span>
+                                                :class="currentCliente.CLI_ESTADO == 'ACTIVO' ? 'bg-success-light text-success' : 'bg-danger-light text-danger'">{{
+                                                currentCliente.CLI_ESTADO }}</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -201,8 +202,8 @@
                                     </tr>
                                     <tr>
                                         <th class="fs-sm">Correo</th>
-                                        <td class="fs-sm"><a
-                                                :href="'mailto:' + currentCliente.CLI_CORREO_ELECT_SRI">{{ currentCliente.CLI_CORREO_ELECT_SRI }}</a>
+                                        <td class="fs-sm"><a :href="'mailto:' + currentCliente.CLI_CORREO_ELECT_SRI">{{
+                                                currentCliente.CLI_CORREO_ELECT_SRI }}</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -249,8 +250,8 @@
                                         <p v-if="sucursal.CLI_SUC_TELEFONO" class="fs-sm mb-0">Teléfono:
                                             {{ sucursal.CLI_SUC_TELEFONO }}</p>
                                         <p class="fs-sm">
-                                            <a
-                                                :href="'mailto:' + sucursal.CLI_SUC_CORREO_ELECTRONICO_SRI">{{ sucursal.CLI_SUC_CORREO_ELECTRONICO_SRI }}</a>
+                                            <a :href="'mailto:' + sucursal.CLI_SUC_CORREO_ELECTRONICO_SRI">{{
+                                                sucursal.CLI_SUC_CORREO_ELECTRONICO_SRI }}</a>
                                         </p>
                                     </BaseBlock>
                                 </div>
@@ -365,6 +366,7 @@ const clientes = computed(() => store.state.clientes);
 
 async function buscarclientes(ev) {
     verclientes.value = true;
+    cliente.tipo = 'consulta';
     ev.preventDefault();
     store.dispatch('buscarclientes', cliente)
         .catch(err => {
