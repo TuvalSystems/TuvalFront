@@ -22,7 +22,7 @@
                     <!-- Block Tabs Default Style -->
                     <BaseBlock>
                         <template #content>
-                            <ul class="nav nav-tabs nav-tabs-block" role="tablist">
+                            <ul class="nav nav-tabs nav-tabs-block">
                                 <li class="nav-item">
                                     <button class="nav-link active" id="btabs-articulos-tab" data-bs-toggle="tab"
                                         data-bs-target="#btabs-articulos" role="tab" aria-controls="btabs-articulos"
@@ -50,7 +50,8 @@
                                 <!-- clientes -->
                                 <div class="tab-pane" id="btabs-clientes" role="tabpanel"
                                     aria-labelledby="btabs-clientes-tab">
-                                    <form class="row row-cols-lg-auto g-3 align-items-center"
+                                    <verTabCliente></verTabCliente>
+                                    <!-- <form class="row row-cols-lg-auto g-3 align-items-center"
                                         @submit.prevent="onSubmit">
                                         <div class="col-12">
                                             <label class="visually-hidden" for="buscar-cliente">Buscar
@@ -116,7 +117,7 @@
                                             </table>
                                         </div>
                                     </BaseBlock>
-                                    <p>&nbsp;</p>
+                                    <p>&nbsp;</p> -->
                                 </div>
                             </div>
                         </template>
@@ -278,6 +279,7 @@ import { formatPrice, format } from "@/functions";
 import VueEasyLightbox from "vue-easy-lightbox";
 const buscar_articulo = computed(() => store.state.buscar_articulo);
 import verTabArticulos from "@/views/ventas/modals/tabs/consultas/ArticulosTab.vue";
+import verTabCliente from "@/views/ventas/modals/tabs/consultas/ClienteTab.vue";
 
 const store = useStore();
 

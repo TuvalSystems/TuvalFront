@@ -109,14 +109,6 @@ async function copiarPedido(pedido, tipo) {
   templateStore.pageLoader({ mode: "off" });
 }
 
-//funciones auxiliares
-function resetSelection() {
-  payload.cliente_id = null;
-  payload.sucursal_id = null;
-  showInfoClient.value = false;
-  showInfoSucursales.value = false;
-  showResultClients.value = true;
-}
 
 </script>
 <template>
