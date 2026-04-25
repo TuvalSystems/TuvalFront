@@ -18,7 +18,7 @@ export function useAdminLogTable() {
             fecha_hasta: null,
             search: "",
             perpage: "10",
-            sortField: "",
+            sortField: "created_at",
             sortOrder: "desc",
         },
         loading: false,
