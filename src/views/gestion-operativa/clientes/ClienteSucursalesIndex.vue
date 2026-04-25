@@ -79,7 +79,7 @@ async function openModalGestionSucursal(row) {
 
 }
 
-async function closeModalGestionSucursal(){
+async function closeModalGestionSucursal() {
   verModalGestionSucursalObj.hide();
   await nextTick();
   refresh();
@@ -152,7 +152,7 @@ onMounted(async () => {
       <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.filters.perpage"
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
         :sortField="table.filters.sortField" :sortOrder="table.filters.sortOrder" @onSort="onSort"
-        @onPageChange="fetchList" @onClick="handleClick" :is-row-disabled="isRowDisabled">
+        @onPageChange="fetchList" @onClick="handleClick" @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">
         <template #cell-estado="{ value, row }">
           <span :class="estadoClass(value)" style="font-size:12px">{{
             row.estado === 1 ? 'Activo' : 'Inactivo'
@@ -170,7 +170,8 @@ onMounted(async () => {
 
         <!-- slot de acciones -->
         <template #actions="{ row }">
-          <button @click="openModalGestionSucursal(row)" type="button" class="btn btn-primary btn-sm mx-1" :disabled="isModalLocked(row)">
+          <button @click="openModalGestionSucursal(row)" type="button" class="btn btn-primary btn-sm mx-1"
+            :disabled="isModalLocked(row)">
             <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
             <i v-else class="fa-solid fa-magnifying-glass me-1"></i>
           </button>

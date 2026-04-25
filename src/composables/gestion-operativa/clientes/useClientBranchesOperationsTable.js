@@ -59,9 +59,8 @@ export function useClientBranchesOperationsTable() {
 
         const payload = {
             ...table.filters,
-            page: table.currentPage,
         }
-        return run(() => axiosClient.post(apiList, { filters: payload }, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(apiList, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-logs`,

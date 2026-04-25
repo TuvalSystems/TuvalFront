@@ -2,6 +2,7 @@ import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 
+
 export function useAdminLogTable() {
     const { run } = useApiAction();
     const ctrl = ref(null); // AbortController actual
@@ -65,9 +66,8 @@ export function useAdminLogTable() {
 
         const payload = {
             ...table.filters,
-            page: table.currentPage,
         }
-        return run(() => axiosClient.post(apiList, {filters : payload}, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(apiList, {filters : payload,  page: table.currentPage}, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-logs`,
