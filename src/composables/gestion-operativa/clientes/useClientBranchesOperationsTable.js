@@ -81,7 +81,7 @@ export function useClientBranchesOperationsTable() {
         Object.assign(table.filters, {
             search: "",
             perpage: "10",
-            sortField: "",
+            sortField: "created_at",
             sortOrder: "desc",
         });
         table.currentPage = 1;
