@@ -18,10 +18,23 @@ export function useClientBranchesProcessOperation() {
         });
     }
 
+
+
+    const apiUpdateStatusBranch = 'gestion/sucursal/actualizar-estado';
+    const loadingUpdateStatusBranch = ref(false);
+    async function updateStatusBranch(id, status) {
+        return run(() => axiosClient.post(apiUpdateStatusBranch, { id: id, estado: status }), {
+            loadingRef: loadingUpdateStatusBranch,
+             successMessage: "Proceso realizado exitosamente.",
+        });
+    }
+
     return {
         loadingBranchDetail,
         branchDetail,
-        fetchBranchDetail
+        fetchBranchDetail,
+        loadingUpdateStatusBranch,
+        updateStatusBranch
     }
 
 }

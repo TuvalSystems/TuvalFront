@@ -79,6 +79,12 @@ async function openModalGestionSucursal(row) {
 
 }
 
+async function closeModalGestionSucursal(){
+  verModalGestionSucursalObj.hide();
+  await nextTick();
+  refresh();
+}
+
 onMounted(async () => {
   fetchList();
 });
@@ -179,7 +185,7 @@ onMounted(async () => {
     aria-hidden="true" ref="verModalGestionSucursalRef">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-        <verModalGestionSucursal v-if="dataModal" :sucursal="dataModal">
+        <verModalGestionSucursal v-if="dataModal" :data="dataModal" @closeModal="closeModalGestionSucursal">
         </verModalGestionSucursal>
       </div>
     </div>

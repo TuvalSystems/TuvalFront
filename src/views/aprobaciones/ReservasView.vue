@@ -1,9 +1,6 @@
 <script setup>
 import {
   onMounted,
-  watch,
-  computed,
-  reactive,
   ref,
   nextTick,
   onBeforeUnmount,
@@ -23,7 +20,7 @@ import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoF
 import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
 import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
-import { formatPriceJm, formatJm } from "@/functions";
+import { formatPriceJm } from "@/functions";
 import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits'
 const { columns, listPerpage, table, refresh, fetchReservationRequests, onSort, estadoClass,
   totalClass } =
