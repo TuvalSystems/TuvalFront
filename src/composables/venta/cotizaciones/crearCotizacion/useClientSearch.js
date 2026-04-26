@@ -1,6 +1,6 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref, reactive, watch, computed } from "vue";
+import { ref, reactive } from "vue";
 import { swalError } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
 
@@ -56,10 +56,10 @@ export function useClientSearch() {
 
     const loadingSucursales = ref(false);
     const sucursales = ref([]);
-    const apiCustomerBranches = '/consultas/cliente/sucursales/';
+    const apiCustomerBranches = '/consultas/cliente/sucursales';
 
-    async function fetchCustomerBranches(ruc) {
-        return  run(() => axiosClient.get(apiCustomerBranches + ruc), {
+    async function fetchCustomerBranches(ruc, type) {
+        return  run(() => axiosClient.post(apiCustomerBranches, { ruc: ruc , tipo: type }), {
             loadingRef: loadingSucursales,
             onSuccess: (res) => {
                 sucursales.value = res;

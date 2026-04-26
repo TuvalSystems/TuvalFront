@@ -1,9 +1,11 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle";
-import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4 } from "@/functions";
+import {  format } from "@/functions";
 import VueEasyLightbox from "vue-easy-lightbox";
 import { swalError } from "@/functions/swal-alert";
+
+
 const {
     payload,
     cols,

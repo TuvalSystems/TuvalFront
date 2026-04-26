@@ -4,20 +4,16 @@ import {
   reactive,
   computed,
   onMounted,
-  onUnmounted,
   onBeforeUnmount,
-  watch,
+  nextTick
 } from "vue";
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { useStore } from "vuex";
 import {
-  swalSimple,
   swalInfo,
-  swalSuccess,
   swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
 import useVuelidate from "@vuelidate/core";
@@ -226,18 +222,20 @@ async function onSubmit() {
       }
       const respUpdate = await updateQuoteProspect(payloadProspecto);
       if (!respUpdate?.ok) {
+        templateStore.pageLoader({ mode: "off" });
         swalWarning(respUpdate.message);
         return;
       }
-      const resRestore = await fetchAndFillQuotation(respUpdate.data.id, uploadedFiles);
-      if (resRestore?.ok) {
-        templateStore.pageLoader({ mode: "off" });
-        router.push({
-          name: "ventas-crearcotizacion",
-        });
-      } else {
-        templateStore.pageLoader({ mode: "off" });
-      }
+      templateStore.pageLoader({ mode: "off" });
+      await nextTick();
+      router.push({
+        name: "ventas-crearcotizacion",
+        query: {
+          id: respUpdate.data.id,
+          mode: 'restore_quote'
+        }
+      });
+      return;
     }
     // 7. Apaga loader y redirige
     templateStore.pageLoader({ mode: 'off' })

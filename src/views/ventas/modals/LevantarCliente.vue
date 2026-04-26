@@ -1,3 +1,116 @@
+<script setup>
+import { ref, reactive, computed } from "vue";
+import { useStore } from 'vuex'
+import { useRouter } from "vue-router";
+import { useTemplateStore } from "@/stores/template";
+import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
+import { swalWarning, swalError } from "@/functions/swal-alert.js";
+
+const { verpedido, tipo } = defineProps({
+  verpedido: Object,
+  tipo: String,
+});
+
+const {
+  clients,
+  errorSearchClient,
+  dataSearch,
+  loadingSearch,
+  searchClients,
+
+  //customer
+  infoClient,
+  infoSegmento,
+  loadingAvailableCredit,
+  fetchAvailableCreditCustomer,
+
+  //sucursales
+  loadingSucursales,
+  sucursales,
+  fetchCustomerBranches,
+
+
+
+  //validations
+  getClientStatus,
+
+} = useClientSearch();
+const templateStore = useTemplateStore();
+const router = useRouter();
+const store = useStore();
+
+
+
+//nuevas funciones 
+const showResultClients = ref(false); // para loading de tablas
+const showInfoClient = ref(false);  // para loading de informacion
+const showInfoSucursales = ref(false); // para loading de informacion - sucursales
+async function searchFilterClientes() {
+  if (dataSearch.search == null || dataSearch.search.length < 4) {
+    showInfoClient.value = false;
+    showResultClients.value = false;
+    errorSearchClient.value = true
+    return false;
+  }
+  showInfoClient.value = false;
+  showInfoSucursales.value = false;
+  showResultClients.value = false;
+  const resp = await searchClients();
+  if (!resp?.ok) {
+    errorSearchClient.value = true
+    showResultClients.value = false;
+    showInfoClient.value = false;
+    swalWarning(resp?.message);
+    return;
+  }
+  errorSearchClient.value = false;
+  showResultClients.value = true;
+}
+
+const payload = reactive({
+  cliente_id: null,
+  sucursal_id: null
+});
+async function selectClient(client) {
+  payload.cliente_id = client.id;
+  payload.sucursal_id = null;
+
+  showResultClients.value = false;
+  showInfoClient.value = true;
+  showInfoSucursales.value = true;
+  const [respCredit, respBranches] = await Promise.all([
+    fetchAvailableCreditCustomer(client.CLI_RUC),
+    fetchCustomerBranches(client.CLI_RUC, 'cotizacion')
+  ]);
+
+  if (respCredit?.ok && respBranches?.ok) {
+    showResultClients.value = false; // Escondemos la lista de búsqueda
+    showInfoClient.value = true;    // Mostramos info cliente
+    showInfoSucursales.value = true; // Mostramos sucursales
+  } else {
+    swalError('Hubo un problema al cargar los datos del cliente.');
+  }
+
+}
+
+const checkSelectClient = computed(() => payload.cliente_id != null && payload.sucursal_id != null);
+async function copiarPedido(pedido, tipo) {
+  templateStore.pageLoader({ mode: "on" });
+  router.push({
+    name: "ventas-crearcotizacion",
+    query: {
+      id: pedido.id,
+      mode: 'copy',
+      tipo: tipo,
+      cliente_id: payload.cliente_id,
+      sucursal: payload.sucursal_id
+    }
+  });
+  templateStore.pageLoader({ mode: "off" });
+}
+
+
+</script>
 <template>
   <BaseBlock title="Copiar pedido a cliente" class="mb-0 pb-4">
     <template #options>
@@ -7,27 +120,31 @@
     </template>
     <template #content>
       <div class="block-content fs-sm ">
-        <form class="row row-cols-lg-auto g-3 align-items-center" @submit.prevent="onSubmit">
-          <div class="col-12">
-            <label class="visually-hidden" for="buscar-cliente">Buscar cliente...</label>
-            <input type="text" class="form-control" :class="errorbuscarcliente ? 'is-invalid' : ''" id="buscar-cliente"
-              name="buscar-cliente" placeholder="Buscar cliente..." @keyup.enter="buscarclientes"
-              v-model="buscarcliente.busqueda" />
-          </div>
-          <div>
-            <button type="button" v-on:click="buscarclientes" class="btn btn-primary">Buscar</button>
-          </div>
-        </form>
-        <div v-if="clientes.loading" class="text-center">
-          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+        <div class="row g-2">
+          <!-- busqueda del cliente -->
+          <div class="col">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" :class="errorSearchClient ? 'is-invalid' : ''"
+                placeholder="Buscar cliente..." autocomplete="off" @keyup.enter="searchFilterClientes"
+                v-model="dataSearch.search" />
+              <button class="btn btn-primary" type="button" @click="searchFilterClientes" :disabled="loadingSearch">
+                <i class="fa fa-search"></i>
+              </button>
+            </div>
           </div>
         </div>
-        <BaseBlock v-if="verclientes && clientes.data.length && !clientes.loading" class="mb-0">
+        <div v-if="loadingSearch" class="text-center py-4">
+          <div class="spinner-border text-primary mt-4">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <!-- mostrar lista de los clientes -->
+        <BaseBlock v-if="showResultClients && clients.length > 0 && !loadingSearch" class="mb-2">
           <div class="table-responsive">
-            <table class="table table-hover table-sm table-vcenter">
+            <table class="table table-hover table-sm ">
               <thead>
                 <tr>
-                  <th>RUC</th>
+                  <th>Ruc</th>
                   <th>Razón Social</th>
                   <th>Contacto</th>
                   <th>Ciudad</th>
@@ -37,242 +154,192 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(cliente, index) in clientes.data" :key="index">
-                  <td class="">
-                    <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RUC }} </a>
+                <tr v-for="(client, index) in clients" :key="index">
+                  <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
+                    <span class="text-primary">{{ client.CLI_RUC }}</span>
                   </td>
+                  <td class="fs-sm" @click="selectClient(client)" style="cursor:pointer">
+                    <span class="text-primary">{{ client.CLI_RAZON_SOCIAL }}</span>
+                  </td>
+                  <td class="fs-sm">{{ client.CLI_CONTACTO }}</td>
+                  <td class="fs-sm">{{ client.CLI_CIUDAD }}</td>
+                  <td class="fs-sm">{{ client.CLI_PROVINCIA }}</td>
+                  <td class="fs-sm">{{ client.CLI_TELEFONO_1 }}</td>
                   <td class="fs-sm">
-                    <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RAZON_SOCIAL }} </a>
+                    <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI">{{ client.CLI_CORREO_ELECT_SRI }}
+                      <span class="badge bg-danger text-white" v-if="!client.emails_validated"> correo no valido</span>
+                    </a>
                   </td>
-                  <td class="fs-sm">
-                    {{ cliente.CLI_CONTACTO }}
-                  </td>
-                  <td class="fs-sm">
-                    {{ cliente.CLI_CIUDAD }}
-                  </td>
-                  <td class="fs-sm">
-                    {{ cliente.CLI_PROVINCIA }}
-                  </td>
-                  <td class="fs-sm">
-                    {{ cliente.CLI_TELEFONO_1 }}
-                  </td>
-                  <td class="fs-sm">
-                    <a :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{ cliente.CLI_CORREO_ELECT_SRI }}</a>
-                  </td>
-
                 </tr>
               </tbody>
             </table>
           </div>
         </BaseBlock>
-        <BaseBlock v-if="currentCliente && !verclientes" class="mt-4 mb-0">
-          <template #content>
-            <div class="table-responsive">
-              <table class="table table-striped table-sm table-vcenter">
-                <tbody>
-                  <tr>
-                    <th class="fs-sm">RUC</th>
-                    <td class="fs-sm">{{ currentCliente.CLI_RUC }}</td>
-                    <th class="fs-sm">Razón Social</th>
-                    <td class="fs-sm">{{ currentCliente.CLI_RAZON_SOCIAL }}</td>
-                    <th class="fs-sm">Descuento Comercial</th>
-                    <td class="fs-sm">{{ currentCliente.CLI_DSTO_COMERCIAL }}%</td>
 
-                  </tr>
-                  <tr>
-                    <th class="fs-sm">Ciudad</th>
-                    <td class="fs-sm">{{ currentCliente.CLI_CIUDAD }}</td>
 
-                    <th class="fs-sm">Provincia</th>
-                    <td class="fs-sm">{{ currentCliente.CLI_PROVINCIA }}</td>
-
-                    <th class="fs-sm">Condición de pago</th>
-                    <td class="fs-sm">
-                      {{ condiciondepago_print }}
-                      <span class="badge bg-info" v-if="currentCliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
-                        currentCliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span>
-                    </td>
-                  </tr>
-                  <tr>
-
-                    <th class="fs-sm">Suspendido</th>
-                    <td class="fs-sm">
-                      <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                        :class="currentCliente.suspendido == 0 ? 'bg-success-light text-success' : 'bg-danger-light text-danger'">{{
-                          currentCliente.suspendido
-                            == 1 ? 'Si' : 'No' }}</span>
-
-                    </td>
-                    <th class="fs-sm">Cupo Asignado</th>
-                    <td class="fs-sm">${{ currentCliente.cupo_asignado }}</td>
-                    <th class="fs-sm">Cupo Disponible</th>
-                    <td class="fs-sm" :class="parseFloat(currentCliente.cupo_disponible) < 0 ? 'text-danger' : ''">
-                      ${{ currentCliente.cupo_disponible }}</td>
-                  </tr>
-
-                </tbody>
-              </table>
-            </div>
-            <div class="row items-push">
-              <div class="col-md-4" v-for="(sucursal, index) in currentCliente.sucursales" :key="index">
-                <div class="form-check form-block">
-                  <input type="radio" class="form-check-input" :id="`sucursal-${sucursal.id}`"
-                    name="example-radio-block" @click="selectsucursal(sucursal.id)"
-                    :selected="sucursal.id == currentSucursal" />
-                  <label class="form-check-label" :for="`sucursal-${sucursal.id}`"
-                    :id="`label-sucursal-${sucursal.id}`">
-                    <span class="d-block fw-normal text-center my-3 mb-0">
-                      <span class="fs-6 fw-semibold">{{ sucursal.CLI_SUC_ID_DIRECCION }}</span>
-                      <span class="d-block mb-2">{{ sucursal.CLI_SUC_DIRECCION }}</span>
-
-                      <span class="d-block fs-6 fw-light py-3 m-3 bg-body-light rounded">{{ sucursal.CLI_SUC_PROVINCIA
-                      }}
-                        <small> {{ sucursal.CLI_SUC_CIUDAD }}</small></span>
-                      <small class="fs-sm mb-0 text-muted">{{ sucursal.VEND_NOMBRES }} {{ sucursal.VEND_APELLIDOS
-                      }}</small>
-                    </span>
-                  </label>
-                </div>
+        <!-- detalle visual de informacion de cliente -->
+        <!-- loading -->
+        <div v-if="loadingAvailableCredit || loadingSucursales" class="text-center py-4">
+          <div class="spinner-border text-success"></div>
+          <p class="mt-2">Obteniendo detalles del cliente...</p>
+        </div>
+        <!-- info -->
+        <BaseBlock v-if="showInfoClient && infoClient && !loadingAvailableCredit" class="mb-0">
+          <div class="row g-1 mb-2">
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Ruc</small>
+                <div class="fw-semibold text-truncate">{{ infoClient.CLI_RUC }}</div>
               </div>
             </div>
-          </template>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Razón Social</small>
+                <div class="fw-semibold text-truncate">{{ infoClient.CLI_RAZON_SOCIAL }}</div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Descuento Comercial</small>
+                <div class="fw-semibold ">{{ infoClient.CLI_DSTO_COMERCIAL }} %</div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Ciudad</small>
+                <div class="fw-semibold ">{{ infoClient.CLI_CIUDAD }}</div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Provincia</small>
+                <div class="fw-semibold ">{{ infoClient.CLI_PROVINCIA }}</div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Condición de Pago</small>
+                <div class="fw-semibold ">{{ infoClient.CLI_CONDICION_PAGO }}</div>
+                <span class="badge bg-info" v-if="infoClient.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">{{
+                  infoClient.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Suspendido</small>
+                <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
+                  :class="getClientStatus(infoClient.suspendido).class">
+                  {{ getClientStatus(infoClient.suspendido).text }}
+                </span>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Cupo Asignado</small>
+                <div class="fw-semibold ">${{
+                  infoClient.cupo_asignado }}</div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="kv">
+                <small class="text-muted">Cupo Disponible</small>
+                <div class="fw-semibold " :class="parseFloat(infoClient.cupo_disponible) < 0 ? 'text-danger' : ''">
+                  ${{
+                    infoClient.cupo_disponible }}</div>
+              </div>
+            </div>
+          </div>
+        </BaseBlock>
+
+
+        <!-- sucursales a seleccionar  -->
+        <BaseBlock v-if="showInfoSucursales && sucursales.length > 0 && !loadingAvailableCredit" class="mt-4 mb-0">
+          <h5 class="fw-bold mb-3 fs-sm text-uppercase text-muted">
+            <i class="fa fa-building me-1"></i> Lista de sucursales activas
+          </h5>
+          <div class="row items-push">
+            <div class="col-md-4" v-for="sucursal in sucursales" :key="sucursal.id">
+              <div class="form-check form-block p-0">
+                <input type="radio" class="form-check-input d-none" :id="`sucursal-${sucursal.id}`"
+                  name="sucursal-selection" :value="sucursal.id" v-model="payload.sucursal_id" />
+
+                <label class="form-check-label w-100 h-100 m-0 cursor-pointer shadow-sm border rounded-3 transition-all"
+                  :for="`sucursal-${sucursal.id}`"
+                  :class="payload.sucursal_id == sucursal.id ? 'border-primary bg-primary-lighter' : 'bg-body'">
+                  <div class="p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="badge rounded-pill"
+                        :class="payload.sucursal_id == sucursal.id ? 'bg-primary' : 'bg-dark'">
+                        #{{ sucursal.CLI_SUC_ID_DIRECCION }}
+                      </span>
+                      <i class="fa fa-map-marker-alt"
+                        :class="payload.sucursal_id == sucursal.id ? 'text-primary' : 'text-muted'"></i>
+                    </div>
+
+                    <p class="fw-bold mb-1 text-truncate" :title="sucursal.CLI_SUC_DIRECCION">
+                      {{ sucursal.CLI_SUC_DIRECCION }}
+                    </p>
+
+                    <div class="fs-sm text-muted mb-3">
+                      <i class="fa fa-city me-1"></i> {{ sucursal.CLI_SUC_CIUDAD }}, {{ sucursal.CLI_SUC_PROVINCIA }}
+                    </div>
+                    <hr class="my-2 opacity-25">
+                    <div class="d-flex align-items-center">
+                      <div class="flex-shrink-0">
+                        <div class="bg-body-dark rounded-circle d-flex align-items-center justify-content-center"
+                          style="width: 30px; height: 30px;">
+                          <i class="fa fa-user fs-xs"></i>
+                        </div>
+                      </div>
+                      <div class="flex-grow-1 ms-2">
+                        <p class="fs-xs text-muted mb-0">{{ infoClient.gpvendedor.VEND_NOMBRES || '-' }} {{
+                          infoClient.gpvendedor.VEND_APELLIDOS || '-' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
         </BaseBlock>
       </div>
     </template>
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
     <button type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal"> Cancelar</button>
-    <button type="button" class="btn btn-success btn-sm mx-2" data-bs-dismiss="modal"
-      :disabled="!currentSucursal ? true : false" @click="copiarPedido(verpedido, tipo)"> Copiar</button>
+    <button type="button" class="btn btn-success btn-sm mx-2" data-bs-dismiss="modal" :disabled="!checkSelectClient"
+      @click="copiarPedido(verpedido, tipo)"> Copiar</button>
   </div>
 </template>
-<script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
-import { useStore } from 'vuex'
-import { useRouter } from "vue-router";
-import { useTemplateStore } from "@/stores/template";
-// import { useImageUpload } from "@/composables/core/useImageUpload";
-// const { uploadedFiles } = useImageUpload();
-const { verpedido, tipo } = defineProps({
-  verpedido: Object,
-  tipo: String,
-});
 
-const store = useStore();
-const templateStore = useTemplateStore();
-const router = useRouter();
-// const detallepedido = computed(() => store.state.detallepedido);
-const currentSucursal = ref(store.state.currentSucursal);
-const verclientes = ref(false);
-const clientes = computed(() => store.state.clientes);
-const condiciondepago_id = ref(store.state.condiciondepago_id);
-const condiciondepago_print = ref(store.state.condiciondepago_print);
-// const bodegas = computed(() => store.state.bodegas);
-const currentCliente = computed(() => store.state.currentCliente);
-
-const factura_siguiente_mes = ref(store.state.factura_siguiente_mes);
-const alerta_facturar = ref(store.state.alerta_facturar);
-const factura_a_demanda = ref(store.state.factura_a_demanda);
-const pregunta_facturar = ref(store.state.pregunta_facturar);
-const factura_posterior_despacho = ref(store.state.factura_posterior_despacho);
-
-const today = new Date();
-let errorbuscarcliente = ref(false);
-const buscarcliente = reactive({
-  busqueda: null,
-});
-let errorMsg = ref('');
-
-async function buscarclientes(ev) {
-  if (buscarcliente.busqueda.length < 3) {
-    errorbuscarcliente.value = true;
-    return;
+<style scoped>
+@media (min-width: 1200px) {
+  .billing-sticky {
+    position: sticky;
+    top: .75rem;
   }
-
-  errorbuscarcliente.value = false;
-  store.commit('nullCurrentcliente');
-  currentSucursal.value = null;
-  verclientes.value = true;
-  ev.preventDefault();
-  store.dispatch('buscarclientes', buscarcliente)
-    .catch(err => {
-      verclientes.value = false;
-      errorMsg.value = err.response.data.error
-    });
 }
 
-function selectcliente(cliente) {
-  store.commit('resetCotizacion');
-  verclientes.value = false;
-
-  currentSucursal.value = null;
-  store.commit('setCurrentcliente', cliente);
-
-  condiciondepago_id.value = currentCliente.value.CLI_CONDICION_PAGO;
-  condiciondepago_print.value = currentCliente.value.CLI_CONDICION_PAGO;
-  sessionStorage.setItem('CONDICIONDEPAGOPRINT', currentCliente.value.CLI_CONDICION_PAGO)
-  if (currentCliente.value.suspendido == 1)
-    condiciondepago_id.value = 'CONTADO';
-
-  store.commit('setNuevadireccion');
-  alerta_facturar.value = '';
-
-  factura_siguiente_mes.value = 0;
-  factura_a_demanda.value = 0;
-  pregunta_facturar.value = 0;
-  factura_posterior_despacho.value = 0;
-  if (currentCliente.value.CLI_FACTURA_POSTERIOR_AL_DESPACHO === 'SI') {
-    if (currentCliente.value.CLI_DIA_MAXIMO_MES_FACTURACION === 1) {
-      factura_posterior_despacho.value = 1;
-      factura_a_demanda.value = 1;
-      alerta_facturar.value = 'Factura a demanda posterior al despacho';
-    } else if (today.getDate() <= currentCliente.value.CLI_DIA_MAXIMO_MES_FACTURACION) {
-      factura_posterior_despacho.value = 1;
-    } else {
-      factura_posterior_despacho.value = 1;
-      pregunta_facturar.value = 1;
-      factura_siguiente_mes.value = 1;
-    }
-  }
-  sessionStorage.setItem('factura_posterior_despacho', factura_posterior_despacho.value);
-  sessionStorage.setItem('factura_a_demanda', factura_a_demanda.value);
-  sessionStorage.setItem('factura_siguiente_mes', factura_siguiente_mes.value);
-  sessionStorage.setItem('alerta_facturar', alerta_facturar.value);
-  sessionStorage.setItem('pregunta_facturar', pregunta_facturar.value);
-
-  currentSucursal.value = cliente.sucursales[0].id;
-  sessionStorage.setItem('CURRENTSUCURSAL', currentSucursal.value)
-
-  setTimeout(() => {
-    const elem = document.getElementById('label-sucursal-' + currentSucursal.value);
-    if (elem)
-      elem.click();
-  }, "100")
+.kv small {
+  display: block;
+  line-height: 1;
 }
 
-function selectsucursal(sucursal) {
-  sessionStorage.setItem('CURRENTSUCURSAL', sucursal)
-  currentSucursal.value = sucursal;
+.kv .badge2 {
+  white-space: normal;
+  /* CLAVE: Permite que el texto haga salto de línea */
+  text-align: left;
+  /* Alinea el texto a la izquierda para leer mejor párrafos */
+  display: block;
+  /* Hace que ocupe el ancho disponible de la columna */
+  line-height: 1.4;
+  /* Da un poco de aire entre las líneas de texto */
+  font-weight: 10px;
+  /* Opcional: quita la negrita si el texto es muy largo */
 }
 
-async function copiarPedido(pedido, tipo) {
-  templateStore.pageLoader({ mode: "on" });
-  router.push({
-    name: "ventas-crearcotizacion",
-    query: {
-      id: pedido.id,
-      mode: 'copy',
-      tipo: tipo,
-      cliente_id: currentCliente.value.id,
-      sucursal: currentSucursal.value
-    }
-  });
-  templateStore.pageLoader({ mode: "off" });
 
+.kv .fw-semibold {
+  line-height: 1.1;
 }
-
-onMounted(() => {
-});
-onBeforeUnmount(() => {
-});
-</script>
+</style>

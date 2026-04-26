@@ -92,7 +92,7 @@ onMounted(() => {
       <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.filters.perpage"
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
         :sortField="table.filters.sortField" :sortOrder="table.filters.sortOrder" @onSort="onSort"
-        @onPageChange="fetchList" @onSearch="table.filters.search" @onClick="handleClick"
+        @onPageChange="fetchList" @onSearch="table.filters.search" @onClick="handleClick" @onKeyDown="handleClick" 
         :is-row-disabled="isRowDisabled">
 
         <template #cell-status="{ value, row }">

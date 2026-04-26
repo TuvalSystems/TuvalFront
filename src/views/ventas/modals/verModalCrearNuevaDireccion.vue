@@ -175,7 +175,7 @@ onMounted(() => {
             Cerrar
         </button>
         <button type="button" class="btn btn-sm btn-primary" @click="crearDireccion()" :disabled="loading">
-            <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <span v-if="loading" class="spinner-border spinner-border-sm me-2"  aria-hidden="true"></span>
             Crear
         </button>
     </div>

@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from "vue";
+import {  onMounted, onUnmounted } from "vue";
 import { Modal } from "bootstrap";
 
 export function useBootstrapModal(elementRef, options = {}) {
