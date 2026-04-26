@@ -228,7 +228,6 @@ async function onSubmit() {
       }
       templateStore.pageLoader({ mode: "off" });
       await nextTick();
-      console.log('Redirigiendo a crear cotización con cliente nuevo y prospecto actualizado…', respUpdate.data.id)
       router.push({
         name: "ventas-crearcotizacion",
         query: {
