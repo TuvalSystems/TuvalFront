@@ -234,6 +234,7 @@ async function onSubmit() {
         templateStore.pageLoader({ mode: "off" });
         router.push({
           name: "ventas-crearcotizacion",
+          query: { id: respUpdate.data.id, mode: 'restore_quote' }
         });
       } else {
         templateStore.pageLoader({ mode: "off" });
