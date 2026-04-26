@@ -226,18 +226,21 @@ async function onSubmit() {
       }
       const respUpdate = await updateQuoteProspect(payloadProspecto);
       if (!respUpdate?.ok) {
+        templateStore.pageLoader({ mode: "off" });
         swalWarning(respUpdate.message);
         return;
       }
-      const resRestore = await fetchAndFillQuotation(respUpdate.data.id, uploadedFiles);
-      if (resRestore?.ok) {
-        templateStore.pageLoader({ mode: "off" });
+      templateStore.pageLoader({ mode: "off" });
+      if (respUpdate.data?.id) {
         router.push({
           name: "ventas-crearcotizacion",
-          query: { id: respUpdate.data.id, mode: 'restore_quote' }
+          query: {
+            id: respUpdate.data.id,
+            mode: 'restore_quote'
+          }
         });
       } else {
-        templateStore.pageLoader({ mode: "off" });
+        console.log("Se actualizó pero no se recibió un ID para redirección");
       }
     }
     // 7. Apaga loader y redirige
