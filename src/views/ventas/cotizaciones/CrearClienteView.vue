@@ -4,20 +4,16 @@ import {
   reactive,
   computed,
   onMounted,
-  onUnmounted,
   onBeforeUnmount,
-  watch,
+  nextTick
 } from "vue";
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { useStore } from "vuex";
 import {
-  swalSimple,
   swalInfo,
-  swalSuccess,
   swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
 import useVuelidate from "@vuelidate/core";
@@ -231,17 +227,15 @@ async function onSubmit() {
         return;
       }
       templateStore.pageLoader({ mode: "off" });
-      if (respUpdate.data?.id) {
-        router.push({
-          name: "ventas-crearcotizacion",
-          query: {
-            id: respUpdate.data.id,
-            mode: 'restore_quote'
-          }
-        });
-      } else {
-        console.log("Se actualizó pero no se recibió un ID para redirección");
-      }
+      await nextTick();
+      router.push({
+        name: "ventas-crearcotizacion",
+        query: {
+          id: respUpdate.data.id,
+          mode: 'restore_quote'
+        }
+      });
+
     }
     // 7. Apaga loader y redirige
     templateStore.pageLoader({ mode: 'off' })
