@@ -228,6 +228,7 @@ async function onSubmit() {
       }
       templateStore.pageLoader({ mode: "off" });
       await nextTick();
+      console.log('Redirigiendo a crear cotización con cliente nuevo y prospecto actualizado…', respUpdate.data.id)
       router.push({
         name: "ventas-crearcotizacion",
         query: {
@@ -235,7 +236,7 @@ async function onSubmit() {
           mode: 'restore_quote'
         }
       });
-
+      return;
     }
     // 7. Apaga loader y redirige
     templateStore.pageLoader({ mode: 'off' })
