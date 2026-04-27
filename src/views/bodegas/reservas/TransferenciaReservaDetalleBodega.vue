@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, toRefs, ref, nextTick } from 'vue';
-import { formatPrice } from "@/functions";
+import { formatPrice, toNum } from "@/functions";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import {
@@ -16,7 +16,6 @@ const props = defineProps({
   ptovtaId: { type: String, required: true },  //ptovta destino
 });
 const { ptovtaId } = toRefs(props);
-import { toNum } from "@/functions";
 const {
   //cabecera
   dataHeaderTransfer,
@@ -27,7 +26,6 @@ const {
   loadingDetailTransfer,
   payload,
   cols,
-  datasetLengthRef,
   disabledPicking,
   disabledGuiaRemision,
   dataPendingGuides,
@@ -196,7 +194,7 @@ onMounted(async () => {
   <!-- Page Content -->
   <div class="content">
     <div v-if="loadingHeaderTransfer" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border text-primary">
         <span class="visually-hidden">Cargando...</span>
       </div>
       <p class="mt-2 text-muted">Cargando información de transferencias...</p>
@@ -228,7 +226,7 @@ onMounted(async () => {
           </div>
         </div>
         <div v-if="loadingDetailTransfer" class="text-center py-4">
-          <div class="spinner-border text-primary" role="status">
+          <div class="spinner-border text-primary">
             <span class="visually-hidden">Cargando...</span>
           </div>
           <p class="mt-2 text-muted">Cargando información...</p>
@@ -237,7 +235,7 @@ onMounted(async () => {
           <Dataset v-slot="{ ds }" :ds-data="dataDetailTransfer" :ds-sortby="sortBy"
             :ds-search-in="['art_code', 'art_cod_tres_letras', 'cotizacion']">
             <div class="row" :data-page-count="ds.dsPagecount" style="justify-content: space-between;">
-              <div ref="datasetLengthRef" id="datasetLength" v-show="!loadingDetailTransfer && dataDetailTransfer"
+              <div  id="datasetLength" v-show="!loadingDetailTransfer && dataDetailTransfer"
                 class="col-md-8 py-2 fs-sm">
                 <DatasetShow />
               </div>
@@ -272,7 +270,7 @@ onMounted(async () => {
                           :class="(row.check_disable_button_picking === true && row.pending_transfer > 0 ? 'table-warning' : '')">
                           <td class="fs-sm text-center">{{ row.art_code }}</td>
                           <td class="fs-sm text-center">{{ row.art_cod_tres_letras }}</td>
-                          <td class="fs-sm text-center">{{ row.art_descripcion }}</td>
+                          <td class="fs-sm text-start">{{ row.art_descripcion }}</td>
                           <td class="fs-sm text-center">{{ row.compartimiento }}</td>
                           <td class="fs-sm text-center">{{ row.cotizacion }}</td>
                           <td class="fs-sm text-center">{{ row.fecha }}</td>
@@ -377,9 +375,9 @@ onMounted(async () => {
 
   <!-- modales  -->
   <!-- modal de picking -->
-  <div class="modal" id="modal-liberar" tabindex="-1" role="dialog" aria-labelledby="modal-picking" aria-hidden="true"
+  <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
     ref="pickingModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verPickingReservas v-if="dataPicking && dataPicking.length > 0" :header="dataHeaderTransfer"
           :picking="dataPicking" @refresh="refresh()" @closePickingModal="closePickingModal()"></verPickingReservas>
@@ -388,9 +386,9 @@ onMounted(async () => {
   </div>
 
   <!-- modal guia remision reservas -->
-  <div class="modal" id="modal-guia-reservas" tabindex="-1" role="dialog" aria-labelledby="modal-guia-reservas"
-    aria-hidden="true" ref="guiaRemisionModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+  <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
+    ref="guiaRemisionModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verGuiaRemisionReserva v-if="dataGuiaRemision && dataGuiaRemision.length > 0" :header="dataHeaderTransfer"
           :detalle="dataGuiaRemision" @refresh="refresh()" @closeModal="closeGuiaRemisionModal()">
@@ -402,10 +400,28 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* 1. Ocultamos el texto de los labels ("Show" y "entries") */
+:deep(#datasetLength label) {
+  font-size: 0; 
+}
+/* 2. Atrapamos el select interno y lo estilizamos */
+:deep(#datasetLength select) {
+  font-size: 0.875rem; /* Le devolvemos el tamaño de letra al texto del select */
+  display: inline-block;
+  width: 80px;
+  margin: 0 0.5rem;
+  padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+}
+
 @media (min-width: 1000px) {
   .table.table-sm> :not(caption)>*>* {
     padding-top: .25rem;
     padding-bottom: .15rem;
   }
 }
+:deep(.table-vcenter tbody td) {
+  font-size: 0.8rem !important;
+}
+
 </style>
