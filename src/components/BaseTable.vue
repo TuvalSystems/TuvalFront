@@ -43,8 +43,8 @@ const props = defineProps({
         type: String,
         default: "asc",
     },
-    processing: { type: Boolean, default: false },          // 🔒 lock global (toda la tabla)
-    isRowDisabled: { type: Function, default: null },              // 🔒 lock por fila (opcional)
+    processing: { type: Boolean, default: false },
+    isRowDisabled: { type: Function, default: null },
 
 });
 
@@ -151,7 +151,8 @@ const getTdClass = (col, row) => {
                     </tbody>
                     <tbody v-else-if="!loading && (!data || !data.length)">
                         <tr>
-                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-4 text-muted">
+                            <td :colspan="columns.length + ($slots.actions ? 1 : 0)"
+                                class="text-center py-4 text-muted">
                                 <slot name="empty">Sin registros para mostrar.</slot>
                             </td>
                         </tr>
@@ -249,8 +250,15 @@ const getTdClass = (col, row) => {
 
 <style scoped>
 /* Transiciones */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s;
+}
+
+.fade-enter,
+.fade-leave-to {
+    opacity: 0;
+}
 
 
 /* Estilos de tabla base */
@@ -284,13 +292,16 @@ const getTdClass = (col, row) => {
 .sortable:hover {
     color: #0d6efd;
 }
+
 /* Links clickeables */
 .clickable {
     cursor: pointer;
-    color: var(--bs-primary); /* Usa la variable de Bootstrap */
+    color: var(--bs-primary);
+    /* Usa la variable de Bootstrap */
     text-decoration: none;
     font-weight: 500;
 }
+
 .clickable:hover {
     text-decoration: underline;
 }
@@ -300,12 +311,6 @@ const getTdClass = (col, row) => {
     opacity: 0.6;
     cursor: not-allowed;
     color: inherit;
-}
-
-/* table */
-.table-responsive {
-    max-height: 700px;
-    overflow-y: auto;
 }
 
 th,
@@ -323,7 +328,8 @@ td {
 
 /* Modo Light (Por defecto) */
 th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.05); /* Gris muy suave */
+    background-color: rgba(0, 0, 0, 0.05);
+    /* Gris muy suave */
     color: var(--bs-primary);
 }
 
@@ -331,17 +337,19 @@ th.sortable:hover {
 :global(.dark-mode) .card,
 :global([data-bs-theme="dark"]) .block,
 :global([data-bs-theme="dark"]) .card {
-    background-color: #262c35 !important; /* El color oscuro estándar de OneUI */
-    color: #dfe3ea !important;            /* Texto gris claro */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; /* Ajuste opcional de sombra */
+    background-color: #262c35 !important;
+    /* El color oscuro estándar de OneUI */
+    color: #dfe3ea !important;
+    /* Texto gris claro */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    /* Ajuste opcional de sombra */
 }
 
 /* Si el bloque tiene un header específico, también lo oscurecemos */
 :global(.dark-mode) .block-header,
 :global([data-bs-theme="dark"]) .block-header {
-    background-color: #21262d !important; /* Un tono ligeramente más oscuro para el título */
+    background-color: #21262d !important;
+    /* Un tono ligeramente más oscuro para el título */
     color: #fff !important;
 }
-
-
 </style>
