@@ -170,7 +170,7 @@ onMounted(() => { });
           :disabled="isButtonDisabled" @click="updateStatus">
           <i v-if="loadingUpdateStatusBranch" class="fa fa-spinner fa-spin me-1"></i>
           <i v-else :class="sucursal.estado === 0 ? 'fa fa-check-circle me-1' : 'fa fa-times-circle me-1'"></i>
-          {{ sucursal.estado === 0 ? 'Activar Sucursal' : 'Desactivar Sucursal' }}
+          {{ sucursal.estado === 0 ? 'Activar Dirección' : 'Inactivar Dirección' }}
         </button>
       </div>
     </div>
