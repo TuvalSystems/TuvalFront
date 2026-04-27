@@ -416,24 +416,42 @@ const routes = [
           title: "Bodegas - Transportistas y Vehículos",
         },
       },
-      {
-        path: "transferencias/ventas/dashboard",
+
+       {
+        path: "transferenciasventa",
         name: "bodegas-transferenciasventa",
-        component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaIndex.vue"),
+        component: TransferenciasVenta,
         meta: {
           title: "Bodegas - Transferencias por venta",
         },
       },
       {
-        path: "transferencias/ventas/detalle/:pvDestino",
-        name: "bodegas-transferencias-venta-detalle",
-        component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaDetalleBodega.vue"),
-        props: true,
+        path: "transferenciasventa/:id",
+        name: "bodegas-transferenciasventabodega",
+        component: TransferenciasVentaBodega,
         meta: {
           title: "Bodegas - Transferencias por venta bodega",
           extends: "bodegas-transferenciasventa",
         },
       },
+      // {
+      //   path: "transferencias/ventas/dashboard",
+      //   name: "bodegas-transferenciasventa",
+      //   component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaIndex.vue"),
+      //   meta: {
+      //     title: "Bodegas - Transferencias por venta",
+      //   },
+      // },
+      // {
+      //   path: "transferencias/ventas/detalle/:pvDestino",
+      //   name: "bodegas-transferencias-venta-detalle",
+      //   component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaDetalleBodega.vue"),
+      //   props: true,
+      //   meta: {
+      //     title: "Bodegas - Transferencias por venta bodega",
+      //     extends: "bodegas-transferenciasventa",
+      //   },
+      // },
       {
         path: "recibosventa",
         name: "bodegas-recibosventa",
