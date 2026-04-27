@@ -175,6 +175,18 @@ onMounted(async () => {
                             <input v-if="(row.pending_transfer > 0)" type="checkbox" class="form-check-input"
                               v-model="row.check_seleccion" @change="applyAlPendingTransfer($event, row)">
                           </td>
+                          <td class="fs-sm">
+                            <input v-if="(row.pending_transfer > 0)" type="text"
+                              class="form-control form-control-sm text-end" v-model="row.seleccionado"
+                              @change="applyTransfer(row)" />
+                          </td>
+                          <td class="fs-sm" style="width:30px">
+                            <button v-if="row.picking && row.check_disable_button_picking === false"
+                              class="btn btn-sm btn-danger" title="Cancelar Picking" @click="cancelarPicking(row)"
+                              :disabled="loadingCancelPicking">
+                              <i class="fa fa-xmark"></i>
+                            </button>
+                          </td>
                         </tr>
                       </template>
                     </DatasetItem>
