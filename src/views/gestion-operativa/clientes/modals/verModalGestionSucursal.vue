@@ -21,6 +21,8 @@ const emit = defineEmits(['closeModal']);
 const sucursal = computed(() => props.data.sucursal)
 const hasOrders = computed(() => props.data.process_orders);
 const hasQuotes = computed(() => props.data.process_quotes);
+const ListQuotes = computed(() => props.data.list_quotes || []);
+const ListOrders = computed(() => props.data.list_orders || []);
 
 
 const isRestricted = computed(() => {
@@ -55,19 +57,33 @@ onMounted(() => { });
 
 <template>
   <BaseBlock title="Gestión de Sucursal" class="mb-4">
+    <div v-if="isRestricted" class="alert alert-warning d-flex align-items-center mx-0 mt-0 mb-3 border-0 shadow-sm"
+      role="alert">
+      <div class="flex-shrink-0 me-3">
+        <i class="fa fa-fw fa-exclamation-triangle fa-2x text-warning"></i>
+      </div>
+      <div class="flex-grow-1 fs-sm">
+        <p class="mb-1 fw-bold text-dark">Acción Restringida</p>
+        <p class="mb-0 text-muted">
+          No puede ser inactivada actualmente porque tiene documentos en proceso:
+        </p>
+        <ul class="mb-0 mt-2 ps-3 text-muted">
 
-    <div v-if="hasOrders || hasQuotes"
-      class="alert alert-info d-flex align-items-center mx-0 mt-0 mb-2 border-0 shadow-sm" role="alert">
-      <i class="fa fa-fw fa-info-circle me-3 fs-4"></i>
-      <div>
-        <div class="fw-bold">Sucursal en uso</div>
-        <small>
-          Esta sucursal tiene
-          <span v-if="hasOrders" class="badge bg-danger-light text-primary-dark">Pedidos</span>
-          <span v-if="hasOrders && hasQuotes"> y </span>
-          <span v-if="hasQuotes" class="badge bg-danger-light text-primary-dark">Cotizaciones</span>
-          en proceso. No puede ser inactivada actualmente.
-        </small>
+          <li v-if="hasQuotes">
+            <strong>Cotizaciones ({{ ListQuotes.length }}):</strong>
+            <div class="text-break mt-1" style="font-size: 11px; line-height: 1.4;">
+              {{ ListQuotes.join(', ') }}
+            </div>
+          </li>
+
+          <li v-if="hasOrders" :class="{ 'mt-2': hasQuotes }">
+            <strong>Pedidos ({{ ListOrders.length }}):</strong>
+            <div class="text-break mt-1" style="font-size: 11px; line-height: 1.4;">
+              {{ ListOrders.join(', ') }}
+            </div>
+          </li>
+
+        </ul>
       </div>
     </div>
 
@@ -150,13 +166,8 @@ onMounted(() => { });
     <div class="block-content block-content-full text-end bg-body">
       <div class="d-flex justify-content-end gap-2">
         <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</button>
-          <button 
-          type="button" 
-          class="btn btn-sm"
-          :class="sucursal.estado === 0 ? 'btn-success' : 'btn-danger'"
-          :disabled="isButtonDisabled" 
-          @click="updateStatus"
-        >
+        <button type="button" class="btn btn-sm" :class="sucursal.estado === 0 ? 'btn-success' : 'btn-danger'"
+          :disabled="isButtonDisabled" @click="updateStatus">
           <i v-if="loadingUpdateStatusBranch" class="fa fa-spinner fa-spin me-1"></i>
           <i v-else :class="sucursal.estado === 0 ? 'fa fa-check-circle me-1' : 'fa fa-times-circle me-1'"></i>
           {{ sucursal.estado === 0 ? 'Activar Sucursal' : 'Desactivar Sucursal' }}
