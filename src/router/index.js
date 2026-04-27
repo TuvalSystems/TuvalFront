@@ -72,6 +72,10 @@ const DespachoPedidos = () => import("@/views/bodegas/DespachoPedidos.vue");
 const RecibosDeCompraL = () => import("@/views/bodegas/RecibosDeCompraL.vue");
 const Transportistasyvehiculos = () =>
   import("@/views/bodegas/Transportistasyvehiculos.vue");
+const TransferenciasVenta = () =>
+  import("@/views/bodegas/TransferenciasVenta.vue");
+const TransferenciasVentaBodega = () =>
+  import("@/views/bodegas/TransferenciasVentaBodega.vue");
 
 const RecibosVenta = () => import("@/views/bodegas/RecibosVenta.vue");
 const RecibosReposicion = () => import("@/views/bodegas/RecibosReposicion.vue");
