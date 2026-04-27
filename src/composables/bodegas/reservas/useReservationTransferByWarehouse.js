@@ -2,12 +2,8 @@ import { ref, reactive, nextTick, watch, computed } from "vue";
 import axiosClient from "@/axios";
 import { useStore } from "vuex";
 import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
   swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
@@ -129,46 +125,30 @@ export function useReservationTransferByWarehouse() {
     },
   ]);
 
-  const sortBy = computed(() => {
-    return cols.reduce((acc, o) => {
-      if (o.sort) {
-        o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
-      }
-      return acc;
-    }, []);
-  });
+  const sortBy = computed(() =>
+    cols
+      .filter(col => col.sort)
+      .map(col => col.sort === "asc" ? col.field : `-${col.field}`)
+  );
 
   // On sort th click
   function onSort(event, i) {
-    let toset;
     const sortEl = cols[i];
-
     if (!event.shiftKey) {
-      cols.forEach((o) => {
-        if (o.field !== sortEl.field) {
-          o.sort = "";
-        }
+      cols.forEach(col => {
+        if (col !== sortEl) col.sort = "";
       });
     }
 
-    if (!sortEl.sort) {
-      toset = "asc";
-    }
-
-    if (sortEl.sort === "desc") {
-      toset = event.shiftKey ? "" : "asc";
-    }
-
-    if (sortEl.sort === "asc") {
-      toset = "desc";
-    }
-
-    sortEl.sort = toset;
+    const transitions = {
+      "": "asc", "asc": "desc", "desc": event.shiftKey ? "" : "asc"
+    };
+    sortEl.sort = transitions[sortEl.sort];
   }
 
   async function fetchHeaderTransferByWarehouseOriginAndDestination() {
     if (!validatePtoDestination()) return;
-    return  run(() => axiosClient.post(apiHeaderTransferByWarehouseOriginAndDestination, payloadHeader), {
+    return run(() => axiosClient.post(apiHeaderTransferByWarehouseOriginAndDestination, payloadHeader), {
       loadingRef: loadingHeaderTransfer,
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: (list) => {
@@ -187,7 +167,7 @@ export function useReservationTransferByWarehouse() {
 
   async function fetchListTransfersByWarehouseOriginAndDestination() {
     if (!validatePtoDestination()) return;
-    return  run(() => axiosClient.post(apiListTransferByWarehouse, payload), {
+    return run(() => axiosClient.post(apiListTransferByWarehouse, payload), {
       loadingRef: loadingDetailTransfer,
       successMessage: "Items cargados correctamente.",
       onSuccess: (list) => {
@@ -221,64 +201,6 @@ export function useReservationTransferByWarehouse() {
     }
   }
 
-  /** funciones para limpiar estilos del dataSet */
-  const datasetLengthRef = ref(null);
-  let mo; // MutationObserver
-  function styleDatasetLength(root) {
-    if (!root) return;
-
-    const labelWithSelect = root.querySelector("label")?.querySelector("select")
-      ? root.querySelector("label")
-      : null;
-    if (labelWithSelect) {
-      const select = labelWithSelect.querySelector("select");
-      if (select) labelWithSelect.replaceWith(select);
-    }
-
-    //eliminar lables sobrantes
-    root.querySelectorAll("label").forEach((l) => l.remove());
-    //estilizar el select
-    const select = root.querySelector("select");
-    if (!select) return false;
-    select.className = "form-select";
-    select.style.width = "80px";
-    return true;
-  }
-
-  function clearStyleDatatable() {
-    //esperar a que pinte el DOM
-    const root = datasetLengthRef.value;
-    if (!root) return;
-    // Intenta estilizar ahora
-    const ok = styleDatasetLength(root);
-    if (ok) return; //si ya se estilizó, salir
-
-    mo?.disconnect(); //desconectar si ya existe
-    mo = new MutationObserver(() => {
-      if (styleDatasetLength(root)) {
-        mo.disconnect();
-        mo = null;
-      }
-    });
-    mo.observe(root, { childList: true, subtree: true });
-  }
-
-  const showDataset = computed(
-    () =>
-      !loadingDetailTransfer.value &&
-      dataDetailTransfer.value &&
-      dataDetailTransfer.value.length > 0
-  );
-  watch(
-    showDataset,
-    async (visible) => {
-      if (visible) {
-        await nextTick();
-        clearStyleDatatable();
-      }
-    },
-    { immediate: true }
-  );
 
   /**
    *
@@ -298,6 +220,7 @@ export function useReservationTransferByWarehouse() {
     });
     checkDisablePickingAndGuide();
   }
+
 
   function applyAlPendingTransfer(event, row) {
     const checked = event.target.checked;
@@ -356,11 +279,8 @@ export function useReservationTransferByWarehouse() {
     // 4) No exceder la pendiente
     const pending = Number(row?.pending_transfer ?? 0);
     if (val > pending) {
-      // puedes elegir: clamp + aviso, o reset
-      swalError("La cantidad no puede ser mayor a la pendiente por transferir");
-      // Opción clamp:
-      // val = pending;
-      return reset(); // si prefieres bloquear, deja este reset
+
+      return reset("La cantidad no puede ser mayor a la pendiente por transferir"); // si prefieres bloquear, deja este reset
     }
 
     // 5) Asignar y marcar
@@ -392,7 +312,7 @@ export function useReservationTransferByWarehouse() {
 
   const loadingCancelPicking = ref(false);
   async function cancelPicking(row) {
-    return  run(() => axiosClient.post(apiCancelPicking, { row }), {
+    return run(() => axiosClient.post(apiCancelPicking, { row }), {
       loadingRef: loadingCancelPicking,
       successMessage: "Proceso realizado exitosamente.",
     });
@@ -401,7 +321,7 @@ export function useReservationTransferByWarehouse() {
   const loadingPicking = ref(false);
 
   async function applyPickingSelected(items) {
-    return  run(() => axiosClient.post(apiUpdatePicking, { items }), {
+    return run(() => axiosClient.post(apiUpdatePicking, { items }), {
       loadingRef: loadingPicking,
       successMessage: "Proceso realizado exitosamente.",
     });
@@ -439,7 +359,7 @@ export function useReservationTransferByWarehouse() {
   /*** proceso de listado de guias de remision de reserva pendientes*/
   async function fectchListGuideRemisionPending() {
     if (!validatePtoDestination()) return;
-    return  run(() => axiosClient.post(apiListPendingGuides, payloadHeader), {
+    return run(() => axiosClient.post(apiListPendingGuides, payloadHeader), {
       loadingRef: loadingPendingGuides,
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: (list) => {
@@ -464,14 +384,14 @@ export function useReservationTransferByWarehouse() {
   const loadingPdfPendingGuides = ref(false);
   const lastErrorPendingGuides = ref(null);
 
-  async function printGuidePdf(payload) {   
+  async function printGuidePdf(payload) {
     try {
       loadingPdfPendingGuides.value = true;
       lastErrorPendingGuides.value = null;
       const res = await downloadPdfFromApi({
         url: apiPdfGuidePending,
         method: "POST",
-        payload,     
+        payload,
         filenameFallback: "guia-remision-reserva.pdf",
       });
       if (!res.ok) {
@@ -491,7 +411,7 @@ export function useReservationTransferByWarehouse() {
 
   const loadingDispacthGuide = ref(false);
   async function dispatchGuideReservedPending(id) {
-    return  run(() => axiosClient.post(apiDispatchPendingGuides, { id }), {
+    return run(() => axiosClient.post(apiDispatchPendingGuides, { id }), {
       loadingRef: loadingDispacthGuide,
       // onSuccess: () => refresh(),
       successMessage: "Proceso realizado exitosamente.",
@@ -508,10 +428,8 @@ export function useReservationTransferByWarehouse() {
     // detalle
     dataDetailTransfer,
     loadingDetailTransfer,
-    payloadHeader,
     payload,
     cols,
-    datasetLengthRef,
     disabledPicking,
     disabledGuiaRemision,
     dataPendingGuides,
@@ -528,7 +446,7 @@ export function useReservationTransferByWarehouse() {
     applyAlPendingTransfer,
     applyTransfer,
     fectchListGuideRemisionPending,
-     printGuidePdf,
+    printGuidePdf,
     dispatchGuideReservedPending,
     // function picking
     //loading
@@ -538,6 +456,6 @@ export function useReservationTransferByWarehouse() {
     cancelPicking,
     applyPickingSelected,
     printPickingPdf,
-   
+
   };
 }
