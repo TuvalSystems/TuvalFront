@@ -548,7 +548,7 @@ const routes = [
         name: "gestion-operativa-clientes-sucursales",
         component: () => import("@/views/gestion-operativa/clientes/ClienteSucursalesIndex.vue"),
         meta: {
-          title: "Sucursales de Clientes",
+          title: "Direcciones de Clientes",
         },
       }
     ]

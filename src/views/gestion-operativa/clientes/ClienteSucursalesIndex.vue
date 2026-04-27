@@ -92,14 +92,14 @@ onMounted(async () => {
 
 <template>
   <!-- header -->
-  <BasePageHeading title="Gestión de Sucursales">
+  <BasePageHeading title="Gestión de Direcciones">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
           <li class="breadcrumb-item">
             <a class="link-fx" href="javascript:void(0)">Gestión Operativa</a>
           </li>
-          <li class="breadcrumb-item" aria-current="page">Sucursales de Clientes</li>
+          <li class="breadcrumb-item" aria-current="page">Direcciones de Clientes</li>
         </ol>
       </nav>
     </template>
@@ -108,7 +108,7 @@ onMounted(async () => {
 
   <!-- content -->
   <div class="content">
-    <BaseBlock title="Gestión de Sucursales Clientes" content-full rounded class="mb-4">
+    <BaseBlock title="Gestión de Direcciones de Clientes" content-full rounded class="mb-4">
       <template #options>
         <div class="block-options-item">
           <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
