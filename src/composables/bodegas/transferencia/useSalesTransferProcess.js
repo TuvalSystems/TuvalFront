@@ -149,7 +149,7 @@ export function useSalesTransfersProcess() {
     }
 
 
-    const dataListTransfer = ref(null);
+    const dataListTransfer = ref([]);
     const loadingListTransfer = ref(false);
     const apiListTransfer = 'bodegas/transferencia-venta/lista';
     async function fetchListTransfer(id) {
@@ -173,9 +173,9 @@ export function useSalesTransfersProcess() {
     const loadingPendingGuides = ref(false);
     const apiListGuidePendings = 'bodegas/transferencia-venta/lista-guias-pendientes';
     const dataPendingGuides = ref([]);
-    async function fectchListGuideRemisionPending(){
+    async function fectchListGuideRemisionPending() {
         return run(() => axiosClient.post(apiListGuidePendings, payload), {
-            loadingRef : loadingPendingGuides,
+            loadingRef: loadingPendingGuides,
             successMessage: "Proceso realizado exitosamente.",
             onSuccess: (list) => {
                 dataPendingGuides.value = list;
@@ -190,7 +190,7 @@ export function useSalesTransfersProcess() {
 
     async function selectAll(event) {
         const checked = event.target.checked;
-        if (!dataListTransfer.value) return;
+        if (dataListTransfer.value.length === 0) return;
         dataListTransfer.value.forEach((row) => {
             if (row.pending_transfer > 0) {
                 row.seleccionado = checked ? row.pending_transfer : 0;
@@ -207,7 +207,6 @@ export function useSalesTransfersProcess() {
 
 
     async function applyTransfer(row) {
-
         const reset = (msg) => {
             if (msg) swalWarning(msg);
             row.seleccionado = 0;
@@ -269,7 +268,7 @@ export function useSalesTransfersProcess() {
 
 
     const hasSelected = computed(() =>
-        (dataListTransfer.value ?? []).some(
+        dataListTransfer.value.some(
             (r) => r.check_seleccion === true && Number(r.seleccionado) > 0
         )
     );
@@ -333,22 +332,22 @@ export function useSalesTransfersProcess() {
     const loadingPrintGuideRemision = ref(false);
     const apiPdfGuidePending = 'bodegas/transferencia-venta/pdf-guia-remision-pendiente';
     async function printGuidePdf(payload) {
-    return await run(async () => {
-      const filename = await downloadFileFromApi({
-        url: apiPdfGuidePending,
-        method: "POST",
-        payload: payload,
-        filenameFallback: "guia-remision-transferencia-venta.pdf",
-      });
-      return { data: { success: true, data: filename } };
-    }, {
-      loadingRef: loadingPdfPendingGuides,
-      successMessage: "Documento generado exitosamente.",
-      onError: (error) => {
-        console.log(error);
-      }
-    });
-  }
+        return await run(async () => {
+            const filename = await downloadFileFromApi({
+                url: apiPdfGuidePending,
+                method: "POST",
+                payload: payload,
+                filenameFallback: "guia-remision-transferencia-venta.pdf",
+            });
+            return { data: { success: true, data: filename } };
+        }, {
+            loadingRef: loadingPdfPendingGuides,
+            successMessage: "Documento generado exitosamente.",
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+    }
 
 
 

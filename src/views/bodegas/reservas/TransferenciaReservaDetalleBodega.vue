@@ -84,7 +84,7 @@ async function cancelarPicking(row) {
 
 async function verPicking() {
   dataPicking.value = [];
-  dataPicking.value = (dataDetailTransfer.value || []).filter((item) => item.check_seleccion === true);
+  dataPicking.value = dataDetailTransfer.value.filter((item) => item.check_seleccion);
   if (dataPicking.value.length === 0) {
     return
   }
@@ -102,7 +102,7 @@ async function closePickingModal() {
 
 async function guiaRemision() {
   dataGuiaRemision.value = [];
-  dataGuiaRemision.value = (dataDetailTransfer.value || []).filter((item) => item.check_seleccion === true);
+  dataGuiaRemision.value = dataDetailTransfer.value.filter((item) => item.check_seleccion);
   if (dataGuiaRemision.value.length === 0) {
     return
   }
@@ -153,8 +153,8 @@ onMounted(async () => {
   payload.destino = ptovtaId.value;
   payloadHeader.destino = ptovtaId.value;
   if (!dataHeaderTransfer.value) fetchHeaderTransferByWarehouseOriginAndDestination();
-  if (!dataDetailTransfer.value) fetchListTransfersByWarehouseOriginAndDestination();
-  if (!dataPendingGuides.value) fectchListGuideRemisionPending();
+  if (dataDetailTransfer.value.length === 0) fetchListTransfersByWarehouseOriginAndDestination();
+  if (dataPendingGuides.value.length === 0) fectchListGuideRemisionPending();
   await nextTick()
   vehicles.fetch();
 });
@@ -222,7 +222,7 @@ onMounted(async () => {
           </div>
           <p class="mt-2 text-muted">Cargando información...</p>
         </div>
-        <div v-if="!loadingDetailTransfer && dataDetailTransfer" class="m-2">
+        <div v-if="!loadingDetailTransfer && dataDetailTransfer.length > 0" class="m-2">
           <Dataset v-slot="{ ds }" :ds-data="dataDetailTransfer" :ds-sortby="sortBy"
             :ds-search-in="['art_code', 'art_cod_tres_letras', 'cotizacion']">
             <div class="row" :data-page-count="ds.dsPagecount" style="justify-content: space-between;">
@@ -319,9 +319,9 @@ onMounted(async () => {
       </BaseBlock>
     </div>
     <!-- lista de guias de remision de reservas pendientes -colagadas- -->
-    <div v-if="!loadingPendingGuides && dataPendingGuides">
-      <BaseBlock>
-        <div class="row">
+    <div v-if="!loadingPendingGuides && dataPendingGuides.length > 0">
+      <BaseBlock title="Guias Pendientes">
+        <div class="row mb-4">
           <div class="col-md-12">
             <div class="table-responsive mb-0">
               <table class="table table-sm table-hover table-vcenter align-middle mb-0">

@@ -86,7 +86,7 @@ watch(() => payload.pedido, () => {
 
 async function verPicking() {
   dataPicking.value = [];
-  dataPicking.value = (dataListTransfer.value || []).filter((item) => item.check_seleccion === true);
+  dataPicking.value = dataListTransfer.value.filter((item) => item.check_seleccion);
   if (dataPicking.value.length === 0) {
     return
   }
@@ -119,7 +119,7 @@ async function cancelarPicking(row) {
 
 async function guiaRemision() {
   dataGuiaRemision.value = [];
-  dataGuiaRemision.value = (dataListTransfer.value || []).filter((item) => item.check_seleccion === true);
+  dataGuiaRemision.value = dataListTransfer.value.filter((item) => item.check_seleccion);
   if (dataGuiaRemision.value.length === 0) {
     return
   }
@@ -141,8 +141,8 @@ onMounted(async () => {
   payload.destino = pvDestino.value;
   await nextTick();
   if (!dataTransferHeader.value) fetchDataTransferHeader();
-  if (!dataListTransfer.value) fetchListTransfer();
-  if (!dataPendingGuides.value) fectchListGuideRemisionPending();
+  if (dataListTransfer.value.length === 0) fetchListTransfer();
+  if (dataPendingGuides.value.length === 0) fectchListGuideRemisionPending();
   vehicles.fetch();
 
 });
@@ -211,7 +211,7 @@ onMounted(async () => {
           <p class="mt-2 text-muted">Cargando información...</p>
         </div>
 
-        <div v-if="!loadingListTransfer && dataListTransfer" class="m-2">
+        <div v-if="!loadingListTransfer && dataListTransfer.length > 0" class="m-2">
           <Dataset v-slot="{ ds }" :ds-data="dataListTransfer" :ds-sortby="sortBy"
             :ds-search-in="['ART_CODIGO', 'ART_DESCRIPCION', 'orderNumber', 'compartimiento']">
             <div class="row" :data-page-count="ds.dsPagecount" style="justify-content: space-between;">
@@ -309,8 +309,8 @@ onMounted(async () => {
 
     <!-- lista de guias de remision de reservas pendientes -colagadas- -->
     <div v-if="!loadingPendingGuides && dataPendingGuides.length > 0">
-      <BaseBlock>
-        <div class="row">
+      <BaseBlock title="Guias Pendientes">
+        <div class="row mb-4">
           <div class="col-md-12">
             <div class="table-responsive mb-0">
               <table class="table table-sm table-hover table-vcenter align-middle mb-0">
@@ -330,10 +330,10 @@ onMounted(async () => {
                     <td class="fs-sm text-center">{{ row.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
                     <td class="fs-sm text-center">{{ row.GUI_REM_PLACA }}</td>
                     <td class="fs-sm text-center space-x-2">
-                      <!-- <button type="button" class="btn btn-sm btn-outline-primary"
+                      <button type="button" class="btn btn-sm btn-outline-primary"
                         @click="printPdfGuiaRemision(row.id)">Imprimir</button>
                       <button type="button" class="btn btn-sm btn-outline-success" @click="dispatchGuiaRemision(row.id)"
-                        :disabled="loadingDispacthGuide">Despachar</button> -->
+                        :disabled="loadingDispacthGuide">Despachar</button>
                     </td>
                   </tr>
                 </tbody>
@@ -343,7 +343,7 @@ onMounted(async () => {
         </div>
       </BaseBlock>
     </div>
-    <div v-if="!loadingListTransfer && (!dataListTransfer || dataListTransfer.length === 0)">
+    <div v-if="!loadingListTransfer && dataListTransfer.length === 0 && dataPendingGuides.length === 0">
       <div class="text-center">
         <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
         <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
@@ -355,31 +355,31 @@ onMounted(async () => {
 
 
 
-  <!-- modales  -->
-  <!-- modal de picking -->
-  <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
-    ref="pickingModalRef">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content">
-        <verPickingSalesTransferModal v-if="dataPicking && dataPicking.length > 0" :header="dataTransferHeader"
-          :picking="dataPicking" @refresh="refresh()" @closePickingModal="closePickingModal()">
-        </verPickingSalesTransferModal>
+    <!-- modales  -->
+    <!-- modal de picking -->
+    <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
+      ref="pickingModalRef">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <verPickingSalesTransferModal v-if="dataPicking && dataPicking.length > 0" :header="dataTransferHeader"
+            :picking="dataPicking" @refresh="refresh()" @closePickingModal="closePickingModal()">
+          </verPickingSalesTransferModal>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- modal guia remision reservas -->
-  <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
-    ref="guiaRemisionModalRef">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content">
-        <verGuiaRemisionSalesTransferModal v-if="dataGuiaRemision && dataGuiaRemision.length > 0"
-          :header="dataTransferHeader" :detalle="dataGuiaRemision" @refresh="refresh()"
-          @closeModal="closeGuiaRemisionModal()">
-        </verGuiaRemisionSalesTransferModal>
+    <!-- modal guia remision reservas -->
+    <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
+      ref="guiaRemisionModalRef">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <verGuiaRemisionSalesTransferModal v-if="dataGuiaRemision && dataGuiaRemision.length > 0"
+            :header="dataTransferHeader" :detalle="dataGuiaRemision" @refresh="refresh()"
+            @closeModal="closeGuiaRemisionModal()">
+          </verGuiaRemisionSalesTransferModal>
+        </div>
       </div>
     </div>
-  </div>
 
 
   </div>

@@ -23,11 +23,11 @@ export function useReservationTransferByWarehouse() {
     destino: null,
   });
   //detalle
-  const dataDetailTransfer = ref(null);
+  const dataDetailTransfer = ref([]);
   const loadingDetailTransfer = ref(false);
   const apiListTransferByWarehouse = `reservas/transferencias/lista-traslados-por-reserva-bodega`;
 
-  const dataPendingGuides = ref(null);
+  const dataPendingGuides = ref([]);
   const loadingPendingGuides = ref(false);
   const apiListPendingGuides = `reservas/transferencias/lista-guias-remision-reservas-pendientes`;
 
@@ -208,7 +208,7 @@ export function useReservationTransferByWarehouse() {
 
   function selectAll(event) {
     const checked = event.target.checked;
-    if (!dataDetailTransfer.value) return;
+    if (dataDetailTransfer.value.length === 0) return;
     dataDetailTransfer.value.forEach((row) => {
       if (row.pending_transfer > 0) {
         row.seleccionado = checked ? row.pending_transfer : 0;
@@ -290,12 +290,12 @@ export function useReservationTransferByWarehouse() {
    */
 
   const hasSelected = computed(() =>
-        (dataDetailTransfer.value ?? []).some(
-            (r) => r.check_seleccion === true && Number(r.seleccionado) > 0
-        )
-    );
-    const disabledPicking = computed(() => !hasSelected.value);
-    const disabledGuiaRemision = computed(() => !hasSelected.value);
+   dataDetailTransfer.value.some(
+      (r) => r.check_seleccion === true && Number(r.seleccionado) > 0
+    )
+  );
+  const disabledPicking = computed(() => !hasSelected.value);
+  const disabledGuiaRemision = computed(() => !hasSelected.value);
   /**
    *   funciones de proceso de actualizacion de picking de transferencias
    */
