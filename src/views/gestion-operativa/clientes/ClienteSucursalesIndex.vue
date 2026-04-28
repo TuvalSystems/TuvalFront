@@ -12,6 +12,7 @@ const {
   listPerpage,
   estadoClass,
   refresh,
+  refreshTwo,
   onSort,
   fetchList
 } = useClientBranchesOperationsTable();
@@ -82,7 +83,7 @@ async function openModalGestionSucursal(row) {
 async function closeModalGestionSucursal() {
   verModalGestionSucursalObj.hide();
   await nextTick();
-  refresh();
+  refreshTwo();
 }
 
 onMounted(async () => {
