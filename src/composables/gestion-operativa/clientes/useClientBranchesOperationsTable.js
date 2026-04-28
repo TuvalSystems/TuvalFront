@@ -87,6 +87,17 @@ export function useClientBranchesOperationsTable() {
         await fetchList(1);
     }
 
+      async function refreshTwo() {
+        Object.assign(table.filters, {
+            // search: "",
+            perpage: "10",
+            sortField: "created_at",
+            sortOrder: "desc",
+        });
+        table.currentPage = 1;
+        await fetchList(1);
+    }
+
     const onSort = ({ field, order }) => {
         table.filters.sortField = field;
         table.filters.sortOrder = order;
@@ -120,6 +131,7 @@ export function useClientBranchesOperationsTable() {
         listPerpage,
         estadoClass,
         refresh,
+        refreshTwo,
         onSort,
         fetchList
     }
