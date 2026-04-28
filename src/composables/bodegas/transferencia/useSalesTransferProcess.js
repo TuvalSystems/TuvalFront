@@ -170,6 +170,20 @@ export function useSalesTransfersProcess() {
     }
 
 
+    const loadingPendingGuides = ref(false);
+    const apiListGuidePendings = 'bodegas/transferencia-venta/lista-guias-pendientes';
+    const dataPendingGuides = ref([]);
+    async function fectchListGuideRemisionPending(){
+        return run(() => axiosClient.post(apiListGuidePendings, payload), {
+            loadingRef : loadingPendingGuides,
+            successMessage: "Proceso realizado exitosamente.",
+            onSuccess: (list) => {
+                dataPendingGuides.value = list;
+            }
+        })
+    }
+
+
 
     //funciones para la seelccion y aplicación de validacion para seleccionados
 
@@ -349,6 +363,10 @@ export function useSalesTransfersProcess() {
         loadingTransferHeader,
         fetchDataTransferHeader,
 
+        //carga de lista de guias pendientes 
+        dataPendingGuides,
+        loadingPendingGuides,
+        fectchListGuideRemisionPending,
         //tabla 
         cols,
         sortBy,

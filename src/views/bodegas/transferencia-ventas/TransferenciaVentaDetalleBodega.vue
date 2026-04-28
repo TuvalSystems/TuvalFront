@@ -26,6 +26,10 @@ const {
   dataTransferHeader,
   loadingTransferHeader,
   fetchDataTransferHeader,
+  //carga de lista de guias pendientes 
+  dataPendingGuides,
+  loadingPendingGuides,
+  fectchListGuideRemisionPending,
 
   //tabla 
   cols,
@@ -138,6 +142,7 @@ onMounted(async () => {
   await nextTick();
   if (!dataTransferHeader.value) fetchDataTransferHeader();
   if (!dataListTransfer.value) fetchListTransfer();
+  if (!dataPendingGuides.value) fectchListGuideRemisionPending();
   vehicles.fetch();
 
 });
@@ -302,37 +307,79 @@ onMounted(async () => {
       </BaseBlock>
     </div>
 
-
-
-
-
-
-
-    <!-- modales  -->
-    <!-- modal de picking -->
-    <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
-      ref="pickingModalRef">
-      <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-          <verPickingSalesTransferModal v-if="dataPicking && dataPicking.length > 0" :header="dataTransferHeader"
-            :picking="dataPicking" @refresh="refresh()" @closePickingModal="closePickingModal()">
-          </verPickingSalesTransferModal>
+    <!-- lista de guias de remision de reservas pendientes -colagadas- -->
+    <div v-if="!loadingPendingGuides && dataPendingGuides.length > 0">
+      <BaseBlock>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="table-responsive mb-0">
+              <table class="table table-sm table-hover table-vcenter align-middle mb-0">
+                <thead style="position: sticky; top: 0; z-index: 1;">
+                  <tr>
+                    <th class="fs-sm text-center">N° Guia</th>
+                    <th class="fs-sm text-center">Fecha</th>
+                    <th class="fs-sm text-center">Transportista</th>
+                    <th class="fs-sm text-center">Vehiculo</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, index) in dataPendingGuides" :key="index">
+                    <td class="fs-sm text-center">{{ row.GUI_REM_BODEGA }}</td>
+                    <td class="fs-sm text-center">{{ row.GUI_REM_FECHA_INICIO }}</td>
+                    <td class="fs-sm text-center">{{ row.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
+                    <td class="fs-sm text-center">{{ row.GUI_REM_PLACA }}</td>
+                    <td class="fs-sm text-center space-x-2">
+                      <!-- <button type="button" class="btn btn-sm btn-outline-primary"
+                        @click="printPdfGuiaRemision(row.id)">Imprimir</button>
+                      <button type="button" class="btn btn-sm btn-outline-success" @click="dispatchGuiaRemision(row.id)"
+                        :disabled="loadingDispacthGuide">Despachar</button> -->
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+      </BaseBlock>
+    </div>
+    <div v-if="!loadingListTransfer && (!dataListTransfer || dataListTransfer.length === 0)">
+      <div class="text-center">
+        <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+        <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
       </div>
     </div>
 
-     <!-- modal guia remision reservas -->
-  <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
-    ref="guiaRemisionModalRef">
+
+
+
+
+
+  <!-- modales  -->
+  <!-- modal de picking -->
+  <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
+    ref="pickingModalRef">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-        <verGuiaRemisionSalesTransferModal v-if="dataGuiaRemision && dataGuiaRemision.length > 0" :header="dataTransferHeader"
-          :detalle="dataGuiaRemision" @refresh="refresh()" @closeModal="closeGuiaRemisionModal()">
-        </verGuiaRemisionSalesTransferModal>
+        <verPickingSalesTransferModal v-if="dataPicking && dataPicking.length > 0" :header="dataTransferHeader"
+          :picking="dataPicking" @refresh="refresh()" @closePickingModal="closePickingModal()">
+        </verPickingSalesTransferModal>
       </div>
     </div>
   </div>
 
+  <!-- modal guia remision reservas -->
+  <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
+    ref="guiaRemisionModalRef">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <verGuiaRemisionSalesTransferModal v-if="dataGuiaRemision && dataGuiaRemision.length > 0"
+          :header="dataTransferHeader" :detalle="dataGuiaRemision" @refresh="refresh()"
+          @closeModal="closeGuiaRemisionModal()">
+        </verGuiaRemisionSalesTransferModal>
+      </div>
+    </div>
+  </div>
 
 
   </div>
