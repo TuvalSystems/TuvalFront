@@ -3,12 +3,8 @@ import { ref, onMounted, watch, nextTick } from 'vue';
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { formatJm } from "@/functions";
 import {
-  swalSimple,
-  swalInfo,
   swalSuccess,
-  swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 const props = defineProps({
   header: { type: Object, default: () => ({}) },
@@ -55,15 +51,16 @@ async function imprimirPicking() {
   }
 
   const res = await printPickingPdf(payload);
-  
   if (res?.ok) {
+    swalSuccess("Archivo descargado correctamente");
     await nextTick()
     emit('closePickingModal')
     emit('refresh')
-  } else {
-    swalError(res?.message || 'No se pudo generar el PDF.')
+    return;
   }
-  swalSuccess(respAc.message);
+  const msg = res?.message || "No se pudo generar el documento";
+  (res?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+  
 }
 
 onMounted(() => {
@@ -78,22 +75,22 @@ onMounted(() => {
       </button>
     </template>
     <div class="table-responsive">
-      <table class="table table-striped table-sm table-vcenter mt-4">
+      <table class="table table-borderless table-sm table-vcenter mt-1 mb-2">
         <thead>
           <tr>
-            <th class="text-start">COMPT./EXIST.</th>
-            <th class="text-center">CTL</th>
-            <th class="text-center">Descripción</th>
-            <th class="text-center">UDM</th>
-            <th class="text-center">Cantidad</th>
-            <th class="text-center">Peso</th>
+            <th scope class="text-start  text-label-muted">COMPT./EXIST.</th>
+            <th scope class="text-center text-label-muted">CTL</th>
+            <th scope class="text-start text-label-muted">Descripción</th>
+            <th scope class="text-center text-label-muted">UDM</th>
+            <th scope class="text-end text-label-muted">Cantidad</th>
+            <th scope class="text-end text-label-muted">Peso</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(art, i) in props.picking" :key="i">
             <td class="fs-sm ">
               <code data-bs-toggle="tooltip" title="Compartimiento">{{ art.compartimiento }}</code>
-              <span class="text-muted mx-1"> </span>
+              <span class="text-muted mx-1"> | </span>
               <code data-bs-toggle="tooltip" title="Existencia" class="text-end">{{ art.existencia }}</code>
             </td>
             <td class="fs-sm text-center">{{ art.art_cod_tres_letras }}</td>
@@ -103,11 +100,11 @@ onMounted(() => {
             <td class="fs-sm text-end"> {{ art.art_peso }}</td>
           </tr>
           <tr>
-            <th colspan="6"></th>
+            <th scope colspan="6"></th>
           </tr>
           <tr>
-            <th colspan="5" class="fs-sm text-end">Peso total del despacho</th>
-            <th class="fs-sm text-end">{{ pesoTotalItemsFmt }} kg </th>
+            <th scope colspan="5" class="fs-sm text-end text-label-muted">Peso total</th>
+             <th scope class="fs-sm text-end fw-bold text-uppercase">{{ pesoTotalItemsFmt }} kg </th>
           </tr>
         </tbody>
       </table>
@@ -122,4 +119,17 @@ onMounted(() => {
   </div>
 </template>
 
-<style lang="css" scoped></style>
+
+<style scoped>
+
+.text-label-muted {
+  text-transform: uppercase;
+  font-weight: 700;
+  /* fw-bold */
+  font-size: 12px;
+  line-height: 1.2;
+  /* Recomendado para que no ocupe espacio extra hacia arriba o abajo */
+}
+</style> 
+
+

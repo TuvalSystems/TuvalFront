@@ -1,9 +1,16 @@
 <script setup>
-import { onMounted, toRefs, nextTick, watch } from 'vue';
+import { onMounted, toRefs, nextTick, watch, ref } from 'vue';
 import { formatPrice, toNum, formatJm } from "@/functions";
+import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useSalesTransfersProcess } from "@/composables/bodegas/transferencia/useSalesTransferProcess";
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
-
+import verPickingSalesTransferModal from "@/views/bodegas/transferencia-ventas/modals/verPickingTrasladoVentasModal.vue"
+import verGuiaRemisionSalesTransferModal from "@/views/bodegas/transferencia-ventas/modals/verGuiaRemisionTrasladoVentasModal.vue"
+import {
+  swalSuccess,
+  swalError,
+  swalWarning
+} from "@/functions/swal-alert.js";
 const props = defineProps({
   pvDestino: {
     type: String,
@@ -11,6 +18,7 @@ const props = defineProps({
   }
 }); //ptovtaId destino
 const { pvDestino } = toRefs(props);
+
 
 const {
   //cargar cabecera de transferencia
@@ -36,6 +44,9 @@ const {
   disabledPicking,
   disabledGuiaRemision,
 
+  //pintar tabla
+  getRowClass,
+
   //refresh
   refresh,
 
@@ -46,9 +57,80 @@ const {
 const vehicles = useVehiclesStore();
 
 
+//modales 
+const dataPicking = ref([]);
+const pickingModalRef = ref(null);
+const pickingModalObj = useBootstrapModal(pickingModalRef, {
+  onHidden: () => {
+    dataPicking.value = [];
+  }
+});
+
+const dataGuiaRemision = ref([]);
+const guiaRemisionModalRef = ref(null);
+const guiaRemisionModalObj = useBootstrapModal(guiaRemisionModalRef, {
+  onHidden: () => {
+    dataGuiaRemision.value = [];
+  }
+});
+
+
 watch(() => payload.pedido, () => {
   fetchListTransfer();
 });
+
+
+async function verPicking() {
+  dataPicking.value = [];
+  dataPicking.value = (dataListTransfer.value || []).filter((item) => item.check_seleccion === true);
+  if (dataPicking.value.length === 0) {
+    return
+  }
+
+  await nextTick();
+  pickingModalObj.show();
+
+
+}
+
+async function closePickingModal() {
+  await nextTick();
+  dataPicking.value = [];
+  pickingModalObj.hide();
+}
+
+
+async function cancelarPicking(row) {
+  let resp = await cancelPicking(row);
+  if (!resp.ok) {
+    swalError(resp.message);
+    return;
+  }
+  row.picking = 0;
+  swalSuccess(resp.message);
+  refresh();
+}
+
+
+
+async function guiaRemision() {
+  dataGuiaRemision.value = [];
+  dataGuiaRemision.value = (dataListTransfer.value || []).filter((item) => item.check_seleccion === true);
+  if (dataGuiaRemision.value.length === 0) {
+    return
+  }
+  await nextTick();
+  guiaRemisionModalObj.show();
+}
+
+async function closeGuiaRemisionModal() {
+  await nextTick();
+  dataGuiaRemision.value = [];
+  guiaRemisionModalObj.hide();
+  refresh();
+}
+
+
 
 
 onMounted(async () => {
@@ -104,11 +186,12 @@ onMounted(async () => {
         <!-- filtros -->
         <div class="row g-3 align-items-end px-2 pt-2 pb-1 mb-4">
           <div class="col-12 col-sm-6 col-lg-3">
-            <small class="text-muted d-block mb-1">Pedidos</small>
+            <small class="text-muted d-block mb-1   text-value-upper">Pedidos</small>
             <div class="input-group input-group-sm">
-              <select class="form-select form-select-sm" v-model="payload.pedido">
-                <option value="">Todos</option>
-                <option v-for="p in dataTransferHeader.listsOrders" :key="p" :value="p">{{ p }}</option>
+              <select class="form-select form-select-sm  text-value-upper" v-model="payload.pedido">
+                <option class=" text-value-upper" value="">Todos</option>
+                <option class="  text-value-upper" style="font-size: 12px;" v-for="p in dataTransferHeader.listsOrders"
+                  :key="p" :value="p">{{ p }}</option>
               </select>
             </div>
           </div>
@@ -125,7 +208,7 @@ onMounted(async () => {
 
         <div v-if="!loadingListTransfer && dataListTransfer" class="m-2">
           <Dataset v-slot="{ ds }" :ds-data="dataListTransfer" :ds-sortby="sortBy"
-            :ds-search-in="['ART_CODIGO', 'ART_DESCRIPCION', 'orderNumber']">
+            :ds-search-in="['ART_CODIGO', 'ART_DESCRIPCION', 'orderNumber', 'compartimiento']">
             <div class="row" :data-page-count="ds.dsPagecount" style="justify-content: space-between;">
               <div id="datasetLength" v-show="!loadingListTransfer && dataListTransfer" class="col-md-8 py-2 fs-sm">
                 <DatasetShow />
@@ -140,25 +223,25 @@ onMounted(async () => {
                 <div class="table-responsive mb-0">
                   <table class="table table-sm table-hover table-vcenter align-middle mb-0">
                     <thead style="position: sticky; top: 0; z-index: 1;">
-                      <tr>
+                      <tr class="text-label-muted">
                         <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort, th.thClass]"
                           @click="onSort($event, index)">
                           {{ th.name }} <i class="gg-select float-end"></i>
                         </th>
-                        <th class="fs-sm text-center" style="font-size:10px;">
-                          <label class="d-inline-flex align-items-center gap-1 m-0">
+                        <th class="fs-sm text-center" style="font-size:10px;width: 20px;">
+                          <label class="d-inline-flex align-items-center gap-0 m-0">
                             <span>SELEC.</span>
                             <input type="checkbox" class="form-check-input m-0" @click="selectAll($event)" />
                           </label>
                         </th>
-                        <th></th>
-                        <th></th>
+                        <th style="width:80px"></th>
+                        <th style="width:27px"></th>
                       </tr>
                     </thead>
 
                     <DatasetItem tag="tbody" class="fs-sm">
                       <template #default="{ row }">
-                        <tr :class="(row.has_guide_active && row.pending_transfer > 0 ? 'table-warning' : '')">
+                        <tr :class="getRowClass(row)">
                           <td class="fs-sm text-start">{{ row.ART_CODIGO_TRES_LETRAS }}</td>
                           <td class="fs-sm text-start">{{ row.ART_CODIGO }}</td>
                           <td class="fs-sm text-start">{{ row.ART_DESCRIPCION }}</td>
@@ -173,17 +256,16 @@ onMounted(async () => {
                           <td class="fs-sm text-end">{{ row.ART_PESO }}</td>
                           <td style="width: 20px;" class="fs-sm text-center">
                             <input v-if="(row.pending_transfer > 0)" type="checkbox" class="form-check-input"
-                              v-model="row.check_seleccion" @change="applyAlPendingTransfer($event, row)">
+                              v-model="row.check_seleccion" @change="applyPendingTransfer($event, row)">
                           </td>
-                          <td class="fs-sm">
+                          <td class="fs-sm" style="width:80px">
                             <input v-if="(row.pending_transfer > 0)" type="text"
                               class="form-control form-control-sm text-end" v-model="row.seleccionado"
                               @change="applyTransfer(row)" />
                           </td>
-                          <td class="fs-sm" style="width:30px">
-                            <button v-if="row.picking && row.check_disable_button_picking === false"
-                              class="btn btn-sm btn-danger" title="Cancelar Picking" @click="cancelarPicking(row)"
-                              :disabled="loadingCancelPicking">
+                          <td class="fs-sm" style="width:27px">
+                            <button v-if="row.picking && row.has_guide_active === false" class="btn btn-sm btn-danger"
+                              title="Cancelar Picking" @click="cancelarPicking(row)" :disabled="loadingCancelPicking">
                               <i class="fa fa-xmark"></i>
                             </button>
                           </td>
@@ -194,11 +276,65 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
+            <div class="d-flex flex-md-row flex-column justify-content-between align-items-center">
+              <DatasetInfo class="py-3 fs-sm" />
+              <DatasetPager class="flex-wrap py-3 fs-sm" />
+            </div>
           </Dataset>
+          <!-- opciones de picking y generacion de guia -->
+          <div class="row">
+            <div class="col-12 col-md-6  ms-md-auto">
+              <div class="d-grid d-sm-flex gap-2 justify-content-end">
+                <button type="button" class="btn btn-warning btn-sm w-100 w-sm-auto" :disabled="disabledPicking"
+                  @click="verPicking()">
+                  <i class="fa fa-people-carry-box me-1"></i>
+                  <span class="d-none d-sm-inline">Picking</span>
+                </button>
+                <button type="button" class="btn btn-primary btn-sm w-100 w-sm-auto" :disabled="disabledGuiaRemision"
+                  @click="guiaRemision()">
+                  <i class="fa fa-file-lines me-1"></i>
+                  <span class="d-none d-sm-inline">Generar guía de remisión</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </BaseBlock>
-
     </div>
+
+
+
+
+
+
+
+    <!-- modales  -->
+    <!-- modal de picking -->
+    <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
+      ref="pickingModalRef">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <verPickingSalesTransferModal v-if="dataPicking && dataPicking.length > 0" :header="dataTransferHeader"
+            :picking="dataPicking" @refresh="refresh()" @closePickingModal="closePickingModal()">
+          </verPickingSalesTransferModal>
+        </div>
+      </div>
+    </div>
+
+     <!-- modal guia remision reservas -->
+  <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
+    ref="guiaRemisionModalRef">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <verGuiaRemisionSalesTransferModal v-if="dataGuiaRemision && dataGuiaRemision.length > 0" :header="dataTransferHeader"
+          :detalle="dataGuiaRemision" @refresh="refresh()" @closeModal="closeGuiaRemisionModal()">
+        </verGuiaRemisionSalesTransferModal>
+      </div>
+    </div>
+  </div>
+
+
+
   </div>
 </template>
 <style scoped>
@@ -225,5 +361,25 @@ onMounted(async () => {
 
 :deep(.table-vcenter tbody td) {
   font-size: 0.8rem !important;
+}
+
+
+/* Para cabeceras, labels o etiquetas <small> (Reemplaza: text-muted text-uppercase fw-bold + 10px) */
+.text-label-muted {
+  text-transform: uppercase;
+  font-weight: 700;
+  /* fw-bold */
+  font-size: 10px;
+  line-height: 1.2;
+  /* Recomendado para que no ocupe espacio extra hacia arriba o abajo */
+}
+
+/* Para texto normal o valores (Reemplaza: text-uppercase fw-bold + 12px) */
+.text-value-upper {
+  color: inherit;
+  /* Toma el color de texto por defecto del body o modo oscuro */
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 12px;
 }
 </style>

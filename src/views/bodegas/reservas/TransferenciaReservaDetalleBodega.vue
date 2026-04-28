@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice, toNum } from "@/functions";
+import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import {
@@ -8,8 +9,6 @@ import {
   swalError,
   swalWarning
 } from "@/functions/swal-alert.js";
-import { Modal } from "bootstrap";
-/** modales */
 import verPickingReservas from "@/views/bodegas/reservas/modals/verPickingReservasModal.vue"
 import verGuiaRemisionReserva from "@/views/bodegas/reservas/modals/verGuiaRemisionReservasModal.vue"
 const props = defineProps({
@@ -54,13 +53,22 @@ const {
 } = useReservationTransferByWarehouse();
 const vehicles = useVehiclesStore();
 
-let pickingModal = ref(null);
-let pickingModalObj = null;
-let guiaRemisionModal = ref(null);
-let guiaRemisionModalObj = null;
-let dataPicking = ref([]);
-let dataGuiaRemision = ref([]);
 
+const dataPicking = ref([]);
+const pickingModalRef = ref(null);
+const pickingModalObj = useBootstrapModal(pickingModalRef, {
+  onHidden: () => {
+    dataPicking.value = [];
+  }
+});
+
+const dataGuiaRemision = ref([]);
+const guiaRemisionModalRef = ref(null);
+const guiaRemisionModalObj = useBootstrapModal(guiaRemisionModalRef, {
+  onHidden: () => {
+    dataGuiaRemision.value = [];
+  }
+});
 
 
 async function cancelarPicking(row) {
@@ -82,7 +90,6 @@ async function verPicking() {
   }
 
   await nextTick();
-  pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
   pickingModalObj.show();
 }
 async function closePickingModal() {
@@ -100,7 +107,6 @@ async function guiaRemision() {
     return
   }
   await nextTick();
-  guiaRemisionModalObj = Modal.getOrCreateInstance(guiaRemisionModal.value, { backdrop: true })
   guiaRemisionModalObj.show();
 }
 
@@ -115,13 +121,13 @@ async function closeGuiaRemisionModal() {
 /*** procesos de guias de remisiones pendientes */
 
 async function printPdfGuiaRemision(id) {
-  const res = await printGuidePdf({ 'id': id });
-  if (res?.ok) {
-    await nextTick()
-    swalSuccess('Documento generado correctamente.');
-  } else {
-    swalError(res?.message || 'No se pudo generar el PDF.')
+  const resp = await printGuidePdf({ 'id': id });
+  if (resp?.ok) {
+    swalSuccess("Archivo descargado correctamente");
+    return;
   }
+  const msg = resp?.message || "No se pudo generar el documento";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
 
 
@@ -143,20 +149,6 @@ async function dispatchGuiaRemision(id) {
 
 
 
-
-
-
-
-
-function initialModal() {
-  if (pickingModal.value) {
-    pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
-  }
-  if (guiaRemisionModal.value) {
-    guiaRemisionModalObj = Modal.getOrCreateInstance(guiaRemisionModal.value, { backdrop: true })
-  }
-}
-
 onMounted(async () => {
   payload.destino = ptovtaId.value;
   payloadHeader.destino = ptovtaId.value;
@@ -164,7 +156,6 @@ onMounted(async () => {
   if (!dataDetailTransfer.value) fetchListTransfersByWarehouseOriginAndDestination();
   if (!dataPendingGuides.value) fectchListGuideRemisionPending();
   await nextTick()
-  initialModal();
   vehicles.fetch();
 });
 
@@ -235,8 +226,7 @@ onMounted(async () => {
           <Dataset v-slot="{ ds }" :ds-data="dataDetailTransfer" :ds-sortby="sortBy"
             :ds-search-in="['art_code', 'art_cod_tres_letras', 'cotizacion']">
             <div class="row" :data-page-count="ds.dsPagecount" style="justify-content: space-between;">
-              <div  id="datasetLength" v-show="!loadingDetailTransfer && dataDetailTransfer"
-                class="col-md-8 py-2 fs-sm">
+              <div id="datasetLength" v-show="!loadingDetailTransfer && dataDetailTransfer" class="col-md-8 py-2 fs-sm">
                 <DatasetShow />
               </div>
               <div class="col-md-4 py-2 fs-sm">
@@ -376,7 +366,7 @@ onMounted(async () => {
   <!-- modales  -->
   <!-- modal de picking -->
   <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
-    ref="pickingModal">
+    ref="pickingModalRef">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verPickingReservas v-if="dataPicking && dataPicking.length > 0" :header="dataHeaderTransfer"
@@ -387,7 +377,7 @@ onMounted(async () => {
 
   <!-- modal guia remision reservas -->
   <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
-    ref="guiaRemisionModal">
+    ref="guiaRemisionModalRef">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verGuiaRemisionReserva v-if="dataGuiaRemision && dataGuiaRemision.length > 0" :header="dataHeaderTransfer"
@@ -402,11 +392,13 @@ onMounted(async () => {
 <style scoped>
 /* 1. Ocultamos el texto de los labels ("Show" y "entries") */
 :deep(#datasetLength label) {
-  font-size: 0; 
+  font-size: 0;
 }
+
 /* 2. Atrapamos el select interno y lo estilizamos */
 :deep(#datasetLength select) {
-  font-size: 0.875rem; /* Le devolvemos el tamaño de letra al texto del select */
+  font-size: 0.875rem;
+  /* Le devolvemos el tamaño de letra al texto del select */
   display: inline-block;
   width: 80px;
   margin: 0 0.5rem;
@@ -420,8 +412,8 @@ onMounted(async () => {
     padding-bottom: .15rem;
   }
 }
+
 :deep(.table-vcenter tbody td) {
   font-size: 0.8rem !important;
 }
-
 </style>

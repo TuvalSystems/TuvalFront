@@ -5,6 +5,7 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import {
   swalWarning
 } from "@/functions/swal-alert.js";
+import { isBlank, validarPlacaEC, toDate, isValidDateStr } from "@/utils/guia-remision/validators";
 export const useReservationGuideProcess = () => {
   //instancia general para apis 
   const { run } = useApiAction();
@@ -75,7 +76,6 @@ export const useReservationGuideProcess = () => {
 
   /** limpiar cambio de modos */
   function clearChangeModeLocal() {
-    // data.transporte = null;
     data.nombre_transporte = null;
     data.tipo_identificacion = null;
     data.identificacion = null;
@@ -95,20 +95,8 @@ export const useReservationGuideProcess = () => {
     });
   }
 
-  function isBlank(v) {
-    return v == null || (typeof v === "string" && v.trim() === "");
-  }
-  function validarPlacaEC(placa) {
-    // A1: ABC-123 o ABC1234 (simple y suficiente para UI)
-    return /^[A-Z]{3}-?\d{4,4}$/.test(String(placa).toUpperCase().trim());
-  }
-  function toDate(s) {
-    return new Date(s);
-  }
-  function isValidDateStr(s) {
-    const d = new Date(s);
-    return !isNaN(d.getTime());
-  }
+
+
   function validationModo() {
     if (modo.value === "local") {
       if (isBlank(data.vehiculo_id) || isBlank(data.transporte_id)) {
@@ -117,7 +105,7 @@ export const useReservationGuideProcess = () => {
       }
     } else {
       if (isBlank(data.nombre_transporte)) {
-        swalWarning("ngresa el nombre del transportista externo");
+        swalWarning("Ingresa el nombre del transportista externo");
         return false;
       }
       if (isBlank(data.identificacion)) {
@@ -133,10 +121,6 @@ export const useReservationGuideProcess = () => {
         return false;
       }
     }
-    // if (isBlank(data.ruta)) {
-    //   swalWarning("Ingresa la ruta");
-    //   return false;
-    // }
     if (isBlank(data.fecha_llegada) || !isValidDateStr(data.fecha_llegada)) {
       swalWarning("Fecha/Hora de llegada inválida");
       return false;
@@ -182,10 +166,10 @@ export const useReservationGuideProcess = () => {
           identificacion: String(data.identificacion || "").trim(),
           placa: String(data.placa || "")
             .toUpperCase()
-            .replace(/\s/g, ""),
+            .replaceAll(" ", ""),
         }),
     };
-    return  run(() => axiosClient.post(apiCreateGuideRemision, payload), {
+    return run(() => axiosClient.post(apiCreateGuideRemision, payload), {
       loadingRef: loadingProcessGuide,
       onSuccess: () => clearData(),
       successMessage: "Guía de remisión creada.",

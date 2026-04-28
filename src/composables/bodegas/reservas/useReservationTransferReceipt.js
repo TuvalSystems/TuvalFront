@@ -2,15 +2,7 @@
 import { ref } from "vue";
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { downloadPdfFromApi } from "@/utils/pdf";
-import {
-    swalSimple,
-    swalInfo,
-    swalSuccess,
-    swalWarning,
-    swalError,
-    toast,
-} from "@/functions/swal-alert.js";
+import { downloadFileFromApi } from "@/utils/pdf";
 export function useReservationTransferReceipt() {
     const { run } = useApiAction();
     const data = ref([]);
@@ -18,7 +10,7 @@ export function useReservationTransferReceipt() {
     const apiSearchDetail = 'bodegas/reservas/guia-remision/detalle-transferencias-por-recibir';
 
 
-  
+
     function sanitize(row) {
         let v = String(row.recibir_ahora ?? "").replace(",", ".");
         let n = parseFloat(v);
@@ -30,7 +22,7 @@ export function useReservationTransferReceipt() {
 
     /** obtener detalle */
     async function fetchDetail(guiaId) {
-        return  run(() => axiosClient.post(apiSearchDetail, { id: guiaId }), {
+        return run(() => axiosClient.post(apiSearchDetail, { id: guiaId }), {
             loadingRef: loading,
             successMessage: "Proceso realizado exitosamente.",
             onSuccess: (rows) => {
@@ -50,41 +42,36 @@ export function useReservationTransferReceipt() {
 
     /** generar pdf de orden de almacenamiento */
     const loadingPdf = ref(false);
-    const lastError = ref(null);
     const apiPrintPdf = 'bodegas/reservas/guia-remision/detalle-transferencias-por-recibir/pdf';
     async function printPdfOrderStorage(id) {
-        try {
-            lastError.value = null;
-            loadingPdf.value = true;
-            const res = await downloadPdfFromApi({
-                'url': apiPrintPdf,
-                'method': "POST",
-                'payload': { id },
-                'filenameFallback': "orden-almacenamiento.pdf",
+
+        return await run(async () => {
+            const filename = await downloadFileFromApi({
+                url: apiPrintPdf,
+                method: "POST",
+                payload: { id },
+                filenameFallback: "orden-almacenamiento.pdf",
             });
-            if (!res.ok) {
-                lastError.value = res.message || "Error";
-                return { ok: false, message: lastError.value };
+            return { data: { success: true, data: filename } };
+        }, {
+            loadingRef: loadingPdf,
+            successMessage: "Documento generado exitosamente.",
+            onError: (error) => {
+                console.log(error);
             }
-            return res;
-        } catch (error) {
-            lastError.value =
-                error?.response?.data?.error || error?.message || "Error";
-            return { ok: false, message: lastError.value };
-        } finally {
-            loadingPdf.value = false;
-        }
+        });
+
     }
 
 
     /** recibir items de reserva tranferidos*/
     const loadingReceived = ref(false);
     const apiProcessReceivedItems = 'bodegas/reservas/guia-remision/detalle-transferencias-por-recibir/recibir';
-    async function processReceivedItems(payload){
-      return  run(() => axiosClient.post(apiProcessReceivedItems, payload), {
-        loadingRef: loadingReceived,
-        successMessage: "Proceso realizado exitosamente.",
-      });
+    async function processReceivedItems(payload) {
+        return run(() => axiosClient.post(apiProcessReceivedItems, payload), {
+            loadingRef: loadingReceived,
+            successMessage: "Proceso realizado exitosamente.",
+        });
     }
 
 

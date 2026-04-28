@@ -1,4 +1,4 @@
-import { ref, reactive, nextTick, watch, computed } from "vue";
+import { ref, reactive, computed } from "vue";
 import axiosClient from "@/axios";
 import { useStore } from "vuex";
 import {
@@ -8,13 +8,10 @@ import {
 import { useApiAction } from "@/composables/core/useApiAction";
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 
-import { downloadPdfFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/pdf";
 export function useReservationTransferByWarehouse() {
-  //instancia general para apis 
   const { run } = useApiAction();
-  //instancia de vehiculo 
   const vehicles = useVehiclesStore();
-  /** maneja el detalle de mis transferencias de reserva por bodega */
   const store = useStore();
   const ptoOrigen = store.state.puntodeventaselect;
   //cabecera
@@ -218,7 +215,6 @@ export function useReservationTransferByWarehouse() {
         row.check_seleccion = checked;
       }
     });
-    checkDisablePickingAndGuide();
   }
 
 
@@ -226,7 +222,6 @@ export function useReservationTransferByWarehouse() {
     const checked = event.target.checked;
     row.check_seleccion = checked;
     row.seleccionado = checked ? row.pending_transfer : 0;
-    checkDisablePickingAndGuide();
   }
   function applyTransfer(row) {
     const reset = (msg) => {
@@ -286,7 +281,6 @@ export function useReservationTransferByWarehouse() {
     // 5) Asignar y marcar
     row.seleccionado = val;
     row.check_seleccion = val > 0;
-    checkDisablePickingAndGuide();
     return true;
   }
 
@@ -295,17 +289,13 @@ export function useReservationTransferByWarehouse() {
    *
    */
 
-  const disabledPicking = ref(true);
-  const disabledGuiaRemision = ref(true);
-
-  function checkDisablePickingAndGuide() {
-    const hasSelected = (dataDetailTransfer.value ?? []).some(
-      (r) => r.check_seleccion === true && Number(r.seleccionado) > 0
+  const hasSelected = computed(() =>
+        (dataDetailTransfer.value ?? []).some(
+            (r) => r.check_seleccion === true && Number(r.seleccionado) > 0
+        )
     );
-    disabledPicking.value = !hasSelected;
-    disabledGuiaRemision.value = !hasSelected;
-  }
-
+    const disabledPicking = computed(() => !hasSelected.value);
+    const disabledGuiaRemision = computed(() => !hasSelected.value);
   /**
    *   funciones de proceso de actualizacion de picking de transferencias
    */
@@ -328,30 +318,22 @@ export function useReservationTransferByWarehouse() {
   }
   /** funcion para generar el pdf del picking */
   const loadingPdfPicking = ref(false);
-  const lastError = ref(null);
   async function printPickingPdf(payload) {
-    try {
-      lastError.value = null;
-      loadingPdfPicking.value = true;
-      const res = await downloadPdfFromApi({
+    return await run(async () => {
+      const filename = await downloadFileFromApi({
         url: apiPdfPicking,
         method: "POST",
-        payload,
+        payload: payload,
         filenameFallback: "picking-reserva.pdf",
       });
-      if (!res.ok) {
-        lastError.value = res.message || "Error";
-        swalError(lastError.value);
+      return { data: { success: true, data: filename } };
+    }, {
+      loadingRef: loadingPdfPicking,
+      successMessage: "Documento generado exitosamente.",
+      onError: (error) => {
+        console.log(error);
       }
-      return res;
-    } catch (error) {
-      lastError.value =
-        error?.response?.data?.error || error?.message || "Error";
-      swalError(lastError.value);
-      return { ok: false, message: lastError.value };
-    } finally {
-      loadingPdfPicking.value = false;
-    }
+    });
   }
 
 
@@ -382,31 +364,23 @@ export function useReservationTransferByWarehouse() {
    */
 
   const loadingPdfPendingGuides = ref(false);
-  const lastErrorPendingGuides = ref(null);
 
   async function printGuidePdf(payload) {
-    try {
-      loadingPdfPendingGuides.value = true;
-      lastErrorPendingGuides.value = null;
-      const res = await downloadPdfFromApi({
+    return await run(async () => {
+      const filename = await downloadFileFromApi({
         url: apiPdfGuidePending,
         method: "POST",
-        payload,
+        payload: payload,
         filenameFallback: "guia-remision-reserva.pdf",
       });
-      if (!res.ok) {
-        lastErrorPendingGuides.value = res.message || "Error";
-        return { ok: false, message: lastErrorPendingGuides.value };
+      return { data: { success: true, data: filename } };
+    }, {
+      loadingRef: loadingPdfPendingGuides,
+      successMessage: "Documento generado exitosamente.",
+      onError: (error) => {
+        console.log(error);
       }
-      return res;
-    } catch (error) {
-      lastErrorPendingGuides.value =
-        error?.response?.data?.error || error?.message || "Error";
-      swalError(lastErrorPendingGuides.value);
-      return { ok: false, message: lastErrorPendingGuides.value };
-    } finally {
-      loadingPdfPendingGuides.value = false;
-    }
+    });
   }
 
   const loadingDispacthGuide = ref(false);
