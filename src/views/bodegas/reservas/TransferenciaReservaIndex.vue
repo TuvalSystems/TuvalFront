@@ -31,7 +31,7 @@ onMounted(() => {
   </BasePageHeading>
   <div class="content">
     <div v-if="loadingTransfer" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border text-primary">
         <span class="visually-hidden">Cargando...</span>
       </div>
       <p class="mt-2 text-muted">Cargando transferencias...</p>
@@ -112,4 +112,3 @@ onMounted(() => {
   </div>
 </template>
 
-<style lang="css" scoped></style>

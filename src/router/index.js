@@ -76,6 +76,7 @@ const TransferenciasVenta = () =>
   import("@/views/bodegas/TransferenciasVenta.vue");
 const TransferenciasVentaBodega = () =>
   import("@/views/bodegas/TransferenciasVentaBodega.vue");
+
 const RecibosVenta = () => import("@/views/bodegas/RecibosVenta.vue");
 const RecibosReposicion = () => import("@/views/bodegas/RecibosReposicion.vue");
 const TransferenciasReposicion = () =>
@@ -93,10 +94,6 @@ const PasswordChange = () => import("@/views/auth/PasswordChange.vue");
 /** devoluciones bodegas index */
 
 const recibirDevolucionesIndex = () => import("@/views/bodegas/devoluciones/RecibirDevolucionesIndex.vue");
-
-/** bodegas reservas */
-const TransferenciaReservaIndex = () =>
-  import("@/views/bodegas/reservas/TransferenciaReservaIndex.vue");
 
 
 
@@ -419,7 +416,8 @@ const routes = [
           title: "Bodegas - Transportistas y Vehículos",
         },
       },
-      {
+
+       {
         path: "transferenciasventa",
         name: "bodegas-transferenciasventa",
         component: TransferenciasVenta,
@@ -436,6 +434,24 @@ const routes = [
           extends: "bodegas-transferenciasventa",
         },
       },
+      // {
+      //   path: "transferencias/ventas/dashboard",
+      //   name: "bodegas-transferenciasventa",
+      //   component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaIndex.vue"),
+      //   meta: {
+      //     title: "Bodegas - Transferencias por venta",
+      //   },
+      // },
+      // {
+      //   path: "transferencias/ventas/detalle/:pvDestino",
+      //   name: "bodegas-transferencias-venta-detalle",
+      //   component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaDetalleBodega.vue"),
+      //   props: true,
+      //   meta: {
+      //     title: "Bodegas - Transferencias por venta bodega",
+      //     extends: "bodegas-transferenciasventa",
+      //   },
+      // },
       {
         path: "recibosventa",
         name: "bodegas-recibosventa",
@@ -487,15 +503,15 @@ const routes = [
         },
       },
       {
-        path: "reservas/transferencias",
+        path: "transferencias/reservas/dashboard",
         name: "bodegas-reservas-transferencias",
-        component: TransferenciaReservaIndex,
+        component: () => import("@/views/bodegas/reservas/TransferenciaReservaIndex.vue"),
         meta: {
           title: "Bodegas - Reservas - Transferencias",
         },
       },
       {
-        path: "/bodegas/transferencias/reserva/:ptovtaId",
+        path: "transferencias/reservas/detalle/:ptovtaId",
         name: "bodegas-reservas-transferencias-detalle",
         component: () => import("@/views/bodegas/reservas/TransferenciaReservaDetalleBodega.vue"),
         props: true,
@@ -548,7 +564,7 @@ const routes = [
         name: "gestion-operativa-clientes-sucursales",
         component: () => import("@/views/gestion-operativa/clientes/ClienteSucursalesIndex.vue"),
         meta: {
-          title: "Sucursales de Clientes",
+          title: "Direcciones de Clientes",
         },
       }
     ]
