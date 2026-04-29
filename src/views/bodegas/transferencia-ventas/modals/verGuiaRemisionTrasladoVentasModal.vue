@@ -154,7 +154,7 @@ onMounted(() => { });
     <div class="modal-header d-flex flex-wrap gap-2 align-items-center px-2 py-3 border-bottom">
       <div class="flex-grow-1">
         <div class="d-flex flex-wrap gap-1">
-          <span class="pill bg-primary text-light"><i class="fa-solid fa-warehouse"></i> Origen: {{ props.header.origen
+          <span class="pill bg-primary text-light"><i class="fa-solid fa-warehouse"></i> Origen: {{ props.header.origenDescription
           }}</span>
           <span class="pill bg-primary text-light"><i class="fa-solid fa-location-dot"></i>Destino: {{
             props.header.destination }}</span>
