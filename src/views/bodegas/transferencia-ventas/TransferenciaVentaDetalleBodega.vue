@@ -1,17 +1,20 @@
 <script setup>
 import { onMounted, toRefs, nextTick, watch, ref } from 'vue';
 import { formatPrice, toNum, formatJm } from "@/functions";
+import { useRouter } from 'vue-router';
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useSalesTransfersProcess } from "@/composables/bodegas/transferencia/useSalesTransferProcess";
 import { useSalesTransfersGuideProcess } from "@/composables/bodegas/transferencia/useSalesTransfersGuideProcess";
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import verPickingSalesTransferModal from "@/views/bodegas/transferencia-ventas/modals/verPickingTrasladoVentasModal.vue"
 import verGuiaRemisionSalesTransferModal from "@/views/bodegas/transferencia-ventas/modals/verGuiaRemisionTrasladoVentasModal.vue"
+
 import {
   swalSuccess,
   swalError,
   swalWarning
 } from "@/functions/swal-alert.js";
+const router = useRouter();
 const props = defineProps({
   pvDestino: {
     type: String,
@@ -22,6 +25,7 @@ const { pvDestino } = toRefs(props);
 
 
 const {
+
   //cargar cabecera de transferencia
   payload,
   dataTransferHeader,
@@ -180,8 +184,16 @@ async function refreshData() {
 }
 
 
-
 onMounted(async () => {
+  const ptoAnterior = sessionStorage.getItem('PTO_ANTERIOR');
+  const ptoActual = sessionStorage.getItem('PUNTODEVENTASELECT');
+  if (ptoAnterior && ptoAnterior !== ptoActual) {
+    sessionStorage.removeItem('PTO_ANTERIOR'); // limpia la flag
+    router.push({ name: 'bodegas-transferenciasventa' });
+    return;
+  }
+  sessionStorage.removeItem('PTO_ANTERIOR');
+
   payload.destino = pvDestino.value;
   await nextTick();
   if (!dataTransferHeader.value) fetchDataTransferHeader();

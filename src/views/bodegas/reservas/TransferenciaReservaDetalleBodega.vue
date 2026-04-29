@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice, toNum } from "@/functions";
+import { useRouter } from 'vue-router';
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
@@ -11,6 +12,7 @@ import {
 } from "@/functions/swal-alert.js";
 import verPickingReservas from "@/views/bodegas/reservas/modals/verPickingReservasModal.vue"
 import verGuiaRemisionReserva from "@/views/bodegas/reservas/modals/verGuiaRemisionReservasModal.vue"
+const router = useRouter();
 const props = defineProps({
   ptovtaId: { type: String, required: true },  //ptovta destino
 });
@@ -150,6 +152,19 @@ async function dispatchGuiaRemision(id) {
 
 
 onMounted(async () => {
+
+  //en caso de cambio de punto de venta que lo redireccione a otro lugar :)
+  const ptoAnterior = sessionStorage.getItem('PTO_ANTERIOR');
+  const ptoActual = sessionStorage.getItem('PUNTODEVENTASELECT');
+  if (ptoAnterior && ptoAnterior !== ptoActual) {
+    sessionStorage.removeItem('PTO_ANTERIOR'); // limpia la flag
+    router.push({ name: 'bodegas-reservas-transferencias' });
+    return;
+  }
+  sessionStorage.removeItem('PTO_ANTERIOR');
+
+
+
   payload.destino = ptovtaId.value;
   payloadHeader.destino = ptovtaId.value;
   if (!dataHeaderTransfer.value) fetchHeaderTransferByWarehouseOriginAndDestination();

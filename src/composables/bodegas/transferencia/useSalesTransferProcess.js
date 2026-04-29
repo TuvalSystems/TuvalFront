@@ -10,10 +10,9 @@ import { useStore } from "vuex";
 export function useSalesTransfersProcess() {
     const { run } = useApiAction();
     const store = useStore();
-    const ptoOrigen = store.state.puntodeventaselect;
-
+    const ptoOrigen = computed(() => store.state.puntodeventaselect);
     const payload = reactive({
-        origen: ptoOrigen,
+        origen: ptoOrigen.value,
         destino: null,
         pedido: "",
     });
@@ -118,7 +117,7 @@ export function useSalesTransfersProcess() {
     const apiListTransferByWarehouse = 'bodegas/transferencia-venta/dashboard';
 
     async function fetchListTransfersCount() {
-        return run(() => axiosClient.post(apiListTransferByWarehouse, { ptoVtaId: ptoOrigen }), {
+        return run(() => axiosClient.post(apiListTransferByWarehouse, { ptoVtaId: ptoOrigen.value }), {
             loadingRef: loadingTransfer,
             successMessage: "Proceso realizado exitosamente.",
             onSuccess: (list) => {
