@@ -134,7 +134,43 @@ export function useSalesTransfersGuideProcess() {
     const loading = ref(false);
     const apiCreateGuide = `bodegas/transferencia-venta/guia-remision/crear-guia-transferencia-venta`;
     async function createGuideTransfer(data) {
-        return await run(() => axiosClient.post(apiCreateGuide, data), {
+
+        const observacion = (data.observacion || "").trim().slice(0, 350);
+        const ruta = (data.ruta || "").trim();
+
+        // payload condicionado por modo
+        const payload = {
+            //header
+            bod_origen: data.bod_origen,
+            pto_origen: data.pto_origen,
+            origen: data.origen,
+            bod_destino: data.bod_destino,
+            pto_destino: data.pto_destino,
+            destino: data.destino,
+
+            //   detalle
+            detalle: data.detalle,
+            modo: modo.value,
+            fecha_salida: data.fecha_salida,
+            fecha_llegada: data.fecha_llegada,
+            observacion,
+            ruta,
+            ...(modo.value === "local"
+                ? {
+                    vehiculo_id: data.vehiculo_id,
+                    transporte_id: data.transporte_id,
+                }
+                : {
+                    nombre_transporte: (data.nombre_transporte || "").trim(),
+                    tipo_identificacion: data.tipo_identificacion,
+                    identificacion: String(data.identificacion || "").trim(),
+                    placa: String(data.placa || "")
+                        .toUpperCase()
+                        .replaceAll(" ", ""),
+                }),
+        };
+
+        return await run(() => axiosClient.post(apiCreateGuide, payload), {
             loadingRef: loading,
             onSuccess: () => clearData(),
             successMessage: "Proceso realizado exitosamente.",

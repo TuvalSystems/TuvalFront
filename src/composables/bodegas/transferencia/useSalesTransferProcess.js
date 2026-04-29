@@ -330,7 +330,7 @@ export function useSalesTransfersProcess() {
    */
 
     const loadingPrintGuideRemision = ref(false);
-    const apiPdfGuidePending = 'bodegas/transferencia-venta/pdf-guia-remision-pendiente';
+    const apiPdfGuidePending = 'bodegas/transferencia-venta/guia-remision/generar/pdf';
     async function printGuidePdf(payload) {
         return await run(async () => {
             const filename = await downloadFileFromApi({
@@ -341,7 +341,7 @@ export function useSalesTransfersProcess() {
             });
             return { data: { success: true, data: filename } };
         }, {
-            loadingRef: loadingPdfPendingGuides,
+            loadingRef: loadingPrintGuideRemision,
             successMessage: "Documento generado exitosamente.",
             onError: (error) => {
                 console.log(error);

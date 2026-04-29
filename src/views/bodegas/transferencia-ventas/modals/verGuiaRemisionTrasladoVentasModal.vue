@@ -133,6 +133,8 @@ async function storeGuideRemision() {
   if (!respdf.ok) {
     swalError(respdf?.message || 'No se pudo generar el PDF.');
   }
+  emit("closeModal");
+
 }
 
 

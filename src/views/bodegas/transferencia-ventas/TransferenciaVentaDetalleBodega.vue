@@ -3,6 +3,7 @@ import { onMounted, toRefs, nextTick, watch, ref } from 'vue';
 import { formatPrice, toNum, formatJm } from "@/functions";
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useSalesTransfersProcess } from "@/composables/bodegas/transferencia/useSalesTransferProcess";
+import { useSalesTransfersGuideProcess } from "@/composables/bodegas/transferencia/useSalesTransfersGuideProcess";
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import verPickingSalesTransferModal from "@/views/bodegas/transferencia-ventas/modals/verPickingTrasladoVentasModal.vue"
 import verGuiaRemisionSalesTransferModal from "@/views/bodegas/transferencia-ventas/modals/verGuiaRemisionTrasladoVentasModal.vue"
@@ -56,8 +57,16 @@ const {
 
   //cancelar picking
   loadingCancelPicking,
-  cancelPicking
+  cancelPicking,
+
+  //imprimir guias pendientes
+  loadingPrintGuideRemision,
+  printGuidePdf
 } = useSalesTransfersProcess();
+const {
+  loadingSendGuide,
+  sendGuideSalesTransfer,
+} = useSalesTransfersGuideProcess();
 const vehicles = useVehiclesStore();
 
 
@@ -132,8 +141,43 @@ async function closeGuiaRemisionModal() {
   dataGuiaRemision.value = [];
   guiaRemisionModalObj.hide();
   refresh();
+  fectchListGuideRemisionPending();
 }
 
+
+async function printPdfGuiaRemision(id) {
+  const resp = await printGuidePdf({ 'id': id });
+  if (resp?.ok) {
+    swalSuccess("Archivo descargado correctamente");
+    return;
+  }
+  const msg = resp?.message || "No se pudo generar el documento";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+async function dispatchGuiaRemision(id) {
+  const resp = await sendGuideSalesTransfer(id);
+  if (!resp.ok) {
+    if (resp.status >= 400 && resp.status < 500) {
+      swalWarning(resp.message);
+      return
+    }
+    if (resp.status >= 500) {
+      swalError(resp.message);
+      return;
+    }
+  }
+  swalSuccess(resp.message);
+  refresh();
+  fectchListGuideRemisionPending();
+}
+
+
+async function refreshData() {
+  refresh();
+  fetchDataTransferHeader();
+  fectchListGuideRemisionPending();
+}
 
 
 
@@ -180,7 +224,7 @@ onMounted(async () => {
         <template #options>
           <div class="block-options-item space-x-2">
             <span class="badge bg-primary">Peso total: {{ formatPrice(dataTransferHeader.pesoTotal) }} Tn</span>
-            <button class="btn btn-outline-primary btn-sm" title="Refrescar" aria-label="Refrescar" @click="refresh"
+            <button class="btn btn-outline-primary btn-sm" title="Refrescar" aria-label="Refrescar" @click="refreshData"
               :disabled="loadingListTransfer">
               <i v-if="!loadingListTransfer" class="fa fa-refresh"></i>
               <span v-else class="spinner-border spinner-border-sm"></span>
@@ -333,7 +377,7 @@ onMounted(async () => {
                       <button type="button" class="btn btn-sm btn-outline-primary"
                         @click="printPdfGuiaRemision(row.id)">Imprimir</button>
                       <button type="button" class="btn btn-sm btn-outline-success" @click="dispatchGuiaRemision(row.id)"
-                        :disabled="loadingDispacthGuide">Despachar</button>
+                        :disabled="loadingSendGuide">Despachar</button>
                     </td>
                   </tr>
                 </tbody>
