@@ -45,13 +45,13 @@ const pedido = computed(() => props.info?.pedido || {});
 
 
 async function printOrdenAlm(art) {
-    const res = await printPdfOrdenStorage({ 'id': art.id });
-    if (res?.ok) {
-        await nextTick()
-        swalSuccess('Documento generado correctamente.');
-    } else {
-        swalError(res?.message || 'No se pudo generar el PDF.')
+    const resp = await printPdfOrdenStorage({ 'id': art.id });
+    if (resp?.ok) {
+        swalSuccess("Archivo descargado correctamente");
+        return;
     }
+    const msg = resp?.message || "No se pudo generar el documento";
+    (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
 
 

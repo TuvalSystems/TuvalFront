@@ -63,7 +63,7 @@ onMounted(() => { });
         <i class="fa fa-fw fa-exclamation-triangle fa-2x text-warning"></i>
       </div>
       <div class="flex-grow-1 fs-sm">
-        <p class="mb-1 fw-bold text-dark">Acción Restringida</p>
+        <p class="mb-1 fw-bold text-dark text-uppercase">Acción Restringida</p>
         <p class="mb-0 text-muted">
           No puede ser inactivada actualmente porque tiene documentos en proceso:
         </p>
@@ -90,73 +90,73 @@ onMounted(() => { });
     <div class="row g-1 mb-2">
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;">Ruc</small>
+          <small class="text-label-muted">Ruc</small>
           <span>{{ sucursal.CLI_SUC_RUC }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;">Razón Social</small>
+          <small class="text-label-muted">Razón Social</small>
           <span>{{ sucursal.CLI_SUC_DESCRIPCION }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;">Id Dirección</small>
+          <small class="text-label-muted">Id Dirección</small>
           <span>{{ sucursal.CLI_SUC_ID_DIRECCION }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Dirección</small>
+          <small class="text-label-muted"> Dirección</small>
           <span>{{ sucursal.CLI_SUC_DIRECCION }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Contacto</small>
+          <small class="text-label-muted"> Contacto</small>
           <span>{{ sucursal.CLI_SUC_CONTACTO }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Referencia</small>
+          <small class="text-label-muted"> Referencia</small>
           <span>{{ sucursal.CLI_SUC_REFERENCIA }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Territorio</small>
+          <small class="text-label-muted"> Territorio</small>
           <span>{{ sucursal.CLI_SUC_TERRITORIO }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Ciudad</small>
+          <small class="text-label-muted"> Ciudad</small>
           <span>{{ sucursal.CLI_SUC_CIUDAD }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Provincia</small>
+          <small class="text-label-muted"> Provincia</small>
           <span>{{ sucursal.CLI_SUC_PROVINCIA }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Teléfono</small>
+          <small class="text-label-muted"> Teléfono</small>
           <span>{{ sucursal.CLI_SUC_TELEFONO }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Correo</small>
+          <small class="text-label-muted"> Correo</small>
           <span>{{ sucursal.CLI_SUC_CORREO_ELECTRONICO_SRI }}</span>
         </div>
       </div>
       <div class="col-6 col-lg-4">
         <div class="kv">
-          <small class="text-muted  text-uppercase fw-bold" style="font-size: 10px;"> Estado</small>
+          <small class="text-label-muted"> Estado</small>
           <span :class="sucursal.estado === 0 ? 'bg-danger-light text-danger' : 'bg-success-light text-success'"
             class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"> {{ sucursal.estado === 0 ?
               'Inactivo' : 'Activo' }}</span>
@@ -195,5 +195,15 @@ onMounted(() => { });
 
 .kv .fw-semibold {
   line-height: 1.1;
+}
+
+.text-label-muted {
+  color: #6c757d; 
+  text-transform: uppercase;
+  font-weight: 700;
+  /* fw-bold */
+  font-size: 10px;
+  line-height: 1.2;
+  /* Recomendado para que no ocupe espacio extra hacia arriba o abajo */
 }
 </style>

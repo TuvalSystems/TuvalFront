@@ -79,7 +79,7 @@ async function openModalRecived(row) {
     receivedModalObj.show();
 }
 
-async function closeModalRecived (){
+async function closeModalRecived() {
     await nextTick();
     dataHeaderModal.value = {};
     receivedModalObj.hide();
@@ -217,7 +217,8 @@ onMounted(async () => {
         aria-hidden="true" ref="receivedModal">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
-                <verRecibirReserva v-if="dataHeaderModal && dataHeaderModal.id" :header="dataHeaderModal" @closeModal="closeModalRecived()"  @refresh="refresh()">
+                <verRecibirReserva v-if="dataHeaderModal && dataHeaderModal.id" :header="dataHeaderModal"
+                    @closeModal="closeModalRecived()" @refresh="refresh()">
                 </verRecibirReserva>
             </div>
         </div>

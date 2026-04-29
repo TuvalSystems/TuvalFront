@@ -44,11 +44,11 @@ function isRowDisabled(row) {
 }
 
 const handleClick = async ({ row, col }) => {
-    if (col.key === "numero_guia") {
-        await resetConsut();
-        await buscarDetalleGuia(row);
+  if (col.key === "numero_guia") {
+    await resetConsut();
+    await buscarDetalleGuia(row);
 
-    }
+  }
 };
 
 const testLocks = ref(new Map()) // Map<id, true>
@@ -72,13 +72,13 @@ function unlockTest(id) {
 }
 
 async function printPdfGuiaRemision(id) {
-  const res = await printGuidePdf({ 'id': id });
-  if (res?.ok) {
-    await nextTick()
-    swalSuccess('Documento generado correctamente.');
-  } else {
-    swalError(res?.message || 'No se pudo generar el PDF.')
+  const resp = await printGuidePdf({ 'id': id });
+  if (resp?.ok) {
+    swalSuccess("Archivo descargado correctamente");
+    return;
   }
+  const msg = resp?.message || "No se pudo generar el documento";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
 
 

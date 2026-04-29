@@ -1,9 +1,9 @@
 import axiosClient from "@/axios";
-import { ref, reactive, watch, toRef, computed } from "vue";
+import { ref, computed } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { swalError, swalSuccess, swalWarning } from "@/functions/swal-alert";
+import {  swalWarning } from "@/functions/swal-alert";
 
-import { downloadPdfFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/pdf";
 
 export function useProcessDetailDevolution(infoRef) {
     const { run } = useApiAction();
@@ -196,7 +196,6 @@ export function useProcessDetailDevolution(infoRef) {
     // =========================================
 
     const loadingPdfOrden = ref(false);
-    const lastError = ref(null);
     const apiPdfOrdenStorage = 'devoluciones/orden-almacenamiento';
     async function printPdfOrdenStorage() {
         const detallesFiltrados = filterDetails();
@@ -207,27 +206,22 @@ export function useProcessDetailDevolution(infoRef) {
             header: infoRef.value?.devolucion || {},
             details: detallesFiltrados,
         }
-        try {
-            lastError.value = null;
-            loadingPdfOrden.value = true;
-            const res = await downloadPdfFromApi({
+
+        return await run(async () => {
+            const filename = await downloadFileFromApi({
                 url: apiPdfOrdenStorage,
                 method: "POST",
                 payload: payloadPdf,
                 filenameFallback: "orden-almacenamiento.pdf",
             });
-            if (!res.ok) {
-                lastError.value = res.message || "Error";
-                return { ok: false, message: lastError.value };
+            return { data: { success: true, data: filename } };
+        }, {
+            loadingRef: loadingPdfOrden,
+            successMessage: "Documento generado exitosamente.",
+            onError: (error) => {
+                console.log(error);
             }
-            return res;
-        } catch (error) {
-            lastError.value =
-                error?.response?.data?.error || error?.message || "Error";
-            return { ok: false, message: lastError.value };
-        } finally {
-            loadingPdfOrden.value = false;
-        }
+        });
     }
 
 

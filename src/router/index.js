@@ -417,41 +417,24 @@ const routes = [
         },
       },
 
-       {
-        path: "transferenciasventa",
+      {
+        path: "transferencias/ventas/dashboard",
         name: "bodegas-transferenciasventa",
-        component: TransferenciasVenta,
+        component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaIndex.vue"),
         meta: {
           title: "Bodegas - Transferencias por venta",
         },
       },
       {
-        path: "transferenciasventa/:id",
-        name: "bodegas-transferenciasventabodega",
-        component: TransferenciasVentaBodega,
+        path: "transferencias/ventas/detalle/:pvDestino",
+        name: "bodegas-transferencias-venta-detalle",
+        component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaDetalleBodega.vue"),
+        props: true,
         meta: {
           title: "Bodegas - Transferencias por venta bodega",
           extends: "bodegas-transferenciasventa",
         },
       },
-      // {
-      //   path: "transferencias/ventas/dashboard",
-      //   name: "bodegas-transferenciasventa",
-      //   component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaIndex.vue"),
-      //   meta: {
-      //     title: "Bodegas - Transferencias por venta",
-      //   },
-      // },
-      // {
-      //   path: "transferencias/ventas/detalle/:pvDestino",
-      //   name: "bodegas-transferencias-venta-detalle",
-      //   component: () => import("@/views/bodegas/transferencia-ventas/TransferenciaVentaDetalleBodega.vue"),
-      //   props: true,
-      //   meta: {
-      //     title: "Bodegas - Transferencias por venta bodega",
-      //     extends: "bodegas-transferenciasventa",
-      //   },
-      // },
       {
         path: "recibosventa",
         name: "bodegas-recibosventa",
