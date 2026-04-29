@@ -97,6 +97,14 @@ watch(() => payload.pedido, () => {
 });
 
 
+
+async function searchByCompartiment(){
+  await fetchListTransfer();
+ 
+}
+
+
+
 async function verPicking() {
   dataPicking.value = [];
   dataPicking.value = dataListTransfer.value.filter((item) => item.check_seleccion);
@@ -254,6 +262,17 @@ onMounted(async () => {
                 <option class="  text-value-upper" style="font-size: 12px;" v-for="p in dataTransferHeader.listsOrders"
                   :key="p" :value="p">{{ p }}</option>
               </select>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <small class="text-muted d-block mb-1   text-value-upper">Compartimiento</small>
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control form-control-sm  text-value-upper" style="font-size: 12px;"
+                placeholder="Compartimiento" v-model="payload.compartimiento">
+              <button type="button" class="btn btn-sm btn-primary " style="font-size: 12px;" @click="searchByCompartiment"
+                :disabled="loadingListTransfer">
+                <i class="fa fa-search"></i>
+              </button>
             </div>
           </div>
         </div>

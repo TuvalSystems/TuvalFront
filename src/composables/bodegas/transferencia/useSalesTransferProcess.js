@@ -15,6 +15,7 @@ export function useSalesTransfersProcess() {
         origen: ptoOrigen.value,
         destino: null,
         pedido: "",
+        compartimiento: "",
     });
 
     const cols = reactive([
@@ -165,6 +166,8 @@ export function useSalesTransfersProcess() {
     }
 
     async function refresh() {
+        payload.compartimiento = "";
+        payload.pedido = "";
         await fetchListTransfer();
     }
 
