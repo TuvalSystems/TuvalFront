@@ -251,12 +251,8 @@ export function useSalesTransfersProcess() {
 
 
     //funcion para colorear el row de la tabla basado en las condiciones de la transferencia
-    const getRowClass = (row) => {
-
-        if (row.reservado > 0 && (row.pending_transfer === 0 || row.reservado == row.cantidad)) {
-            return 'table-success';
-        }
-        if (row.reservado > 0 && row.pending_transfer > 0 && row.completado === 0) {
+    const getRowClass = (row) => {       
+        if (row.has_guide_active  && row.pending_transfer > 0 ) {
             return 'table-warning';
         }
         if (row.picking) {
