@@ -400,7 +400,7 @@ onMounted(async () => {
                 </thead>
                 <tbody>
                   <tr v-for="(row, index) in dataPendingGuides" :key="index">
-                    <td class="fs-sm text-center">{{ row.GUI_REM_BODEGA }}</td>
+                    <td class="fs-sm text-center">{{ row.GUI_REM_GUIA_REMISION }}</td>
                     <td class="fs-sm text-center">{{ row.GUI_REM_FECHA_INICIO }}</td>
                     <td class="fs-sm text-center">{{ row.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
                     <td class="fs-sm text-center">{{ row.GUI_REM_PLACA }}</td>
