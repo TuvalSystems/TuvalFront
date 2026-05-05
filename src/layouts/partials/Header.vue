@@ -26,6 +26,8 @@ function selectpuntodeventa(event,) {
   sessionStorage.setItem('CURRENTSUCURSAL', null);
   currentCliente.value = null;
   currentSucursal.value = null;
+  sessionStorage.setItem('PTO_ANTERIOR', actions.state.puntodeventaselect);
+
   sessionStorage.setItem('PUNTODEVENTASELECT', puntosdeventa.value[event.target.value].PTO_VTA_ID);
   actions.state.puntodeventaselect = puntosdeventa.value[event.target.value].PTO_VTA_ID;
   actions.state.bodegas = puntosdeventa.value[event.target.value].bodegas;

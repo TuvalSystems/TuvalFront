@@ -81,41 +81,23 @@ async function consultarFiltros() {
 }
 
 
-async function printBoxByUser() {
-  const resp = await printPdfConsultByUser();
-  if (!resp?.ok) {
-    if (resp.status >= 400 && resp.status <= 499) {
-      swalWarning(resp.message);
-      return;
-    }
-    if (resp.status >= 500) {
-      swalError(resp.message);
-      return;
-    }
-    swalError(resp.message || "Error desconocido");
+function handleDownloadResponse(resp) {
+  if (resp?.ok) {
+    swalSuccess("Archivo descargado correctamente");
     return;
   }
+  const msg = resp?.message || "No se pudo generar el documento";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
 
-  swalSuccess("Consulta impresa correctamente");
-
+async function printBoxByUser() {
+  const resp = await printPdfConsultByUser();
+  handleDownloadResponse(resp);
 }
 
 async function downloadCashClosure() {
   const resp = await printPdfCashClosure();
-  if (!resp?.ok) {
-    if (resp.status >= 400 && resp.status <= 499) {
-      swalWarning(resp.message);
-      return;
-    }
-    if (resp.status >= 500) {
-      swalError(resp.message);
-      return;
-    }
-    swalError(resp.message || "Error desconocido");
-    return;
-  }
-  swalSuccess("Consulta impresa correctamente");
-
+  handleDownloadResponse(resp);
 }
 
 onMounted(() => {

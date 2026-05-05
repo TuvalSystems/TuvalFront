@@ -3,7 +3,7 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
 import { ref, computed, reactive } from "vue";
-import { downloadPdfFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/pdf";
 
 export function useCashClosureLookup() {
     const { run } = useApiAction();
@@ -86,33 +86,13 @@ export function useCashClosureLookup() {
     const loadingPrintConsultByUser = ref(false);
     async function printPdfConsultByUser() {
         return await run(async () => {
-            const res = await downloadPdfFromApi({
+            const filename = await downloadFileFromApi({
                 url: apiPrintConsultByUser,
                 method: "POST",
                 payload: filters,
                 filenameFallback: "consulta-cierre-caja.pdf",
             });
-            if (!res.ok) {
-                let mensajeLimpio = res.message;
-                try {
-                    const dataError = JSON.parse(res.message);
-                    mensajeLimpio = dataError.error || "La caja no se encuentra cerrada";
-                } catch (e) {
-                    mensajeLimpio = res.message;
-                }
-
-                // Creamos un objeto Error real pero con la estructura de Axios
-                const customError = new Error(mensajeLimpio);
-                Object.assign(customError, {
-                    response: {
-                        status: 400,
-                        data: { error: mensajeLimpio }
-                    }
-                });
-
-                throw customError; // 👈 Esto ya no da warning
-            }
-            return { data: { success: true, data: res.filename } };
+            return { data: { success: true, data: filename } };
         }, {
             loadingRef: loadingPrintConsultByUser,
             successMessage: "Documento generado exitosamente.",
@@ -127,34 +107,13 @@ export function useCashClosureLookup() {
     const loadingPrintConsult = ref(false);
     async function printPdfCashClosure() {
         return await run(async () => {
-            const res = await downloadPdfFromApi({
+            const filename = await downloadFileFromApi({
                 url: apiPrintConsult,
                 method: "POST",
                 payload: filters,
                 filenameFallback: "cierre-de-caja.pdf",
             });
-
-            if (!res.ok) {
-                let mensajeLimpio = res.message;
-                try {
-                    const dataError = JSON.parse(res.message);
-                    mensajeLimpio = dataError.error || "La caja no se encuentra cerrada";
-                } catch (e) {
-                    mensajeLimpio = res.message;
-                }
-
-                // Creamos un objeto Error real pero con la estructura de Axios
-                const customError = new Error(mensajeLimpio);
-                Object.assign(customError, {
-                    response: {
-                        status: 400,
-                        data: { error: mensajeLimpio }
-                    }
-                });
-
-                throw customError; // 👈 Esto ya no da warning
-            }
-            return { data: { success: true, data: res.filename } };
+            return { data: { success: true, data: filename } };
         }, {
             loadingRef: loadingPrintConsult,
             successMessage: "Documento generado exitosamente.",

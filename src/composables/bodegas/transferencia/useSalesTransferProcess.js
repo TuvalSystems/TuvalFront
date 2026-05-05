@@ -1,18 +1,21 @@
 import { ref, reactive, computed } from "vue";
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
+import { swalWarning } from "@/functions/swal-alert.js";
+import { downloadFileFromApi } from "@/utils/pdf";
+
+
 import { useStore } from "vuex";
 
 export function useSalesTransfersProcess() {
     const { run } = useApiAction();
     const store = useStore();
-    const ptoOrigen = store.state.puntodeventaselect;
-    const disabledPicking = ref(true);
-    const disabledGuiaRemision = ref(true);
+    const ptoOrigen = computed(() => store.state.puntodeventaselect);
     const payload = reactive({
-        origen: ptoOrigen,
+        origen: ptoOrigen.value,
         destino: null,
         pedido: "",
+        compartimiento: "",
     });
 
     const cols = reactive([
@@ -112,10 +115,10 @@ export function useSalesTransfersProcess() {
 
     const dataTransfer = ref(null);
     const loadingTransfer = ref(false);
-    const apiListTransferByWarehouse = 'bodegas/transferencia-ventas/dashboard';
+    const apiListTransferByWarehouse = 'bodegas/transferencia-venta/dashboard';
 
     async function fetchListTransfersCount() {
-        return run(() => axiosClient.post(apiListTransferByWarehouse, { ptoVtaId: ptoOrigen }), {
+        return run(() => axiosClient.post(apiListTransferByWarehouse, { ptoVtaId: ptoOrigen.value }), {
             loadingRef: loadingTransfer,
             successMessage: "Proceso realizado exitosamente.",
             onSuccess: (list) => {
@@ -131,7 +134,7 @@ export function useSalesTransfersProcess() {
 
     const dataTransferHeader = ref(null);
     const loadingTransferHeader = ref(false);
-    const apiDataTransferHeader = 'bodegas/transferencia-ventas/cabecera';
+    const apiDataTransferHeader = 'bodegas/transferencia-venta/cabecera';
     async function fetchDataTransferHeader(id) {
         return await run(() => axiosClient.post(apiDataTransferHeader, payload), {
             loadingRef: loadingTransferHeader,
@@ -146,9 +149,9 @@ export function useSalesTransfersProcess() {
     }
 
 
-    const dataListTransfer = ref(null);
+    const dataListTransfer = ref([]);
     const loadingListTransfer = ref(false);
-    const apiListTransfer = 'bodegas/transferencia-ventas/lista';
+    const apiListTransfer = 'bodegas/transferencia-venta/lista';
     async function fetchListTransfer(id) {
         return await run(() => axiosClient.post(apiListTransfer, payload), {
             loadingRef: loadingListTransfer,
@@ -163,7 +166,23 @@ export function useSalesTransfersProcess() {
     }
 
     async function refresh() {
+        payload.compartimiento = "";
+        payload.pedido = "";
         await fetchListTransfer();
+    }
+
+
+    const loadingPendingGuides = ref(false);
+    const apiListGuidePendings = 'bodegas/transferencia-venta/lista-guias-pendientes';
+    const dataPendingGuides = ref([]);
+    async function fectchListGuideRemisionPending() {
+        return run(() => axiosClient.post(apiListGuidePendings, payload), {
+            loadingRef: loadingPendingGuides,
+            successMessage: "Proceso realizado exitosamente.",
+            onSuccess: (list) => {
+                dataPendingGuides.value = list;
+            }
+        })
     }
 
 
@@ -173,26 +192,23 @@ export function useSalesTransfersProcess() {
 
     async function selectAll(event) {
         const checked = event.target.checked;
-        if (!dataListTransfer.value) return;
+        if (dataListTransfer.value.length === 0) return;
         dataListTransfer.value.forEach((row) => {
             if (row.pending_transfer > 0) {
                 row.seleccionado = checked ? row.pending_transfer : 0;
                 row.check_seleccion = checked;
             }
         });
-        await checkDisablePickingAndGuide();
     }
 
     async function applyPendingTransfer(event, row) {
         const checked = event.target.checked;
         row.check_seleccion = checked;
         row.seleccionado = checked ? row.pending_transfer : 0;
-        await checkDisablePickingAndGuide();
     }
 
 
     async function applyTransfer(row) {
-
         const reset = (msg) => {
             if (msg) swalWarning(msg);
             row.seleccionado = 0;
@@ -219,51 +235,120 @@ export function useSalesTransfersProcess() {
         const maxDecimals = Number(row?.ART_CANTIDAD_DECIMAL ?? 0);
 
         if (!decimalsAllowed) {
-            // si no admite decimales, debe ser entero
             if (!Number.isInteger(val)) {
-                // opción A: corregir automáticamente
                 val = Math.trunc(val);
                 if (val === 0) return reset("La cantidad debe ser un número entero");
-                // opción B (estricta): return reset('La cantidad debe ser un número entero');
             }
         } else if (maxDecimals >= 0) {
-            // recorta al número de decimales permitido
             val = Number(val.toFixed(maxDecimals));
         }
-
-        // 4) No exceder la pendiente
         const pending = Number(row?.pending_transfer ?? 0);
         if (val > pending) {
             return reset("La cantidad no puede ser mayor a la pendiente por transferir"); // si prefieres bloquear, deja este reset
         }
-
-        // 5) Asignar y marcar
         row.seleccionado = val;
         row.check_seleccion = val > 0;
-        checkDisablePickingAndGuide();
         return true;
 
     }
 
 
-    async function checkDisablePickingAndGuide() {
-        const hasSelected = (dataListTransfer.value ?? []).some(
+    //funcion para colorear el row de la tabla basado en las condiciones de la transferencia
+    const getRowClass = (row) => {       
+        if (row.has_guide_active  && row.pending_transfer > 0 ) {
+            return 'table-warning';
+        }
+        if (row.picking) {
+            return 'table-info';
+        }
+        return '';
+    }
+
+
+    const hasSelected = computed(() =>
+        dataListTransfer.value.some(
             (r) => r.check_seleccion === true && Number(r.seleccionado) > 0
-        );
-        disabledPicking.value = !hasSelected;
-        disabledGuiaRemision.value = !hasSelected;
+        )
+    );
+
+    const disabledPicking = computed(() => !hasSelected.value);
+    const disabledGuiaRemision = computed(() => !hasSelected.value);
+
+
+
+    //api para actualizar el picking
+    const loadingUpdatePicking = ref(false);
+    const apiUpdatePicking = 'bodegas/transferencia-venta/actualizar-picking';
+
+    async function applyPickingSelected(items) {
+        return await run(() => axiosClient.post(apiUpdatePicking, { items }), {
+            loadingRef: loadingUpdatePicking,
+            successMessage: "Proceso realizado exitosamente.",
+        });
+    }
+
+
+    //funcion para imprimir el picking de la transferencia
+    const loadingPrintPicking = ref(false);
+    const apiPrintPicking = 'bodegas/transferencia-venta/imprimir-picking';
+    async function printPicking(payload) {
+        return await run(async () => {
+            const filename = await downloadFileFromApi({
+                url: apiPrintPicking,
+                method: "POST",
+                payload: payload,
+                filenameFallback: "picking-transferencia-venta.pdf",
+            });
+            return { data: { success: true, data: filename } };
+        }, {
+            loadingRef: loadingPrintPicking,
+            successMessage: "Documento generado exitosamente.",
+            onError: (error) => {
+                console.log(error);
+            }
+        });
     }
 
     // api para cancelar el picking
 
     const loadingCancelPicking = ref(false);
-    const apiCancelPicking = 'bodegas/transferencias/cancelar-picking';
+    const apiCancelPicking = 'bodegas/transferencia-venta/cancelar-picking';
     async function cancelPicking(row) {
         return await run(() => axiosClient.post(apiCancelPicking, { payload: row }), {
             loadingRef: loadingCancelPicking,
             successMessage: "Proceso realizado exitosamente.",
         });
     }
+
+
+
+
+    /***
+   *  proceso de generar el pdf de las guias de remisiones pendientes
+   */
+
+    const loadingPrintGuideRemision = ref(false);
+    const apiPdfGuidePending = 'bodegas/transferencia-venta/guia-remision/generar/pdf';
+    async function printGuidePdf(payload) {
+        return await run(async () => {
+            const filename = await downloadFileFromApi({
+                url: apiPdfGuidePending,
+                method: "POST",
+                payload: payload,
+                filenameFallback: "guia-remision-transferencia-venta.pdf",
+            });
+            return { data: { success: true, data: filename } };
+        }, {
+            loadingRef: loadingPrintGuideRemision,
+            successMessage: "Documento generado exitosamente.",
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+    }
+
+
+
     return {
         loadingTransfer,
         fetchListTransfersCount,
@@ -275,6 +360,10 @@ export function useSalesTransfersProcess() {
         loadingTransferHeader,
         fetchDataTransferHeader,
 
+        //carga de lista de guias pendientes 
+        dataPendingGuides,
+        loadingPendingGuides,
+        fectchListGuideRemisionPending,
         //tabla 
         cols,
         sortBy,
@@ -290,12 +379,24 @@ export function useSalesTransfersProcess() {
         applyTransfer,
         disabledPicking,
         disabledGuiaRemision,
-
+        //pintar tabla
+        getRowClass,
         //refresh
         refresh,
 
+        //actualizar picking
+        loadingUpdatePicking,
+        applyPickingSelected,
+        // imprimir picking
+        loadingPrintPicking,
+        printPicking,
+
         //cancelar picking
         loadingCancelPicking,
-        cancelPicking
+        cancelPicking,
+
+        //imprimir guias pendientes
+        loadingPrintGuideRemision,
+        printGuidePdf
     }
 }

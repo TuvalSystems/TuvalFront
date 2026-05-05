@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref, onBeforeUnmount, nextTick } from "vue";
+import { onMounted, reactive, ref, nextTick } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
@@ -7,7 +7,7 @@ import BaseTable from "@/components/BaseTable.vue";
 import { useSendReservationTable } from '@/composables/bodegas/consultas/useSendReservationTable.js'
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { useDetalleDespachoPedidos } from "@/composables/bodegas/consultas/detallesconsulta/useDetalleDespachoPedidos";
-import { swalWarning, swalError, swalSuccess } from "@/functions/swal-alert.js";
+import { swalError, swalSuccess } from "@/functions/swal-alert.js";
 import { formatPrice } from "@/functions";
 
 const { table, columns, listPerpage, fetchList, onSort, refresh } = useSendReservationTable();
@@ -73,13 +73,13 @@ function unlockTest(id) {
 }
 
 async function printPdfGuiaRemision(id) {
-    const res = await printGuidePdf({ 'id': id });
-    if (res?.ok) {
-        await nextTick()
-        swalSuccess('Documento generado correctamente.');
-    } else {
-        swalError(res?.message || 'No se pudo generar el PDF.')
+    const resp = await printGuidePdf({ 'id': id });
+    if (resp?.ok) {
+        swalSuccess("Archivo descargado correctamente");
+        return;
     }
+    const msg = resp?.message || "No se pudo generar el documento";
+    (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
 
 

@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted, toRefs, ref, nextTick } from 'vue';
 import { formatPrice, toNum } from "@/functions";
+import { useRouter } from 'vue-router';
+import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import {
@@ -8,10 +10,9 @@ import {
   swalError,
   swalWarning
 } from "@/functions/swal-alert.js";
-import { Modal } from "bootstrap";
-/** modales */
 import verPickingReservas from "@/views/bodegas/reservas/modals/verPickingReservasModal.vue"
 import verGuiaRemisionReserva from "@/views/bodegas/reservas/modals/verGuiaRemisionReservasModal.vue"
+const router = useRouter();
 const props = defineProps({
   ptovtaId: { type: String, required: true },  //ptovta destino
 });
@@ -54,13 +55,22 @@ const {
 } = useReservationTransferByWarehouse();
 const vehicles = useVehiclesStore();
 
-let pickingModal = ref(null);
-let pickingModalObj = null;
-let guiaRemisionModal = ref(null);
-let guiaRemisionModalObj = null;
-let dataPicking = ref([]);
-let dataGuiaRemision = ref([]);
 
+const dataPicking = ref([]);
+const pickingModalRef = ref(null);
+const pickingModalObj = useBootstrapModal(pickingModalRef, {
+  onHidden: () => {
+    dataPicking.value = [];
+  }
+});
+
+const dataGuiaRemision = ref([]);
+const guiaRemisionModalRef = ref(null);
+const guiaRemisionModalObj = useBootstrapModal(guiaRemisionModalRef, {
+  onHidden: () => {
+    dataGuiaRemision.value = [];
+  }
+});
 
 
 async function cancelarPicking(row) {
@@ -76,13 +86,12 @@ async function cancelarPicking(row) {
 
 async function verPicking() {
   dataPicking.value = [];
-  dataPicking.value = (dataDetailTransfer.value || []).filter((item) => item.check_seleccion === true);
+  dataPicking.value = dataDetailTransfer.value.filter((item) => item.check_seleccion);
   if (dataPicking.value.length === 0) {
     return
   }
 
   await nextTick();
-  pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
   pickingModalObj.show();
 }
 async function closePickingModal() {
@@ -95,12 +104,11 @@ async function closePickingModal() {
 
 async function guiaRemision() {
   dataGuiaRemision.value = [];
-  dataGuiaRemision.value = (dataDetailTransfer.value || []).filter((item) => item.check_seleccion === true);
+  dataGuiaRemision.value = dataDetailTransfer.value.filter((item) => item.check_seleccion);
   if (dataGuiaRemision.value.length === 0) {
     return
   }
   await nextTick();
-  guiaRemisionModalObj = Modal.getOrCreateInstance(guiaRemisionModal.value, { backdrop: true })
   guiaRemisionModalObj.show();
 }
 
@@ -115,13 +123,13 @@ async function closeGuiaRemisionModal() {
 /*** procesos de guias de remisiones pendientes */
 
 async function printPdfGuiaRemision(id) {
-  const res = await printGuidePdf({ 'id': id });
-  if (res?.ok) {
-    await nextTick()
-    swalSuccess('Documento generado correctamente.');
-  } else {
-    swalError(res?.message || 'No se pudo generar el PDF.')
+  const resp = await printGuidePdf({ 'id': id });
+  if (resp?.ok) {
+    swalSuccess("Archivo descargado correctamente");
+    return;
   }
+  const msg = resp?.message || "No se pudo generar el documento";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
 
 
@@ -143,28 +151,26 @@ async function dispatchGuiaRemision(id) {
 
 
 
-
-
-
-
-
-function initialModal() {
-  if (pickingModal.value) {
-    pickingModalObj = Modal.getOrCreateInstance(pickingModal.value, { backdrop: true })
-  }
-  if (guiaRemisionModal.value) {
-    guiaRemisionModalObj = Modal.getOrCreateInstance(guiaRemisionModal.value, { backdrop: true })
-  }
-}
-
 onMounted(async () => {
+
+  //en caso de cambio de punto de venta que lo redireccione a otro lugar :)
+  const ptoAnterior = sessionStorage.getItem('PTO_ANTERIOR');
+  const ptoActual = sessionStorage.getItem('PUNTODEVENTASELECT');
+  if (ptoAnterior && ptoAnterior !== ptoActual) {
+    sessionStorage.removeItem('PTO_ANTERIOR'); // limpia la flag
+    router.push({ name: 'bodegas-reservas-transferencias' });
+    return;
+  }
+  sessionStorage.removeItem('PTO_ANTERIOR');
+
+
+
   payload.destino = ptovtaId.value;
   payloadHeader.destino = ptovtaId.value;
   if (!dataHeaderTransfer.value) fetchHeaderTransferByWarehouseOriginAndDestination();
-  if (!dataDetailTransfer.value) fetchListTransfersByWarehouseOriginAndDestination();
-  if (!dataPendingGuides.value) fectchListGuideRemisionPending();
+  if (dataDetailTransfer.value.length === 0) fetchListTransfersByWarehouseOriginAndDestination();
+  if (dataPendingGuides.value.length === 0) fectchListGuideRemisionPending();
   await nextTick()
-  initialModal();
   vehicles.fetch();
 });
 
@@ -231,12 +237,11 @@ onMounted(async () => {
           </div>
           <p class="mt-2 text-muted">Cargando información...</p>
         </div>
-        <div v-if="!loadingDetailTransfer && dataDetailTransfer" class="m-2">
+        <div v-if="!loadingDetailTransfer && dataDetailTransfer.length > 0" class="m-2">
           <Dataset v-slot="{ ds }" :ds-data="dataDetailTransfer" :ds-sortby="sortBy"
             :ds-search-in="['art_code', 'art_cod_tres_letras', 'cotizacion']">
             <div class="row" :data-page-count="ds.dsPagecount" style="justify-content: space-between;">
-              <div  id="datasetLength" v-show="!loadingDetailTransfer && dataDetailTransfer"
-                class="col-md-8 py-2 fs-sm">
+              <div id="datasetLength" v-show="!loadingDetailTransfer && dataDetailTransfer" class="col-md-8 py-2 fs-sm">
                 <DatasetShow />
               </div>
               <div class="col-md-4 py-2 fs-sm">
@@ -329,9 +334,9 @@ onMounted(async () => {
       </BaseBlock>
     </div>
     <!-- lista de guias de remision de reservas pendientes -colagadas- -->
-    <div v-if="!loadingPendingGuides && dataPendingGuides">
-      <BaseBlock>
-        <div class="row">
+    <div v-if="!loadingPendingGuides && dataPendingGuides.length > 0">
+      <BaseBlock title="Guias Pendientes">
+        <div class="row mb-4">
           <div class="col-md-12">
             <div class="table-responsive mb-0">
               <table class="table table-sm table-hover table-vcenter align-middle mb-0">
@@ -376,7 +381,7 @@ onMounted(async () => {
   <!-- modales  -->
   <!-- modal de picking -->
   <div class="modal" id="modal-liberar" tabindex="-1" aria-labelledby="modal-picking" aria-hidden="true"
-    ref="pickingModal">
+    ref="pickingModalRef">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verPickingReservas v-if="dataPicking && dataPicking.length > 0" :header="dataHeaderTransfer"
@@ -387,7 +392,7 @@ onMounted(async () => {
 
   <!-- modal guia remision reservas -->
   <div class="modal" id="modal-guia-reservas" tabindex="-1" aria-labelledby="modal-guia-reservas" aria-hidden="true"
-    ref="guiaRemisionModal">
+    ref="guiaRemisionModalRef">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verGuiaRemisionReserva v-if="dataGuiaRemision && dataGuiaRemision.length > 0" :header="dataHeaderTransfer"
@@ -402,11 +407,13 @@ onMounted(async () => {
 <style scoped>
 /* 1. Ocultamos el texto de los labels ("Show" y "entries") */
 :deep(#datasetLength label) {
-  font-size: 0; 
+  font-size: 0;
 }
+
 /* 2. Atrapamos el select interno y lo estilizamos */
 :deep(#datasetLength select) {
-  font-size: 0.875rem; /* Le devolvemos el tamaño de letra al texto del select */
+  font-size: 0.875rem;
+  /* Le devolvemos el tamaño de letra al texto del select */
   display: inline-block;
   width: 80px;
   margin: 0 0.5rem;
@@ -420,8 +427,8 @@ onMounted(async () => {
     padding-bottom: .15rem;
   }
 }
+
 :deep(.table-vcenter tbody td) {
   font-size: 0.8rem !important;
 }
-
 </style>

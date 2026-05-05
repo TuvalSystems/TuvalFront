@@ -55,7 +55,7 @@ function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); retu
 function pad(n) { return String(n).padStart(2, '0') }
 function formatDateTime(d) {
   const dt = (d instanceof Date) ? d : new Date(d)
-  if (isNaN(dt)) return ''
+  if (Number.isNaN(dt)) return ''
   return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`
 }
 
@@ -132,7 +132,7 @@ onMounted(() => {
     <div class="modal-header d-flex flex-wrap gap-2 align-items-center px-2 py-3 border-bottom">
       <div class="flex-grow-1">
         <div class="d-flex flex-wrap gap-1">
-          <span class="pill bg-primary text-light"><i class="fa-solid fa-warehouse"></i> Origen: {{ props.header.origin
+          <span class="pill bg-primary text-light"><i class="fa-solid fa-warehouse"></i> Origen: {{ props.header.origenDescription
           }}</span>
           <span class="pill bg-primary text-light"><i class="fa-solid fa-location-dot"></i>Destino: {{
             props.header.destination }}</span>
@@ -154,11 +154,11 @@ onMounted(() => {
           <table class="table table-sm table-vcenter align-middle fs-sm table-fixed">
             <thead>
               <tr>
-                <th style="width:40px" class="mini">CTL</th>
-                <th class="mini">Descripción</th>
-                <th style="width:40px" class="mini">UDM</th>
-                <th class="text-end mini" style="width:50px">Cant</th>
-                <th class="text-end mini" style="width:60px">Peso</th>
+                <th scope style="width:40px" class="mini">CTL</th>
+                <th scope class="mini">Descripción</th>
+                <th scope style="width:40px" class="mini">UDM</th>
+                <th scope class="text-end mini" style="width:50px">Cant</th>
+                <th scope class="text-end mini" style="width:60px">Peso</th>
               </tr>
             </thead>
             <tbody>
@@ -172,8 +172,8 @@ onMounted(() => {
             </tbody>
             <tfoot>
               <tr>
-                <th class=" mini">Peso total del despacho</th>
-                <th class="mini text-end" style="width:auto">{{ pesoTotalItemsFmt }}kg</th>
+                <th scope class=" mini">Peso total del despacho</th>
+                <th scope class="mini text-end" style="width:auto">{{ pesoTotalItemsFmt }}kg</th>
               </tr>
             </tfoot>
           </table>
@@ -186,7 +186,7 @@ onMounted(() => {
         <div class="sticky-rail">
           <div class="mb-1">
             <div class="label-sm mb-1">Transporte</div>
-            <div class="btn-group btn-group-sm mb-3" role="group">
+            <div class="btn-group btn-group-sm mb-3">
               <input type="radio" class="btn-check" name="transporte" id="optLocal" checked value="local" v-model="modo"
                 @click="clearChangeModeLocal()">
               <label class="btn btn-sm btn-outline-primary" for="optLocal"><i
@@ -258,9 +258,7 @@ onMounted(() => {
               <div class="label-sm mb-1">Fecha / Hora llegada</div>
               <div class="input-group">
                 <span class="input-group-text"><i class="fa-regular fa-clock"></i></span>
-                <!-- <input type="text" class="form-control form-control-sm" :config="flatPickrState.configDateTime24"
-                  value="2025-11-06 08:55" /> -->
-                <flat-pickr id="example-flatpickr-datetime24" class="form-control form-control-sm"
+                <flat-pickr id="example-flatpickr-datetime25" class="form-control form-control-sm"
                   :config="flatPickrState.configDateTime24" v-model="flatPickrState.horaFin" />
               </div>
             </div>
@@ -310,20 +308,6 @@ onMounted(() => {
   color: var(--muted)
 }
 
-/* .table thead th {
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-weight: 600
-}
-
-.table tbody tr+tr {
-  border-top: 1px dashed var(--line)
-}
-
-.table {
-  --bs-table-bg: transparent;
-  --bs-table-color: var(--card-ink)
-} */
 
 .right-rail {
   border-left: 2px solid var(--line)
