@@ -1921,19 +1921,7 @@ const store = createStore({
           return res;
         });
     },
-    verDevolucionesPorRecibir({ commit }) {
-      commit("setDevolucionesPorRecibirLoading", true);
-      return axiosClient
-        .get(
-          "/devoluciones/verdevolucionesporrecibir/" +
-            this.state.puntodeventaselect
-        )
-        .then((res) => {
-          commit("setDevolucionesPorRecibir", res.data.devoluciones);
-          commit("setDevolucionesPorRecibirLoading", false);
-          return res;
-        });
-    },
+  
     recibirDevolucion({ commit }, devolucion) {
       return axiosClient
         .post("/devoluciones/recibirdevolucion", devolucion)
