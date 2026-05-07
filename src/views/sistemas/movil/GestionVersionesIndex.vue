@@ -2,8 +2,8 @@
 import { nextTick, onMounted, ref } from "vue";
 import BaseTable from "@/components/BaseTable.vue";
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
-import { useVersionManagementTable } from "@/composables/sistemas/Movil/useVersionManagementTable";
-import { useVersionManagementProcess } from "@/composables/sistemas/Movil/useVersionManagementProcess";
+import { useVersionManagementTable } from "@/composables/sistemas/movil/useVersionManagementTable";
+import { useVersionManagementProcess } from "@/composables/sistemas/movil/useVersionManagementProcess";
 import verModalCreacionVersionApk from "@/views/sistemas/movil/modals/verModalCreacionVersionApk.vue"
 import {
     swalSuccess,

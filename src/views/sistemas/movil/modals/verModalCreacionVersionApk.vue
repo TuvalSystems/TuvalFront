@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, watch } from 'vue';
-import { useVersionManagementProcess } from "@/composables/sistemas/Movil/useVersionManagementProcess";
+import { useVersionManagementProcess } from "@/composables/sistemas/movil/useVersionManagementProcess";
 import {
   swalWarning,
   swalError,
