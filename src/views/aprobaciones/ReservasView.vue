@@ -258,14 +258,14 @@ onMounted(async () => {
     // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
   })
 
-   if (puntosVentaReservaLimitsStore.puntosVentaReservaLimits.length == 0) {
+  if (puntosVentaReservaLimitsStore.puntosVentaReservaLimits.length == 0) {
     puntosVentaReservaLimitsStore.fetchPuntosVentaReservaLimits()
   }
 
 });
 onBeforeUnmount(() => {
   stopGridSocket?.()
- 
+
 });
 </script>
 <template>
@@ -296,7 +296,7 @@ onBeforeUnmount(() => {
         <!-- sucursal -->
         <div class="col-12 col-sm-6 col-lg-3">
           <small class="text-muted d-block mb-1">Sucursal</small>
-          <select  class="form-control form-control-sm"  v-model="table.ptovta">
+          <select class="form-control form-control-sm" v-model="table.ptovta">
             <option value="">Todas</option>
             <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
               {{ p.PTO_VTA_DESCRIPCION }}
@@ -356,17 +356,15 @@ onBeforeUnmount(() => {
           <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
         </template>
         <template #actions="{ row }">
-          <button type="button" class="btn btn-primary btn-sm mx-1" 
-            @click="verModalAprobacionReserva(row)" :disabled="isModalLocked(row)">
-            <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" 
-              aria-hidden="true"></span>
+          <button type="button" class="btn btn-primary btn-sm mx-1" @click="verModalAprobacionReserva(row)"
+            :disabled="isModalLocked(row)">
+            <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
             <i v-else class="fa-solid fa-circle-check me-1"></i>
             <!-- Aprobar -->
           </button>
           <button type="button" class="btn btn-danger btn-sm" @click="verModalRechazar(row)"
             :disabled="isModalCancelLocked(row)">
-            <span v-if="isModalCancelLocked(row)" class="spinner-border spinner-border-sm"
-              aria-hidden="true"></span>
+            <span v-if="isModalCancelLocked(row)" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
             <i v-else class="fa fa-ban me-11"></i>
             <!-- Rechazar -->
           </button>
@@ -386,8 +384,8 @@ onBeforeUnmount(() => {
 
   <!-- Modales para visualizar el detalle de la cotización -->
   <!-- Modal de reserva -->
-  <div class="modal" id="modal-cotizacion-detalle" tabindex="-1" 
-    aria-labelledby="modal-cotizacion-detalle" aria-hidden="true" ref="verCotizacionDetalleModal">
+  <div class="modal" id="modal-cotizacion-detalle" tabindex="-1" aria-labelledby="modal-cotizacion-detalle"
+    aria-hidden="true" ref="verCotizacionDetalleModal">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <VerCotizacionDetalleReservaComponent v-if="datosModalCotizacionDetalle &&
@@ -400,9 +398,9 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Modal de aprobación de reservas -->
-  <div class="modal" id="modal-cotizacion-reserva" tabindex="-1" 
-    aria-labelledby="modal-cotizacion-reserva" aria-hidden="true" ref="verDetalleCotizacionAprobacionModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" >
+  <div class="modal" id="modal-cotizacion-reserva" tabindex="-1" aria-labelledby="modal-cotizacion-reserva"
+    aria-hidden="true" ref="verDetalleCotizacionAprobacionModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verCotizacionAprobacionReservaComponent v-if="dataModalReserva && dataModalReserva.reserva"
           :reserva="dataModalReserva" @closeModalAprobacionReserva="closeModalAprobacionReserva()">
@@ -413,9 +411,9 @@ onBeforeUnmount(() => {
 
 
   <!-- Moda de rechazo de reservas -->
-  <div class="modal" id="modal-rechazo-reserva" tabindex="-1"  aria-labelledby="modal-rechazo-reserva"
-    aria-hidden="true" ref="verModalRechazarReservaModal">
-    <div class="modal-dialog modal-md modal-dialog-centered" >
+  <div class="modal" id="modal-rechazo-reserva" tabindex="-1" aria-labelledby="modal-rechazo-reserva" aria-hidden="true"
+    ref="verModalRechazarReservaModal">
+    <div class="modal-dialog modal-md modal-dialog-centered">
       <div class="modal-content">
         <verCotizacionReservaRechazarModal v-if="dataRechazoModal && dataRechazoModal.reserva"
           :reserva="dataRechazoModal" @closeModalRechazarReserva="closeModalRechazarReserva()">
@@ -426,9 +424,9 @@ onBeforeUnmount(() => {
 
 
   <!-- Modal para generar facturas a demanda -->
-  <div class="modal" id="modal-uso-reserva" tabindex="-1"  aria-labelledby="modal-uso-reserva"
-    aria-hidden="false" ref="verUsoFacturaDemandaModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" >
+  <div class="modal" id="modal-uso-reserva" tabindex="-1" aria-labelledby="modal-uso-reserva" aria-hidden="false"
+    ref="verUsoFacturaDemandaModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verUsoFacturaDemandaComponent v-if="dataModal" :reserva="dataModal"
           @closeModalUsoFacturaDemanda="closeModalUsoFacturaDemanda()">
@@ -438,9 +436,9 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Modal para filtro de cliente -->
-  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" aria-labelledby="modal-filtrar-cliente"
-    aria-hidden="true" ref="filtrarClienteModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" >
+  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" aria-labelledby="modal-filtrar-cliente" aria-hidden="true"
+    ref="filtrarClienteModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
       </div>
