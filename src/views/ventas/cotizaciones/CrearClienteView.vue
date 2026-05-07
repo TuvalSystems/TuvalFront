@@ -1,9 +1,9 @@
 <script setup>
 import {
   ref,
-  reactive,
   computed,
   onMounted,
+  watch,
   onBeforeUnmount,
   nextTick
 } from "vue";
@@ -17,7 +17,7 @@ import {
 } from "@/functions/swal-alert.js";
 import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
 import useVuelidate from "@vuelidate/core";
-import { required, maxLength, email } from "@vuelidate/validators";
+import { required, maxLength, email, helpers } from "@vuelidate/validators";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useImageUpload } from "@/composables/core/useImageUpload";
 
@@ -39,22 +39,79 @@ const {
   loadingSubSegmentos,
   fetchSegmentos,
   fetchSubSegmentos,
+  loadingIdentify,
+  listTypeIdentify,
+  getListTypeIdentify
 } = useGetSegmentClients();
 
 store.dispatch("territorios");
 
-const tipos = reactive([
-  { tipo: "04", nombre: "RUC" },
-  { tipo: "05", nombre: "CÉDULA" },
-  { tipo: "06", nombre: "PASAPORTE" },
-  { tipo: "08", nombre: "IDENTIFICACIÓN DEL EXTERIOR" },
-]);
+const selectedTypeIdentify = computed(() => {
+  return listTypeIdentify.value.find(
+    (tipo) => String(tipo.codigo) === String(nuevoCliente.value.CLI_TIPO_ID)
+  ) ?? null;
+});
+
+const identifyMinSize = computed(() => {
+  return Number(selectedTypeIdentify.value?.min_size ?? 0);
+});
+
+const identifyMaxSize = computed(() => {
+  return Number(selectedTypeIdentify.value?.max_size ?? 0);
+});
+
+const identifyName = computed(() => {
+  return selectedTypeIdentify.value?.nombre ?? "Identificación";
+});
+
+const identifyLengthMessage = computed(() => {
+  const min = identifyMinSize.value;
+  const max = identifyMaxSize.value;
+
+  if (min && max && min === max) {
+    return `${identifyName.value} debe tener ${max} caracteres`;
+  }
+
+  if (min && max) {
+    return `${identifyName.value} debe tener entre ${min} y ${max} caracteres`;
+  }
+
+  if (max) {
+    return `${identifyName.value} debe tener máximo ${max} caracteres`;
+  }
+
+  return `${identifyName.value} no tiene una longitud válida`;
+});
+
+const validIdentifyLength = helpers.withMessage(
+  () => identifyLengthMessage.value,
+  (value) => {
+    const text = String(value ?? "").trim();
+
+    if (!text) {
+      return true;
+    }
+
+    const min = identifyMinSize.value;
+    const max = identifyMaxSize.value;
+
+    if (min && text.length < min) {
+      return false;
+    }
+
+    if (max && text.length > max) {
+      return false;
+    }
+
+    return true;
+  }
+);
 
 const rules = computed(() => {
   return {
     CLI_RUC: {
       required,
-      maxLength: maxLength(15),
+      validIdentifyLength,
     },
     CLI_RAZON_SOCIAL: {
       required,
@@ -112,24 +169,65 @@ const rules = computed(() => {
   };
 });
 
+
+function validateIdentification(showMessage = true) {
+  const value = String(nuevoCliente.value.CLI_RUC ?? "").trim();
+  const tipo = selectedTypeIdentify.value;
+
+  if (!tipo) {
+    if (showMessage) {
+      swalWarning("Seleccione un tipo de identificación");
+    }
+    return false;
+  }
+
+  if (!value) {
+    if (showMessage) {
+      swalWarning("Ingrese la identificación");
+    }
+    return false;
+  }
+
+  const min = identifyMinSize.value;
+  const max = identifyMaxSize.value;
+
+  if (min && max && min === max && value.length !== max) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} debe tener ${max} caracteres`);
+    }
+    return false;
+  }
+
+  if (min && value.length < min) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} debe tener mínimo ${min} caracteres`);
+    }
+    return false;
+  }
+
+  if (max && value.length > max) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} debe tener máximo ${max} caracteres`);
+    }
+    return false;
+  }
+
+  return true;
+}
+
 // Use vuelidate
 const v$ = useVuelidate(rules, nuevoCliente);
-
+watch(
+  () => nuevoCliente.value.CLI_TIPO_ID,
+  () => {
+    nuevoCliente.value.CLI_RUC = "";
+    v$.value.CLI_RUC.$reset();
+  }
+);
 let noprospecto = ref(true);
 
 function checkRuc() {
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "04" &&
-    nuevoCliente.value.CLI_RUC.length !== 13
-  ) {
-    swalError("El RUC debe tener 13 dígitos");
-    return;
-  }
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "05" &&
-    nuevoCliente.value.CLI_RUC.length !== 10
-  ) {
-    swalError("La CÉDULA debe tener 10 dígitos");
+  if (!validateIdentification(true)) {
     return;
   }
 
@@ -172,22 +270,9 @@ function cargarCliente(cliente) {
 
 async function onSubmit() {
   const result = await v$.value.$validate();
-
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "04" &&
-    nuevoCliente.value.CLI_RUC.length !== 13
-  ) {
-    swalError("El RUC debe tener 13 dígitos");
+  if (!validateIdentification(true)) {
     return;
   }
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "05" &&
-    nuevoCliente.value.CLI_RUC.length !== 10
-  ) {
-    swalError("La CÉDULA debe tener 10 dígitos");
-    return;
-  }
-
   if (!result) {
     return;
   }
@@ -260,13 +345,14 @@ let errorMsg = ref("");
 
 onMounted(() => {
   fetchSegmentos();
-}),
-  onBeforeUnmount(() => {
-    if (noprospecto) {
-      store.commit("resetNuevoCliente");
-      store.commit("resetCotizacion");
-    }
-  });
+  getListTypeIdentify();
+});
+onBeforeUnmount(() => {
+  if (noprospecto) {
+    store.commit("resetNuevoCliente");
+    store.commit("resetCotizacion");
+  }
+});
 </script>
 <template>
   <!-- Hero -->
@@ -310,7 +396,7 @@ onMounted(() => {
                 <div class="col-sm-9">
                   <select class="form-select" id="select-CLI_TIPO_ID" name="select-CLI_TIPO_ID"
                     v-model="nuevoCliente.CLI_TIPO_ID">
-                    <option v-for="(tipo, index) in tipos" :key="index" :value="tipo.tipo">
+                    <option v-for="(tipo, index) in listTypeIdentify" :key="index" :value="tipo.codigo">
                       {{ tipo.nombre }}
                     </option>
                   </select>
@@ -323,9 +409,16 @@ onMounted(() => {
               <div class="row">
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC">Identificación</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_RUC" v-model="nuevoCliente.CLI_RUC" :class="{
-                    'is-invalid': v$.CLI_RUC.$errors.length,
-                  }" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
+                  <input type="text" class="form-control" id="input-CLI_RUC" v-model.trim="nuevoCliente.CLI_RUC"
+                    :maxlength="identifyMaxSize" :placeholder="identifyName" :class="{
+                      'is-invalid': v$.CLI_RUC.$errors.length,
+                    }" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
+                  <div v-if="v$.CLI_RUC.$errors.length" class="invalid-feedback">
+                    {{ v$.CLI_RUC.$errors[0].$message }}
+                  </div>
+                  <div v-else-if="selectedTypeIdentify" class="form-text">
+                    {{ identifyLengthMessage }}
+                  </div>
                 </div>
               </div>
             </div>
