@@ -30,8 +30,8 @@ async function submitForm() {
   if (resp?.ok) {
     swalSuccess(resp.message);
     resetForm();
-    emit("created");
     emit("closeModal");
+    emit("refresh");
     return;
   }
   const msg = resp?.message || "No se pudo registrar la versión APK";
