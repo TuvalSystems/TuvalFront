@@ -109,7 +109,7 @@ const validIdentifyLength = helpers.withMessage(
 );
 
 /** validacion para identificacion evitar insertar palabras en diferntes tipos de identificaciones */
-const numericIdentificationsCode = ["04", "05", "08"];
+const numericIdentificationsCode = ["04", "05"];
 const identifyOnlyNumbers = computed(() => {
   return numericIdentificationsCode.includes(
     String(nuevoCliente.value.CLI_TIPO_ID)
