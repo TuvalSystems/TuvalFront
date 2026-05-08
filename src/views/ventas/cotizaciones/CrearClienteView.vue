@@ -46,6 +46,7 @@ const {
 
 store.dispatch("territorios");
 
+
 const selectedTypeIdentify = computed(() => {
   return listTypeIdentify.value.find(
     (tipo) => String(tipo.codigo) === String(nuevoCliente.value.CLI_TIPO_ID)
@@ -108,7 +109,7 @@ const validIdentifyLength = helpers.withMessage(
 );
 
 /** validacion para identificacion evitar insertar palabras en diferntes tipos de identificaciones */
-const numericIdentificationsCode = ["04", "05","08"];
+const numericIdentificationsCode = ["04", "05", "08"];
 const identifyOnlyNumbers = computed(() => {
   return numericIdentificationsCode.includes(
     String(nuevoCliente.value.CLI_TIPO_ID)
@@ -407,6 +408,30 @@ function onIdentificationInput(event) {
   event.target.value = value;
 }
 
+const identifyCurrentLength = computed(() => {
+  return String(nuevoCliente.value.CLI_RUC ?? "").length;
+});
+
+const identifyMaxAllowed = computed(() => {
+  return identifyMaxSize.value || 30;
+});
+
+const identifyRemainingCharacters = computed(() => {
+  return Math.max(identifyMaxAllowed.value - identifyCurrentLength.value, 0);
+});
+
+const identifyCounterClass = computed(() => {
+  if (identifyRemainingCharacters.value === 0) {
+    return "bg-danger text-white";
+  }
+
+  if (identifyRemainingCharacters.value <= 3) {
+    return "bg-warning text-dark";
+  }
+
+  return "bg-body-secondary text-muted";
+});
+
 let errorMsg = ref("");
 
 onMounted(() => {
@@ -475,14 +500,23 @@ onBeforeUnmount(() => {
               <div class="row">
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC">Identificación</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_RUC" v-model.trim="nuevoCliente.CLI_RUC"
-                    :maxlength="identifyMaxSize || 30" :placeholder="identifyName" :inputmode="identifyInputMode"
-                    autocomplete="off" :class="{ 'is-invalid': v$.CLI_RUC.$errors.length }"
-                    @input="onIdentificationInput" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
-                  <div v-if="v$.CLI_RUC.$errors.length" class="invalid-feedback">
-                    {{ v$.CLI_RUC.$errors[0].$message }}
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="input-CLI_RUC" v-model.trim="nuevoCliente.CLI_RUC"
+                      :maxlength="identifyMaxAllowed" :placeholder="identifyName" :inputmode="identifyInputMode"
+                      autocomplete="off" :class="{ 'is-invalid': v$.CLI_RUC.$errors.length }"
+                      @input="onIdentificationInput" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
+
+                    <span class="input-group-text fw-semibold" :class="identifyCounterClass"
+                      style="min-width: 58px; justify-content: center;">
+                      {{ identifyCurrentLength }}/{{ identifyMaxAllowed }}
+                    </span>
+
+                    <div v-if="v$.CLI_RUC.$errors.length" class="invalid-feedback">
+                      {{ v$.CLI_RUC.$errors[0].$message }}
+                    </div>
                   </div>
-                  <div v-else-if="selectedTypeIdentify" class="form-text">
+
+                  <div v-if="!v$.CLI_RUC.$errors.length && selectedTypeIdentify" class="form-text">
                     {{ identifyLengthMessage }}
                   </div>
                 </div>
