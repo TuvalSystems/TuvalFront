@@ -107,10 +107,48 @@ const validIdentifyLength = helpers.withMessage(
   }
 );
 
+/** validacion para identificacion evitar insertar palabras en diferntes tipos de identificaciones */
+const numericIdentificationsCode = ["04", "05","08"];
+const identifyOnlyNumbers = computed(() => {
+  return numericIdentificationsCode.includes(
+    String(nuevoCliente.value.CLI_TIPO_ID)
+  );
+});
+
+const identifyInputMode = computed(() => {
+  return identifyOnlyNumbers.value ? "numeric" : "text";
+});
+
+const identifyFormatMessage = computed(() => {
+  if (identifyOnlyNumbers.value) {
+    return `${identifyName.value} solo debe contener números`;
+  }
+  return `${identifyName.value} solo debe contener letras y números`;
+});
+
+const validIdentifyFormat = helpers.withMessage(
+  () => identifyFormatMessage.value,
+  (value) => {
+    const text = String(value ?? "").trim();
+
+    if (!text) {
+      return true;
+    }
+
+    if (identifyOnlyNumbers.value) {
+      return /^\d+$/.test(text);
+    }
+
+    return /^[A-Za-z0-9]+$/.test(text);
+  }
+);
+
+
 const rules = computed(() => {
   return {
     CLI_RUC: {
       required,
+      validIdentifyFormat,
       validIdentifyLength,
     },
     CLI_RAZON_SOCIAL: {
@@ -187,6 +225,19 @@ function validateIdentification(showMessage = true) {
     }
     return false;
   }
+  if (identifyOnlyNumbers.value && !/^\d+$/.test(value)) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} solo debe contener números`);
+    }
+    return false;
+  }
+
+  if (!identifyOnlyNumbers.value && !/^[A-Za-z0-9]+$/.test(value)) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} solo debe contener letras y números`);
+    }
+    return false;
+  }
 
   const min = identifyMinSize.value;
   const max = identifyMaxSize.value;
@@ -211,6 +262,7 @@ function validateIdentification(showMessage = true) {
     }
     return false;
   }
+
 
   return true;
 }
@@ -341,6 +393,20 @@ async function onSubmit() {
   }
 }
 
+
+function onIdentificationInput(event) {
+  let value = String(event.target.value ?? "");
+
+  if (identifyOnlyNumbers.value) {
+    value = value.replace(/\D/g, "");
+  } else {
+    value = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  }
+
+  nuevoCliente.value.CLI_RUC = value;
+  event.target.value = value;
+}
+
 let errorMsg = ref("");
 
 onMounted(() => {
@@ -410,9 +476,9 @@ onBeforeUnmount(() => {
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC">Identificación</label>
                 <div class="col-sm-9">
                   <input type="text" class="form-control" id="input-CLI_RUC" v-model.trim="nuevoCliente.CLI_RUC"
-                    :maxlength="identifyMaxSize" :placeholder="identifyName" :class="{
-                      'is-invalid': v$.CLI_RUC.$errors.length,
-                    }" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
+                    :maxlength="identifyMaxSize || 30" :placeholder="identifyName" :inputmode="identifyInputMode"
+                    autocomplete="off" :class="{ 'is-invalid': v$.CLI_RUC.$errors.length }"
+                    @input="onIdentificationInput" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
                   <div v-if="v$.CLI_RUC.$errors.length" class="invalid-feedback">
                     {{ v$.CLI_RUC.$errors[0].$message }}
                   </div>
