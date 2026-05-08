@@ -543,7 +543,16 @@ const routes = [
             meta: { title: "Gestión de Versiones App" }
           }
         ],
+      },
+      {
+        path : "Seguridad y Accessos",
+        name : "sistemas-seguridad-accesos",
+        component : RouterView,
+        children: [
+
+        ],
       }
+
     ],
   },
 
