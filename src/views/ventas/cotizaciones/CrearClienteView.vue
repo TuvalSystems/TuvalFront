@@ -192,11 +192,14 @@ const rules = computed(() => {
     },
     CLI_CORREO_ELECT_SRI: {
       required,
-      email,
+      noEmailSpaces,
+      email: validEmailMessage,
       maxLength: maxLength(200),
     },
     CLI_CORREO_ELECT_NOTIFICACION_INTERNA: {
       //email,
+      noEmailSpaces,
+      email: validEmailMessage,
       maxLength: maxLength(200),
     },
     CLI_SEGMENTO_ID: {
@@ -431,6 +434,26 @@ const identifyCounterClass = computed(() => {
 
   return "bg-body-secondary text-muted";
 });
+
+
+const noEmailSpaces = helpers.withMessage(
+  "El correo no debe contener espacios en blanco. Revise que no tenga espacios antes, dentro o después del correo.",
+  (value) => {
+    const text = String(value ?? "");
+
+    if (!text) {
+      return true;
+    }
+
+    return !/\s/.test(text);
+  }
+);
+
+const validEmailMessage = helpers.withMessage(
+  "Ingrese un correo electrónico válido. Ejemplo: usuario@dominio.com",
+  email
+);
+
 
 let errorMsg = ref("");
 
@@ -683,6 +706,10 @@ onBeforeUnmount(() => {
                     placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_SRI" :class="{
                       'is-invalid': v$.CLI_CORREO_ELECT_SRI.$errors.length,
                     }" @blur="v$.CLI_CORREO_ELECT_SRI.$touch" />
+
+                  <div v-if="v$.CLI_CORREO_ELECT_SRI.$errors.length" class="invalid-feedback d-block">
+                    {{ v$.CLI_CORREO_ELECT_SRI.$errors[0].$message }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -696,9 +723,11 @@ onBeforeUnmount(() => {
                   <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
                     placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
                     :class="{
-                      'is-invalid':
-                        v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
+                      'is-invalid': v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
                     }" @blur="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$touch" />
+                  <div v-if="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length" class="invalid-feedback d-block">
+                    {{ v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors[0].$message }}
+                  </div>
                 </div>
               </div>
             </div>
