@@ -545,11 +545,16 @@ const routes = [
         ],
       },
       {
-        path : "Seguridad y Accessos",
-        name : "sistemas-seguridad-accesos",
+        path : "Seguridad",
+        name : "sistemas-seguridad",
         component : RouterView,
         children: [
-
+            {
+              path : "usuarios",
+              name :"sistemas-seguridad-usuarios",
+              component : () => import("@/views/sistemas/seguridad/usuarios/UsuariosIndex.vue"),
+              meta : { title : "Gestión de Usuarios"}
+            }
         ],
       }
 
