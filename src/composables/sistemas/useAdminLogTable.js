@@ -35,27 +35,31 @@ export function useAdminLogTable() {
     ]);
 
     const columns = reactive([
-        { label: "ID", key: "id", sortable: true, align: "center" },
-        { label: "Acción", key: "action", sortable: true, align: "center" },
-        { label: "Mensaje", key: "message", sortable: true, align: "center" },
-        {label: "Estado", key: "status", sortable: true, align: "center"},
-        {label: "Fecha", key: "created_at", sortable: true, align: "center"},
+        { label: "ID", key: "id", sortable: true, align: "text-center" },
+        { label: "Acción", key: "action", sortable: true, align: "text-start" },
+        { label: "Mensaje", key: "message", sortable: true, align: "text-start" },
+        {label: "Estado", key: "status", sortable: true, align: "text-center"},
+        {label: "Fecha", key: "created_at", sortable: true, align: "text-center"},
     ]);
 
     const estadoClass = (st) => {
-    switch (st || "") {
-      case "pending":
-        return "badge bg-dark text-light fw-semibold";
-      case "resolved":
-        return "badge bg-success  fw-semibold";
-      case "failed":
-        return "badge bg-danger  fw-semibold";
-      case "warning":
-        return "badge bg-warning  fw-semibold";
-      default:
-        return "badge bg-secondary";
-    }
-  };
+  switch (String(st || "").toLowerCase()) {
+    case "pending":
+      return "badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle fw-semibold px-3 py-2";
+
+    case "resolved":
+      return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
+
+    case "failed":
+      return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
+
+    case "warning":
+      return "badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle fw-semibold px-3 py-2";
+
+    default:
+      return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
+  }
+};
 
 
 

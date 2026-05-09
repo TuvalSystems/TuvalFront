@@ -3,11 +3,11 @@ import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useUserTable() {
+
     const { run } = useApiAction();
     const ctrl = ref(null);
     let debounceId;
-    const apiList = "usuario/lista-usuarios",
-
+    const apiList = "usuario/lista-usuarios";
 
     const table = reactive({
         items: [],
@@ -34,23 +34,22 @@ export function useUserTable() {
     const estadoClass = (st) => {
         switch (Number(st)) {
             case 1:
-                return "badge bg-success  fw-semibold";
+                return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
             case 0:
-                return "badge bg-danger  fw-semibold";
+                return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
             default:
-                return "badge bg-secondary";
+                return "badge rounded-pill bg-secondary-subtle text-secondary border fw-semibold px-3 py-2";
         }
     };
 
 
     const columns = reactive([
-        { label: "ID", key: "id", sortable: true, align: "center" },
-        { label: "USERID", key: "USERID", sortable: true, align: "center" },
-        { label: "NOMBRES", key: "USERNAME", sortable: true, align: "center" },
-        { label: "estado", key: "status", sortable: true, align: "center" },
-        { label: "Perfil Web", key: "perfil_name", sortable: true, align: "center" },
-        { label: "Perfil App", key: "perfil_app_name", sortable: true, align: "center" },
-        { label: "F. creación", key: "created_at", sortable: false, align: "center" },
+        { label: "ID", key: "id", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "80px" },
+        { label: "Usuario", key: "USERID", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
+        { label: "Perfil Web", key: "perfil_name", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "180px" },
+        { label: "Perfil App", key: "perfil_app_name", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "estado", key: "status", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
+        { label: "F. creación", key: "created_at", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "170px" },
     ]);
 
     async function fetchList(page = 1) {

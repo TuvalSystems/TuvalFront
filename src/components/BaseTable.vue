@@ -103,7 +103,7 @@ const normalizeClass = (cls) => {
 
 const getThClass = (col) => {
     return [
-        "text-left",
+        getAlignClass(col),
         "text-nowrap",
         col.sortable ? "sortable" : "",
         ...normalizeClass(col.thClass),
@@ -112,8 +112,28 @@ const getThClass = (col) => {
 
 const getTdClass = (col, row) => {
     const extra = typeof col.tdClass === "function" ? col.tdClass(row) : col.tdClass;
+
     return [
-        "text-left", ...normalizeClass(extra)].filter(Boolean);
+        getAlignClass(col),
+        ...normalizeClass(extra),
+    ].filter(Boolean);
+};
+
+const getAlignClass = (col) => {
+    const allowed = ["text-start", "text-center", "text-end"];
+    return allowed.includes(col.align) ? col.align : "text-start";
+};
+
+const getHeaderJustifyClass = (col) => {
+    switch (getAlignClass(col)) {
+        case "text-center":
+            return "justify-content-center";
+        case "text-end":
+            return "justify-content-end";
+        case "text-start":
+        default:
+            return "justify-content-start";
+    }
 };
 
 
@@ -129,7 +149,7 @@ const getTdClass = (col, row) => {
                         <tr>
                             <th v-for="col in columns" :key="col.key" @click="col.sortable ? handleSort(col.key) : null"
                                 :class="getThClass(col)" :style="{ fontSize: '12px', width: col.width ?? 'auto' }">
-                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="d-flex align-items-center gap-2" :class="getHeaderJustifyClass(col)">
                                     <span>{{ col.label }}</span>
                                     <i v-if="col.sortable" :class="getSortIcon(col.key)"></i>
                                 </div>
@@ -193,7 +213,7 @@ const getTdClass = (col, row) => {
 
                             <!-- Slot para acciones -->
                             <td v-if="$slots.actions" class="text-center text-nowrap" style="width:1%;">
-                                <slot name="actions" :row="row"></slot>
+                                <slot name="actions" class="" :row="row"></slot>
                             </td>
                         </tr>
                     </transition-group>

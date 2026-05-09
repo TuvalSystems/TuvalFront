@@ -181,18 +181,18 @@ onMounted(async () => {
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
                 @onPageChange="fetchListReceivedReservationTransfers" @onSearch="table.searchTerm"
-                @onClick="handleClick" :is-row-disabled="isRowDisabled">
+                @onClick="handleClick" :is-row-disabled="isRowDisabled" @onKeyDown="handleClick">
                 <!-- Slot específico para la columna 'estado' -->
                 <template #actions="{ row }">
                     <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="imprir pdf"
                         @click="printPdfGuiaRemision(row)" :disabled="islockedPdf(row)">
-                        <span v-if="islockedPdf(row)" class="spinner-border spinner-border-sm" role="status"
+                        <span v-if="islockedPdf(row)" class="spinner-border spinner-border-sm" 
                             aria-hidden="true"></span>
                         <i v-else class="fa fa-print"></i>
                     </button>
                     <button type="button" class="btn btn-success btn-sm nowrap mx-1" aria-placeholder="recibir"
                         @click="openModalRecived(row)" :disabled="isModalRecivedLocked(row)">
-                        <span v-if="isModalRecivedLocked(row)" class="spinner-border spinner-border-sm" role="status"
+                        <span v-if="isModalRecivedLocked(row)" class="spinner-border spinner-border-sm"
                             aria-hidden="true"></span>
                         <i v-else class="fa fa-people-carry-box"></i>
                         Recibir

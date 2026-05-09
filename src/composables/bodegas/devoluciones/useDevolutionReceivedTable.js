@@ -28,13 +28,13 @@ export function useDevolutionReceivedTable() {
     });
 
     const columns = reactive([
-        { label: 'Devolución', key: 'devolucion', clickable: true, sortable: true },
-        { label: 'Cliente', key: 'CLI_RAZON_SOCIAL', clickable: false, sortable: false },
-        { label: 'Ruc', key: 'CLI_RUC', clickable: false, sortable: false },
-        { label: 'Usuario', key: 'USERID', clickable: false, sortable: false },
-        { label: 'Pto. Venta', key: 'PTO_VTA_DESCRIPCION', clickable: false, sortable: false },
-        { label: 'Fecha/Hora', key: 'created_at', clickable: false, sortable: false },
-        { label: 'Refactura', key: 'volver_a_facturar', clickable: false, sortable: false , thClass: "text-center", tdClass: "text-center"},
+        { label: 'Devolución', key: 'devolucion', clickable: true, sortable: true, thClass: "text-muted  text-uppercase fw-bold" },
+        { label: 'Cliente', key: 'CLI_RAZON_SOCIAL', clickable: false, sortable: false , thClass: "text-muted  text-uppercase fw-bold"},
+        { label: 'Ruc', key: 'CLI_RUC', clickable: false, sortable: false , thClass: "text-muted  text-uppercase fw-bold"},
+        { label: 'Usuario', key: 'USERID', clickable: false, sortable: false , thClass: "text-muted  text-uppercase fw-bold"},
+        { label: 'Pto. Venta', key: 'PTO_VTA_DESCRIPCION', clickable: false, sortable: false , thClass: "text-muted  text-uppercase fw-bold"},
+        { label: 'Fecha/Hora', key: 'created_at', clickable: false, sortable: false ,  thClass: "text-muted  text-uppercase fw-bold"},
+        { label: 'Refactura', key: 'volver_a_facturar', clickable: false, sortable: false, thClass: "text-muted  text-uppercase fw-bold", tdClass: "text-center" },
     ]);
     const loadingRef = toRef(table, "loading");
 
@@ -46,13 +46,13 @@ export function useDevolutionReceivedTable() {
     ]);
 
     const refacturaClass = (it) => {
-        switch (it) {
+        switch (Number(it)) {
             case 1:
-                return "bg-success-light text-success";
+                return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
             case 0:
-                return "bg-danger-light text-danger";
+                return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
             default:
-                return "badge bg-secondary";
+                return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
         }
     };
 
@@ -68,7 +68,7 @@ export function useDevolutionReceivedTable() {
             sortOrder: table.sortOrder,
             ptoVtaId: table.ptovta,
         }
-        return  run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-devoluciones-pendiente-recepcion`,

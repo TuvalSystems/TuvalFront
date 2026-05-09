@@ -195,7 +195,7 @@ onMounted(() => {
                 <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
                     :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                     :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchList"
-                    @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
+                    @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled" @onKeyDown="handleClick">
 
                     <template #actions="{ row }">
                         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
