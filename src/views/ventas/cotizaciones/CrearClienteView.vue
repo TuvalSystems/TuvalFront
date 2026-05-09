@@ -178,7 +178,7 @@ const rules = computed(() => {
     },
     CLI_NOMBRE_CORTO: {
       required,
-      maxLength: maxLength(30),
+      maxLength: maxLength(15),
     },
     CLI_CONTACTO: {
       required,
