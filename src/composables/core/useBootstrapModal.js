@@ -5,10 +5,21 @@ export function useBootstrapModal(elementRef, options = {}) {
 
     const { onHidden = null, ...bootstrapOptions } = options;
     let modalInstance = null;
+    let modalElement = null;
 
-    // Esta función se ejecutará cuando Bootstrap diga "ya me cerré"
+
+    const blurFocusedElement = () => {
+        const el = modalElement || elementRef.value;
+        if (el && document.activeElement instanceof HTMLElement && el.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
+    };
+
+    const handleHideEvent = () => {
+        blurFocusedElement();
+    };
+
     const handleHiddenEvent = () => {
-        // Si nos pasaron una función de limpieza, la ejecutamos
         if (onHidden && typeof onHidden === "function") {
             onHidden();
         }
@@ -16,32 +27,45 @@ export function useBootstrapModal(elementRef, options = {}) {
 
     // Inicializamos el modal cuando el componente se monta
     onMounted(() => {
-        const el = elementRef.value;
-        if (!el) return;
-        modalInstance = Modal.getOrCreateInstance(el, bootstrapOptions);
-        el.addEventListener('hidden.bs.modal', handleHiddenEvent);
+        modalElement = elementRef.value;
 
-        onUnmounted(() => {
-            el.removeEventListener('hidden.bs.modal', handleHiddenEvent);
-            modalInstance?.dispose();
-            modalInstance = null;
-        });
+        if (!modalElement) return;
+
+        modalInstance = Modal.getOrCreateInstance(
+            modalElement,
+            bootstrapOptions
+        );
+
+        modalElement.addEventListener("hide.bs.modal", handleHideEvent);
+        modalElement.addEventListener("hidden.bs.modal", handleHiddenEvent);
     });
 
-    // //Limpiamos la instacia cuando el componente se destruye
-    // onUnmounted(() => {
-    //     if (elementRef.value) {
-    //         elementRef.value.removeEventListener('hidden.bs.modal', handleHiddenEvent);
-    //     }
-    //     if (modalInstance) {
-    //         modalInstance.dispose();
-    //         modalInstance = null;
-    //     }
-    // });
+    onUnmounted(() => {
+        if (modalElement) {
+            modalElement.removeEventListener("hide.bs.modal", handleHideEvent);
+            modalElement.removeEventListener("hidden.bs.modal", handleHiddenEvent);
+        }
 
-    const show = () => modalInstance?.show();
-    const hide = () => modalInstance?.hide();
-    const toggle = () => modalInstance?.toggle();
+        modalInstance?.dispose();
+        modalInstance = null;
+        modalElement = null;
+    });
+
+
+
+    const show = () => {
+        modalInstance?.show();
+    };
+
+    const hide = () => {
+        blurFocusedElement();
+        modalInstance?.hide();
+    };
+
+    const toggle = () => {
+        blurFocusedElement();
+        modalInstance?.toggle();
+    };
 
     return { show, hide, toggle };
 

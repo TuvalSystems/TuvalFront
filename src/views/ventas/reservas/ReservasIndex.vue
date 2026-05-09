@@ -319,7 +319,7 @@ onBeforeUnmount(() => {
             <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchList"
-                @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
+                @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">
 
                 <template #cell-estado="{ value, row }">
                     <span :class="estadoClass(value)" style="font-size:12px">{{
@@ -337,12 +337,6 @@ onBeforeUnmount(() => {
                         </code>
                 </template>
                 <template #actions="{ row }">
-                    <!-- <button type="button" class="btn btn-primary btn-sm mx-1" title="Usar Reserva"
-                        @click="crearReserva(row)" :disabled="isTestLocked(row)">
-                        <span v-if="isTestLocked(row)" class="spinner-border spinner-border-sm" role="status"
-                            aria-hidden="true"></span>
-                        <i v-else class="far fa-circle-right"></i>
-                    </button> -->
                     <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-fw fa-ellipsis-v"></i> </button>

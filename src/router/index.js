@@ -531,6 +531,19 @@ const routes = [
           },
         ],
       },
+      {
+        path: "Movil",
+        name: "sistemas-movil",
+        component: RouterView,
+        children: [
+          {
+            path: "lista-versiones",
+            name: "sistemas-movil-gestion-versiones",
+            component: () => import("@/views/sistemas/movil/GestionVersionesIndex.vue"),
+            meta: { title: "Gestión de Versiones App" }
+          }
+        ],
+      }
     ],
   },
 

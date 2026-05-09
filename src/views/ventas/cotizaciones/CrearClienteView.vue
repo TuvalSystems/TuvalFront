@@ -1,9 +1,9 @@
 <script setup>
 import {
   ref,
-  reactive,
   computed,
   onMounted,
+  watch,
   onBeforeUnmount,
   nextTick
 } from "vue";
@@ -17,7 +17,7 @@ import {
 } from "@/functions/swal-alert.js";
 import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
 import useVuelidate from "@vuelidate/core";
-import { required, maxLength, email } from "@vuelidate/validators";
+import { required, maxLength, email, helpers } from "@vuelidate/validators";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useImageUpload } from "@/composables/core/useImageUpload";
 
@@ -39,22 +39,160 @@ const {
   loadingSubSegmentos,
   fetchSegmentos,
   fetchSubSegmentos,
+  loadingIdentify,
+  listTypeIdentify,
+  getListTypeIdentify
 } = useGetSegmentClients();
 
 store.dispatch("territorios");
 
-const tipos = reactive([
-  { tipo: "04", nombre: "RUC" },
-  { tipo: "05", nombre: "CÉDULA" },
-  { tipo: "06", nombre: "PASAPORTE" },
-  { tipo: "08", nombre: "IDENTIFICACIÓN DEL EXTERIOR" },
-]);
+
+const selectedTypeIdentify = computed(() => {
+  return listTypeIdentify.value.find(
+    (tipo) => String(tipo.codigo) === String(nuevoCliente.value.CLI_TIPO_ID)
+  ) ?? null;
+});
+
+const identifyMinSize = computed(() => {
+  return Number(selectedTypeIdentify.value?.min_size ?? 0);
+});
+
+const identifyMaxSize = computed(() => {
+  return Number(selectedTypeIdentify.value?.max_size ?? 0);
+});
+
+const identifyName = computed(() => {
+  return selectedTypeIdentify.value?.nombre ?? "Identificación";
+});
+
+const identifyLengthMessage = computed(() => {
+  const min = identifyMinSize.value;
+  const max = identifyMaxSize.value;
+
+  if (min && max && min === max) {
+    return `${identifyName.value} debe tener ${max} caracteres`;
+  }
+
+  if (min && max) {
+    return `${identifyName.value} debe tener entre ${min} y ${max} caracteres`;
+  }
+
+  if (max) {
+    return `${identifyName.value} debe tener máximo ${max} caracteres`;
+  }
+
+  return `${identifyName.value} no tiene una longitud válida`;
+});
+
+const validIdentifyLength = helpers.withMessage(
+  () => identifyLengthMessage.value,
+  (value) => {
+    const text = String(value ?? "").trim();
+
+    if (!text) {
+      return true;
+    }
+
+    const min = identifyMinSize.value;
+    const max = identifyMaxSize.value;
+
+    if (min && text.length < min) {
+      return false;
+    }
+
+    if (max && text.length > max) {
+      return false;
+    }
+
+    return true;
+  }
+);
+
+/** validacion para identificacion evitar insertar palabras en diferntes tipos de identificaciones */
+const numericIdentificationsCode = ["04", "05"];
+const identifyOnlyNumbers = computed(() => {
+  return numericIdentificationsCode.includes(
+    String(nuevoCliente.value.CLI_TIPO_ID)
+  );
+});
+
+const identifyInputMode = computed(() => {
+  return identifyOnlyNumbers.value ? "numeric" : "text";
+});
+
+const identifyFormatMessage = computed(() => {
+  if (identifyOnlyNumbers.value) {
+    return `${identifyName.value} solo debe contener números`;
+  }
+  return `${identifyName.value} solo debe contener letras y números`;
+});
+
+const validIdentifyFormat = helpers.withMessage(
+  () => identifyFormatMessage.value,
+  (value) => {
+    const text = String(value ?? "").trim();
+
+    if (!text) {
+      return true;
+    }
+
+    if (identifyOnlyNumbers.value) {
+      return /^\d+$/.test(text);
+    }
+
+    return /^[A-Za-z0-9]+$/.test(text);
+  }
+);
+
+
+
+const noEmailSpaces = helpers.withMessage(
+  "El correo no debe contener espacios en blanco. Revise que no tenga espacios antes, dentro o después del correo.",
+  (value) => {
+    const text = String(value ?? "");
+
+    if (!text) {
+      return true;
+    }
+
+    return !/\s/.test(text);
+  }
+);
+
+const validEmailMessage = helpers.withMessage(
+  "Ingrese un correo electrónico válido. Ejemplo: usuario@dominio.com",
+  email
+);
+
+const shortNameMaxAllowed = computed(() => 15);
+
+const shortNameCurrentLength = computed(() => {
+  return String(nuevoCliente.value.CLI_NOMBRE_CORTO ?? "").length;
+});
+
+const shortNameRemainingCharacters = computed(() => {
+  return Math.max(shortNameMaxAllowed.value - shortNameCurrentLength.value, 0);
+});
+
+const shortNameCounterClass = computed(() => {
+  if (shortNameRemainingCharacters.value === 0) {
+    return "bg-danger text-white";
+  }
+
+  if (shortNameRemainingCharacters.value <= 3) {
+    return "bg-warning text-dark";
+  }
+
+  return "bg-body-secondary text-muted";
+});
+
 
 const rules = computed(() => {
   return {
     CLI_RUC: {
       required,
-      maxLength: maxLength(15),
+      validIdentifyFormat,
+      validIdentifyLength,
     },
     CLI_RAZON_SOCIAL: {
       required,
@@ -62,7 +200,7 @@ const rules = computed(() => {
     },
     CLI_NOMBRE_CORTO: {
       required,
-      maxLength: maxLength(30),
+      maxLength: maxLength(15),
     },
     CLI_CONTACTO: {
       required,
@@ -96,11 +234,14 @@ const rules = computed(() => {
     },
     CLI_CORREO_ELECT_SRI: {
       required,
-      email,
+      noEmailSpaces,
+      email: validEmailMessage,
       maxLength: maxLength(200),
     },
     CLI_CORREO_ELECT_NOTIFICACION_INTERNA: {
       //email,
+      noEmailSpaces,
+      email: validEmailMessage,
       maxLength: maxLength(200),
     },
     CLI_SEGMENTO_ID: {
@@ -112,24 +253,79 @@ const rules = computed(() => {
   };
 });
 
+
+function validateIdentification(showMessage = true) {
+  const value = String(nuevoCliente.value.CLI_RUC ?? "").trim();
+  const tipo = selectedTypeIdentify.value;
+
+  if (!tipo) {
+    if (showMessage) {
+      swalWarning("Seleccione un tipo de identificación");
+    }
+    return false;
+  }
+
+  if (!value) {
+    if (showMessage) {
+      swalWarning("Ingrese la identificación");
+    }
+    return false;
+  }
+  if (identifyOnlyNumbers.value && !/^\d+$/.test(value)) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} solo debe contener números`);
+    }
+    return false;
+  }
+
+  if (!identifyOnlyNumbers.value && !/^[A-Za-z0-9]+$/.test(value)) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} solo debe contener letras y números`);
+    }
+    return false;
+  }
+
+  const min = identifyMinSize.value;
+  const max = identifyMaxSize.value;
+
+  if (min && max && min === max && value.length !== max) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} debe tener ${max} caracteres`);
+    }
+    return false;
+  }
+
+  if (min && value.length < min) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} debe tener mínimo ${min} caracteres`);
+    }
+    return false;
+  }
+
+  if (max && value.length > max) {
+    if (showMessage) {
+      swalWarning(`${tipo.nombre} debe tener máximo ${max} caracteres`);
+    }
+    return false;
+  }
+
+
+  return true;
+}
+
 // Use vuelidate
 const v$ = useVuelidate(rules, nuevoCliente);
-
+watch(
+  () => nuevoCliente.value.CLI_TIPO_ID,
+  () => {
+    nuevoCliente.value.CLI_RUC = "";
+    v$.value.CLI_RUC.$reset();
+  }
+);
 let noprospecto = ref(true);
 
 function checkRuc() {
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "04" &&
-    nuevoCliente.value.CLI_RUC.length !== 13
-  ) {
-    swalError("El RUC debe tener 13 dígitos");
-    return;
-  }
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "05" &&
-    nuevoCliente.value.CLI_RUC.length !== 10
-  ) {
-    swalError("La CÉDULA debe tener 10 dígitos");
+  if (!validateIdentification(true)) {
     return;
   }
 
@@ -172,22 +368,9 @@ function cargarCliente(cliente) {
 
 async function onSubmit() {
   const result = await v$.value.$validate();
-
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "04" &&
-    nuevoCliente.value.CLI_RUC.length !== 13
-  ) {
-    swalError("El RUC debe tener 13 dígitos");
+  if (!validateIdentification(true)) {
     return;
   }
-  if (
-    nuevoCliente.value.CLI_TIPO_ID === "05" &&
-    nuevoCliente.value.CLI_RUC.length !== 10
-  ) {
-    swalError("La CÉDULA debe tener 10 dígitos");
-    return;
-  }
-
   if (!result) {
     return;
   }
@@ -256,17 +439,59 @@ async function onSubmit() {
   }
 }
 
+
+function onIdentificationInput(event) {
+  let value = String(event.target.value ?? "");
+
+  if (identifyOnlyNumbers.value) {
+    value = value.replace(/\D/g, "");
+  } else {
+    value = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  }
+
+  nuevoCliente.value.CLI_RUC = value;
+  event.target.value = value;
+}
+
+const identifyCurrentLength = computed(() => {
+  return String(nuevoCliente.value.CLI_RUC ?? "").length;
+});
+
+const identifyMaxAllowed = computed(() => {
+  return identifyMaxSize.value || 30;
+});
+
+const identifyRemainingCharacters = computed(() => {
+  return Math.max(identifyMaxAllowed.value - identifyCurrentLength.value, 0);
+});
+
+const identifyCounterClass = computed(() => {
+  if (identifyRemainingCharacters.value === 0) {
+    return "bg-danger text-white";
+  }
+
+  if (identifyRemainingCharacters.value <= 3) {
+    return "bg-warning text-dark";
+  }
+
+  return "bg-body-secondary text-muted";
+});
+
+
+
+
 let errorMsg = ref("");
 
 onMounted(() => {
   fetchSegmentos();
-}),
-  onBeforeUnmount(() => {
-    if (noprospecto) {
-      store.commit("resetNuevoCliente");
-      store.commit("resetCotizacion");
-    }
-  });
+  getListTypeIdentify();
+});
+onBeforeUnmount(() => {
+  if (noprospecto) {
+    store.commit("resetNuevoCliente");
+    store.commit("resetCotizacion");
+  }
+});
 </script>
 <template>
   <!-- Hero -->
@@ -310,7 +535,7 @@ onMounted(() => {
                 <div class="col-sm-9">
                   <select class="form-select" id="select-CLI_TIPO_ID" name="select-CLI_TIPO_ID"
                     v-model="nuevoCliente.CLI_TIPO_ID">
-                    <option v-for="(tipo, index) in tipos" :key="index" :value="tipo.tipo">
+                    <option v-for="(tipo, index) in listTypeIdentify" :key="index" :value="tipo.codigo">
                       {{ tipo.nombre }}
                     </option>
                   </select>
@@ -323,9 +548,25 @@ onMounted(() => {
               <div class="row">
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC">Identificación</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_RUC" v-model="nuevoCliente.CLI_RUC" :class="{
-                    'is-invalid': v$.CLI_RUC.$errors.length,
-                  }" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="input-CLI_RUC" v-model.trim="nuevoCliente.CLI_RUC"
+                      :maxlength="identifyMaxAllowed" :placeholder="identifyName" :inputmode="identifyInputMode"
+                      autocomplete="off" :class="{ 'is-invalid': v$.CLI_RUC.$errors.length }"
+                      @input="onIdentificationInput" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
+
+                    <span class="input-group-text fw-semibold" :class="identifyCounterClass"
+                      style="min-width: 58px; justify-content: center;">
+                      {{ identifyCurrentLength }}/{{ identifyMaxAllowed }}
+                    </span>
+
+                    <div v-if="v$.CLI_RUC.$errors.length" class="invalid-feedback">
+                      {{ v$.CLI_RUC.$errors[0].$message }}
+                    </div>
+                  </div>
+
+                  <div v-if="!v$.CLI_RUC.$errors.length && selectedTypeIdentify" class="form-text">
+                    {{ identifyLengthMessage }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -347,9 +588,19 @@ onMounted(() => {
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_NOMBRE_CORTO">Nombre corto</label>
                 <div class="col-sm-9">
                   <input type="text" class="form-control" id="input-CLI_NOMBRE_CORTO"
-                    v-model="nuevoCliente.CLI_NOMBRE_CORTO" placeholder="Nombre Corto" :class="{
+                    v-model="nuevoCliente.CLI_NOMBRE_CORTO" placeholder="Nombre Corto" :maxlength="shortNameMaxAllowed"
+                    :class="{
                       'is-invalid': v$.CLI_NOMBRE_CORTO.$errors.length,
                     }" @blur="v$.CLI_NOMBRE_CORTO.$touch" />
+
+                  <span class="input-group-text fw-semibold" :class="shortNameCounterClass"
+                    style="min-width: 58px; justify-content: center;">
+                    {{ shortNameCurrentLength }}/{{ shortNameMaxAllowed }}
+                  </span>
+
+                  <div v-if="v$.CLI_NOMBRE_CORTO.$errors.length" class="invalid-feedback">
+                    {{ v$.CLI_NOMBRE_CORTO.$errors[0].$message }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -490,6 +741,10 @@ onMounted(() => {
                     placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_SRI" :class="{
                       'is-invalid': v$.CLI_CORREO_ELECT_SRI.$errors.length,
                     }" @blur="v$.CLI_CORREO_ELECT_SRI.$touch" />
+
+                  <div v-if="v$.CLI_CORREO_ELECT_SRI.$errors.length" class="invalid-feedback d-block">
+                    {{ v$.CLI_CORREO_ELECT_SRI.$errors[0].$message }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -503,9 +758,11 @@ onMounted(() => {
                   <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
                     placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
                     :class="{
-                      'is-invalid':
-                        v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
+                      'is-invalid': v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
                     }" @blur="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$touch" />
+                  <div v-if="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length" class="invalid-feedback d-block">
+                    {{ v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors[0].$message }}
+                  </div>
                 </div>
               </div>
             </div>
