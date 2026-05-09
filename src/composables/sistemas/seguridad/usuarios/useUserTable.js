@@ -46,8 +46,8 @@ export function useUserTable() {
     const columns = reactive([
         { label: "ID", key: "id", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "80px" },
         { label: "Usuario", key: "USERID", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
-        { label: "Perfil Web", key: "perfil_name", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "180px" },
-        { label: "Perfil App", key: "perfil_app_name", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Perfil Web", key: "perfil_name", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold", width: "180px" },
+        { label: "Perfil App", key: "perfil_app_name", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
         { label: "estado", key: "status", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
         { label: "F. creación", key: "created_at", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "170px" },
     ]);
