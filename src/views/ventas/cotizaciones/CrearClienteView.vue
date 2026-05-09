@@ -145,6 +145,26 @@ const validIdentifyFormat = helpers.withMessage(
 );
 
 
+
+const noEmailSpaces = helpers.withMessage(
+  "El correo no debe contener espacios en blanco. Revise que no tenga espacios antes, dentro o después del correo.",
+  (value) => {
+    const text = String(value ?? "");
+
+    if (!text) {
+      return true;
+    }
+
+    return !/\s/.test(text);
+  }
+);
+
+const validEmailMessage = helpers.withMessage(
+  "Ingrese un correo electrónico válido. Ejemplo: usuario@dominio.com",
+  email
+);
+
+
 const rules = computed(() => {
   return {
     CLI_RUC: {
@@ -436,23 +456,6 @@ const identifyCounterClass = computed(() => {
 });
 
 
-const noEmailSpaces = helpers.withMessage(
-  "El correo no debe contener espacios en blanco. Revise que no tenga espacios antes, dentro o después del correo.",
-  (value) => {
-    const text = String(value ?? "");
-
-    if (!text) {
-      return true;
-    }
-
-    return !/\s/.test(text);
-  }
-);
-
-const validEmailMessage = helpers.withMessage(
-  "Ingrese un correo electrónico válido. Ejemplo: usuario@dominio.com",
-  email
-);
 
 
 let errorMsg = ref("");
