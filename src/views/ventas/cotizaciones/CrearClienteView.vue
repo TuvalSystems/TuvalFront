@@ -164,6 +164,28 @@ const validEmailMessage = helpers.withMessage(
   email
 );
 
+const shortNameMaxAllowed = computed(() => 15);
+
+const shortNameCurrentLength = computed(() => {
+  return String(nuevoCliente.value.CLI_NOMBRE_CORTO ?? "").length;
+});
+
+const shortNameRemainingCharacters = computed(() => {
+  return Math.max(shortNameMaxAllowed.value - shortNameCurrentLength.value, 0);
+});
+
+const shortNameCounterClass = computed(() => {
+  if (shortNameRemainingCharacters.value === 0) {
+    return "bg-danger text-white";
+  }
+
+  if (shortNameRemainingCharacters.value <= 3) {
+    return "bg-warning text-dark";
+  }
+
+  return "bg-body-secondary text-muted";
+});
+
 
 const rules = computed(() => {
   return {
@@ -566,9 +588,19 @@ onBeforeUnmount(() => {
                 <label class="col-sm-3 col-form-label text-end" for="input-CLI_NOMBRE_CORTO">Nombre corto</label>
                 <div class="col-sm-9">
                   <input type="text" class="form-control" id="input-CLI_NOMBRE_CORTO"
-                    v-model="nuevoCliente.CLI_NOMBRE_CORTO" placeholder="Nombre Corto" :class="{
+                    v-model="nuevoCliente.CLI_NOMBRE_CORTO" placeholder="Nombre Corto" :maxlength="shortNameMaxAllowed"
+                    :class="{
                       'is-invalid': v$.CLI_NOMBRE_CORTO.$errors.length,
                     }" @blur="v$.CLI_NOMBRE_CORTO.$touch" />
+
+                  <span class="input-group-text fw-semibold" :class="shortNameCounterClass"
+                    style="min-width: 58px; justify-content: center;">
+                    {{ shortNameCurrentLength }}/{{ shortNameMaxAllowed }}
+                  </span>
+
+                  <div v-if="v$.CLI_NOMBRE_CORTO.$errors.length" class="invalid-feedback">
+                    {{ v$.CLI_NOMBRE_CORTO.$errors[0].$message }}
+                  </div>
                 </div>
               </div>
             </div>
