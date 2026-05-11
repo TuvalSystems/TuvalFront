@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 import {
   swalSuccess,
   swalError,
@@ -7,7 +7,10 @@ import {
   toast
 } from "@/functions/swal-alert.js";
 import BaseTable from "@/components/BaseTable.vue";
+import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useUserTable } from "@/composables/sistemas/seguridad/usuarios/useUserTable";
+import { useUserActions } from "@/composables/sistemas/seguridad/usuarios/useUserActions";
+import verModalSeleccionPerfiles from "@/views/sistemas/seguridad/usuarios/modals/verModalSeleccionPerfiles.vue"
 
 const {
   table,
@@ -19,6 +22,17 @@ const {
   refresh,
   estadoClass
 } = useUserTable();
+
+const {
+  loadingStatus,
+  UpdateStatus,
+  loadingReset,
+  resetPasswordUser
+} = useUserActions();
+
+//modals 
+const modalSeleccionRef = ref(null);
+const modalSeleccionObj = useBootstrapModal(modalSeleccionRef);
 
 
 const handleClick = ({ row, col }) => {
@@ -32,8 +46,6 @@ function isRowDisabled(row) {
 
 async function openAlertChangeStatus(row) {
   const isActive = Number(row.status) === 1;
-
-  const actionText = isActive ? "desactivar" : "activar";
   const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
   const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
 
@@ -61,10 +73,67 @@ async function openAlertChangeStatus(row) {
     },
   }).then((result) => {
     if (result.isConfirmed || result.value) {
-      alert(`Se va a ${actionText} el usuario`);
-      // changeStatusUser(row);
+      changeStatusUser(row);
     }
   });
+}
+
+async function changeStatusUser(row) {
+  const resp = await UpdateStatus(row.id);
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+  const msg = resp?.message || "No se pudo actualizar el estado del usuario";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+
+async function openAlertResetPassword(row) {
+  const username = row?.USERNAME ?? 'este usuario';
+
+  const result = await toast.fire({
+    title: "¿Estás seguro?",
+    text: `Si reseteas la contraseña de ${username}, obligatoriamente tendrá que cambiarla al iniciar sesión.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: "btn btn-danger m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: "Sí, resetearla",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+  });
+  if (!result.isConfirmed) return;
+  if (result.isConfirmed) {
+    await resetPassword(row);
+  }
+}
+
+
+async function resetPassword(row) {
+  const resp = await resetPasswordUser(row.id);
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+  const msg = resp?.message || "No se pudo actualizar el estado del usuario";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+
+async function openModalGestionPerfiles(){
+  await nextTick();
+  modalSeleccionObj.show();
+}
+
+async function closeModal(){
+  await nextTick();
+  modalSeleccionObj.hide();
+  // fetchList(1);
 }
 
 onMounted(() => {
@@ -140,13 +209,15 @@ onMounted(() => {
         </template>
 
         <template #cell-perfil_name="{ value }">
-          <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2" style="font-size:12px">
-            <i class="fa fa-user-shield me-1" ></i>
+          <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2"
+            style="font-size:12px">
+            <i class="fa fa-user-shield me-1"></i>
             {{ value || 'Sin perfil' }}
           </span>
         </template>
         <template #cell-perfil_app_name="{ value }">
-          <span v-if="value" class="badge rounded-pill bg-info-subtle text-info border border-info-subtle px-3 py-2" style="font-size:12px">
+          <span v-if="value" class="badge rounded-pill bg-info-subtle text-info border border-info-subtle px-3 py-2"
+            style="font-size:12px">
             <i class="fa fa-mobile-alt me-1"></i>
             {{ value }}
           </span>
@@ -188,13 +259,20 @@ onMounted(() => {
               </a>
             </li>
             <li>
-              <button class="dropdown-item d-flex align-items-center gap-2 py-2" @click="openAlertChangeStatus(row)">
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                @click="openAlertChangeStatus(row)">
                 <i class="fa fa-fw" :class="Number(row.status) === 1
                   ? 'fa-toggle-off text-warning'
                   : 'fa-toggle-on text-success'"></i>
                 <span>
                   {{ Number(row.status) === 1 ? 'Desactivar' : 'Activar' }}
                 </span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                @click="openAlertResetPassword(row)">
+                <i class="fa fa-key"></i> Resetear Contraseña
               </button>
             </li>
             <li>
@@ -212,10 +290,20 @@ onMounted(() => {
         <!-- end slot de acciones -->
       </BaseTable>
       <!-- end table -->
-
-
     </BaseBlock>
   </div>
+
+
+  <!-- modales -->
+   <div class="modal" id="modal-seleccion-perfiles" tabindex="-1" aria-labelledby="modal-seleccion-perfiles" aria-hidden="true"
+        ref="modalSeleccionRef">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <verModalSeleccionPerfiles @closeModal="closeModal" @refresh="refresh">
+                </verModalSeleccionPerfiles>
+            </div>
+        </div>
+    </div>
 </template>
 
 <style scoped>
@@ -236,7 +324,4 @@ onMounted(() => {
 .fs-xs {
   font-size: 11px;
 }
-
-
-
 </style>
