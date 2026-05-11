@@ -543,7 +543,21 @@ const routes = [
             meta: { title: "Gestión de Versiones App" }
           }
         ],
+      },
+      {
+        path : "Seguridad",
+        name : "sistemas-seguridad",
+        component : RouterView,
+        children: [
+            {
+              path : "usuarios",
+              name :"sistemas-seguridad-usuarios",
+              component : () => import("@/views/sistemas/seguridad/usuarios/UsuariosIndex.vue"),
+              meta : { title : "Gestión de Usuarios"}
+            }
+        ],
       }
+
     ],
   },
 

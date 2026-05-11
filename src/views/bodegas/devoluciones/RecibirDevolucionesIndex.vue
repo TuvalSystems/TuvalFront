@@ -163,7 +163,7 @@ onMounted(async () => {
             <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchData"
-                @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
+                @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">
 
                 <template #cell-volver_a_facturar="{ value, row }">
                     <span v-if="row.volver_a_facturar === 1" class="badge rounded-pill py-2 px-3 text-uppercase"
@@ -179,7 +179,7 @@ onMounted(async () => {
                 <template #actions="{ row }">
                     <button type="button" class="btn btn-primary btn-sm mx-1" title="Recibir devolucion"
                         :disabled="isModalLocked(row)" @click="openModalRecibirDevoluciones(row.id)">
-                        <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" role="status"
+                        <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" 
                             aria-hidden="true"></span>
                         <i v-else class="fas fa-box-open "></i>
                     </button>

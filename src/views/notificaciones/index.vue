@@ -107,12 +107,12 @@ onMounted(() => {
             <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
-                @onPageChange="fetchAllNotify" @onSearch="table.searchTerm" @onClick="handleClick">
+                @onPageChange="fetchAllNotify" @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick"> 
                 <!-- Slot específico para la columna 'estado' -->
                 <template #actions="{ row }">
                     <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="marcar como leido"
                         @click="markAsReadNotify(row)" :disabled="isLockedMark(row)">
-                        <span v-if="isLockedMark(row)" class="spinner-border spinner-border-sm" role="status"
+                        <span v-if="isLockedMark(row)" class="spinner-border spinner-border-sm" 
                             aria-hidden="true"></span>
                         <i v-else class="fa fa-check"></i>
                     </button>

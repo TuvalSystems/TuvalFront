@@ -33,24 +33,24 @@ export function useVersionManagementTable() {
 
 
     const columns = reactive([
-        { label: "ID", key: "id", sortable: true, align: "center", thClass: "text-muted text-uppercase fw-bold",},
-        { label: "Plataforma", key: "platform", sortable: true,  align: "center", thClass: "text-muted text-uppercase fw-bold",},
-        { label: "Versión", key: "version_name", sortable: true, align: "center", thClass: "text-muted text-uppercase fw-bold",},
-        { label: "Build", key: "build_number",  sortable: true, align: "center", thClass: "text-muted text-uppercase fw-bold", },
-        { label: "Build mínimo", key: "minimum_required_build", sortable: true, align: "center", thClass: "text-muted text-uppercase fw-bold",},
-        { label: "Peso APK", key: "apk_size_bytes", sortable: true, align: "center", thClass: "text-muted text-uppercase fw-bold", },
-        { label: "Estado", key: "is_active", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label: "F. Creación", key: "created_at", sortable: true,  align: "center", thClass: "text-muted text-uppercase fw-bold", },
+        { label: "ID", key: "id", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
+        { label: "Plataforma", key: "platform", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
+        { label: "Versión", key: "version_name", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
+        { label: "Build", key: "build_number", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
+        { label: "Build mínimo", key: "minimum_required_build", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
+        { label: "Peso APK", key: "apk_size_bytes", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
+        { label: "Estado", key: "is_active", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "F. Creación", key: "created_at", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
     ]);
 
     const estadoClass = (st) => {
-          switch (st || "") {
+        switch (Boolean(st)) {
             case true:
-                return "badge bg-success  fw-semibold";
+                return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
             case false:
-                return "badge bg-danger  fw-semibold";
+                return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
             default:
-                return "badge bg-secondary";
+                return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
         }
     };
 
@@ -114,7 +114,6 @@ export function useVersionManagementTable() {
 
 
     return {
-
         table,
         columns,
         loadingRef,

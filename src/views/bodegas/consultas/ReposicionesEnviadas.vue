@@ -251,7 +251,7 @@ onMounted(async () => {
         <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
           :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
           :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
-          @onSearch="table.searchTerm" @onClick="handleClick">
+          @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick">
           <template #actions="{ row }">
             <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
               <i class="fa fa-print"></i>

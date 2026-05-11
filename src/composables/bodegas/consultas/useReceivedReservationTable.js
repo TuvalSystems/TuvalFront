@@ -11,14 +11,14 @@ export function useReceivedReservationTable() {
     const apiList = "despachos/reservas-recibidas";
     const ptoVtaId = store.state.puntodeventaselect;
     const columns = reactive([
-        { label: "Guia", key: "numero_guia", sortable: true,  clickable: true },
-        { label: "Origen", key: "bodega_origen", sortable: true },
-        { label: "Cliente", key: "razon_social_destinatario", sortable: true },
-        { label: "Dirección", key: "direccion_destinatario", sortable: true },
-        { label: "Fecha/Hora", key: "fecha_salida", sortable: true },
-        { label: "Transportista", key: "razon_social_transportista", sortable: true },
-        { label: "Vehiculo", key: "placa", sortable: true },
-        { label: "usuario", key: "USERID", sortable: true },
+        { label: "Guia", key: "numero_guia", sortable: true,  clickable: true , thClass: "text-muted  text-uppercase fw-bold"},
+        { label: "Origen", key: "bodega_origen", sortable: true,  thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Cliente", key: "razon_social_destinatario", sortable: true,  thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Dirección", key: "direccion_destinatario", sortable: true,  thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Fecha/Hora", key: "fecha_salida", sortable: true ,  thClass: "text-muted  text-uppercase fw-bold"},
+        { label: "Transportista", key: "razon_social_transportista", sortable: true ,  thClass: "text-muted  text-uppercase fw-bold"},
+        { label: "Vehiculo", key: "placa", sortable: true , thClass: "text-muted  text-uppercase fw-bold"},
+        { label: "usuario", key: "USERID", sortable: true ,  thClass: "text-muted  text-uppercase fw-bold"},
     ]);
     const table = reactive({
         items: [],

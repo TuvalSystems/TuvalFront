@@ -28,7 +28,7 @@ export function useQuotationReserveRequests() {
       clickable: false,
       sortable: true,
       render: (value) => value,
-      thClass: " text-center",
+      thClass: " text-center text-muted  text-uppercase fw-bold",
       tdClass: " text-center",
     },
     {
@@ -36,7 +36,7 @@ export function useQuotationReserveRequests() {
       key: "cotizacion",
       clickable: true,
       sortable: true,
-      thClass: " text-center",
+      thClass: " text-center text-muted  text-uppercase fw-bold",
       tdClass: " text-center",
     },
     {
@@ -44,7 +44,7 @@ export function useQuotationReserveRequests() {
       key: "created_at",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell text-center",
+      thClass: "d-none d-md-table-cell text-center text-muted  text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell text-center",
     },
     {
@@ -52,7 +52,7 @@ export function useQuotationReserveRequests() {
       key: "CLI_RAZON_SOCIAL",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell  text-start",
+      thClass: "d-none d-md-table-cell  text-start text-muted  text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell  text-start",
     },
     {
@@ -61,7 +61,7 @@ export function useQuotationReserveRequests() {
       clickable: false,
       sortable: false,
       render: (value) => value,
-      thClass: "text-end",
+      thClass: "text-end text-muted  text-uppercase fw-bold",
       tdClass: "text-end",
     },
     {
@@ -69,7 +69,7 @@ export function useQuotationReserveRequests() {
       key: "tipo_reserva",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell text-center",
+      thClass: "d-none d-md-table-cell text-center text-muted  text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell text-center",
     },
     {
@@ -77,7 +77,7 @@ export function useQuotationReserveRequests() {
       key: "fe_solicitud_reserva",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell",
+      thClass: "d-none d-md-table-cell text-muted  text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
     },
     {
@@ -85,7 +85,7 @@ export function useQuotationReserveRequests() {
       key: "estado",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell",
+      thClass: "d-none d-md-table-cell text-muted  text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
     },
     {
@@ -93,7 +93,7 @@ export function useQuotationReserveRequests() {
       key: "bodegas_uso",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell",
+      thClass: "d-none d-md-table-cell text-muted  text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
     },
     {
@@ -101,7 +101,7 @@ export function useQuotationReserveRequests() {
       key: "usuario_solicita",
       clickable: false,
       sortable: true,
-      thClass: "text-center",
+      thClass: "text-center text-muted  text-uppercase fw-bold",
       tdClass: "text-center",
     },
   ];
@@ -160,22 +160,27 @@ export function useQuotationReserveRequests() {
     table.sortOrder = order;
   };
 
-  const estadoClass = (st) => {
-    switch (st || "") {
-      case "pendiente":
-        return "badge bg-dark text-light fw-semibold";
-      case "aprobado":
-        return "badge bg-success  fw-semibold";
-      case "rechazada":
-        return "badge bg-danger  fw-semibold";
-      case "cancelada":
-        return "badge bg-warning  fw-semibold";
-      case "facturado":
-        return "badge bg-success  fw-semibold";
-      default:
-        return "badge bg-secondary";
-    }
-  };
+ const estadoClass = (st) => {
+  switch (String(st || "").toLowerCase()) {
+    case "pendiente":
+      return "badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle fw-semibold px-3 py-2";
+
+    case "aprobado":
+      return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
+
+    case "rechazada":
+      return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
+
+    case "cancelada":
+      return "badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle fw-semibold px-3 py-2";
+
+    case "facturado":
+      return "badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-3 py-2";
+
+    default:
+      return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
+  }
+};
 
   const totalClass = (total) => {
     if (total > 0) {

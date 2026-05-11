@@ -22,73 +22,73 @@ export function useSalesTransfersProcess() {
         {
             name: "CTL",
             field: "ART_CODIGO_TRES_LETRAS",
-            thClass: "fs-sm text-start",
+            thClass: "fs-sm text-start text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "CÓDIGO",
             field: "ART_CODIGO",
-            thClass: "fs-sm text-start",
+            thClass: "fs-sm text-start text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "DESCRIPCION",
             field: "ART_DESCRIPCION",
-            thClass: "fs-sm text-start",
+            thClass: "fs-sm text-start text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "COMPART.",
             field: "compartimiento",
-            thClass: "fs-sm text-start",
+            thClass: "fs-sm text-start text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "PEDIDO",
             field: "orderNumber",
-            thClass: "fs-sm text-start",
+            thClass: "fs-sm text-start text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "FECHA",
             field: "fecha",
-            thClass: "fs-sm text-start",
+            thClass: "fs-sm text-start text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "USUARIO",
             field: "usuario",
-            thClass: "fs-sm text-start",
+            thClass: "fs-sm text-start text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "CANT",
             field: "cantidad",
-            thClass: "fs-sm text-end",
+            thClass: "fs-sm text-end text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "RES",
             field: "reservado",
-            thClass: "fs-sm text-end",
+            thClass: "fs-sm text-end text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "TRASL",
             field: "trasladado",
-            thClass: "fs-sm text-end",
+            thClass: "fs-sm text-end text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "PEND",
             field: "pending_transfer",
-            thClass: "fs-sm text-end",
+            thClass: "fs-sm text-end text-muted  text-uppercase fw-bold",
             sort: "",
         },
         {
             name: "PESO",
             field: "ART_PESO",
-            thClass: "fs-sm text-end",
+            thClass: "fs-sm text-end text-muted  text-uppercase fw-bold",
             sort: "",
         },
     ]);
@@ -254,8 +254,8 @@ export function useSalesTransfersProcess() {
 
 
     //funcion para colorear el row de la tabla basado en las condiciones de la transferencia
-    const getRowClass = (row) => {       
-        if (row.has_guide_active  && row.pending_transfer > 0 ) {
+    const getRowClass = (row) => {
+        if (row.has_guide_active && row.pending_transfer > 0) {
             return 'table-warning';
         }
         if (row.picking) {
