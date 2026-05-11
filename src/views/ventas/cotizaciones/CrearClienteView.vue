@@ -20,7 +20,7 @@ import useVuelidate from "@vuelidate/core";
 import { required, maxLength, email, helpers } from "@vuelidate/validators";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useImageUpload } from "@/composables/core/useImageUpload";
-
+import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
 const { fetchAndFillQuotation, updateQuoteProspect } = useProcessCreateQuote();
 const { uploadedFiles } = useImageUpload();
 
@@ -31,6 +31,7 @@ const provincias_ciudades = computed(() => store.state.provincias_ciudades);
 const grupos_subgrupos = computed(() => store.state.grupos_subgrupos);
 const nuevoCliente = computed(() => store.state.nuevoCliente);
 const cotizacion_id = ref(store.state.cotizacion_id);
+const typeIdentifyStore = useTypeIdentifyStore();
 const router = useRouter();
 const {
   segmentos,
@@ -39,10 +40,10 @@ const {
   loadingSubSegmentos,
   fetchSegmentos,
   fetchSubSegmentos,
-  loadingIdentify,
-  listTypeIdentify,
-  getListTypeIdentify
 } = useGetSegmentClients();
+
+const listTypeIdentify = computed(() => typeIdentifyStore.list);
+const loadingIdentify = computed(() => typeIdentifyStore.loading);
 
 store.dispatch("territorios");
 
@@ -482,9 +483,13 @@ const identifyCounterClass = computed(() => {
 
 let errorMsg = ref("");
 
+
+
+
+
 onMounted(() => {
   fetchSegmentos();
-  getListTypeIdentify();
+  typeIdentifyStore.fetchAll();
 });
 onBeforeUnmount(() => {
   if (noprospecto) {

@@ -24,7 +24,7 @@
             <template v-if="user.perfil_id === 1 || user.perfil_id === 2 || user.perfil_id === 31">
               <button v-if="loading_todas || ordenes_despacho_loading" type="button"
                 class="btn btn-sm btn-alt-info mx-1" title="Consultar detalle">
-                <div class="spinner-border spinner-border-sm text-primary " role="status">
+                <div class="spinner-border spinner-border-sm text-primary ">
                   <span class="visually-hidden">Loading...</span>
                 </div>
               </button>
