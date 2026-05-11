@@ -38,11 +38,7 @@ export function useSalesTransfersGuideProcess() {
     };
     const data = reactive(structuredClone(initialState));
     let modo = ref("local");
-    const tipoIdentificacion = [
-        { value: "04", label: "Ruc" },
-        { value: "05", label: "Cedula" },
-        { value: "06", label: "Pasaporte" },
-    ];
+
 
     async function calcularPesoItems(items) {
         const totalKg = Array.isArray(items)
@@ -129,8 +125,7 @@ export function useSalesTransfersGuideProcess() {
     }
 
 
-
-
+ 
     const loading = ref(false);
     const apiCreateGuide = `bodegas/transferencia-venta/guia-remision/crear-guia-transferencia-venta`;
     async function createGuideTransfer(data) {
@@ -211,7 +206,6 @@ export function useSalesTransfersGuideProcess() {
         // state
         data,
         modo,
-        tipoIdentificacion,
         pesoTotalItemsFmt,
         loading,
         createGuideTransfer,

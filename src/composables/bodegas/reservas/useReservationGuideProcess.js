@@ -43,11 +43,7 @@ export const useReservationGuideProcess = () => {
   const data = reactive(structuredClone(initialState));
 
   let modo = ref("local");
-  const tipoIdentificacion = [
-    { value: "04", label: "Ruc" },
-    { value: "05", label: "Cedula" },
-    { value: "06", label: "Pasaporte" },
-  ];
+
 
   function calcularPesoItems(items) {
     const totalKg = Array.isArray(items)
@@ -180,7 +176,6 @@ export const useReservationGuideProcess = () => {
     // state
     data,
     modo,
-    tipoIdentificacion,
     pesoTotalItemsFmt,
     loadingProcessGuide,
 

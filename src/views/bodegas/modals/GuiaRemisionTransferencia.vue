@@ -1,16 +1,15 @@
 <script setup>
-import { computed, ref, reactive } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useStore } from 'vuex'
-import Swal from "sweetalert2";
 import flatPickr from 'vue-flatpickr-component';
 import { useTemplateStore } from "@/stores/template";
 import { formatPrice } from "@/functions";
-import { swalSuccess, swalError, swalWarning } from "@/functions/swal-alert";
+import { swalError, swalWarning } from "@/functions/swal-alert";
 import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
 import { useRepositionGuideProcess } from '@/composables/bodegas/reposiciones/useRepositionGuideProcess';
+import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
 
 const {
-  tipoIdentificacion,
   loading,
   createGuideTransfer,
   loadingVerifyGuide,
@@ -36,7 +35,9 @@ const { currentBodega } = defineProps({
   currentBodega: Object,
 });
 
-
+const typeIdentifyStore = useTypeIdentifyStore();
+const listTypeIdentify = computed(() => typeIdentifyStore.list);
+const loadingIdentify = computed(() => typeIdentifyStore.loading);
 function changeVehiculo() {
   if (vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id) {
     var id = vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id;
@@ -49,13 +50,27 @@ async function generarGuia() {
   let vehi;
   let trans;
   if (despacho.value == 'Retiro en bodega') {
-    if (!transportista.value.nombre || !transportista.value.identificacion || !transportista.value.tipo_identificacion || !vehiculo.value.placa) {
-      swalWarning('Llenar datos de transporte externo');
+    if (!transportista.value.nombre) {
+      swalWarning("Ingrese el nombre del transportista");
+      return;
+    }
+
+    if (!validateTransportIdentification(true)) {
+      return;
+    }
+
+    if (!vehiculo.value.placa) {
+      swalWarning("Ingrese la placa del vehículo");
       return;
     }
   } else {
     if (!transportista.value.transportista_id) {
-      swalWarning('Seleccionar transportista');
+      swalWarning("Seleccionar transportista");
+      return;
+    }
+
+    if (!vehiculo.value.vehiculo_id) {
+      swalWarning("Seleccionar vehículo");
       return;
     }
   }
@@ -135,6 +150,205 @@ function clearCampos() {
 
 const emit = defineEmits(["generarGuia"]);
 
+
+/** Validación tipo identificación transportista externo */
+
+const transportIdentifyError = ref("");
+
+const isExternalMode = computed(() => {
+  return despacho.value === "Retiro en bodega";
+});
+
+const selectedTransportTypeIdentify = computed(() => {
+  return (
+    listTypeIdentify.value.find(
+      (tipo) =>
+        String(tipo.codigo) === String(transportista.value.tipo_identificacion)
+    ) ?? null
+  );
+});
+
+const transportIdentifyMinSize = computed(() => {
+  return Number(selectedTransportTypeIdentify.value?.min_size ?? 0);
+});
+
+const transportIdentifyMaxSize = computed(() => {
+  return Number(selectedTransportTypeIdentify.value?.max_size ?? 0);
+});
+
+const transportIdentifyName = computed(() => {
+  return selectedTransportTypeIdentify.value?.nombre ?? "Identificación";
+});
+
+const transportIdentifyMaxAllowed = computed(() => {
+  return transportIdentifyMaxSize.value || 30;
+});
+
+const transportIdentifyCurrentLength = computed(() => {
+  return String(transportista.value.identificacion ?? "").length;
+});
+
+const transportIdentifyRemainingCharacters = computed(() => {
+  return Math.max(
+    transportIdentifyMaxAllowed.value - transportIdentifyCurrentLength.value,
+    0
+  );
+});
+
+const transportIdentifyCounterClass = computed(() => {
+  if (transportIdentifyRemainingCharacters.value === 0) {
+    return "bg-danger text-white";
+  }
+
+  if (transportIdentifyRemainingCharacters.value <= 3) {
+    return "bg-warning text-dark";
+  }
+
+  return "bg-body-secondary text-muted";
+});
+
+const transportIdentifyLengthMessage = computed(() => {
+  const min = transportIdentifyMinSize.value;
+  const max = transportIdentifyMaxSize.value;
+
+  if (min && max && min === max) {
+    return `${transportIdentifyName.value} debe tener ${max} caracteres`;
+  }
+
+  if (min && max) {
+    return `${transportIdentifyName.value} debe tener entre ${min} y ${max} caracteres`;
+  }
+
+  if (max) {
+    return `${transportIdentifyName.value} debe tener máximo ${max} caracteres`;
+  }
+
+  return `${transportIdentifyName.value} no tiene una longitud válida`;
+});
+
+const numericTransportIdentificationsCode = ["04", "05"];
+
+const transportIdentifyOnlyNumbers = computed(() => {
+  return numericTransportIdentificationsCode.includes(
+    String(transportista.value.tipo_identificacion)
+  );
+});
+
+const transportIdentifyInputMode = computed(() => {
+  return transportIdentifyOnlyNumbers.value ? "numeric" : "text";
+});
+
+function setTransportIdentifyError(message, showMessage = true) {
+  transportIdentifyError.value = message;
+
+  if (showMessage && message) {
+    swalWarning(message);
+  }
+
+  return false;
+}
+
+function validateTransportIdentification(showMessage = true) {
+  if (!isExternalMode.value) {
+    transportIdentifyError.value = "";
+    return true;
+  }
+
+  const value = String(transportista.value.identificacion ?? "").trim();
+  const tipo = selectedTransportTypeIdentify.value;
+
+  if (!tipo) {
+    return setTransportIdentifyError(
+      "Seleccione un tipo de identificación",
+      showMessage
+    );
+  }
+
+  if (!value) {
+    return setTransportIdentifyError(
+      "Ingrese la identificación del transportista",
+      showMessage
+    );
+  }
+
+  if (transportIdentifyOnlyNumbers.value && !/^\d+$/.test(value)) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} solo debe contener números`,
+      showMessage
+    );
+  }
+
+  if (!transportIdentifyOnlyNumbers.value && !/^[A-Za-z0-9]+$/.test(value)) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} solo debe contener letras y números`,
+      showMessage
+    );
+  }
+
+  const min = transportIdentifyMinSize.value;
+  const max = transportIdentifyMaxSize.value;
+
+  if (min && max && min === max && value.length !== max) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} debe tener ${max} caracteres`,
+      showMessage
+    );
+  }
+
+  if (min && value.length < min) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} debe tener mínimo ${min} caracteres`,
+      showMessage
+    );
+  }
+
+  if (max && value.length > max) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} debe tener máximo ${max} caracteres`,
+      showMessage
+    );
+  }
+
+  transportIdentifyError.value = "";
+  return true;
+}
+
+function onTransportIdentificationInput(event) {
+  let value = String(event.target.value ?? "");
+
+  if (transportIdentifyOnlyNumbers.value) {
+    value = value.replace(/\D/g, "");
+  } else {
+    value = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  }
+
+  transportista.value.identificacion = value;
+  event.target.value = value;
+
+  if (transportIdentifyError.value) {
+    validateTransportIdentification(false);
+  }
+}
+
+watch(
+  () => transportista.value.tipo_identificacion,
+  () => {
+    transportista.value.identificacion = "";
+    transportIdentifyError.value = "";
+  }
+);
+
+watch(
+  () => despacho.value,
+  () => {
+    transportIdentifyError.value = "";
+  }
+);
+
+onMounted(() => {
+  typeIdentifyStore.fetchAll();
+
+});
 </script>
 <template>
   <BaseBlock v-if="currentBodega.bodega && currentBodega.bodega != ''"
@@ -145,11 +359,11 @@ const emit = defineEmits(["generarGuia"]);
         <thead>
           <tr>
 
-            <th>CTL</th>
-            <th>Descripción</th>
-            <th>UDM</th>
-            <th class="text-end">Cantidad</th>
-            <th class="text-end">Peso</th>
+            <th scope>CTL</th>
+            <th scope>Descripción</th>
+            <th scope>UDM</th>
+            <th scope class="text-end">Cantidad</th>
+            <th scope class="text-end">Peso</th>
           </tr>
         </thead>
         <tbody>
@@ -174,11 +388,11 @@ const emit = defineEmits(["generarGuia"]);
           </tr>
 
           <tr>
-            <th colspan="5">&nbsp;</th>
+            <th scope colspan="5">&nbsp;</th>
           </tr>
           <tr>
-            <th colspan="4" class="fs-sm text-end">Peso total del despacho</th>
-            <th class="fs-sm text-end">{{ formatPrice(picking.peso) }}</th>
+            <th scope colspan="4" class="fs-sm text-end">Peso total del despacho</th>
+            <th scope class="fs-sm text-end">{{ formatPrice(picking.peso) }}</th>
 
           </tr>
         </tbody>
@@ -204,7 +418,7 @@ const emit = defineEmits(["generarGuia"]);
           <tr v-if="despacho == 'Despacho en ruta'">
             <td class="text-end">Vehículo:</td>
             <td>
-              <select class="form-select" id="example-select-floating" name="example-select-floating"
+              <select class="form-select" id="example-select-floating1" name="example-select-floating1"
                 aria-label="Estado" v-model="vehiculo.vehiculo_id" @change="changeVehiculo()">
                 <option v-for="(vehiculo, index) in vehiculos" :key="index" :value="vehiculo.id">
                   {{ vehiculo.nombre }} - {{ vehiculo.placa }}
@@ -213,7 +427,7 @@ const emit = defineEmits(["generarGuia"]);
             </td>
             <td class="text-end">Transportista:</td>
             <td>
-              <select class="form-select" id="example-select-floating" name="example-select-floating"
+              <select class="form-select" id="example-select-floating2" name="example-select-floating2"
                 aria-label="Estado" v-model="transportista.transportista_id">
                 <option v-for="(transportista, index) in transportistas" :key="index" :value="transportista.id">
                   {{ transportista.nombre }} - {{ transportista.identificacion }}
@@ -229,17 +443,38 @@ const emit = defineEmits(["generarGuia"]);
               </td>
               <td class="text-end">Tipo identificacion: </td>
               <td>
-                <select class="form-select" v-model="transportista.tipo_identificacion" id="tipo_identificacion">
-                  <option value="04">RUC</option>
-                  <option value="05">Cédula</option>
-                  <option value="06">Pasaporte</option>
+                <select class="form-select" :required="despacho === 'Retiro en bodega'" :disabled="loadingIdentify"
+                  v-model="transportista.tipo_identificacion">
+                  <option value="">Seleccione...</option>
+                  <option v-for="t in listTypeIdentify" :key="t.codigo" :value="t.codigo">
+                    {{ t.nombre }}
+                  </option>
                 </select>
               </td>
             </tr>
             <tr>
               <td class="text-end"># Identificacion: </td>
               <td>
-                <input type="text" class="form-control" id="identificacion" v-model="transportista.identificacion" />
+                <div class="input-group">
+                  <input type="text" class="form-control" id="identificacion" placeholder="Identificación"
+                    v-model.trim="transportista.identificacion" :maxlength="transportIdentifyMaxAllowed"
+                    :inputmode="transportIdentifyInputMode" :class="{ 'is-invalid': transportIdentifyError }"
+                    autocomplete="off" @input="onTransportIdentificationInput"
+                    @blur="validateTransportIdentification(false)" />
+
+                  <span class="input-group-text fw-semibold" :class="transportIdentifyCounterClass"
+                    style="min-width: 58px; justify-content: center;">
+                    {{ transportIdentifyCurrentLength }}/{{ transportIdentifyMaxAllowed }}
+                  </span>
+
+                  <div v-if="transportIdentifyError" class="invalid-feedback">
+                    {{ transportIdentifyError }}
+                  </div>
+                </div>
+
+                <div v-if="!transportIdentifyError && selectedTransportTypeIdentify" class="form-text">
+                  {{ transportIdentifyLengthMessage }}
+                </div>
               </td>
               <td class="text-end">Placa de vehículo: </td>
               <td>
