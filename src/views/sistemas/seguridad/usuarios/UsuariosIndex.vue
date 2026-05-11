@@ -158,7 +158,7 @@ onMounted(() => {
         </template>
 
         <template #cell-status="{ value, row }">
-          <span :class="estadoClass(value)" style="font-size:10px">{{
+          <span :class="estadoClass(value)" style="font-size:12px">{{
             row.status === 1 ? 'Activo' : 'Inactivo'
           }}</span>
         </template>
