@@ -10,7 +10,7 @@ import BaseTable from "@/components/BaseTable.vue";
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useUserTable } from "@/composables/sistemas/seguridad/usuarios/useUserTable";
 import { useUserActions } from "@/composables/sistemas/seguridad/usuarios/useUserActions";
-import verModalSeleccionPerfiles from "@/views/sistemas/seguridad/usuarios/modals/verModalSeleccionPerfiles.vue"
+import verModalGestionUsuario from "@/views/sistemas/seguridad/usuarios/modals/verModalGestionUsuario.vue"
 
 const {
   table,
@@ -27,7 +27,21 @@ const {
   loadingStatus,
   UpdateStatus,
   loadingReset,
-  resetPasswordUser
+  resetPasswordUser,
+
+  //detalle de usuario 
+  loadingDetail,
+  detailUser,
+  getDetailUser,
+
+  //lista de perfiles web 
+  loadingProfileWeb,
+  getProfilesWeb,
+  perfilesWeb,
+  //lista de perfiles app
+  loadingProfileApp,
+  getProfilesApp,
+  perfilesApp,
 } = useUserActions();
 
 //modals 
@@ -125,16 +139,17 @@ async function resetPassword(row) {
 }
 
 
-async function openModalGestionPerfiles(){
+async function openModalGestionPerfiles() {
   await nextTick();
   modalSeleccionObj.show();
 }
 
-async function closeModal(){
+async function closeModal() {
   await nextTick();
   modalSeleccionObj.hide();
-  // fetchList(1);
 }
+
+
 
 onMounted(() => {
   fetchList(1);
@@ -272,7 +287,13 @@ onMounted(() => {
             <li>
               <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
                 @click="openAlertResetPassword(row)">
-                <i class="fa fa-key"></i> Resetear Contraseña
+                <i class="fa fa-key "></i> Resetear Contraseña
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                @click="openModalGestionPerfiles(row)">
+                <i class="fa fa-users-gear"></i> Gestionar
               </button>
             </li>
             <li>
@@ -295,15 +316,15 @@ onMounted(() => {
 
 
   <!-- modales -->
-   <div class="modal" id="modal-seleccion-perfiles" tabindex="-1" aria-labelledby="modal-seleccion-perfiles" aria-hidden="true"
-        ref="modalSeleccionRef">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content">
-                <verModalSeleccionPerfiles @closeModal="closeModal" @refresh="refresh">
-                </verModalSeleccionPerfiles>
-            </div>
-        </div>
+  <div class="modal" id="modal-seleccion-perfiles" tabindex="-1" aria-labelledby="modal-seleccion-perfiles"
+    aria-hidden="true" ref="modalSeleccionRef">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <verModalGestionUsuario @closeModal="closeModal" @refresh="refresh">
+        </verModalGestionUsuario>
+      </div>
     </div>
+  </div>
 </template>
 
 <style scoped>
