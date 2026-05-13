@@ -46,14 +46,14 @@ export function useUserActions() {
 
     const loadingDetail = ref(false);
     const apiDetailUser = 'usuario/detalle-usuario';
-    const detailUser = ref([]);
+    const detailUser = ref(null);
     async function getDetailUser(id) {
         return run(() => axiosClient.post(apiDetailUser, {
             id: id
         }), {
             loadingRef: loadingDetail,
             onSuccess: (info) => {
-                dataDetail.value = info ?? []
+                detailUser.value = info ?? null
             }
         });
     }

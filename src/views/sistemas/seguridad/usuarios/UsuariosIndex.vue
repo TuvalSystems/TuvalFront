@@ -229,9 +229,34 @@ async function changeAdminCollectionAccess(row) {
 
 
 async function openModalGestionPerfiles(row) {
+
+  const promises = [
+    getDetailUser(row.id),
+  ];
+
+  if (!perfilesWeb.value?.length) {
+    promises.push(getProfilesWeb());
+  }
+
+  if (!perfilesApp.value?.length) {
+    promises.push(getProfilesApp());
+  }
+
+  const responses = await Promise.all(promises);
+  console.log(detailUser.value);
+  
+  const errorResponse = responses.find((resp) => resp?.ok === false);
+
+  if (errorResponse) {
+    const msg = errorResponse?.message || 'No se pudo cargar la información del usuario';
+    (errorResponse?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    return;
+  }
+
+
   await nextTick();
-  const respDetail = await getDetailUser(row.id)
   modalSeleccionObj.show();
+
 }
 
 async function closeModal() {
@@ -444,9 +469,11 @@ onMounted(() => {
   <!-- modales -->
   <div class="modal" id="modal-seleccion-perfiles" tabindex="-1" aria-labelledby="modal-seleccion-perfiles"
     aria-hidden="true" ref="modalSeleccionRef">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
-        <verModalGestionUsuario @closeModal="closeModal" @refresh="refresh">
+        <verModalGestionUsuario v-if="detailUser"
+          :detail-user="detailUser" :perfiles-web="perfilesWeb" :perfiles-app="perfilesApp" @closeModal="closeModal"
+          @refresh="refresh">
         </verModalGestionUsuario>
       </div>
     </div>

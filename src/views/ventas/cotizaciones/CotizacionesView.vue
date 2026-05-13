@@ -291,9 +291,9 @@
   <!-- END Page Content -->
 
   <!-- Modal de ver cotizacion -->
-  <div class="modal" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="modal-cotizacion"
-    aria-hidden="true" ref="vercotizacionModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+  <div class="modal" id="modal-cotizacion" tabindex="-1" aria-labelledby="modal-cotizacion" aria-hidden="true"
+    ref="vercotizacionModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <VerCotizacionModal :vercotizacion="vercotizacion" :indexCotizacion="indexCotizacion" :tipo="tipo">
         </VerCotizacionModal>
@@ -302,9 +302,9 @@
   </div>
 
   <!-- Modal de levantar cliente -->
-  <div class="modal" id="modal-levantar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-levantar-cliente"
+  <div class="modal" id="modal-levantar-cliente" tabindex="-1" aria-labelledby="modal-levantar-cliente"
     aria-hidden="true" ref="levantarClienteModal">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <LevantarClienteModal :verpedido="vercotizacion" :tipo="tipo"></LevantarClienteModal>
       </div>
@@ -312,9 +312,9 @@
   </div>
 
   <!-- modal de no venta -->
-  <div class="modal" id="modal-noventa" tabindex="-1" role="dialog" aria-labelledby="modal-noventa" aria-hidden="true"
+  <div class="modal" id="modal-noventa" tabindex="-1" aria-labelledby="modal-noventa" aria-hidden="true"
     ref="verNoVentaModal">
-    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-md modal-dialog-centered">
       <div class="modal-content">
         <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta"
           @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
@@ -323,9 +323,9 @@
   </div>
 
   <!-- Modal de reserva -->
-  <div class="modal" id="modal-reserva" tabindex="-1" role="dialog" aria-labelledby="modal-reserva" aria-hidden="true"
+  <div class="modal" id="modal-reserva" tabindex="-1" aria-labelledby="modal-reserva" aria-hidden="true"
     ref="verReservaModal">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
         <VerSolicitudReservaModalComponent v-if="datosModalReserva && datosModalReserva.cotizacion_id"
           :datosReserva="datosModalReserva" @modalReservaHide="modalReservaHide()"></VerSolicitudReservaModalComponent>
