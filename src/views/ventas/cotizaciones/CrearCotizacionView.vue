@@ -244,6 +244,7 @@ async function searchFilterClientes() {
     errorSearchClient.value = true
     return false;
   }
+  dataSearch.tipo ='proceso';
   const resp = await searchClients();
 
   if (!resp?.ok) {
