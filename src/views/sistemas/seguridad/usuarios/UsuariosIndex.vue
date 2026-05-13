@@ -20,7 +20,8 @@ const {
   fetchList,
   onSort,
   refresh,
-  estadoClass
+  estadoClass,
+  booleanBadgeClass
 } = useUserTable();
 
 const {
@@ -42,6 +43,16 @@ const {
   loadingProfileApp,
   getProfilesApp,
   perfilesApp,
+  //funciones helpers 
+  hasMobileAppAccess,
+  hasAdminCollectionAccess,
+  //access app movil
+  loadingMobileAppAccess,
+  updateMobileAppAccess,
+
+  //acceso admin cobros
+  loadingAdminCollectionAccess,
+  updateAdminCollectionAccess
 } = useUserActions();
 
 //modals 
@@ -139,8 +150,87 @@ async function resetPassword(row) {
 }
 
 
-async function openModalGestionPerfiles() {
+
+async function openAlertMobileAppAccess(row) {
+  const username = row?.USERNAME ?? 'este usuario';
+  const hasAccess = hasMobileAppAccess(row);
+
+  const result = await toast.fire({
+    title: "¿Estás seguro?",
+    text: hasAccess
+      ? `Se quitará el acceso a la App móvil para ${username}.`
+      : `Se dará acceso a la App móvil para ${username}.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: hasAccess ? "btn btn-danger m-1" : "btn btn-success m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: hasAccess ? "Sí, quitar acceso" : "Sí, dar acceso",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+  });
+
+  if (!result.isConfirmed) return;
+
+  await changeMobileAppAccess(row);
+}
+
+async function changeMobileAppAccess(row) {
+  const resp = await updateMobileAppAccess(row.id);
+
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+
+  const msg = resp?.message || "No se pudo actualizar el acceso a la App móvil";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+async function openAlertAdminCollectionAccess(row) {
+  const username = row?.USERNAME ?? 'este usuario';
+  const hasAccess = hasAdminCollectionAccess(row);
+
+  const result = await toast.fire({
+    title: "¿Estás seguro?",
+    text: hasAccess
+      ? `Se quitará el acceso completo de Admin Cobros para ${username}.`
+      : `Se dará acceso completo de Admin Cobros para ${username}.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: hasAccess ? "btn btn-danger m-1" : "btn btn-success m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: hasAccess ? "Sí, quitar acceso" : "Sí, dar acceso",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+  });
+
+  if (!result.isConfirmed) return;
+
+  await changeAdminCollectionAccess(row);
+}
+
+async function changeAdminCollectionAccess(row) {
+  const resp = await updateAdminCollectionAccess(row.id);
+
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+
+  const msg = resp?.message || "No se pudo actualizar el acceso de Admin Cobros";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+
+async function openModalGestionPerfiles(row) {
   await nextTick();
+  const respDetail = await getDetailUser(row.id)
   modalSeleccionObj.show();
 }
 
@@ -242,11 +332,24 @@ onMounted(() => {
             Sin perfil app
           </span>
         </template>
+        <template #cell-is_admin_cobros="{ value }">
+          <span :class="booleanBadgeClass(value)" style="font-size:12px">
+            <i class="fa me-1" :class="value ? 'fa-cash-register' : 'fa-ban'"></i>
+            {{ value ? 'Sí' : 'No' }}
+          </span>
+        </template>
 
-        <template #cell-status="{ value, row }">
-          <span :class="estadoClass(value)" style="font-size:12px">{{
-            row.status === 1 ? 'Activo' : 'Inactivo'
-          }}</span>
+        <template #cell-app_access="{ value }">
+          <span :class="booleanBadgeClass(value)" style="font-size:12px">
+            <i class="fa me-1" :class="value ? 'fa-mobile-screen-button' : 'fa-mobile-screen'"></i>
+            {{ value ? 'Sí' : 'No' }}
+          </span>
+        </template>
+
+        <template #cell-status="{ value }">
+          <span :class="booleanBadgeClass(value)" style="font-size:12px">
+            {{ value ? 'Activo' : 'Inactivo' }}
+          </span>
         </template>
 
         <!-- Slot de vacío -->
@@ -280,7 +383,7 @@ onMounted(() => {
                   ? 'fa-toggle-off text-warning'
                   : 'fa-toggle-on text-success'"></i>
                 <span>
-                  {{ Number(row.status) === 1 ? 'Desactivar' : 'Activar' }}
+                  {{ Boolean(row.status) === true ? 'Desactivar' : 'Activar' }}
                 </span>
               </button>
             </li>
@@ -294,6 +397,29 @@ onMounted(() => {
               <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
                 @click="openModalGestionPerfiles(row)">
                 <i class="fa fa-users-gear"></i> Gestionar
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                :disabled="loadingMobileAppAccess" @click="openAlertMobileAppAccess(row)">
+                <i class="fa fa-fw" :class="hasMobileAppAccess(row)
+                  ? 'fa-mobile-screen-button text-success'
+                  : 'fa-mobile-screen-button text-muted'"></i>
+                <span>
+                  {{ hasMobileAppAccess(row) ? 'Quitar acceso App móvil' : 'Dar acceso App móvil' }}
+                </span>
+              </button>
+            </li>
+
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                :disabled="loadingAdminCollectionAccess" @click="openAlertAdminCollectionAccess(row)">
+                <i class="fa fa-fw" :class="hasAdminCollectionAccess(row)
+                  ? 'fa-cash-register text-success'
+                  : 'fa-cash-register text-muted'"></i>
+                <span>
+                  {{ hasAdminCollectionAccess(row) ? 'Quitar Admin Cobros' : 'Dar Admin Cobros' }}
+                </span>
               </button>
             </li>
             <li>

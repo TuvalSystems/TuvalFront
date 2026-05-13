@@ -32,14 +32,20 @@ export function useUserTable() {
     ]);
 
     const estadoClass = (st) => {
-        switch (Number(st)) {
-            case 1:
+        switch (Boolean(st)) {
+            case true:
                 return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
-            case 0:
+            case false:
                 return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
             default:
                 return "badge rounded-pill bg-secondary-subtle text-secondary border fw-semibold px-3 py-2";
         }
+    };
+
+    const booleanBadgeClass = (value) => {
+        return Boolean(value)
+        ? "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2"
+        : "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
     };
 
 
@@ -48,6 +54,8 @@ export function useUserTable() {
         { label: "Usuario", key: "USERID", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "Perfil Web", key: "perfil_name", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold", width: "180px" },
         { label: "Perfil App", key: "perfil_app_name", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Admin Cobros", key: "is_admin_cobros", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
+        { label: "Acceso App", key: "app_access", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
         { label: "estado", key: "status", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
         { label: "F. creación", key: "created_at", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "170px" },
     ]);
@@ -115,6 +123,7 @@ export function useUserTable() {
         fetchList,
         onSort,
         refresh,
-        estadoClass
+        estadoClass,
+        booleanBadgeClass
     }
 }

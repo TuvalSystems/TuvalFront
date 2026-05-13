@@ -7,6 +7,16 @@ import {
 } from "@/composables/core/useApiAction";
 
 
+ function hasMobileAppAccess(row){
+        return Number(
+            row?.app_access ?? 0
+        ) === 1;
+    }
+
+     function hasAdminCollectionAccess(row){
+        return Number( row?.is_admin_cobros ?? 0  ) === 1;
+    }
+
 export function useUserActions() {
     const {
         run
@@ -35,7 +45,7 @@ export function useUserActions() {
 
 
     const loadingDetail = ref(false);
-    const apiDetailUser = 'usuarios/detalle-usuario';
+    const apiDetailUser = 'usuario/detalle-usuario';
     const detailUser = ref([]);
     async function getDetailUser(id) {
         return run(() => axiosClient.post(apiDetailUser, {
@@ -50,7 +60,7 @@ export function useUserActions() {
 
 
     const loadingProfileWeb = ref(false);
-    const apiProfileWeb = 'usuarios/perfiles-web'
+    const apiProfileWeb = 'usuario/perfiles-web'
     const perfilesWeb = ref([]);
     async function getProfilesWeb() {
         return run(() => axiosClient.post(apiProfileWeb), {
@@ -63,7 +73,7 @@ export function useUserActions() {
 
 
     const loadingProfileApp = ref(false);
-    const apiProfileApp = 'usuarios/perfiles-app'
+    const apiProfileApp = 'usuario/perfiles-app'
     const perfilesApp = ref([]);
     async function getProfilesApp() {
         return run(() => axiosClient.post(apiProfileApp), {
@@ -73,6 +83,26 @@ export function useUserActions() {
             }
         })
     }
+
+
+    
+
+    const loadingMobileAppAccess = ref(false);
+    const apiMobileAppAccess = 'usuario/acceso-app-movil';
+    async function updateMobileAppAccess(id){
+        return run(() => axiosClient.post(apiMobileAppAccess, { id : id}), {
+            loadingRef : loadingMobileAppAccess
+        });
+    }
+
+
+    const loadingAdminCollectionAccess = ref(false);
+    const apiAdminCollectionAccess = 'usuario/acceso-admin-cobros';
+    async function updateAdminCollectionAccess(id){
+        return run(() => axiosClient.post(apiAdminCollectionAccess, { id : id}), {
+            loadingRef : loadingAdminCollectionAccess
+        });
+    } 
 
 
 
@@ -95,5 +125,17 @@ export function useUserActions() {
         loadingProfileApp,
         getProfilesApp,
         perfilesApp,
+
+        //funciones helpers 
+        hasMobileAppAccess,
+        hasAdminCollectionAccess,
+        //access app movil
+        loadingMobileAppAccess,
+        updateMobileAppAccess,
+
+        //acceso admin cobros
+        loadingAdminCollectionAccess,
+        updateAdminCollectionAccess
+
     }
 }
