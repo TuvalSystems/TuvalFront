@@ -50,7 +50,7 @@
             Imagenes Operaciones
           </button>
         </li>
-         <li v-if="documentosPdf && documentosPdf.length" class="nav-item">
+        <li v-if="documentosPdf && documentosPdf.length" class="nav-item">
           <button type="button" class="nav-link" :class="{ 'active': tabActual === 'documentos_pdf' }"
             @click="tabActual = 'documentos_pdf'">
             Documento(s)
@@ -63,23 +63,22 @@
           <CabeceraPedido :verpedido="verpedido" :segmento="segmentocliente"></CabeceraPedido>
           <div class="table-responsive">
             <div v-if="detallepedido.loading" class="text-center">
-              <div class="spinner-border text-primary mt-2"><span
-                  class="visually-hidden">Loading...</span></div>
+              <div class="spinner-border text-primary mt-2"><span class="visually-hidden">Loading...</span></div>
             </div>
             <table v-if="detallepedido.data.length && !detallepedido.loading"
               class="table table-hover table-sm table-vcenter mt-2">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Código</th>
-                  <th>Descripción</th>
-                  <th>CTL</th>
-                  <th>UDM</th>
-                  <th class="text-end">Cantidad</th>
-                  <th class="text-end">Precio</th>
-                  <th class="text-end">%Mod.</th>
-                  <th class="text-end">Descuento</th>
-                  <th class="text-end">Total</th>
+                  <th scope>#</th>
+                  <th scope>Código</th>
+                  <th scope>Descripción</th>
+                  <th scope>CTL</th>
+                  <th scope>UDM</th>
+                  <th scope class="text-end">Cantidad</th>
+                  <th scope class="text-end">Precio</th>
+                  <th scope class="text-end">%Mod.</th>
+                  <th scope class="text-end">Descuento</th>
+                  <th scope class="text-end">Total</th>
 
                 </tr>
               </thead>
@@ -157,24 +156,24 @@
                   </tr>
                 </template>
                 <tr>
-                  <th colspan="9" class="fs-sm text-end">Subtotal</th>
-                  <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotal)) }}</th>
+                  <th scope colspan="9" class="fs-sm text-end">Subtotal</th>
+                  <th scope class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotal)) }}</th>
                 </tr>
                 <tr>
-                  <th colspan="9" class="fs-sm text-end">Descuento</th>
-                  <th class="fs-sm text-end">${{ format(parseFloat(verpedido.descuento)) }}</th>
+                  <th scope colspan="9" class="fs-sm text-end">Descuento</th>
+                  <th scope class="fs-sm text-end">${{ format(parseFloat(verpedido.descuento)) }}</th>
                 </tr>
                 <tr>
-                  <th colspan="9" class="fs-sm text-end">Subtotal - descuento</th>
-                  <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotalmenosdescuento)) }}</th>
+                  <th scope colspan="9" class="fs-sm text-end">Subtotal - descuento</th>
+                  <th scope class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotalmenosdescuento)) }}</th>
                 </tr>
                 <tr>
-                  <th colspan="9" class="fs-sm text-end">IVA</th>
-                  <th class="fs-sm text-end">${{ format(parseFloat(verpedido.iva)) }}</th>
+                  <th scope colspan="9" class="fs-sm text-end">IVA</th>
+                  <th scope class="fs-sm text-end">${{ format(parseFloat(verpedido.iva)) }}</th>
                 </tr>
                 <tr>
-                  <th colspan="9" class="fs-sm text-end">Total</th>
-                  <th class="fs-sm text-end">${{ format(parseFloat(verpedido.total)) }}</th>
+                  <th scope colspan="9" class="fs-sm text-end">Total</th>
+                  <th scope class="fs-sm text-end">${{ format(parseFloat(verpedido.total)) }}</th>
                 </tr>
               </tbody>
             </table>
@@ -198,7 +197,7 @@
         <div v-if="devoluciones.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'devoluciones' }">
           <Devoluciones></Devoluciones>
         </div>
-         <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade p-3"
+        <div v-if="imagenesOperaciones && imagenesOperaciones.length" class="tab-pane fade p-3"
           :class="{ 'active show d-flex flex-wrap gap-2': tabActual === 'imagenes_operaciones' }">
 
           <div v-for="(img, index) in imagenesOperaciones" :key="img.id"
@@ -210,7 +209,8 @@
           </div>
 
         </div>
-        <div v-if="documentosPdf && documentosPdf.length" class="tab-pane fade" :class="{ 'active show': tabActual === 'documentos_pdf' }">
+        <div v-if="documentosPdf && documentosPdf.length" class="tab-pane fade"
+          :class="{ 'active show': tabActual === 'documentos_pdf' }">
           <DocumentosPdf v-if="documentosPdf" :documentos="documentosPdf"></DocumentosPdf>
         </div>
       </div>
@@ -273,9 +273,9 @@
   <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { ref, reactive, computed, onMounted,  onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import {  swalInfo, toast } from "@/functions/swal-alert.js";
 import { formatPrice, format, format4 } from "@/functions";
 import ReciboDeCompraL from "./tabs/ReciboDeCompraL.vue"
 import Traslados from "./tabs/Traslados.vue"
