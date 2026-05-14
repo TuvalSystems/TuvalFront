@@ -1,21 +1,18 @@
 import axiosClient from "@/axios";
-import {
-    ref
-} from "vue";
-import {
-    useApiAction
-} from "@/composables/core/useApiAction";
+import { ref, reactive } from "vue";
+import { useApiAction } from "@/composables/core/useApiAction";
 
 
- function hasMobileAppAccess(row){
-        return Number(
-            row?.app_access ?? 0
-        ) === 1;
-    }
 
-     function hasAdminCollectionAccess(row){
-        return Number( row?.is_admin_cobros ?? 0  ) === 1;
-    }
+function hasMobileAppAccess(row) {
+    return Number(
+        row?.app_access ?? 0
+    ) === 1;
+}
+
+function hasAdminCollectionAccess(row) {
+    return Number(row?.is_admin_cobros ?? 0) === 1;
+}
 
 export function useUserActions() {
     const {
@@ -85,24 +82,42 @@ export function useUserActions() {
     }
 
 
-    
+
 
     const loadingMobileAppAccess = ref(false);
     const apiMobileAppAccess = 'usuario/acceso-app-movil';
-    async function updateMobileAppAccess(id){
-        return run(() => axiosClient.post(apiMobileAppAccess, { id : id}), {
-            loadingRef : loadingMobileAppAccess
+    async function updateMobileAppAccess(id) {
+        return run(() => axiosClient.post(apiMobileAppAccess, { id: id }), {
+            loadingRef: loadingMobileAppAccess
         });
     }
 
 
     const loadingAdminCollectionAccess = ref(false);
     const apiAdminCollectionAccess = 'usuario/acceso-admin-cobros';
-    async function updateAdminCollectionAccess(id){
-        return run(() => axiosClient.post(apiAdminCollectionAccess, { id : id}), {
-            loadingRef : loadingAdminCollectionAccess
+    async function updateAdminCollectionAccess(id) {
+        return run(() => axiosClient.post(apiAdminCollectionAccess, { id: id }), {
+            loadingRef: loadingAdminCollectionAccess
         });
-    } 
+    }
+
+
+
+    /** proceso de guardado de gestion de usuarios  */
+    const form = reactive({
+        user_id: null,
+        perfil_id: null,
+        perfil_app_id: null,
+    });
+    const loadingUpdateProfiles = ref(false);
+    const apiChangeDetailUser = 'usuario/actualizar-perfiles';
+    async function updateProfilesUser(){
+        return run(() => axiosClient.post(apiChangeDetailUser, {form}),{
+            loadingRef : loadingUpdateProfiles,
+        });
+    }
+
+
 
 
 
@@ -135,7 +150,11 @@ export function useUserActions() {
 
         //acceso admin cobros
         loadingAdminCollectionAccess,
-        updateAdminCollectionAccess
+        updateAdminCollectionAccess,
+        //proceso de actualizacion de detalle de usuario 
+        form,
+        loadingUpdateProfiles,
+        updateProfilesUser
 
     }
 }

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "";
 // Main Pinia Store
 export const useTemplateStore = defineStore({
   id: "template",
@@ -7,9 +8,9 @@ export const useTemplateStore = defineStore({
     // App vital details
     app: {
       name: "TUVAL",
-      version: "1.0",
+      version: "1.1",
       copyright: new Date().getFullYear(),
-      imagespath: `${import.meta.env.VITE_API_BASE_URL}/images`,
+      imagespath: `${apiBaseUrl}/images`,
     },
 
     // Default layout options
@@ -41,16 +42,15 @@ export const useTemplateStore = defineStore({
       pageLoader: false,
       rtlSupport: false,
       sideTransitions: true,
-      mainContent: "", // 'boxed', ''narrow'
+      mainContent: "", // 'boxed', 'narrow'
     },
   }),
   actions: {
-    // Sets the layout, useful for setting different layouts (under layouts/variations/)
-    setLayout(payload) {
-      this.layout.header = payload.header;
-      this.layout.sidebar = payload.sidebar;
-      this.layout.sideOverlay = payload.sideOverlay;
-      this.layout.footer = payload.footer;
+    setLayout(payload = {}) {
+      this.layout = {
+        ...this.layout,
+        ...payload,
+      };
     },
     // Sets sidebar visibility (open, close, toggle)
     sidebar(payload) {

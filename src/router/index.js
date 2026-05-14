@@ -1,11 +1,9 @@
 import {
   createRouter,
   createWebHistory,
-  createWebHashHistory,
   RouterView,
 } from "vue-router";
 
-import NProgress from "nprogress/nprogress.js";
 
 // Main layout variations
 import LayoutBackend from "@/layouts/variations/Backend.vue";
@@ -95,8 +93,6 @@ const recibirDevolucionesIndex = () => import("@/views/bodegas/devoluciones/Reci
 
 
 
-import Login from "../views/Login.vue";
-import AuthLayout from "../components/AuthLayout.vue";
 import store from "../store";
 import Maintenance from '@/views/errors/Page503.vue';
 const routes = [
@@ -570,7 +566,7 @@ const routes = [
       {
         path: "clientes-sucursales",
         name: "gestion-operativa-clientes-sucursales",
-        component: () => import("@/views/gestion-operativa/clientes/ClienteSucursalesIndex.vue"),
+         component: () => import("@/views/gestion-operativa/clientes/ClienteSucursalesIndex.vue"),
         meta: {
           title: "Direcciones de Clientes",
         },
@@ -584,7 +580,7 @@ const routes = [
     path: "/auth",
     redirect: "/login",
     name: "Auth",
-    component: AuthLayout,
+     component: () => import("@/components/AuthLayout.vue"),
     meta: {
       isGuest: true,
       title: "Login",
@@ -593,7 +589,7 @@ const routes = [
       {
         path: "/login",
         name: "Login",
-        component: Login,
+       component: () =>   import("@/views/auth/Login.vue"),
       },
     ],
   },
