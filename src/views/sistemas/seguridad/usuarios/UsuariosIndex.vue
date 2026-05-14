@@ -243,7 +243,6 @@ async function openModalGestionPerfiles(row) {
   }
 
   const responses = await Promise.all(promises);
-  console.log(detailUser.value);
   
   const errorResponse = responses.find((resp) => resp?.ok === false);
 
