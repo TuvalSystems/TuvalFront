@@ -58,6 +58,43 @@ function hydrateReservaForm(row) {
     });
 }
 
+  watch(
+    [
+      () => Number(reserva.tipo_reserva_id),
+      () => !!unref(datoReserva)?.has_l_items,
+      () => !!unref(datoReserva)?.has_service_items,
+    ],
+    () => {
+      const { invalid, message } = validateTypeReserveHasItemLOrService();
+      isInvalid.value = invalid;
+
+      if (invalid) {
+        reserva.tipo_reserva_id = null;
+        isInvalid.value = true;
+        swalWarning(message);
+      }
+    },
+    { immediate: true }
+  );
+
+
+    watch(
+      [
+        () => Number(reserva.tipo_reserva_id)
+      ],
+      () => {
+        const { invalid, message } = validateHasDuplicateItems();
+        isInvalid.value = invalid;
+  
+        if (invalid) {
+          reserva.tipo_reserva_id = null;
+          isInvalid.value = true;
+          swalWarning(message);
+        }
+      },
+      { immediate: true }
+    );
+
 watch(
     () => datosReserva,
     (row) => {

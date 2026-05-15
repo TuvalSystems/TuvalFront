@@ -83,24 +83,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
     };
   }
 
-  watch(
-    [
-      () => Number(reserva.tipo_reserva_id),
-      () => !!unref(datoReserva)?.has_l_items,
-      () => !!unref(datoReserva)?.has_service_items,
-    ],
-    () => {
-      const { invalid, message } = validateTypeReserveHasItemLOrService();
-      isInvalid.value = invalid;
-
-      if (invalid) {
-        reserva.tipo_reserva_id = null;
-        isInvalid.value = true;
-        swalWarning(message);
-      }
-    },
-    { immediate: true }
-  );
+ 
 
   function validateHasDuplicateItems() {
     const dataCot = unref(datoReserva) ?? {};
@@ -114,22 +97,6 @@ export function useQuotationReserveRequestSale(datoReserva) {
     }
   }
 
-  watch(
-    [
-      () => Number(reserva.tipo_reserva_id)
-    ],
-    () => {
-      const { invalid, message } = validateHasDuplicateItems();
-      isInvalid.value = invalid;
-
-      if (invalid) {
-        reserva.tipo_reserva_id = null;
-        isInvalid.value = true;
-        swalWarning(message);
-      }
-    },
-    { immediate: true }
-  );
 
 
   async function solicitarReserva() {
@@ -213,6 +180,8 @@ export function useQuotationReserveRequestSale(datoReserva) {
     resetForm,
 
     // verificacion de stock
+    validateTypeReserveHasItemLOrService,
+    validateHasDuplicateItems,
     verifyStockBeforeRequestReserve,
     loadingStockValidation,
   };
