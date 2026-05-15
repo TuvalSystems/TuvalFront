@@ -9,7 +9,6 @@ export function useQuotationReserveRequestSale(datoReserva) {
   const ptoStore = usePuntosVentaReservaLimits();
   const reservedValidation = ref(false);
   const isInvalid = ref(false);
-  // const isInvalidType = ref(false);
   const { run } = useApiAction();
 
   const reserva = reactive({

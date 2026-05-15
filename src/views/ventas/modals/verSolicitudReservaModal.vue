@@ -1,5 +1,5 @@
 <script setup>
-import { watch, reactive, toRefs } from 'vue';
+import { watch, reactive, toRefs, unref } from 'vue';
 import { formatPrice, formatPrice4 } from "@/functions";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -18,7 +18,8 @@ const props = defineProps({
 const { datosReserva } = toRefs(props);
 const tipoReservasStore = useTipoReservasStore();
 const { tipoReservas } = storeToRefs(tipoReservasStore);
-const { reserva, solicitarReserva, isInvalid, resetForm, isInvalidType } = useQuotationReserveRequestSale(datosReserva);
+const { reserva, solicitarReserva, isInvalid, resetForm, validateTypeReserveHasItemLOrService,
+    validateHasDuplicateItems, } = useQuotationReserveRequestSale(datosReserva);
 
 const flatPickrState = reactive({
     fecha: {
@@ -58,42 +59,42 @@ function hydrateReservaForm(row) {
     });
 }
 
-  watch(
+watch(
     [
-      () => Number(reserva.tipo_reserva_id),
-      () => !!unref(datoReserva)?.has_l_items,
-      () => !!unref(datoReserva)?.has_service_items,
+        () => Number(reserva.tipo_reserva_id),
+        () => !!unref(datosReserva)?.has_l_items,
+        () => !!unref(datosReserva)?.has_service_items,
     ],
     () => {
-      const { invalid, message } = validateTypeReserveHasItemLOrService();
-      isInvalid.value = invalid;
+        const { invalid, message } = validateTypeReserveHasItemLOrService();
+        isInvalid.value = invalid;
 
-      if (invalid) {
-        reserva.tipo_reserva_id = null;
-        isInvalid.value = true;
-        swalWarning(message);
-      }
+        if (invalid) {
+            reserva.tipo_reserva_id = null;
+            isInvalid.value = true;
+            swalWarning(message);
+        }
     },
     { immediate: true }
-  );
+);
 
 
-    watch(
-      [
+watch(
+    [
         () => Number(reserva.tipo_reserva_id)
-      ],
-      () => {
+    ],
+    () => {
         const { invalid, message } = validateHasDuplicateItems();
         isInvalid.value = invalid;
-  
+
         if (invalid) {
-          reserva.tipo_reserva_id = null;
-          isInvalid.value = true;
-          swalWarning(message);
+            reserva.tipo_reserva_id = null;
+            isInvalid.value = true;
+            swalWarning(message);
         }
-      },
-      { immediate: true }
-    );
+    },
+    { immediate: true }
+);
 
 watch(
     () => datosReserva,
@@ -195,7 +196,7 @@ watch(
                                     placeholder="Agrega una observación..."></textarea>
                             </div>
                             <div class="text-end text-muted fs-xs">{{ (reserva.obs_solicitud_reserva || '').length
-                            }}/400
+                                }}/400
                             </div>
                         </div>
                     </BaseBlock>
@@ -209,8 +210,7 @@ watch(
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cancelar</button>
             <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir" :disabled="isInvalid">
-                <span v-if="isInvalid" class="spinner-border spinner-border-sm me-2" 
-                    aria-hidden="true"></span>
+                <span v-if="isInvalid" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
                 Solicitar
             </button>
         </div>
