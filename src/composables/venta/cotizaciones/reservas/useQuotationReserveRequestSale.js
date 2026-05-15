@@ -105,7 +105,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
     if (reserva.tipo_reserva_id === null) {
       return returnErrorMessage("Seleccione un tipo de reserva");
     }
-    if (reserva.tipo_reserva_id === 1) {
+    if (Number(reserva.tipo_reserva_id) === 1) {
       if (reserva.tipo_traslado_reserva_id === null) {
         return returnErrorMessage("Seleccione un tipo de traslado");
 
@@ -119,7 +119,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
       return returnErrorMessage("Ingrese una observación");
 
     }
-    if (reserva.tipo_reserva_id === 2) {
+    if (Number(reserva.tipo_reserva_id) === 2) {
       reserva.tipo_traslado_reserva_id = null;
     }
 

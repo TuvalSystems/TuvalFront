@@ -44,60 +44,57 @@ async function guardarYEmitir() {
 }
 
 function hydrateReservaForm(row) {
-
     if (!row) {
         resetForm();
         return;
     }
-    const fecha = row.value.fe_solicitud_reserva ?? null;
+
+    const fecha = row.fe_solicitud_reserva ?? null;
+
     Object.assign(reserva, {
-        cotizacion_id: row.value.cotizacion_id ?? null,
-        tipo_reserva_id: row.value.tipo_reserva_id ?? null,
-        tipo_traslado_reserva_id: row.value.tipo_traslado_reserva_id ?? null,
-        fe_solicitud_reserva: fecha ?? null,
-        obs_solicitud_reserva: row.value.obs_solicitud_reserva ?? null,
+        cotizacion_id: row.cotizacion_id ?? null,
+        tipo_reserva_id: row.tipo_reserva_id ? Number(row.tipo_reserva_id) : null,
+        tipo_traslado_reserva_id: row.tipo_traslado_reserva_id ? Number(row.tipo_traslado_reserva_id) : null,
+        fe_solicitud_reserva: fecha,
+        obs_solicitud_reserva: row.obs_solicitud_reserva ?? null,
     });
 }
-
 watch(
     [
-        () => Number(reserva.tipo_reserva_id),
+        () => reserva.tipo_reserva_id,
         () => !!unref(datosReserva)?.has_l_items,
         () => !!unref(datosReserva)?.has_service_items,
+        () => !!unref(datosReserva)?.has_duplicate_items,
     ],
-    () => {
-        const { invalid, message } = validateTypeReserveHasItemLOrService();
-        isInvalid.value = invalid;
-
-        if (invalid) {
-            reserva.tipo_reserva_id = null;
-            isInvalid.value = true;
-            swalWarning(message);
+    async () => {
+        if (!reserva.tipo_reserva_id) {
+            isInvalid.value = false;
+            return;
         }
-    },
-    { immediate: true }
-);
 
+        const validations = [
+            validateTypeReserveHasItemLOrService(),
+            validateHasDuplicateItems(),
+        ];
 
-watch(
-    [
-        () => Number(reserva.tipo_reserva_id)
-    ],
-    () => {
-        const { invalid, message } = validateHasDuplicateItems();
-        isInvalid.value = invalid;
+        const error = validations.find((item) => item.invalid);
 
-        if (invalid) {
-            reserva.tipo_reserva_id = null;
-            isInvalid.value = true;
-            swalWarning(message);
+        if (!error) {
+            isInvalid.value = false;
+            return;
         }
+
+        reserva.tipo_reserva_id = null;
+        reserva.tipo_traslado_reserva_id = null;
+        isInvalid.value = true;
+
+        await swalWarning(error.message);
     },
-    { immediate: true }
+    { immediate: false }
 );
 
 watch(
-    () => datosReserva,
+    datosReserva,
     (row) => {
         hydrateReservaForm(row);
     },
@@ -161,9 +158,9 @@ watch(
                                 <div v-if="tipoReservasStore.loading"> Cargando motivos...</div>
                                 <select v-else id="tipoReserva" class="form-select form-select-sm"
                                     v-model="reserva.tipo_reserva_id">
-                                    <option disabled value="">Seleccione…</option>
+                                    <option disabled :value="null">Seleccione…</option>
                                     <option v-for="(tipo, index) in tipoReservasStore.tipoReservas" :key="index"
-                                        :value="tipo.id">
+                                        :value="Number(tipo.id)">
                                         {{ tipo.descripcion }}
                                     </option>
                                 </select>
@@ -173,8 +170,8 @@ watch(
                                 <label for="traslado" class="form-label text-muted fs-sm">Traslado</label>
                                 <select id="traslado" class="form-select form-select-sm"
                                     v-model="reserva.tipo_traslado_reserva_id" aria-describedby="trasladoHelp">
-                                    <option disabled value="">Seleccione…</option>
-                                    <option v-for="(tipo, index) in traslado" :key="index" :value="tipo.id">
+                                    <option disabled :value="null">Seleccione…</option>
+                                    <option v-for="(tipo, index) in traslado" :key="index" :value="Number(tipo.id)">
                                         {{ tipo.nombre }}
                                     </option>
                                 </select>
