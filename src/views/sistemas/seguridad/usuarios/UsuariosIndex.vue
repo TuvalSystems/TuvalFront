@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 import {
   swalSuccess,
   swalError,
@@ -7,7 +7,10 @@ import {
   toast
 } from "@/functions/swal-alert.js";
 import BaseTable from "@/components/BaseTable.vue";
+import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useUserTable } from "@/composables/sistemas/seguridad/usuarios/useUserTable";
+import { useUserActions } from "@/composables/sistemas/seguridad/usuarios/useUserActions";
+import verModalGestionUsuario from "@/views/sistemas/seguridad/usuarios/modals/verModalGestionUsuario.vue"
 
 const {
   table,
@@ -17,8 +20,44 @@ const {
   fetchList,
   onSort,
   refresh,
-  estadoClass
+  estadoClass,
+  booleanBadgeClass
 } = useUserTable();
+
+const {
+  loadingStatus,
+  UpdateStatus,
+  loadingReset,
+  resetPasswordUser,
+
+  //detalle de usuario 
+  loadingDetail,
+  detailUser,
+  getDetailUser,
+
+  //lista de perfiles web 
+  loadingProfileWeb,
+  getProfilesWeb,
+  perfilesWeb,
+  //lista de perfiles app
+  loadingProfileApp,
+  getProfilesApp,
+  perfilesApp,
+  //funciones helpers 
+  hasMobileAppAccess,
+  hasAdminCollectionAccess,
+  //access app movil
+  loadingMobileAppAccess,
+  updateMobileAppAccess,
+
+  //acceso admin cobros
+  loadingAdminCollectionAccess,
+  updateAdminCollectionAccess
+} = useUserActions();
+
+//modals 
+const modalSeleccionRef = ref(null);
+const modalSeleccionObj = useBootstrapModal(modalSeleccionRef);
 
 
 const handleClick = ({ row, col }) => {
@@ -32,8 +71,6 @@ function isRowDisabled(row) {
 
 async function openAlertChangeStatus(row) {
   const isActive = Number(row.status) === 1;
-
-  const actionText = isActive ? "desactivar" : "activar";
   const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
   const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
 
@@ -61,11 +98,172 @@ async function openAlertChangeStatus(row) {
     },
   }).then((result) => {
     if (result.isConfirmed || result.value) {
-      alert(`Se va a ${actionText} el usuario`);
-      // changeStatusUser(row);
+      changeStatusUser(row);
     }
   });
 }
+
+async function changeStatusUser(row) {
+  const resp = await UpdateStatus(row.id);
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+  const msg = resp?.message || "No se pudo actualizar el estado del usuario";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+
+async function openAlertResetPassword(row) {
+  const username = row?.USERNAME ?? 'este usuario';
+
+  const result = await toast.fire({
+    title: "¿Estás seguro?",
+    text: `Si reseteas la contraseña de ${username}, obligatoriamente tendrá que cambiarla al iniciar sesión.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: "btn btn-danger m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: "Sí, resetearla",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+  });
+  if (!result.isConfirmed) return;
+  if (result.isConfirmed) {
+    await resetPassword(row);
+  }
+}
+
+
+async function resetPassword(row) {
+  const resp = await resetPasswordUser(row.id);
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+  const msg = resp?.message || "No se pudo actualizar el estado del usuario";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+
+
+async function openAlertMobileAppAccess(row) {
+  const username = row?.USERNAME ?? 'este usuario';
+  const hasAccess = hasMobileAppAccess(row);
+
+  const result = await toast.fire({
+    title: "¿Estás seguro?",
+    text: hasAccess
+      ? `Se quitará el acceso a la App móvil para ${username}.`
+      : `Se dará acceso a la App móvil para ${username}.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: hasAccess ? "btn btn-danger m-1" : "btn btn-success m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: hasAccess ? "Sí, quitar acceso" : "Sí, dar acceso",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+  });
+
+  if (!result.isConfirmed) return;
+
+  await changeMobileAppAccess(row);
+}
+
+async function changeMobileAppAccess(row) {
+  const resp = await updateMobileAppAccess(row.id);
+
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+
+  const msg = resp?.message || "No se pudo actualizar el acceso a la App móvil";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+async function openAlertAdminCollectionAccess(row) {
+  const username = row?.USERNAME ?? 'este usuario';
+  const hasAccess = hasAdminCollectionAccess(row);
+
+  const result = await toast.fire({
+    title: "¿Estás seguro?",
+    text: hasAccess
+      ? `Se quitará el acceso completo de Admin Cobros para ${username}.`
+      : `Se dará acceso completo de Admin Cobros para ${username}.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: hasAccess ? "btn btn-danger m-1" : "btn btn-success m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: hasAccess ? "Sí, quitar acceso" : "Sí, dar acceso",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+  });
+
+  if (!result.isConfirmed) return;
+
+  await changeAdminCollectionAccess(row);
+}
+
+async function changeAdminCollectionAccess(row) {
+  const resp = await updateAdminCollectionAccess(row.id);
+
+  if (resp?.ok) {
+    swalSuccess(resp.message);
+    refresh();
+    return;
+  }
+
+  const msg = resp?.message || "No se pudo actualizar el acceso de Admin Cobros";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+
+async function openModalGestionPerfiles(row) {
+
+  const promises = [
+    getDetailUser(row.id),
+  ];
+
+  if (!perfilesWeb.value?.length) {
+    promises.push(getProfilesWeb());
+  }
+
+  if (!perfilesApp.value?.length) {
+    promises.push(getProfilesApp());
+  }
+
+  const responses = await Promise.all(promises);
+  
+  const errorResponse = responses.find((resp) => resp?.ok === false);
+
+  if (errorResponse) {
+    const msg = errorResponse?.message || 'No se pudo cargar la información del usuario';
+    (errorResponse?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    return;
+  }
+
+
+  await nextTick();
+  modalSeleccionObj.show();
+
+}
+
+async function closeModal() {
+  await nextTick();
+  modalSeleccionObj.hide();
+}
+
+
 
 onMounted(() => {
   fetchList(1);
@@ -140,13 +338,15 @@ onMounted(() => {
         </template>
 
         <template #cell-perfil_name="{ value }">
-          <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2" style="font-size:12px">
-            <i class="fa fa-user-shield me-1" ></i>
+          <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2"
+            style="font-size:12px">
+            <i class="fa fa-user-shield me-1"></i>
             {{ value || 'Sin perfil' }}
           </span>
         </template>
         <template #cell-perfil_app_name="{ value }">
-          <span v-if="value" class="badge rounded-pill bg-info-subtle text-info border border-info-subtle px-3 py-2" style="font-size:12px">
+          <span v-if="value" class="badge rounded-pill bg-info-subtle text-info border border-info-subtle px-3 py-2"
+            style="font-size:12px">
             <i class="fa fa-mobile-alt me-1"></i>
             {{ value }}
           </span>
@@ -156,11 +356,24 @@ onMounted(() => {
             Sin perfil app
           </span>
         </template>
+        <template #cell-is_admin_cobros="{ value }">
+          <span :class="booleanBadgeClass(value)" style="font-size:12px">
+            <i class="fa me-1" :class="value ? 'fa-cash-register' : 'fa-ban'"></i>
+            {{ value ? 'Sí' : 'No' }}
+          </span>
+        </template>
 
-        <template #cell-status="{ value, row }">
-          <span :class="estadoClass(value)" style="font-size:10px">{{
-            row.status === 1 ? 'Activo' : 'Inactivo'
-          }}</span>
+        <template #cell-app_access="{ value }">
+          <span :class="booleanBadgeClass(value)" style="font-size:12px">
+            <i class="fa me-1" :class="value ? 'fa-mobile-screen-button' : 'fa-mobile-screen'"></i>
+            {{ value ? 'Sí' : 'No' }}
+          </span>
+        </template>
+
+        <template #cell-status="{ value }">
+          <span :class="booleanBadgeClass(value)" style="font-size:12px">
+            {{ value ? 'Activo' : 'Inactivo' }}
+          </span>
         </template>
 
         <!-- Slot de vacío -->
@@ -188,12 +401,48 @@ onMounted(() => {
               </a>
             </li>
             <li>
-              <button class="dropdown-item d-flex align-items-center gap-2 py-2" @click="openAlertChangeStatus(row)">
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                @click="openAlertChangeStatus(row)">
                 <i class="fa fa-fw" :class="Number(row.status) === 1
                   ? 'fa-toggle-off text-warning'
                   : 'fa-toggle-on text-success'"></i>
                 <span>
-                  {{ Number(row.status) === 1 ? 'Desactivar' : 'Activar' }}
+                  {{ Boolean(row.status) === true ? 'Desactivar' : 'Activar' }}
+                </span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                @click="openAlertResetPassword(row)">
+                <i class="fa fa-key "></i> Resetear Contraseña
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                @click="openModalGestionPerfiles(row)">
+                <i class="fa fa-users-gear"></i> Gestionar
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                :disabled="loadingMobileAppAccess" @click="openAlertMobileAppAccess(row)">
+                <i class="fa fa-fw" :class="hasMobileAppAccess(row)
+                  ? 'fa-mobile-screen-button text-success'
+                  : 'fa-mobile-screen-button text-muted'"></i>
+                <span>
+                  {{ hasMobileAppAccess(row) ? 'Quitar acceso App móvil' : 'Dar acceso App móvil' }}
+                </span>
+              </button>
+            </li>
+
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                :disabled="loadingAdminCollectionAccess" @click="openAlertAdminCollectionAccess(row)">
+                <i class="fa fa-fw" :class="hasAdminCollectionAccess(row)
+                  ? 'fa-cash-register text-success'
+                  : 'fa-cash-register text-muted'"></i>
+                <span>
+                  {{ hasAdminCollectionAccess(row) ? 'Quitar Admin Cobros' : 'Dar Admin Cobros' }}
                 </span>
               </button>
             </li>
@@ -212,9 +461,21 @@ onMounted(() => {
         <!-- end slot de acciones -->
       </BaseTable>
       <!-- end table -->
-
-
     </BaseBlock>
+  </div>
+
+
+  <!-- modales -->
+  <div class="modal" id="modal-seleccion-perfiles" tabindex="-1" aria-labelledby="modal-seleccion-perfiles"
+    aria-hidden="true" ref="modalSeleccionRef">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <verModalGestionUsuario v-if="detailUser"
+          :detail-user="detailUser" :perfiles-web="perfilesWeb" :perfiles-app="perfilesApp" @closeModal="closeModal"
+          @refresh="refresh">
+        </verModalGestionUsuario>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -236,7 +497,4 @@ onMounted(() => {
 .fs-xs {
   font-size: 11px;
 }
-
-
-
 </style>

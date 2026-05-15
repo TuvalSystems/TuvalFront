@@ -33,7 +33,8 @@ export function useVersionManagementProcess() {
 
     async function deleteVersion(id) {
         return run(() => axiosClient.delete(`${apiBase}/${id}`), {
-            loadingRef: loadingDelete
+            loadingRef: loadingDelete,
+           
         })
     }
 

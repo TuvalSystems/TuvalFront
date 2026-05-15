@@ -83,25 +83,25 @@ watch(
                         <div class="block-content">
                             <div class="row g-3">
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Bodega</label>
+                                    <label for="" class="form-label text-muted fs-sm">Bodega</label>
                                     <p class="fw-semibold mb-0">{{ datosReserva.pto_venta }}</p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Cotización</label>
+                                    <label for="" class="form-label text-muted fs-sm">Cotización</label>
                                     <p class="fw-semibold mb-0">
                                         {{ datosReserva.cotizacion }}
                                     </p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Fecha</label>
+                                    <label for="" class="form-label text-muted fs-sm">Fecha</label>
                                     <p class="fw-semibold mb-0">{{ datosReserva.fecha }}</p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Cliente</label>
+                                    <label for="" class="form-label text-muted fs-sm">Cliente</label>
                                     <p class="fw-semibold mb-0 text-break">{{ datosReserva.razon_social }}</p>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label text-muted fs-sm">Total</label>
+                                    <label for="" class="form-label text-muted fs-sm">Total</label>
                                     <p class="fw-semibold mb-0">${{ formatPrice(datosReserva.total) }}</p>
                                 </div>
                             </div>
@@ -158,7 +158,7 @@ watch(
                                     placeholder="Agrega una observación..."></textarea>
                             </div>
                             <div class="text-end text-muted fs-xs">{{ (reserva.obs_solicitud_reserva || '').length
-                                }}/400
+                            }}/400
                             </div>
                         </div>
                     </BaseBlock>
@@ -171,9 +171,8 @@ watch(
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cancelar</button>
-            <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir"
-                :disabled="isInvalid">
-                <span v-if="isInvalid" class="spinner-border spinner-border-sm me-2" role="status"
+            <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir" :disabled="isInvalid">
+                <span v-if="isInvalid" class="spinner-border spinner-border-sm me-2" 
                     aria-hidden="true"></span>
                 Solicitar
             </button>

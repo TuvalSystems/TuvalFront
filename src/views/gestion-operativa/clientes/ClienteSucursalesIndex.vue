@@ -87,7 +87,7 @@ async function closeModalGestionSucursal() {
 }
 
 onMounted(async () => {
-  fetchList();
+  fetchList(1);
 });
 </script>
 

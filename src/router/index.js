@@ -1,11 +1,9 @@
 import {
   createRouter,
   createWebHistory,
-  createWebHashHistory,
   RouterView,
 } from "vue-router";
 
-import NProgress from "nprogress/nprogress.js";
 
 // Main layout variations
 import LayoutBackend from "@/layouts/variations/Backend.vue";
@@ -95,8 +93,6 @@ const recibirDevolucionesIndex = () => import("@/views/bodegas/devoluciones/Reci
 
 
 
-import Login from "../views/Login.vue";
-import AuthLayout from "../components/AuthLayout.vue";
 import store from "../store";
 import Maintenance from '@/views/errors/Page503.vue';
 const routes = [
@@ -545,16 +541,28 @@ const routes = [
         ],
       },
       {
-        path : "Seguridad",
-        name : "sistemas-seguridad",
-        component : RouterView,
+        path: "Seguridad",
+        name: "sistemas-seguridad",
+        component: RouterView,
         children: [
-            {
-              path : "usuarios",
-              name :"sistemas-seguridad-usuarios",
-              component : () => import("@/views/sistemas/seguridad/usuarios/UsuariosIndex.vue"),
-              meta : { title : "Gestión de Usuarios"}
-            }
+          {
+            path: "usuarios",
+            name: "sistemas-seguridad-usuarios",
+            component: () => import("@/views/sistemas/seguridad/usuarios/UsuariosIndex.vue"),
+            meta: { title: "Gestión de Usuarios" }
+          },
+          {
+            path: "perfiles",
+            name: "sistemas-seguridad-perfiles",
+            component: () => import("@/views/sistemas/seguridad/accesos/perfiles/PerfilesIndex.vue"),
+            meta: { title: "Gestión de Perfiles" }
+          },
+          {
+            path: "secciones",
+            name: "sistemas-seguridad-secciones",
+            component: () => import("@/views/sistemas/seguridad/accesos/secciones/SectionIndex.vue"),
+            meta: { title: "Gestión de Secciones" }
+          }
         ],
       }
 
@@ -584,7 +592,7 @@ const routes = [
     path: "/auth",
     redirect: "/login",
     name: "Auth",
-    component: AuthLayout,
+    component: () => import("@/components/AuthLayout.vue"),
     meta: {
       isGuest: true,
       title: "Login",
@@ -593,7 +601,7 @@ const routes = [
       {
         path: "/login",
         name: "Login",
-        component: Login,
+        component: () => import("@/views/auth/Login.vue"),
       },
     ],
   },

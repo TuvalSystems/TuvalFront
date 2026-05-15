@@ -5,7 +5,7 @@ import axios from '../../axios';
 import actions from '@/store'
 import useVuelidate from "@vuelidate/core";
 import { required, minLength } from "@vuelidate/validators";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, } from "@/functions/swal-alert.js";
 
 const router = useRouter();
 const form = reactive({
@@ -26,10 +26,10 @@ const v$ = useVuelidate(rules, form)
 const submit = async () => {
     loading.value = true;
     try {
-        const response = await axios.post('/change-password', form);
-        
+        const response = await axios.post('usuario/change-password', form);
+
         actions.state.must_change_password = response.data.data.must_change_password;
-        sessionStorage.setItem("MUST_CHANGE_PASSWORD", response.data.data.must_change_password );
+        sessionStorage.setItem("MUST_CHANGE_PASSWORD", response.data.data.must_change_password);
         await swalSuccess(response.data.message);
         setTimeout(() => {
             loading.value = true;
@@ -103,7 +103,7 @@ const submit = async () => {
                                     </div>
                                 </div>
                                 <div ref="cargando" class="text-center hide">
-                                    <div class="spinner-border text-primary mt-4" role="status"><span
+                                    <div class="spinner-border text-primary mt-4"><span
                                             class="visually-hidden">Loading...</span>
                                     </div>
                                 </div>

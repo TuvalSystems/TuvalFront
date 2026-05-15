@@ -373,9 +373,9 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Modal para filtro de cliente -->
-    <div class="modal" id="modal-filtrar-cliente" tabindex="-1" role="dialog" aria-labelledby="modal-filtrar-cliente"
+    <div class="modal" id="modal-filtrar-cliente" tabindex="-1"  aria-labelledby="modal-filtrar-cliente"
         aria-hidden="true" ref="filtrarClienteModal">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
             </div>
@@ -384,9 +384,9 @@ onBeforeUnmount(() => {
 
 
     <!-- Modal de reserva -->
-    <div class="modal" id="modal-cotizacion-detalle" tabindex="-1" role="dialog"
+    <div class="modal" id="modal-cotizacion-detalle" tabindex="-1" 
         aria-labelledby="modal-cotizacion-detalle" aria-hidden="true" ref="verCotizacionDetalleModal">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <VerCotizacionDetalleReservaComponent v-if="datosModalCotizacionDetalle &&
                     datosModalCotizacionSegmento" :infoReserva="datosModalCotizacionDetalle"
