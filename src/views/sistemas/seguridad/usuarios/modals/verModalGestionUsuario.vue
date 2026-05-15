@@ -38,7 +38,7 @@ watch(
     form.perfil_id = user?.perfil_id ?? null;
     form.perfil_app_id = user?.perfil_app_id ?? null;
   },
-  { immediate: true, deep: true }
+  { immediate: true }
 );
 
 const userInitial = computed(() => {
