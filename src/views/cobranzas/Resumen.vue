@@ -263,6 +263,7 @@ function collectExcessItems(data) {
       invoice: row.ret_factura ?? row.ECD_DET_NUM_DOC,
       enteredAmount: toNumber(row[field]),
       saldoFactura: toNumber(row.saldoFactura),
+      saldoBase: toNumber(row.saldoBase),
       saldoDisponible: toNumber(row.saldoDisponible),
       totalApply: toNumber(row.totalApply),
       excessValue: toNumber(row.excessValue),
@@ -347,7 +348,12 @@ function applyRecommendedAmounts() {
   const items = [...excessItems.value];
 
   items.forEach((item) => {
-    item.row[item.field] = roundMoney(item.row.priceRecommend);
+    const recommended = roundMoney(item.priceRecommend);
+
+    item.row[item.field] = recommended;
+
+    updateInvoiceBalanceAfterRecommendation(item, recommended);
+
     item.row.hasExcess = false;
     item.row.excessValue = 0;
   });
@@ -360,7 +366,19 @@ function applyRecommendedAmounts() {
   store.commit('checkPermitePedido');
 }
 
+function updateInvoiceBalanceAfterRecommendation(item, recommended) {
+  if (!item.row?.ECD_DET_NUM_DOC) {
+    return;
+  }
 
+  const saldoBase = toNumber(
+    item.row.saldoBase ?? (toNumber(item.row.saldoFactura) + toNumber(item.enteredAmount))
+  );
+
+  item.row.ECD_DET_SALDO_CLIENTE = roundMoney(
+    Math.max(saldoBase - recommended, 0)
+  );
+}
 
 function recalculatePaymentHeaders(data) {
   if (data.ingreso_efectivo?.facturas?.length) {
