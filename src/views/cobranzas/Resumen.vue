@@ -1,361 +1,14 @@
-<template>
-
-  <div class="col-md-12 m-t20"
-    v-if="cobranza.retenciones.length > 0 || cobranza.ingreso_efectivo.monto || cobranza.ingreso_tarjeta.monto || cobranza.ingreso_depositos.length > 0 || cobranza.ingreso_aplicaciones.length > 0 || cobranza.ingreso_cheques.monto_original">
-    <div class="table-responsive">
-      <table class="table table-bordered table-sm fs-sm">
-        <thead>
-          <tr class="table-active">
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>RUC</th>
-            <th>Referencia</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="width: 160px;" class="align-middle">
-              {{ date }}
-            </td>
-            <td class="align-middle">{{ currentClienteCobro.CLI_RAZON_SOCIAL }}</td>
-            <td class="align-middle">{{ currentClienteCobro.CLI_RUC }}</td>
-            <td><input type="text" class="form-control" v-model="cobranza.referencia"></td>
-          </tr>
-        </tbody>
-      </table>
-      <template v-if="cobranza.retenciones.length > 0">
-        <table class="table table-bordered table-sm fs-sm">
-          <thead>
-            <tr class="table-active">
-              <th colspan="7">Retenciones</th>
-            </tr>
-          </thead>
-        </table>
-        <div style="width: 100%; height: 200px; overflow-y: scroll;" class="m-b15">
-          <table class="table table-bordered table-sm fs-sm">
-            <tbody>
-              <template v-for="(retencion, index) in cobranza.retenciones" :key="index">
-                <tr>
-                  <th colspan="7">Comprobante de Retención: {{ retencion.ret_comprobante }} <button
-                      class="btn btn-warning btn-sm float-end" @click="confirmeliminarretencion(index, retencion)"><i
-                        class="fa fa-trash"></i></button></th>
-                </tr>
-                <tr>
-                  <th>Comprobante</th>
-                  <th>Número</th>
-                  <th>Fecha Emisión</th>
-
-                  <th>Impuesto</th>
-                  <th>% Retención</th>
-                  <th>Valor Retenido</th>
-                </tr>
-                <tr>
-                  <td>Factura</td>
-                  <td>{{ retencion.ret_factura }}</td>
-                  <td>{{ retencion.ret_emision }}</td>
-
-                  <td>IVA</td>
-                  <td class="text-end">{{ retencion.ret_porcentaje_iva }}%</td>
-                  <td class="text-end">${{ retencion.ret_iva }}</td>
-                </tr>
-                <tr>
-                  <td>Factura</td>
-                  <td>{{ retencion.ret_factura }}</td>
-                  <td>{{ retencion.ret_emision }} </td>
-
-                  <td>RENTA</td>
-                  <td class="text-end">{{ retencion.ret_porcentaje_renta }}%</td>
-                  <td class="text-end">${{ retencion.ret_renta }}</td>
-                </tr>
-                <tr v-if="retencion.ret_iva_srv">
-                  <td>Factura</td>
-                  <td>{{ retencion.ret_factura }}</td>
-                  <td>{{ retencion.ret_emision }}</td>
-
-                  <td>IVA SRV</td>
-                  <td class="text-end">{{ retencion.ret_porcentaje_iva_srv }}%</td>
-                  <td class="text-end">${{ retencion.ret_iva_srv }}</td>
-                </tr>
-                <tr v-if="retencion.ret_renta_srv">
-                  <td>Factura</td>
-                  <td>{{ retencion.ret_factura }}</td>
-                  <td>{{ retencion.ret_emision }}</td>
-
-                  <td>RENTA SRV</td>
-                  <td class="text-end">{{ retencion.ret_porcentaje_renta_srv }}%</td>
-                  <td class="text-end">${{ retencion.ret_renta_srv }}</td>
-                </tr>
-                <tr>
-                  <td colspan="2"><b>Fecha caducidad:</b> {{ retencion.ret_caducidad }}</td>
-                  <td colspan="5"><b>Número de autorización:</b> {{ retencion.ret_autorizacion }}</td>
-                </tr>
-                <tr>
-                  <td colspan="7" class="text-end"><b>Total Retenido ${{ retencion.total }}</b></td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
-      </template>
-      <template v-if="cobranza.ingreso_efectivo.monto">
-        <table class="table table-bordered table-sm fs-sm">
-          <thead>
-            <tr class="table-active">
-              <th colspan="7">Efectivo: ${{ cobranza.ingreso_efectivo.monto }} <button
-                  class="btn btn-warning btn-sm float-end" @click="confirmeliminarefectivo()"><i
-                    class="fa fa-trash"></i></button></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th style="width: 150px;">Factura</th>
-              <th style="width: 150px;">Fecha Vencimiento</th>
-              <th style="width: 110px;">Monto Original</th>
-              <th style="width: 110px;">Monto Pendiente</th>
-              <th style="width: 150px;">Monto Aplicado</th>
-              <th style="width: 150px;">Saldo</th>
-              <th>Comentario</th>
-            </tr>
-            <tr v-for="(factura, index) in cobranza.ingreso_efectivo.facturas" :key="index">
-              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
-              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
-                parseFloat(factura.aplicar_monto_efectivo)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_efectivo) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
-              <td>{{ factura.observacion_efectivo }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </template>
-      <template v-for="(deposito, index) in cobranza.ingreso_depositos" :key="index">
-        <table class="table table-bordered table-sm fs-sm">
-          <thead>
-            <tr class="table-active">
-              <th colspan="5">Despósito / Transferencia <button class="btn btn-warning btn-sm float-end"
-                  @click="confirmeliminardeposito(index)"><i class="fa fa-trash"></i></button></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th>Comprobante</th>
-              <th>Tipo</th>
-              <th>Banco</th>
-              <th>Fecha</th>
-              <th>Monto</th>
-            </tr>
-            <tr>
-              <td>{{ deposito.dep_comprobante }}</td>
-              <td>{{ deposito.tipo }}</td>
-              <td>{{ deposito.banco_nombre }}</td>
-              <td>{{ deposito.dep_fecha }}</td>
-              <td class="text-end"><b>${{ deposito.monto }}</b></td>
-            </tr>
-          </tbody>
-        </table>
-        <table class="table table-bordered table-sm fs-sm">
-          <tbody>
-            <tr>
-              <th style="width: 150px;">Factura</th>
-              <th style="width: 150px;">Fecha Vencimiento</th>
-              <th style="width: 110px;">Monto Original</th>
-              <th style="width: 110px;">Monto Pendiente</th>
-              <th style="width: 150px;">Monto Aplicado</th>
-              <th style="width: 150px;">Saldo</th>
-              <th>Comentario</th>
-            </tr>
-            <tr v-for="(factura, index) in deposito.facturas" :key="index">
-              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
-              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
-                parseFloat(factura.aplicar_monto_deposito)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_deposito) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
-              <td>{{ factura.observacion_deposito }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </template>
-      <template v-if="cobranza.ingreso_cheques.monto_original">
-        <table class="table table-bordered table-sm fs-sm" style="margin-bottom: 0px;">
-          <thead>
-            <tr class="table-active">
-              <th colspan="8">Cheques <button class="btn btn-warning btn-sm float-end"
-                  @click="confirmeliminarcheques(index)"><i class="fa fa-trash"></i></button></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th>Banco</th>
-
-              <th>#Cuenta</th>
-              <th>#Cheque</th>
-              <th>Monto</th>
-              <th>Emisión</th>
-              <th>Vencimiento</th>
-              <th>Comentario</th>
-            </tr>
-            <tr v-for="(cheque, index) in cobranza.ingreso_cheques.cheques" :key="index">
-              <td>{{ cheque.banco_nombre }}</td>
-
-              <td>{{ cheque.cuenta }}</td>
-              <td>{{ cheque.cheque }}</td>
-              <td class="text-end">${{ cheque.monto }}</td>
-              <td>{{ cheque.fecha_emision }}</td>
-              <td>{{ cheque.fecha_vencimiento }}</td>
-              <td>{{ cheque.observacion_cheque }}</td>
-            </tr>
-            <tr>
-              <th colspan="4" class="text-end">TOTAL </th>
-              <th class="text-end">${{ formatPrice(cobranza.ingreso_cheques.monto_original) }}</th>
-              <th colspan="3"></th>
-            </tr>
-          </tbody>
-        </table>
-        <table class="table table-bordered table-sm fs-sm">
-          <tbody>
-            <tr>
-              <th style="width: 150px;">Factura</th>
-              <th style="width: 150px;">Fecha Vencimiento</th>
-              <th style="width: 110px;">Monto Original</th>
-              <th style="width: 110px;">Monto Pendiente</th>
-              <th style="width: 150px;">Monto Aplicado</th>
-              <th style="width: 150px;">Saldo</th>
-              <th>Comentario</th>
-            </tr>
-            <tr v-for="(factura, index) in cobranza.ingreso_cheques.facturas" :key="index">
-              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
-              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
-                parseFloat(factura.aplicar_monto_cheque)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_cheque) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
-              <td>{{ factura.observacion_deposito }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </template>
-      <template v-if="cobranza.ingreso_tarjeta.monto">
-        <table class="table table-bordered table-sm fs-sm">
-          <thead>
-            <tr class="table-active">
-              <th colspan="2">Tarjeta: ${{ cobranza.ingreso_tarjeta.monto }} </th>
-              <th colspan="2">Emisor: {{ cobranza.ingreso_tarjeta.banco_nombre }} </th>
-              <th colspan="2">Comprobante: {{ cobranza.ingreso_tarjeta.comprobante }} </th>
-              <th><button class="btn btn-warning btn-sm float-end" @click="confirmeliminartarjeta()"><i
-                    class="fa fa-trash"></i></button></th>
-            </tr>
-            <tr>
-              <th colspan="7">Comentario: {{ cobranza.ingreso_tarjeta.comentario }} </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th style="width: 150px;">Factura</th>
-              <th style="width: 150px;">Fecha Vencimiento</th>
-              <th style="width: 110px;">Monto Original</th>
-              <th style="width: 110px;">Monto Pendiente</th>
-              <th style="width: 150px;">Monto Aplicado</th>
-              <th style="width: 150px;">Saldo</th>
-              <th>Comentario</th>
-            </tr>
-            <tr v-for="(factura, index) in cobranza.ingreso_tarjeta.facturas" :key="index">
-              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
-              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
-                parseFloat(factura.aplicar_monto_tarjeta)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_tarjeta) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
-              <td>{{ factura.observacion_efectivo }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </template>
-      <template v-for="(aplicacion, index) in cobranza.ingreso_aplicaciones" :key="index">
-        <table class="table table-bordered table-sm fs-sm">
-          <thead>
-            <tr class="table-active">
-              <th colspan="6">Aplicacion de saldos <button class="btn btn-warning btn-sm float-end"
-                  @click="confirmeliminaraplicacion(index)"><i class="fa fa-trash"></i></button></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th>Documento</th>
-              <th class="text-end">Monto original</th>
-              <th class="text-end">Saldo</th>
-              <th>Fecha</th>
-              <th class="text-end">Monto aplicado</th>
-              <th>Comentario</th>
-            </tr>
-            <tr>
-              <td>{{ aplicacion.detalle.CN_DOCUMENTO }}</td>
-              <td class="text-end">${{ aplicacion.detalle.CN_MONTO_ORIGINAL }}</td>
-              <td class="text-end">${{ aplicacion.detalle.CN_SALDO_PENDIENTE }}</td>
-              <td>{{ aplicacion.detalle.CN_FECHA_EMISION.date.substr(0, 10) }}</td>
-              <td class="text-end"><b>${{ aplicacion.monto_aplicado }}</b></td>
-              <td>{{ aplicacion.comentario }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <table class="table table-bordered table-sm fs-sm">
-          <tbody>
-            <tr>
-              <th style="width: 150px;">Factura</th>
-              <th style="width: 150px;">Fecha Vencimiento</th>
-              <th style="width: 110px;">Monto Original</th>
-              <th style="width: 110px;">Monto Pendiente</th>
-              <th style="width: 150px;">Monto Aplicado</th>
-              <th style="width: 150px;">Saldo</th>
-              <th>Comentario</th>
-            </tr>
-            <tr v-for="(factura, index) in aplicacion.facturas" :key="index">
-              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
-              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
-                parseFloat(factura.aplicar_monto_aplicacion)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_aplicacion) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
-              <td>{{ factura.observacion_aplicacion }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-
-
-      </template>
-
-    </div>
-    <div class="row hide" v-if="permite_pedido">
-      <label class="col-sm-9 col-form-label text-end" for="pago_a_padido">Pago a pedido:</label>
-      <div class="col-sm-3">
-        <div class="input-group">
-          <select id="pago_a_padido" name="pago_a_padido" class="form-select fs-sm" v-model="pago_a_padido">
-            <option v-for="(pedido, index) in pedidos_por_cobrar" :key="index" :value="pedido.pedido">{{ pedido.pedido }}
-              -
-              ${{ pedido.total }}</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="text-end my-4"
-    v-if="cobranza.retenciones.length > 0 || cobranza.ingreso_efectivo.monto || cobranza.ingreso_tarjeta.monto || cobranza.ingreso_depositos.length > 0 || cobranza.ingreso_aplicaciones.length > 0 || cobranza.ingreso_cheques.monto_original">
-    <input ref="botonRegistrarCobro" class="btn btn-success" type="button" value="Registrar Cobro"
-      @click="registrarcobro()" />
-  </div>
-</template>
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import { formatPrice, formatPrice4 } from "@/functions";
+import { swalError, toast } from "@/functions/swal-alert.js";
+import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
+import { formatPrice } from "@/functions";
+//import de composables 
+import verModalValidacionAplicacionPagos from '@/views/cobranzas/modals/verModalValidacionAplicacionPagos.vue';
+import { useCustomerPaymentApply } from "@/composables/cobranzas/cobros/useCustomerPaymentApply";
 
+//import modales
 const store = useStore();
 const cobranza = computed(() => store.state.cobranza);
 const currentClienteCobro = computed(() => store.state.currentClienteCobro);
@@ -368,7 +21,12 @@ const today = new Date();
 const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 const permite_pedido = computed(() => store.state.permite_pedido);
 const pago_a_padido = ref(() => store.state.pago_a_padido);
-const botonRegistrarCobro = ref('botonRegistrarCobro');
+const botonRegistrarCobro = ref(null);
+
+const {
+  loadingPayment,
+  fecthDataValidate
+} = useCustomerPaymentApply();
 function confirmeliminarretencion(index, retencion) {
   toast.fire({
     title: "Estás seguro?",
@@ -564,13 +222,199 @@ function eliminarcheques() {
   store.commit('checkPermitePedido');
 }
 
-function registrarcobro() {
+const modalValidacionPagoRef = ref(null);
+const modalValidacionPagoObj = useBootstrapModal(modalValidacionPagoRef);
+
+async function validarAplicacioneFactura() {
+  const resp = await fecthDataValidate(cobranza.value);
+
+  if (!resp?.ok) {
+    return;
+  }
+
+  Object.assign(cobranza.value, resp.data);
+
+  if (cobranza.value.hasGlobalExcess) {
+    modalValidacionPagoObj.show();
+    return;
+  }
+  await registrarcobro();
+}
+
+
+const excessItems = computed(() => {
+  return collectExcessItems(cobranza.value);
+});
+
+function collectExcessItems(data) {
+  const items = [];
+
+  const addItem = ({ source, label, row, field, parent = null }) => {
+    if (!row?.hasExcess) {
+      return;
+    }
+
+    items.push({
+      source,
+      label,
+      row,
+      parent,
+      field,
+      invoice: row.ret_factura ?? row.ECD_DET_NUM_DOC,
+      enteredAmount: toNumber(row[field]),
+      saldoFactura: toNumber(row.saldoFactura),
+      saldoDisponible: toNumber(row.saldoDisponible),
+      totalApply: toNumber(row.totalApply),
+      excessValue: toNumber(row.excessValue),
+      priceRecommend: toNumber(row.priceRecommend),
+    });
+  };
+
+  data.retenciones?.forEach((row) => {
+    addItem({
+      source: 'retenciones',
+      label: 'Retención',
+      row,
+      field: 'total',
+    });
+  });
+
+  data.ingreso_efectivo?.facturas?.forEach((row) => {
+    addItem({
+      source: 'ingreso_efectivo',
+      label: 'Efectivo',
+      row,
+      field: 'aplicar_monto_efectivo',
+    });
+  });
+
+  data.ingreso_tarjeta?.facturas?.forEach((row) => {
+    addItem({
+      source: 'ingreso_tarjeta',
+      label: 'Tarjeta',
+      row,
+      field: 'aplicar_monto_tarjeta',
+    });
+  });
+
+  data.ingreso_cheques?.facturas?.forEach((row) => {
+    addItem({
+      source: 'ingreso_cheques',
+      label: 'Cheque',
+      row,
+      field: 'aplicar_monto_cheque',
+    });
+  });
+
+  data.ingreso_depositos?.forEach((deposito) => {
+    deposito.facturas?.forEach((row) => {
+      addItem({
+        source: 'ingreso_depositos',
+        label: `${deposito.tipo} - ${deposito.dep_comprobante}`,
+        row,
+        parent: deposito,
+        field: 'aplicar_monto_deposito',
+      });
+    });
+  });
+
+  data.ingreso_aplicaciones?.forEach((aplicacion) => {
+    aplicacion.facturas?.forEach((row) => {
+      addItem({
+        source: 'ingreso_aplicaciones',
+        label: `Aplicación - ${aplicacion.detalle?.CN_DOCUMENTO ?? ''}`,
+        row,
+        parent: aplicacion,
+        field: 'aplicar_monto_aplicacion',
+      });
+    });
+  });
+
+  return items;
+}
+
+
+
+async function applyRecommendationsAndRegister() {
+  applyRecommendedAmounts();
+
+  modalValidacionPagoObj.hide();
+
+  await registrarcobro();
+}
+
+function applyRecommendedAmounts() {
+  const items = [...excessItems.value];
+
+  items.forEach((item) => {
+    item.row[item.field] = roundMoney(item.row.priceRecommend);
+    item.row.hasExcess = false;
+    item.row.excessValue = 0;
+  });
+
+  recalculatePaymentHeaders(cobranza.value);
+
+  cobranza.value.hasGlobalExcess = false;
+
+  store.commit('calculaSaldoFacturas');
+  store.commit('checkPermitePedido');
+}
+
+
+
+function recalculatePaymentHeaders(data) {
+  if (data.ingreso_efectivo?.facturas?.length) {
+    recalculateHeaderAmount(data.ingreso_efectivo, 'aplicar_monto_efectivo');
+  }
+
+  if (data.ingreso_tarjeta?.facturas?.length) {
+    recalculateHeaderAmount(data.ingreso_tarjeta, 'aplicar_monto_tarjeta');
+  }
+
+  if (data.ingreso_cheques?.facturas?.length) {
+    recalculateHeaderAmount(data.ingreso_cheques, 'aplicar_monto_cheque');
+  }
+
+  data.ingreso_depositos?.forEach((deposito) => {
+    recalculateHeaderAmount(deposito, 'aplicar_monto_deposito');
+  });
+
+  data.ingreso_aplicaciones?.forEach((aplicacion) => {
+    recalculateHeaderAmount(aplicacion, 'aplicar_monto_aplicacion');
+  });
+}
+
+function recalculateHeaderAmount(group, field) {
+  const applied = roundMoney(
+    group.facturas?.reduce((total, factura) => {
+      return total + toNumber(factura[field]);
+    }, 0) ?? 0
+  );
+
+  const original = toNumber(group.monto_original ?? group.monto ?? 0);
+
+  group.monto_aplicado = applied;
+  group.monto_no_aplicado = roundMoney(Math.max(original - applied, 0));
+}
+
+
+function toNumber(value) {
+  const number = Number(value ?? 0);
+
+  return Number.isFinite(number) ? number : 0;
+}
+
+function roundMoney(value, decimals = 2) {
+  return Number(toNumber(value).toFixed(decimals));
+}
+
+
+async function registrarcobro() {
   botonRegistrarCobro.value.classList.add('hide');
   cobranza.value.cliente_id = currentClienteCobro.value.id;
   cobranza.value.pago_a_padido = pago_a_padido.value;
   cobranza.value.puntodeventa = store.state.puntodeventaselect;
   cobranza.value.userId = store.state.user.data.USERID;
-
   store.dispatch('registrarcobro', cobranza.value).then((res) => {
     store.commit('enceraRetencion');
     store.commit('enceraCobranzas');
@@ -602,10 +446,10 @@ function registrarcobro() {
         toast.fire({
           title: 'Cobro bloqueado',
           html: `
-        <div class="text-start" style="font-size: 13px; line-height: 1.5;">
-          ${htmlMessage}
-        </div>
-      `,
+          <div class="text-start" style="font-size: 13px; line-height: 1.5;">
+            ${htmlMessage}
+          </div>
+        `,
           icon: 'warning',
           confirmButtonText: 'Entendido',
           customClass: {
@@ -620,6 +464,371 @@ function registrarcobro() {
       botonRegistrarCobro.value.classList.remove('hide');
     });
 }
-
-
 </script>
+<template>
+
+  <div class="col-md-12 m-t20"
+    v-if="cobranza.retenciones.length > 0 || cobranza.ingreso_efectivo.monto || cobranza.ingreso_tarjeta.monto || cobranza.ingreso_depositos.length > 0 || cobranza.ingreso_aplicaciones.length > 0 || cobranza.ingreso_cheques.monto_original">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm fs-sm">
+        <thead>
+          <tr class="table-active">
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>RUC</th>
+            <th>Referencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="width: 160px;" class="align-middle">
+              {{ date }}
+            </td>
+            <td class="align-middle">{{ currentClienteCobro.CLI_RAZON_SOCIAL }}</td>
+            <td class="align-middle">{{ currentClienteCobro.CLI_RUC }}</td>
+            <td><input type="text" class="form-control" v-model="cobranza.referencia"></td>
+          </tr>
+        </tbody>
+      </table>
+      <template v-if="cobranza.retenciones.length > 0">
+        <table class="table table-bordered table-sm fs-sm">
+          <thead>
+            <tr class="table-active">
+              <th colspan="7">Retenciones</th>
+            </tr>
+          </thead>
+        </table>
+        <div style="width: 100%; height: 200px; overflow-y: scroll;" class="m-b15">
+          <table class="table table-bordered table-sm fs-sm">
+            <tbody>
+              <template v-for="(retencion, index) in cobranza.retenciones" :key="index">
+                <tr>
+                  <th scope colspan="7">Comprobante de Retención: {{ retencion.ret_comprobante }} <button
+                      class="btn btn-warning btn-sm float-end" @click="confirmeliminarretencion(index, retencion)"><i
+                        class="fa fa-trash"></i></button></th>
+                </tr>
+                <tr>
+                  <th scope>Comprobante</th>
+                  <th scope>Número</th>
+                  <th scope>Fecha Emisión</th>
+
+                  <th scope>Impuesto</th>
+                  <th scope>% Retención</th>
+                  <th scope>Valor Retenido</th>
+                </tr>
+                <tr>
+                  <td>Factura</td>
+                  <td>{{ retencion.ret_factura }}</td>
+                  <td>{{ retencion.ret_emision }}</td>
+
+                  <td>IVA</td>
+                  <td class="text-end">{{ retencion.ret_porcentaje_iva }}%</td>
+                  <td class="text-end">${{ retencion.ret_iva }}</td>
+                </tr>
+                <tr>
+                  <td>Factura</td>
+                  <td>{{ retencion.ret_factura }}</td>
+                  <td>{{ retencion.ret_emision }} </td>
+
+                  <td>RENTA</td>
+                  <td class="text-end">{{ retencion.ret_porcentaje_renta }}%</td>
+                  <td class="text-end">${{ retencion.ret_renta }}</td>
+                </tr>
+                <tr v-if="retencion.ret_iva_srv">
+                  <td>Factura</td>
+                  <td>{{ retencion.ret_factura }}</td>
+                  <td>{{ retencion.ret_emision }}</td>
+
+                  <td>IVA SRV</td>
+                  <td class="text-end">{{ retencion.ret_porcentaje_iva_srv }}%</td>
+                  <td class="text-end">${{ retencion.ret_iva_srv }}</td>
+                </tr>
+                <tr v-if="retencion.ret_renta_srv">
+                  <td>Factura</td>
+                  <td>{{ retencion.ret_factura }}</td>
+                  <td>{{ retencion.ret_emision }}</td>
+
+                  <td>RENTA SRV</td>
+                  <td class="text-end">{{ retencion.ret_porcentaje_renta_srv }}%</td>
+                  <td class="text-end">${{ retencion.ret_renta_srv }}</td>
+                </tr>
+                <tr>
+                  <td colspan="2"><b>Fecha caducidad:</b> {{ retencion.ret_caducidad }}</td>
+                  <td colspan="5"><b>Número de autorización:</b> {{ retencion.ret_autorizacion }}</td>
+                </tr>
+                <tr>
+                  <td colspan="7" class="text-end"><b>Total Retenido ${{ retencion.total }}</b></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </template>
+      <template v-if="cobranza.ingreso_efectivo.monto">
+        <table class="table table-bordered table-sm fs-sm">
+          <thead>
+            <tr class="table-active">
+              <th colspan="7">Efectivo: ${{ cobranza.ingreso_efectivo.monto }} <button
+                  class="btn btn-warning btn-sm float-end" @click="confirmeliminarefectivo()"><i
+                    class="fa fa-trash"></i></button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope style="width: 150px;">Factura</th>
+              <th scope style="width: 150px;">Fecha Vencimiento</th>
+              <th scope style="width: 110px;">Monto Original</th>
+              <th scope style="width: 110px;">Monto Pendiente</th>
+              <th scope style="width: 150px;">Monto Aplicado</th>
+              <th scope style="width: 150px;">Saldo</th>
+              <th scope>Comentario</th>
+            </tr>
+            <tr v-for="(factura, index) in cobranza.ingreso_efectivo.facturas" :key="index">
+              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
+              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+                parseFloat(factura.aplicar_monto_efectivo)) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_efectivo) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td>{{ factura.observacion_efectivo }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+      <template v-for="(deposito, index) in cobranza.ingreso_depositos" :key="index">
+        <table class="table table-bordered table-sm fs-sm">
+          <thead>
+            <tr class="table-active">
+              <th scope colspan="5">Despósito / Transferencia <button class="btn btn-warning btn-sm float-end"
+                  @click="confirmeliminardeposito(index)"><i class="fa fa-trash"></i></button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope>Comprobante</th>
+              <th scope>Tipo</th>
+              <th scope>Banco</th>
+              <th scope>Fecha</th>
+              <th scope>Monto</th>
+            </tr>
+            <tr>
+              <td>{{ deposito.dep_comprobante }}</td>
+              <td>{{ deposito.tipo }}</td>
+              <td>{{ deposito.banco_nombre }}</td>
+              <td>{{ deposito.dep_fecha }}</td>
+              <td class="text-end"><b>${{ deposito.monto }}</b></td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered table-sm fs-sm">
+          <tbody>
+            <tr>
+              <th style="width: 150px;">Factura</th>
+              <th style="width: 150px;">Fecha Vencimiento</th>
+              <th style="width: 110px;">Monto Original</th>
+              <th style="width: 110px;">Monto Pendiente</th>
+              <th style="width: 150px;">Monto Aplicado</th>
+              <th style="width: 150px;">Saldo</th>
+              <th>Comentario</th>
+            </tr>
+            <tr v-for="(factura, index) in deposito.facturas" :key="index">
+              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
+              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+                parseFloat(factura.aplicar_monto_deposito)) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_deposito) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td>{{ factura.observacion_deposito }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+      <template v-if="cobranza.ingreso_cheques.monto_original">
+        <table class="table table-bordered table-sm fs-sm" style="margin-bottom: 0px;">
+          <thead>
+            <tr class="table-active">
+              <th colspan="8">Cheques <button class="btn btn-warning btn-sm float-end"
+                  @click="confirmeliminarcheques(index)"><i class="fa fa-trash"></i></button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope>Banco</th>
+
+              <th scope>#Cuenta</th>
+              <th scope>#Cheque</th>
+              <th scope>Monto</th>
+              <th scope>Emisión</th>
+              <th scope>Vencimiento</th>
+              <th scope>Comentario</th>
+            </tr>
+            <tr v-for="(cheque, index) in cobranza.ingreso_cheques.cheques" :key="index">
+              <td>{{ cheque.banco_nombre }}</td>
+
+              <td>{{ cheque.cuenta }}</td>
+              <td>{{ cheque.cheque }}</td>
+              <td class="text-end">${{ cheque.monto }}</td>
+              <td>{{ cheque.fecha_emision }}</td>
+              <td>{{ cheque.fecha_vencimiento }}</td>
+              <td>{{ cheque.observacion_cheque }}</td>
+            </tr>
+            <tr>
+              <th scope colspan="4" class="text-end">TOTAL </th>
+              <th scope class="text-end">${{ formatPrice(cobranza.ingreso_cheques.monto_original) }}</th>
+              <th scope colspan="3"></th>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered table-sm fs-sm">
+          <tbody>
+            <tr>
+              <th style="width: 150px;">Factura</th>
+              <th style="width: 150px;">Fecha Vencimiento</th>
+              <th style="width: 110px;">Monto Original</th>
+              <th style="width: 110px;">Monto Pendiente</th>
+              <th style="width: 150px;">Monto Aplicado</th>
+              <th style="width: 150px;">Saldo</th>
+              <th>Comentario</th>
+            </tr>
+            <tr v-for="(factura, index) in cobranza.ingreso_cheques.facturas" :key="index">
+              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
+              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+                parseFloat(factura.aplicar_monto_cheque)) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_cheque) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td>{{ factura.observacion_deposito }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+      <template v-if="cobranza.ingreso_tarjeta.monto">
+        <table class="table table-bordered table-sm fs-sm">
+          <thead>
+            <tr class="table-active">
+              <th scope colspan="2">Tarjeta: ${{ cobranza.ingreso_tarjeta.monto }} </th>
+              <th scope colspan="2">Emisor: {{ cobranza.ingreso_tarjeta.banco_nombre }} </th>
+              <th scope colspan="2">Comprobante: {{ cobranza.ingreso_tarjeta.comprobante }} </th>
+              <th scope><button class="btn btn-warning btn-sm float-end" @click="confirmeliminartarjeta()"><i
+                    class="fa fa-trash"></i></button></th>
+            </tr>
+            <tr>
+              <th scope colspan="7">Comentario: {{ cobranza.ingreso_tarjeta.comentario }} </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope style="width: 150px;">Factura</th>
+              <th scope style="width: 150px;">Fecha Vencimiento</th>
+              <th scope style="width: 110px;">Monto Original</th>
+              <th scope style="width: 110px;">Monto Pendiente</th>
+              <th scope style="width: 150px;">Monto Aplicado</th>
+              <th scope style="width: 150px;">Saldo</th>
+              <th scope>Comentario</th>
+            </tr>
+            <tr v-for="(factura, index) in cobranza.ingreso_tarjeta.facturas" :key="index">
+              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
+              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+                parseFloat(factura.aplicar_monto_tarjeta)) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_tarjeta) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td>{{ factura.observacion_efectivo }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+      <template v-for="(aplicacion, index) in cobranza.ingreso_aplicaciones" :key="index">
+        <table class="table table-bordered table-sm fs-sm">
+          <thead>
+            <tr class="table-active">
+              <th colspan="6">Aplicacion de saldos <button class="btn btn-warning btn-sm float-end"
+                  @click="confirmeliminaraplicacion(index)"><i class="fa fa-trash"></i></button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope>Documento</th>
+              <th scope class="text-end">Monto original</th>
+              <th scope class="text-end">Saldo</th>
+              <th scope>Fecha</th>
+              <th scope class="text-end">Monto aplicado</th>
+              <th scope>Comentario</th>
+            </tr>
+            <tr>
+              <td>{{ aplicacion.detalle.CN_DOCUMENTO }}</td>
+              <td class="text-end">${{ aplicacion.detalle.CN_MONTO_ORIGINAL }}</td>
+              <td class="text-end">${{ aplicacion.detalle.CN_SALDO_PENDIENTE }}</td>
+              <td>{{ aplicacion.detalle.CN_FECHA_EMISION.date.substr(0, 10) }}</td>
+              <td class="text-end"><b>${{ aplicacion.monto_aplicado }}</b></td>
+              <td>{{ aplicacion.comentario }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered table-sm fs-sm">
+          <tbody>
+            <tr>
+              <th style="width: 150px;">Factura</th>
+              <th style="width: 150px;">Fecha Vencimiento</th>
+              <th style="width: 110px;">Monto Original</th>
+              <th style="width: 110px;">Monto Pendiente</th>
+              <th style="width: 150px;">Monto Aplicado</th>
+              <th style="width: 150px;">Saldo</th>
+              <th>Comentario</th>
+            </tr>
+            <tr v-for="(factura, index) in aplicacion.facturas" :key="index">
+              <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
+              <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+                parseFloat(factura.aplicar_monto_aplicacion)) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_aplicacion) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td>{{ factura.observacion_aplicacion }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+
+
+      </template>
+
+    </div>
+    <div class="row hide" v-if="permite_pedido">
+      <label class="col-sm-9 col-form-label text-end" for="pago_a_padido">Pago a pedido:</label>
+      <div class="col-sm-3">
+        <div class="input-group">
+          <select id="pago_a_padido" name="pago_a_padido" class="form-select fs-sm" v-model="pago_a_padido">
+            <option v-for="(pedido, index) in pedidos_por_cobrar" :key="index" :value="pedido.pedido">{{ pedido.pedido
+            }}
+              -
+              ${{ pedido.total }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="text-end my-4"
+    v-if="cobranza.retenciones.length > 0 || cobranza.ingreso_efectivo.monto || cobranza.ingreso_tarjeta.monto || cobranza.ingreso_depositos.length > 0 || cobranza.ingreso_aplicaciones.length > 0 || cobranza.ingreso_cheques.monto_original">
+    <input ref="botonRegistrarCobro" class="btn btn-success" type="button" value="Registrar Cobro"
+      @click="validarAplicacioneFactura()" />
+  </div>
+
+
+  <!-- modales -->
+  <div class="modal" id="modal-validacion-aplicacion-pagos" tabindex="-1"
+    aria-labelledby="modal-validacion-aplicacion-pagos" aria-hidden="true" ref="modalValidacionPagoRef">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-validacion-pagos">
+      <div class="modal-content">
+        <verModalValidacionAplicacionPagos :items="excessItems" @close-modal="modalValidacionPagoObj.hide()"
+          @apply-recommendations="applyRecommendationsAndRegister" />
+      </div>
+    </div>
+  </div>
+
+
+</template>
