@@ -112,10 +112,14 @@ export const useReservationGuideProcess = () => {
         swalWarning("Selecciona el tipo de identificación");
         return false;
       }
-      if (!validarPlacaEC(data.placa)) {
+      if (!isBlank(data.placa)) {
         swalWarning("Placa inválida");
         return false;
       }
+      // if (!validarPlacaEC(data.placa)) {
+      //   swalWarning("Placa inválida");
+      //   return false;
+      // }
     }
     if (isBlank(data.fecha_llegada) || !isValidDateStr(data.fecha_llegada)) {
       swalWarning("Fecha/Hora de llegada inválida");
