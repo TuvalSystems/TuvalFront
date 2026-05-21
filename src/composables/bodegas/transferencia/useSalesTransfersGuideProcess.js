@@ -107,7 +107,7 @@ export function useSalesTransfersGuideProcess() {
                 swalWarning("Selecciona el tipo de identificación");
                 return false;
             }
-            if(!isBlank(data.placa)) {
+            if(isBlank(data.placa)) {
                 swalWarning("Placa inválida");
                 return false;
             }
