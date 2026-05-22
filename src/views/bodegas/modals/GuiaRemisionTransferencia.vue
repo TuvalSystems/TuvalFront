@@ -30,6 +30,8 @@ const vehiculo = computed(() => store.state.vehiculo);
 const flatPickrState = computed(() => store.state.flatPickrState);
 const observacion = ref('');
 const ruta = ref('');
+const maxLengthPlaca = 10;
+
 const boton_generar = ref('boton_generar');
 const { currentBodega } = defineProps({
   currentBodega: Object,
@@ -478,7 +480,15 @@ onMounted(() => {
               </td>
               <td class="text-end">Placa de vehículo: </td>
               <td>
-                <input type="text" class="form-control" id="placa" v-model="vehiculo.placa" />
+                <div class="position-relative">
+                  <input type="text" class="form-control form-control" placeholder="ABC-1234" v-model="vehiculo.placa"
+                    :maxlength="maxLengthPlaca">
+                  <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
+                    {{ maxLengthPlaca -
+                      (vehiculo.placa?.length ?? 0)
+                    }}
+                  </span>
+                </div>
               </td>
             </tr>
           </template>

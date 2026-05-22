@@ -46,7 +46,7 @@ const { vehicles: vehiculos, transporters: transportes, loading: loadingVehiculo
 const typeIdentifyStore = useTypeIdentifyStore();
 const listTypeIdentify = computed(() => typeIdentifyStore.list);
 const loadingIdentify = computed(() => typeIdentifyStore.loading);
-
+const maxLengthPlaca = 10;
 const flatPickrState = reactive({
   horaInicio: addMinutes(new Date(), 20), // Date
   horaFin: addDays(new Date(), 9),
@@ -490,7 +490,17 @@ onMounted(() => {
             </div>
             <div class="col-12">
               <div class="label-sm  mb-1">Placa del Vehiculo</div>
-              <input type="text" class="form-control form-control-sm" placeholder="ABC-1234" v-model="data.placa">
+              <div class="position-relative">
+                <input type="text" class="form-control form-control-sm" placeholder="ABC-1234" v-model="data.placa"
+                  :maxlength="maxLengthPlaca">
+                <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
+                  {{ maxLengthPlaca -
+                    (data.placa?.length ?? 0)
+                  }}
+                </span>
+              </div>
+
+
             </div>
           </div>
           <div class="row g-3">
@@ -529,12 +539,12 @@ onMounted(() => {
             <div class="d-flex justify-content-between mini "><span>Ítems</span><strong>{{ activeItemsCount }}</strong>
             </div>
             <div class="d-flex justify-content-between mini "><span>Peso total</span><strong>{{ pesoTotalItemsFmt
-            }}kg</strong></div>
+                }}kg</strong></div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-3">
             <button class="btn btn-dark btn-sm" data-bs-dismiss="modal">
               Cancelar</button>
-            <button    type="button" class="btn btn-primary btn-sm" @click="storeGuideRemision()" :disabled="loading"><i
+            <button type="button" class="btn btn-primary btn-sm" @click="storeGuideRemision()" :disabled="loading"><i
                 class="fa-solid fa-file-lines me-2"></i>Generar</button>
           </div>
         </div>
