@@ -83,14 +83,14 @@ async function handleDeleteProfile(form) {
   toast
     .fire({
       title: "Estás seguro?",
-      text: "De eliminar el perfil  " + form.name + "",
+      text: `Se eliminará el perfil "${form.name}".`,
       icon: "question",
       showCancelButton: true,
       customClass: {
         confirmButton: "btn btn-success m-1",
         cancelButton: "btn btn-secondary m-1",
       },
-      confirmButtonText: "Si, Eliminar",
+      confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
       html: false,
       preConfirm: () => {
@@ -103,13 +103,13 @@ async function handleDeleteProfile(form) {
     })
     .then((result) => {
       if (result.value) {
-        deletProfile(form);
+        deleteProfileConfirmed(form);
       }
     });
 
 }
 
-async function deletProfile(form) {
+async function deleteProfileConfirmed(form) {
   const resp = await deleteProfile(form.id);
   if (resp?.ok) {
     selectedProfile.value = null;
@@ -129,7 +129,7 @@ async function handleSaveProfile(form) {
       await fetchProfiles();
       return;
     }
-    const msg = resp?.message || "No se pudo actualizar el estado del usuario";
+    const msg = resp?.message || "No se pudo actualizar el perfil";
     (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
   } else {
     const respU = await saveProfile(form);
@@ -138,7 +138,7 @@ async function handleSaveProfile(form) {
       await fetchProfiles();
       return;
     }
-    const msg = respU?.message || "No se pudo actualizar el estado del usuario";
+    const msg = respU?.message || "No se pudo guardar el perfil";
     (respU?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
   }
 
@@ -215,49 +215,24 @@ onMounted(async () => {
   <div class="content">
     <div class="row g-3 profile-top-grid">
       <div class="col-xl-5 col-lg-6">
-        <ProfileList
-          v-model:platform="payload.platform"
-          v-model:status="payload.status"
-          v-model:search="payload.search"
-          :profiles="profiles"
-          :loading="loading"
-          :selected-id="selectedProfile?.id"
-          @change-platform="handlePlatformChange"
-          @change-status="handleStatusChange"
-          @select="handleSelectProfile"
-          @edit="handleEditProfile"
-          @create="handleCreateProfile"
-        />
+        <ProfileList v-model:platform="payload.platform" v-model:status="payload.status" v-model:search="payload.search"
+          :profiles="profiles" :loading="loading" :selected-id="selectedProfile?.id"
+          @change-platform="handlePlatformChange" @change-status="handleStatusChange" @select="handleSelectProfile"
+          @edit="handleEditProfile" @create="handleCreateProfile" />
       </div>
 
       <div class="col-xl-7 col-lg-6">
-        <ProfileForm
-          :profile="selectedProfile"
-          :saving="saving"
-          :deleting="deleting"
-          :default-platform="payload.platform"
-          @save="handleSaveProfile"
-          @cancel="handleCancelProfile"
-          @delete="handleDeleteProfile"
-        />
+        <ProfileForm :profile="selectedProfile" :saving="saving" :deleting="deleting"
+          :default-platform="payload.platform" @save="handleSaveProfile" @cancel="handleCancelProfile"
+          @delete="handleDeleteProfile" />
       </div>
     </div>
 
     <div class="row g-3 mt-1">
       <div class="col-12">
-        <ProfileSectionAssignment
-          :profile="selectedProfile"
-          :sections="sections"
-          :selected-ids="selectedSectionIds"
-          :home-section-id="homeSectionId"
-          :loading="loadingSections"
-          :saving="savingSections"
-          @toggle="toggleSection"
-          @set-home="setHomeSection"
-          @mark-all="markAll"
-          @clear-all="clearAll"
-          @save="handleSaveProfileSections"
-        />
+        <ProfileSectionAssignment :profile="selectedProfile" :sections="sections" :selected-ids="selectedSectionIds"
+          :home-section-id="homeSectionId" :loading="loadingSections" :saving="savingSections" @toggle="toggleSection"
+          @set-home="setHomeSection" @mark-all="markAll" @clear-all="clearAll" @save="handleSaveProfileSections" />
       </div>
     </div>
   </div>
