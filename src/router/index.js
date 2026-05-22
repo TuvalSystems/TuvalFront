@@ -554,7 +554,7 @@ const routes = [
           {
             path: "perfiles",
             name: "sistemas-seguridad-perfiles",
-            component: () => import("@/views/sistemas/seguridad/accesos/perfiles/PerfilesIndex.vue"),
+            component: () => import("@/views/sistemas/seguridad/accesos/perfiles/ProfileIndex.vue"),
             meta: { title: "Gestión de Perfiles" }
           },
           {
