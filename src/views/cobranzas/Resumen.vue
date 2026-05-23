@@ -350,6 +350,11 @@ function applyRecommendedAmounts() {
   items.forEach((item) => {
     const recommended = roundMoney(item.priceRecommend);
 
+    if (recommended <= 0) {
+      removePaymentApplicationRow(item);
+      return;
+    }
+
     item.row[item.field] = recommended;
 
     updateInvoiceBalanceAfterRecommendation(item, recommended);
@@ -358,12 +363,99 @@ function applyRecommendedAmounts() {
     item.row.excessValue = 0;
   });
 
+  removeZeroAmountApplications(cobranza.value);
   recalculatePaymentHeaders(cobranza.value);
 
   cobranza.value.hasGlobalExcess = false;
 
   store.commit('calculaSaldoFacturas');
   store.commit('checkPermitePedido');
+}
+
+function removeZeroAmountApplications(data) {
+  data.retenciones = data.retenciones?.filter((retencion) => {
+    return toNumber(retencion.total) > 0;
+  }) ?? [];
+
+  if (data.ingreso_efectivo?.facturas) {
+    data.ingreso_efectivo.facturas = data.ingreso_efectivo.facturas.filter((factura) => {
+      return toNumber(factura.aplicar_monto_efectivo) > 0;
+    });
+  }
+
+  if (data.ingreso_tarjeta?.facturas) {
+    data.ingreso_tarjeta.facturas = data.ingreso_tarjeta.facturas.filter((factura) => {
+      return toNumber(factura.aplicar_monto_tarjeta) > 0;
+    });
+  }
+
+  if (data.ingreso_cheques?.facturas) {
+    data.ingreso_cheques.facturas = data.ingreso_cheques.facturas.filter((factura) => {
+      return toNumber(factura.aplicar_monto_cheque) > 0;
+    });
+  }
+
+  data.ingreso_depositos?.forEach((deposito) => {
+    deposito.facturas = deposito.facturas?.filter((factura) => {
+      return toNumber(factura.aplicar_monto_deposito) > 0;
+    }) ?? [];
+  });
+
+  data.ingreso_aplicaciones?.forEach((aplicacion) => {
+    aplicacion.facturas = aplicacion.facturas?.filter((factura) => {
+      return toNumber(factura.aplicar_monto_aplicacion) > 0;
+    }) ?? [];
+  });
+}
+
+
+
+function removePaymentApplicationRow(item) {
+  if (!item) {
+    return;
+  }
+
+  if (item.source === 'retenciones') {
+    removeRowFromArray(cobranza.value.retenciones, item.row);
+    return;
+  }
+
+  if (item.source === 'ingreso_efectivo') {
+    removeRowFromArray(cobranza.value.ingreso_efectivo?.facturas, item.row);
+    return;
+  }
+
+  if (item.source === 'ingreso_tarjeta') {
+    removeRowFromArray(cobranza.value.ingreso_tarjeta?.facturas, item.row);
+    return;
+  }
+
+  if (item.source === 'ingreso_cheques') {
+    removeRowFromArray(cobranza.value.ingreso_cheques?.facturas, item.row);
+    return;
+  }
+
+  if (item.source === 'ingreso_depositos') {
+    removeRowFromArray(item.parent?.facturas, item.row);
+    return;
+  }
+
+  if (item.source === 'ingreso_aplicaciones') {
+    removeRowFromArray(item.parent?.facturas, item.row);
+    return;
+  }
+}
+
+function removeRowFromArray(array, row) {
+  if (!Array.isArray(array)) {
+    return;
+  }
+
+  const index = array.indexOf(row);
+
+  if (index >= 0) {
+    array.splice(index, 1);
+  }
 }
 
 function updateInvoiceBalanceAfterRecommendation(item, recommended) {
@@ -381,15 +473,15 @@ function updateInvoiceBalanceAfterRecommendation(item, recommended) {
 }
 
 function recalculatePaymentHeaders(data) {
-  if (data.ingreso_efectivo?.facturas?.length) {
+  if (data.ingreso_efectivo) {
     recalculateHeaderAmount(data.ingreso_efectivo, 'aplicar_monto_efectivo');
   }
 
-  if (data.ingreso_tarjeta?.facturas?.length) {
+  if (data.ingreso_tarjeta) {
     recalculateHeaderAmount(data.ingreso_tarjeta, 'aplicar_monto_tarjeta');
   }
 
-  if (data.ingreso_cheques?.facturas?.length) {
+  if (data.ingreso_cheques) {
     recalculateHeaderAmount(data.ingreso_cheques, 'aplicar_monto_cheque');
   }
 
