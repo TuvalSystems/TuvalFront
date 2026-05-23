@@ -7,7 +7,7 @@ export function useVersionManagementTable() {
     const { run } = useApiAction();
     const ctrl = ref(null); // AbortController actual
     let debounceId;
-    const apiList = "/movil/admin/app/versions/list";
+    const apiList = "admin/app/versions/list";
 
     const table = reactive({
         items: [],
