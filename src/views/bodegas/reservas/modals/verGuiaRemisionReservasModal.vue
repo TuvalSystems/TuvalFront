@@ -1,24 +1,27 @@
 <script setup>
 import { storeToRefs } from "pinia";
-import { onMounted, reactive, watch, toRef, computed } from 'vue';
+import { onMounted, reactive, watch, toRef, computed, ref } from 'vue';
 import { useReservationGuideProcess } from '@/composables/bodegas/reservas/useReservationGuideProcess';
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
+import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
 
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import {
   swalSuccess,
   swalError,
+  swalWarning
 } from "@/functions/swal-alert.js";
 const props = defineProps({
   header: { type: Object, default: () => ({}) },
   detalle: { type: Array, default: () => [] }
 });
+const maxLengthPlaca = 10;
+
 const {
   data,
   modo,
-  tipoIdentificacion,
   pesoTotalItemsFmt,
   loadingProcessGuide,
   //functions
@@ -36,6 +39,10 @@ const {
 } = useReservationTransferByWarehouse();
 const vehicles = useVehiclesStore();
 const { vehicles: vehiculos, transporters: transportes, loading: loadingVehiculos } = storeToRefs(vehicles);
+const typeIdentifyStore = useTypeIdentifyStore();
+const listTypeIdentify = computed(() => typeIdentifyStore.list);
+const loadingIdentify = computed(() => typeIdentifyStore.loading);
+
 const emit = defineEmits(["refresh", "closeModal"]);
 const flatPickrState = reactive({
   horaInicio: addMinutes(new Date(), 20), // Date
@@ -70,11 +77,17 @@ async function storeGuideRemision() {
   if (!isValid) {
     return;
   }
+  if (!validateTransportIdentification(true)) {
+    return;
+  }
+
   const resp = await generarGuiaRemision();
   if (!resp?.ok) {
     swalError(resp?.message);
     return;
   }
+
+
   const id = resp?.data?.id;
   const resD = await dispatchGuideReservedPending(id);
   if (!resD?.ok) {
@@ -117,7 +130,200 @@ function changeVehicleTransport() {
   }
 };
 
+
+/** validacion para tipo de identificacion */
+
+const transportIdentifyError = ref("");
+const isExternalMode = computed(() => {
+  return String(modo.value ?? modo) === "externo";
+});
+
+const selectedTransportTypeIdentify = computed(() => {
+  return listTypeIdentify.value.find(
+    (tipo) => String(tipo.codigo) === String(data.tipo_identificacion)
+  ) ?? null;
+});
+
+const transportIdentifyMinSize = computed(() => {
+  return Number(selectedTransportTypeIdentify.value?.min_size ?? 0);
+});
+
+const transportIdentifyMaxSize = computed(() => {
+  return Number(selectedTransportTypeIdentify.value?.max_size ?? 0);
+});
+
+const transportIdentifyName = computed(() => {
+  return selectedTransportTypeIdentify.value?.nombre ?? "Identificación";
+});
+
+const transportIdentifyMaxAllowed = computed(() => {
+  return transportIdentifyMaxSize.value || 30;
+});
+
+const transportIdentifyCurrentLength = computed(() => {
+  return String(data.identificacion ?? "").length;
+});
+
+const transportIdentifyRemainingCharacters = computed(() => {
+  return Math.max(
+    transportIdentifyMaxAllowed.value - transportIdentifyCurrentLength.value,
+    0
+  );
+});
+
+const transportIdentifyCounterClass = computed(() => {
+  if (transportIdentifyRemainingCharacters.value === 0) {
+    return "bg-danger text-white";
+  }
+
+  if (transportIdentifyRemainingCharacters.value <= 3) {
+    return "bg-warning text-dark";
+  }
+
+  return "bg-body-secondary text-muted";
+});
+
+const transportIdentifyLengthMessage = computed(() => {
+  const min = transportIdentifyMinSize.value;
+  const max = transportIdentifyMaxSize.value;
+
+  if (min && max && min === max) {
+    return `${transportIdentifyName.value} debe tener ${max} caracteres`;
+  }
+
+  if (min && max) {
+    return `${transportIdentifyName.value} debe tener entre ${min} y ${max} caracteres`;
+  }
+
+  if (max) {
+    return `${transportIdentifyName.value} debe tener máximo ${max} caracteres`;
+  }
+
+  return `${transportIdentifyName.value} no tiene una longitud válida`;
+});
+
+const numericTransportIdentificationsCode = ["04", "05"];
+
+const transportIdentifyOnlyNumbers = computed(() => {
+  return numericTransportIdentificationsCode.includes(
+    String(data.tipo_identificacion)
+  );
+});
+
+const transportIdentifyInputMode = computed(() => {
+  return transportIdentifyOnlyNumbers.value ? "numeric" : "text";
+});
+
+function setTransportIdentifyError(message, showMessage = true) {
+  transportIdentifyError.value = message;
+
+  if (showMessage && message) {
+    swalWarning(message);
+  }
+
+  return false;
+}
+
+function validateTransportIdentification(showMessage = true) {
+  if (!isExternalMode.value) {
+    transportIdentifyError.value = "";
+    return true;
+  }
+
+  const value = String(data.identificacion ?? "").trim();
+  const tipo = selectedTransportTypeIdentify.value;
+
+  if (!tipo) {
+    return setTransportIdentifyError(
+      "Seleccione un tipo de identificación",
+      showMessage
+    );
+  }
+
+  if (!value) {
+    return setTransportIdentifyError(
+      "Ingrese la identificación del transportista",
+      showMessage
+    );
+  }
+
+  if (transportIdentifyOnlyNumbers.value && !/^\d+$/.test(value)) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} solo debe contener números`,
+      showMessage
+    );
+  }
+
+  if (!transportIdentifyOnlyNumbers.value && !/^[A-Za-z0-9]+$/.test(value)) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} solo debe contener letras y números`,
+      showMessage
+    );
+  }
+
+  const min = transportIdentifyMinSize.value;
+  const max = transportIdentifyMaxSize.value;
+
+  if (min && max && min === max && value.length !== max) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} debe tener ${max} caracteres`,
+      showMessage
+    );
+  }
+
+  if (min && value.length < min) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} debe tener mínimo ${min} caracteres`,
+      showMessage
+    );
+  }
+
+  if (max && value.length > max) {
+    return setTransportIdentifyError(
+      `${tipo.nombre} debe tener máximo ${max} caracteres`,
+      showMessage
+    );
+  }
+
+  transportIdentifyError.value = "";
+  return true;
+}
+
+function onTransportIdentificationInput(event) {
+  let value = String(event.target.value ?? "");
+
+  if (transportIdentifyOnlyNumbers.value) {
+    value = value.replace(/\D/g, "");
+  } else {
+    value = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  }
+
+  data.identificacion = value;
+  event.target.value = value;
+
+  if (transportIdentifyError.value) {
+    validateTransportIdentification(false);
+  }
+}
+
+watch(
+  () => data.tipo_identificacion,
+  () => {
+    data.identificacion = "";
+    transportIdentifyError.value = "";
+  }
+);
+
+watch(
+  () => modo?.value ?? modo,
+  () => {
+    transportIdentifyError.value = "";
+  }
+);
+
+
 onMounted(() => {
+  typeIdentifyStore.fetchAll();
 });
 </script>
 
@@ -132,7 +338,8 @@ onMounted(() => {
     <div class="modal-header d-flex flex-wrap gap-2 align-items-center px-2 py-3 border-bottom">
       <div class="flex-grow-1">
         <div class="d-flex flex-wrap gap-1">
-          <span class="pill bg-primary text-light"><i class="fa-solid fa-warehouse"></i> Origen: {{ props.header.origenDescription
+          <span class="pill bg-primary text-light"><i class="fa-solid fa-warehouse"></i> Origen: {{
+            props.header.origenDescription
           }}</span>
           <span class="pill bg-primary text-light"><i class="fa-solid fa-location-dot"></i>Destino: {{
             props.header.destination }}</span>
@@ -229,20 +436,50 @@ onMounted(() => {
             </div>
             <div class="col-12 col-md-6">
               <div class="label-sm mb-1">Tipo Identificación</div>
-              <select class="form-select form-select-sm" :required="modo === 'externo'"
+              <select class="form-select form-select-sm" :required="modo === 'externo'" :disabled="loadingIdentify"
                 v-model="data.tipo_identificacion">
-                <option value="">Selecciona Tipo</option>
-                <option v-for="t in tipoIdentificacion" :key="t.value" :value="t.value">{{ t.label }}</option>
+                <option value="">Seleccione...</option>
+                <option v-for="t in listTypeIdentify" :key="t.codigo" :value="t.codigo">
+                  {{ t.nombre }}
+                </option>
               </select>
             </div>
             <div class="col-12 col-md-6">
               <div class="label-sm mb-1">#Identificación</div>
-              <input type="text" class="form-control form-control-sm" placeholder="Identificación"
-                v-model="data.identificacion">
+
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control form-control-sm" placeholder="Identificación"
+                  v-model.trim="data.identificacion" :maxlength="transportIdentifyMaxAllowed"
+                  :inputmode="transportIdentifyInputMode" :class="{ 'is-invalid': transportIdentifyError }"
+                  autocomplete="off" @input="onTransportIdentificationInput"
+                  @blur="validateTransportIdentification(false)" />
+
+                <span class="input-group-text fw-semibold" :class="transportIdentifyCounterClass"
+                  style="min-width: 58px; justify-content: center;">
+                  {{ transportIdentifyCurrentLength }}/{{ transportIdentifyMaxAllowed }}
+                </span>
+
+                <div v-if="transportIdentifyError" class="invalid-feedback">
+                  {{ transportIdentifyError }}
+                </div>
+              </div>
+
+              <div v-if="!transportIdentifyError && selectedTransportTypeIdentify" class="form-text">
+                {{ transportIdentifyLengthMessage }}
+              </div>
             </div>
             <div class="col-12">
               <div class="label-sm  mb-1">Placa del Vehiculo</div>
-              <input type="text" class="form-control form-control-sm" placeholder="ABC-1234" v-model="data.placa">
+              <div class="position-relative">
+                <input type="text" class="form-control form-control-sm" placeholder="ABC-1234" v-model="data.placa"
+                  :maxlength="maxLengthPlaca">
+                <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
+                  {{ maxLengthPlaca -
+                    (data.placa?.length ?? 0)
+                  }}
+                </span>
+              </div>
+
             </div>
           </div>
           <div class="row g-3">
@@ -281,14 +518,13 @@ onMounted(() => {
             <div class="d-flex justify-content-between mini "><span>Ítems</span><strong>{{ activeItemsCount }}</strong>
             </div>
             <div class="d-flex justify-content-between mini "><span>Peso total</span><strong>{{ pesoTotalItemsFmt
-            }}kg</strong></div>
+                }}kg</strong></div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-3">
             <button class="btn btn-dark btn-sm" data-bs-dismiss="modal">
-              <!-- <i class="fa-regular fa-circle-xmark me-2"></i> -->
               Cancelar</button>
-            <button class="btn btn-primary btn-sm" @click="storeGuideRemision()" :disabled="loadingProcessGuide"><i
-                class="fa-solid fa-file-lines me-2"></i>Generar</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="storeGuideRemision()"
+              :disabled="loadingProcessGuide"><i class="fa-solid fa-file-lines me-2"></i>Generar</button>
           </div>
         </div>
       </div>

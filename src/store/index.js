@@ -3,8 +3,6 @@ import axiosClient from "../axios";
 import axiosPrint from "../axiosPrint";
 
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { addDays } from "@/functions";
-import { ref } from "vue";
 
 const store = createStore({
   state: {
@@ -433,11 +431,7 @@ const store = createStore({
         return data;
       });
     },
-    // notificaciones() {
-      // return axiosClient.get("/notificaciones").then((res) => {
-      //   return res.data;
-      // });
-    // },
+  
     sincronizaDataGP({ commit }, path) {
       return axiosClient.get(path).then((response) => {
         return response;
@@ -491,18 +485,7 @@ const store = createStore({
       });
     },
 
-    resetPassword({ dispatch }, data) {
-      return axiosClient.post("/resetpassword", data).then((response) => {
-        dispatch("getPerfiles");
-        return response;
-      });
-    },
-    changeStatusUser({ dispatch }, data) {
-      return axiosClient.post("/change-status-user", data).then((response) => {
-        dispatch("getPerfiles");
-        return response;
-      });
-    },
+
     buscararticulo({ commit }, data) {
       commit("setArticuloLoading", true);
       return axiosClient.post("/consultas/buscararticulo", data).then((res) => {
@@ -575,15 +558,7 @@ const store = createStore({
           return res;
         });
     },
-    /* llenarcotizacionProspecto({commit}, data) {
-            commit('setCotizacionLoading', true)
-            return axiosClient.post('/cotizaciones/llenarcotizacionprospecto', data)
-            .then(res => {
-                commit('setCotizacionLoading', false)
-                commit("getCotizacion", res.data.articulos);
-                return res;
-            })
-        }, */
+  
     eliminarArticulo({ commit }, articulo) {
       return axiosClient.post("/eliminararticulo", articulo).then((res) => {
         return res;
@@ -596,152 +571,15 @@ const store = createStore({
           return res;
         });
     },
-    updatePeso({ commit }, updatePeso) {
-      return axiosClient
-        .post("/cotizaciones/updatepeso", updatePeso)
-        .then((res) => {
-          return res;
-        });
-    },
-    updateModificador({ commit }, updatemodificador) {
-      return axiosClient
-        .post("/cotizaciones/updatemodificador", updatemodificador)
-        .then((res) => {
-          return res;
-        });
-    },
-    updateStock({ commit }, stock) {
-      return axiosClient
-        .post("/cotizaciones/updatestock", stock)
-        .then((res) => {
-          return res;
-        });
-    },
-    updateDescripcion({ commit }, updatedescripcion) {
-      return axiosClient
-        .post("/updatedescripcion", updatedescripcion)
-        .then((res) => {
-          return res;
-        });
-    },
-    updateValor({ commit }, updatevalor) {
-      return axiosClient
-        .post("/cotizaciones/updatevalor", updatevalor)
-        .then((res) => {
-          return res;
-        });
-    },
-    updateDescuento({ commit }, updatedescuento) {
-      return axiosClient
-        .post("/cotizaciones/updatedescuento", updatedescuento)
-        .then((res) => {
-          return res;
-        });
-    },
+  
+  
+ 
 
-    updateCheckAlternative({ commit }, itemUpdate) {
-      return axiosClient
-        .post("/cotizaciones/actualizar-check-item-alternativo", itemUpdate)
-        .then((res) => {
-          return res;
-        });
-    },
-    saveProveedor({ commit }, articulo) {
-      return axiosClient.post("/saveproveedor", articulo).then((res) => {
-        return res;
-      });
-    },
+ 
+ 
+  
 
-    /** nuevas funciones */
-    getListaItemsAlternativos({ commit }, articulo) {
-      commit("resetArticulosAlternativos");
-      commit("setArticulosAlternativosLoading", true);
-      return axiosClient
-        .post("cotizaciones/lista-items-alternativos", articulo)
-        .then((res) => {
-          commit("setArticulosAlternativosLoading", false);
-          commit("setArticulosAlternativos", res.data);
-          return res.data;
-        }) // retornas solo el cuerpo de la respuesta
-        .catch((error) => {
-          console.error("Error al obtener descripciones alternativas:", error);
-          throw error; // lo relanzas para que lo maneje el componente si es necesario
-        });
-    },
-
-    /** obtener stock de articulos por cotización */
-    getArticuloStockPorBodega({ commit }, element) {
-      commit("resetStockArticuloPorBodega");
-      commit("setStockArticuloPorBodegaLoading", true);
-      return axiosClient
-        .post("/cotizaciones/articulo-stock-por-bodega", element)
-        .then((res) => {
-          commit("setStockArticuloPorBodegaLoading", false);
-          commit("setStockArticuloPorBodega", res.data);
-          return res.data;
-        })
-        .catch((error) => {
-          console.error("Error al obtener stock del Articulo:", error);
-          throw error; // lo relanzas para que lo maneje el componente si es necesario
-        });
-    },
-
-    getArticuloStockPorLote({ commit }, element) {
-      commit("resAtactualizarStockLote");
-      commit("setActualizarStockLoteLoading", true);
-      return axiosClient
-        .post("/cotizaciones/articulo-stock-por-bodega", element)
-        .then((res) => {
-          commit("setActualizarStockLoteLoading", false);
-          commit("setActualizarStockote", res.data);
-          return res.data;
-        })
-        .catch((error) => {
-          console.error("Error al obtener stock del Articulo:", error);
-          throw error; // lo relanzas para que lo maneje el componente si es necesario
-        });
-    },
-    /** obtener el margen del articulo L  */
-    getMargenFotItemL({ commit }, element) {
-      commit("resetMargenArticuloL");
-      commit("setMargenArticuloLLoading", true);
-      return axiosClient
-        .post("/cotizaciones/obtener-magen-item-l", element)
-        .then((res) => {
-          commit("setMargenArticuloLLoading", false);
-          commit("setMargenArticuloL", res.data);
-          return res.data;
-        })
-        .catch((error) => {
-          console.error("Error al obtener el margen del Item L:", error);
-          throw error; // lo relanzas para que lo maneje el componente si es necesario
-        });
-    },
-
-    actualizarStockIndividual({ commit }, element) {
-      commit("resetActualizarStockIndividual");
-      commit("setActualizarStockIndividualLoading", true);
-      return axiosClient
-        .post("/cotizaciones/actualizar-stock-individual", element)
-        .then((res) => {
-          commit("setActualizarStockIndividualLoading", false);
-          commit("setActualizarStockIndividual", res.data);
-          return res.data;
-        })
-        .catch((error) => {
-          console.error("Error al obtener stock del Articulo:", error);
-          throw error; // lo relanzas para que lo maneje el componente si es necesario
-        });
-    },
-
-    guardarCotizacion({ commit }, info) {
-      return axiosClient
-        .post("/cotizaciones/guardarcotizacion", info)
-        .then((res) => {
-          commit("resetCotizacion");
-          return res;
-        });
-    },
+   
 
     /**
      *  nuevas funciones
@@ -2895,11 +2733,7 @@ const store = createStore({
       state.recibos_venta = data.recibos;
     },
     setRecibosReposicion: (state, data) => {
-      // data.recibos.map( recibo => {
-      //     recibo.detalle.map( articulo => {
-      //         articulo.compartimiento = articulo.compartimientos[0].Compartimento;
-      //     });
-      // });
+      
 
       state.recibos_reposicion = data.recibos;
     },
@@ -3026,60 +2860,7 @@ const store = createStore({
       state.filtrar_cliente = null;
     },
 
-    /** NUEVAS FUNCIONALIDADES */
-    setArticulosAlternativosLoading: (state, value) => {
-      state.articulos_alternativos.loading = value;
-    },
-    setArticulosAlternativos: (state, data) => {
-      state.articulos_alternativos = data;
-    },
-
-    resetArticulosAlternativos: (state) => {
-      state.articulos_alternativos = {
-        loading: false,
-        data: [],
-      };
-    },
-
-    /** obtener el stock de cada item para cada cotización */
-    setStockArticuloPorBodegaLoading: (state, value) => {
-      state.stock_por_articulo.loading = value;
-    },
-    setStockArticuloPorBodega: (state, data) => {
-      state.stock_por_articulo = data;
-    },
-    resetStockArticuloPorBodega: (state) => {
-      state.stock_por_articulo = {
-        loading: false,
-        data: [],
-      };
-    },
-
-    /** actualizar el stock de articulos por lotes */
-    setActualizarStockLoteLoading: (state, value) => {
-      state.stock_lote.loading = value;
-    },
-    setActualizarStockote: (state, data) => {
-      state.stock_lote = data;
-    },
-    resAtactualizarStockLote: (state) => {
-      state.stock_lote = {
-        loading: false,
-        data: [],
-      };
-    },
-    setMargenArticuloLLoading: (state, value) => {
-      state.margen_articulo.loading = value;
-    },
-    setMargenArticuloL: (state, data) => {
-      state.margen_articulo = data;
-    },
-    resetMargenArticuloL: (state) => {
-      state.margen_articulo = {
-        loading: false,
-        data: [],
-      };
-    },
+     
   },
   modules: {},
 });

@@ -150,12 +150,7 @@ onMounted(() => {
                     </span>
                 </template>
 
-                <template #cell-platform1="{ row }">
-                    <span class="badge bg-body-secondary  text-muted text-uppercase fw-semibold border platform-chip">
-                        <i class="fab fa-android text-success me-1"></i>
-                        {{ row.platform }}
-                    </span>
-                </template>
+               
                 <template #cell-platform="{ row }">
                     <span class="badge  bg-body-secondary platform-chip" :class="row.platform?.toLowerCase() === 'android'
                         ? ' text-success'

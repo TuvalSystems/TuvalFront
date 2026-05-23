@@ -214,7 +214,7 @@ onMounted(async () => {
             <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchList"
-                @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled">
+                @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled" @onKeyDown="handleClick">
 
                 <template #cell-estado="{ value, row }">
                     <span v-if="row.estado === 'espera'" :class="estadoClass(value)" style="font-size:0.75rem;"

@@ -9,7 +9,6 @@ export function useQuotationReserveRequestSale(datoReserva) {
   const ptoStore = usePuntosVentaReservaLimits();
   const reservedValidation = ref(false);
   const isInvalid = ref(false);
-  // const isInvalidType = ref(false);
   const { run } = useApiAction();
 
   const reserva = reactive({
@@ -83,24 +82,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
     };
   }
 
-  watch(
-    [
-      () => Number(reserva.tipo_reserva_id),
-      () => !!unref(datoReserva)?.has_l_items,
-      () => !!unref(datoReserva)?.has_service_items,
-    ],
-    () => {
-      const { invalid, message } = validateTypeReserveHasItemLOrService();
-      isInvalid.value = invalid;
-
-      if (invalid) {
-        reserva.tipo_reserva_id = null;
-        isInvalid.value = true;
-        swalWarning(message);
-      }
-    },
-    { immediate: true }
-  );
+ 
 
   function validateHasDuplicateItems() {
     const dataCot = unref(datoReserva) ?? {};
@@ -114,22 +96,6 @@ export function useQuotationReserveRequestSale(datoReserva) {
     }
   }
 
-  watch(
-    [
-      () => Number(reserva.tipo_reserva_id)
-    ],
-    () => {
-      const { invalid, message } = validateHasDuplicateItems();
-      isInvalid.value = invalid;
-
-      if (invalid) {
-        reserva.tipo_reserva_id = null;
-        isInvalid.value = true;
-        swalWarning(message);
-      }
-    },
-    { immediate: true }
-  );
 
 
   async function solicitarReserva() {
@@ -139,7 +105,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
     if (reserva.tipo_reserva_id === null) {
       return returnErrorMessage("Seleccione un tipo de reserva");
     }
-    if (reserva.tipo_reserva_id === 1) {
+    if (Number(reserva.tipo_reserva_id) === 1) {
       if (reserva.tipo_traslado_reserva_id === null) {
         return returnErrorMessage("Seleccione un tipo de traslado");
 
@@ -153,7 +119,7 @@ export function useQuotationReserveRequestSale(datoReserva) {
       return returnErrorMessage("Ingrese una observación");
 
     }
-    if (reserva.tipo_reserva_id === 2) {
+    if (Number(reserva.tipo_reserva_id) === 2) {
       reserva.tipo_traslado_reserva_id = null;
     }
 
@@ -213,6 +179,8 @@ export function useQuotationReserveRequestSale(datoReserva) {
     resetForm,
 
     // verificacion de stock
+    validateTypeReserveHasItemLOrService,
+    validateHasDuplicateItems,
     verifyStockBeforeRequestReserve,
     loadingStockValidation,
   };

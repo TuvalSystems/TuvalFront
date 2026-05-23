@@ -8,7 +8,7 @@ export function useVersionManagementProcess() {
 
     const loadingUpdateStatus = ref(false);
     const loadingDelete = ref(false);
-    const apiBase = "/movil/admin/app/versions";
+    const apiBase = "admin/app/versions";
 
     async function updateStatusVersion(id, isActive) {
         return run(() => axiosClient.patch(`${apiBase}/${id}/active`, {
@@ -33,7 +33,8 @@ export function useVersionManagementProcess() {
 
     async function deleteVersion(id) {
         return run(() => axiosClient.delete(`${apiBase}/${id}`), {
-            loadingRef: loadingDelete
+            loadingRef: loadingDelete,
+           
         })
     }
 
@@ -111,7 +112,7 @@ export function useVersionManagementProcess() {
     }
 
 
-    const apiCreateVersion = "/movil/admin/app/versions";
+    const apiCreateVersion = "admin/app/versions";
     async function createVersion() {
         const formData = new FormData();
         formData.append("platform", form.platform ?? "android");

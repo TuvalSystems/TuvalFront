@@ -1,5 +1,5 @@
 <script setup>
-import { watch, reactive, toRefs } from 'vue';
+import { watch, reactive, toRefs, unref } from 'vue';
 import { formatPrice, formatPrice4 } from "@/functions";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -18,7 +18,8 @@ const props = defineProps({
 const { datosReserva } = toRefs(props);
 const tipoReservasStore = useTipoReservasStore();
 const { tipoReservas } = storeToRefs(tipoReservasStore);
-const { reserva, solicitarReserva, isInvalid, resetForm, isInvalidType } = useQuotationReserveRequestSale(datosReserva);
+const { reserva, solicitarReserva, isInvalid, resetForm, validateTypeReserveHasItemLOrService,
+    validateHasDuplicateItems, } = useQuotationReserveRequestSale(datosReserva);
 
 const flatPickrState = reactive({
     fecha: {
@@ -43,23 +44,57 @@ async function guardarYEmitir() {
 }
 
 function hydrateReservaForm(row) {
-
     if (!row) {
         resetForm();
         return;
     }
-    const fecha = row.value.fe_solicitud_reserva ?? null;
+
+    const fecha = row.fe_solicitud_reserva ?? null;
+
     Object.assign(reserva, {
-        cotizacion_id: row.value.cotizacion_id ?? null,
-        tipo_reserva_id: row.value.tipo_reserva_id ?? null,
-        tipo_traslado_reserva_id: row.value.tipo_traslado_reserva_id ?? null,
-        fe_solicitud_reserva: fecha ?? null,
-        obs_solicitud_reserva: row.value.obs_solicitud_reserva ?? null,
+        cotizacion_id: row.cotizacion_id ?? null,
+        tipo_reserva_id: row.tipo_reserva_id ? Number(row.tipo_reserva_id) : null,
+        tipo_traslado_reserva_id: row.tipo_traslado_reserva_id ? Number(row.tipo_traslado_reserva_id) : null,
+        fe_solicitud_reserva: fecha,
+        obs_solicitud_reserva: row.obs_solicitud_reserva ?? null,
     });
 }
+watch(
+    [
+        () => reserva.tipo_reserva_id,
+        () => !!unref(datosReserva)?.has_l_items,
+        () => !!unref(datosReserva)?.has_service_items,
+        () => !!unref(datosReserva)?.has_duplicate_items,
+    ],
+    async () => {
+        if (!reserva.tipo_reserva_id) {
+            isInvalid.value = false;
+            return;
+        }
+
+        const validations = [
+            validateTypeReserveHasItemLOrService(),
+            validateHasDuplicateItems(),
+        ];
+
+        const error = validations.find((item) => item.invalid);
+
+        if (!error) {
+            isInvalid.value = false;
+            return;
+        }
+
+        reserva.tipo_reserva_id = null;
+        reserva.tipo_traslado_reserva_id = null;
+        isInvalid.value = true;
+
+        await swalWarning(error.message);
+    },
+    { immediate: false }
+);
 
 watch(
-    () => datosReserva,
+    datosReserva,
     (row) => {
         hydrateReservaForm(row);
     },
@@ -83,25 +118,25 @@ watch(
                         <div class="block-content">
                             <div class="row g-3">
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Bodega</label>
+                                    <label for="" class="form-label text-muted fs-sm">Bodega</label>
                                     <p class="fw-semibold mb-0">{{ datosReserva.pto_venta }}</p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Cotización</label>
+                                    <label for="" class="form-label text-muted fs-sm">Cotización</label>
                                     <p class="fw-semibold mb-0">
                                         {{ datosReserva.cotizacion }}
                                     </p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Fecha</label>
+                                    <label for="" class="form-label text-muted fs-sm">Fecha</label>
                                     <p class="fw-semibold mb-0">{{ datosReserva.fecha }}</p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label text-muted fs-sm">Cliente</label>
+                                    <label for="" class="form-label text-muted fs-sm">Cliente</label>
                                     <p class="fw-semibold mb-0 text-break">{{ datosReserva.razon_social }}</p>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label text-muted fs-sm">Total</label>
+                                    <label for="" class="form-label text-muted fs-sm">Total</label>
                                     <p class="fw-semibold mb-0">${{ formatPrice(datosReserva.total) }}</p>
                                 </div>
                             </div>
@@ -123,9 +158,9 @@ watch(
                                 <div v-if="tipoReservasStore.loading"> Cargando motivos...</div>
                                 <select v-else id="tipoReserva" class="form-select form-select-sm"
                                     v-model="reserva.tipo_reserva_id">
-                                    <option disabled value="">Seleccione…</option>
+                                    <option disabled :value="null">Seleccione…</option>
                                     <option v-for="(tipo, index) in tipoReservasStore.tipoReservas" :key="index"
-                                        :value="tipo.id">
+                                        :value="Number(tipo.id)">
                                         {{ tipo.descripcion }}
                                     </option>
                                 </select>
@@ -135,8 +170,8 @@ watch(
                                 <label for="traslado" class="form-label text-muted fs-sm">Traslado</label>
                                 <select id="traslado" class="form-select form-select-sm"
                                     v-model="reserva.tipo_traslado_reserva_id" aria-describedby="trasladoHelp">
-                                    <option disabled value="">Seleccione…</option>
-                                    <option v-for="(tipo, index) in traslado" :key="index" :value="tipo.id">
+                                    <option disabled :value="null">Seleccione…</option>
+                                    <option v-for="(tipo, index) in traslado" :key="index" :value="Number(tipo.id)">
                                         {{ tipo.nombre }}
                                     </option>
                                 </select>
@@ -171,10 +206,8 @@ watch(
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
                 @click="resetForm">Cancelar</button>
-            <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir"
-                :disabled="isInvalid">
-                <span v-if="isInvalid" class="spinner-border spinner-border-sm me-2" role="status"
-                    aria-hidden="true"></span>
+            <button type="button" class="btn btn-sm btn-primary" @click="guardarYEmitir" :disabled="isInvalid">
+                <span v-if="isInvalid" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
                 Solicitar
             </button>
         </div>

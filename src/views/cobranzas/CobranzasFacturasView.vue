@@ -65,7 +65,7 @@
       </form>
       
       <div v-if="clientes.loading" class="text-center">
-        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+        <div class="spinner-border text-primary mt-4" ><span class="visually-hidden">Loading...</span></div>
       </div>
       <BaseBlock v-if="verclientes && clientes.data.length && !clientes.loading" class="mb-0">
         <div class="table-responsive">
@@ -112,7 +112,7 @@
       </BaseBlock>
 
       <div v-if="cargaCliente" class="text-center">
-        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
+        <div class="spinner-border text-primary mt-4" ><span class="visually-hidden">Loading...</span></div>
       </div>
 
       <BaseBlock  v-if="currentClienteCobro && !verclientes && !cargaCliente" class="mt-4 mb-0">

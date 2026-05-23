@@ -43,11 +43,7 @@ export const useReservationGuideProcess = () => {
   const data = reactive(structuredClone(initialState));
 
   let modo = ref("local");
-  const tipoIdentificacion = [
-    { value: "04", label: "Ruc" },
-    { value: "05", label: "Cedula" },
-    { value: "06", label: "Pasaporte" },
-  ];
+
 
   function calcularPesoItems(items) {
     const totalKg = Array.isArray(items)
@@ -116,10 +112,14 @@ export const useReservationGuideProcess = () => {
         swalWarning("Selecciona el tipo de identificación");
         return false;
       }
-      if (!validarPlacaEC(data.placa)) {
+      if (isBlank(data.placa)) {
         swalWarning("Placa inválida");
         return false;
       }
+      // if (!validarPlacaEC(data.placa)) {
+      //   swalWarning("Placa inválida");
+      //   return false;
+      // }
     }
     if (isBlank(data.fecha_llegada) || !isValidDateStr(data.fecha_llegada)) {
       swalWarning("Fecha/Hora de llegada inválida");
@@ -180,7 +180,6 @@ export const useReservationGuideProcess = () => {
     // state
     data,
     modo,
-    tipoIdentificacion,
     pesoTotalItemsFmt,
     loadingProcessGuide,
 

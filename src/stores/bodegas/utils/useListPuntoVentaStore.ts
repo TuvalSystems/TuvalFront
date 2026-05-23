@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import axiosClient from "../../../axios";
-
+import axiosClient from "@/axios";
 export interface PuntoVenta {
   id: number;
   PTO_VTA_BOD_BODEGA: string;

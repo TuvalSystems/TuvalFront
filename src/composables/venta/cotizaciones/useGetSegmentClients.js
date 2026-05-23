@@ -7,7 +7,6 @@ export function useGetSegmentClients() {
   const { run } = useApiAction();
   const apiSegments = "/cotizaciones/obtener-segmentos";
   const apiSubSegments = "/cotizaciones/obtener-subsegmentos";
-  const apiIdentify = "/cotizaciones/lista-tipo-identificaciones";
   const segmentos = ref([]);
   const subsegmentos = ref([]);
   const loadingSegmentos = ref(false);
@@ -48,21 +47,6 @@ export function useGetSegmentClients() {
     });
   }
 
-  const loadingIdentify = ref(false);
-  const listTypeIdentify = ref([]);
-  async function getListTypeIdentify() {
-    return run(() => axiosClient.get(apiIdentify), {
-      loadingRef: loadingIdentify,
-      onSuccess: (data) => {
-        listTypeIdentify.value = data;
-      }
-    });
-  }
-
-
-
-
-
   return {
     segmentos,
     subsegmentos,
@@ -70,8 +54,5 @@ export function useGetSegmentClients() {
     loadingSubSegmentos,
     fetchSegmentos,
     fetchSubSegmentos,
-    loadingIdentify,
-    listTypeIdentify,
-    getListTypeIdentify
   };
 }

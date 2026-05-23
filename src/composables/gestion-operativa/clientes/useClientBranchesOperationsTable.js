@@ -32,23 +32,23 @@ export function useClientBranchesOperationsTable() {
     ]);
 
     const columns = reactive([
-        { label: "ID", key: "id", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label: "Ruc", key: "ruc", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label: "Razón Social", key: "razonSocial", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label: "Id Dirección", key: "idDireccion", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label: "Dirección", key: "direccion", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label: "Estado", key: "estado", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label: "F. Creación", key: "created_at", sortable: true, align: "center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "ID", key: "id", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Ruc", key: "ruc", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Razón Social", key: "razonSocial", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Id Dirección", key: "idDireccion", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Dirección", key: "direccion", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "Estado", key: "estado", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "F. Creación", key: "created_at", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
     ]);
 
     const estadoClass = (st) => {
         switch (Number(st)) {
             case 1:
-                return "badge bg-success  fw-semibold";
+                return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
             case 0:
-                return "badge bg-danger  fw-semibold";
+                return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
             default:
-                return "badge bg-secondary";
+                return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
         }
     };
 
@@ -87,7 +87,7 @@ export function useClientBranchesOperationsTable() {
         await fetchList(1);
     }
 
-      async function refreshTwo() {
+    async function refreshTwo() {
         Object.assign(table.filters, {
             // search: "",
             perpage: "10",

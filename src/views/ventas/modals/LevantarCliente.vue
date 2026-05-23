@@ -55,6 +55,8 @@ async function searchFilterClientes() {
   showInfoClient.value = false;
   showInfoSucursales.value = false;
   showResultClients.value = false;
+  dataSearch.tipo ='proceso';
+
   const resp = await searchClients();
   if (!resp?.ok) {
     errorSearchClient.value = true

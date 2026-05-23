@@ -38,11 +38,7 @@ export function useSalesTransfersGuideProcess() {
     };
     const data = reactive(structuredClone(initialState));
     let modo = ref("local");
-    const tipoIdentificacion = [
-        { value: "04", label: "Ruc" },
-        { value: "05", label: "Cedula" },
-        { value: "06", label: "Pasaporte" },
-    ];
+
 
     async function calcularPesoItems(items) {
         const totalKg = Array.isArray(items)
@@ -111,10 +107,14 @@ export function useSalesTransfersGuideProcess() {
                 swalWarning("Selecciona el tipo de identificación");
                 return false;
             }
-            if (!validarPlacaEC(data.placa)) {
+            if(isBlank(data.placa)) {
                 swalWarning("Placa inválida");
                 return false;
             }
+            // if (!validarPlacaEC(data.placa)) {
+            //     swalWarning("Placa inválida");
+            //     return false;
+            // }
         }
         if (isBlank(data.fecha_llegada) || !isValidDateStr(data.fecha_llegada)) {
             swalWarning("Fecha/Hora de llegada inválida");
@@ -129,8 +129,7 @@ export function useSalesTransfersGuideProcess() {
     }
 
 
-
-
+ 
     const loading = ref(false);
     const apiCreateGuide = `bodegas/transferencia-venta/guia-remision/crear-guia-transferencia-venta`;
     async function createGuideTransfer(data) {
@@ -211,7 +210,6 @@ export function useSalesTransfersGuideProcess() {
         // state
         data,
         modo,
-        tipoIdentificacion,
         pesoTotalItemsFmt,
         loading,
         createGuideTransfer,

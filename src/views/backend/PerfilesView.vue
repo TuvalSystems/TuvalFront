@@ -139,88 +139,6 @@
         </BaseBlock>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12">
-        <BaseBlock title="Usuarios asignados">
-          <div class="table-responsive">
-            <table class="table table-vcenter">
-              <thead>
-                <tr>
-                  <th class="text-center" style="width: 50px">#</th>
-                  <th>Nombre</th>
-                  <th>Usuario</th>
-                  <th class="d-none d-sm-table-cell" style="width: 15%">
-                    Perfil Asignado
-                  </th>
-                  <th>Procesado</th>
-                  <th style="width: 100px">
-                    Restaurar Contraseña
-                  </th>
-                  <th>Credenciales Actualizadas</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(usuario, index) in usuarios.data" :key="index">
-                  <th class="text-center" scope="row">
-                    {{ index + 1 }}
-                  </th>
-                  <td class="fw-semibold fs-sm" style="width: 150px">
-                    <a href="javascript:void(0)">{{ usuario.USERNAME }}</a>
-                  </td>
-                  <td class="fw-semibold fs-sm">
-                    <a href="javascript:void(0)">{{ usuario.USERID }}</a>
-                  </td>
-                  <td class="">
-                    <select class="form-select" @change="selectusuarioperfil($event, usuario)" style="min-width:100px;">
-                      <option value=""></option>
-                      <option v-for="(perfil, index) in perfiles.data" :key="index" :value="perfil.id"
-                        :selected="perfil.id == usuario.perfil_id">{{ perfil.name }}</option>
-                    </select>
-                  </td>
-                  <td style="text-align: center;width: 50px">
-                    <div v-if="usuario.process_job == '0' || usuario.process_job == 0">
-                      <i class="fa fa-fw fa-times text-danger"></i>
-                    </div>
-                    <div v-else-if="usuario.process_job == '1' || usuario.process_job == 1">
-                      <i class="fa fa-fw fa-check text-success"></i>
-                    </div>
-
-                  </td>
-                  <td>
-                    <div style="text-align: center;">
-                      <button type="button" class="btn btn-sm btn-alt-secondary"
-                        @click="swalAlertResetPassword(usuario)">
-                        <i class="fa fa-fw fa-redo"></i>
-                      </button>
-                    </div>
-                  </td>
-                  <td style="text-align: center;width: 50px">
-                    <div v-if="usuario.must_change_password == '0' || usuario.must_change_password == 0">
-                      <i class="fa fa-fw fa-check text-success"></i>
-
-                    </div>
-                    <div v-else-if="usuario.must_change_password == '1' || usuario.must_change_password == 1">
-                      <i class="fa fa-fw fa-times text-danger"></i>
-
-                    </div>
-
-                  </td>
-                  <td>
-                    <span v-if="usuario.status == 0"
-                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-danger-light text-danger"
-                      @click="swalChangeStatus(usuario)">Inactivo</span>
-                    <span v-else
-                      class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-success-light text-success"
-                      @click="swalChangeStatus(usuario)">Activo</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </BaseBlock>
-      </div>
-    </div>
   </div>
   <!-- END Page Content -->
 </template>
@@ -228,7 +146,7 @@
 
 import { ref, computed } from "vue";
 import { useStore } from 'vuex';
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, swalError, toast } from "@/functions/swal-alert.js";
 
 
 

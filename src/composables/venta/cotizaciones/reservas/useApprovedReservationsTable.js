@@ -31,32 +31,38 @@ export function useApprovedReservationsTable() {
       clickable: false,
       sortable: true,
       render: (value) => value,
-      thClass: " text-center",
-      tdClass: " text-center",
+      align: "text-start",
+      thClass: "text-muted text-uppercase fw-bold",
+      width: "150px",
     },
     {
-      label: "Cotizacion",
+      label: "Cotización",
       key: "cotizacion",
       clickable: true,
       sortable: true,
-      thClass: " text-center",
-      tdClass: " text-center",
+      align: "text-center",
+      thClass: "text-muted text-uppercase fw-bold",
+      width: "120px",
     },
     {
       label: "Fecha",
       key: "cot_created_at",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell text-center",
-      tdClass: "d-none d-md-table-cell text-center",
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
+      tdClass: "d-none d-md-table-cell",
+      width: "150px",
     },
     {
       label: "Cliente",
       key: "CLI_RAZON_SOCIAL",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell  text-start",
-      tdClass: "d-none d-md-table-cell  text-start",
+      align: "text-start",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
+      tdClass: "d-none d-md-table-cell",
+      width: "260px",
     },
     {
       label: "Total",
@@ -64,56 +70,59 @@ export function useApprovedReservationsTable() {
       clickable: false,
       sortable: false,
       render: (value) => value,
-      thClass: "text-end",
-      tdClass: "text-end",
+      align: "text-end",
+      thClass: "text-muted text-uppercase fw-bold",
+      width: "120px",
     },
     {
       label: "Tipo Reserva",
       key: "tipo_reserva",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell text-center",
-      tdClass: "d-none d-md-table-cell text-center",
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
+      tdClass: "d-none d-md-table-cell",
+      width: "150px",
     },
     {
       label: "F. Solicitud",
       key: "fe_solicitud_reserva",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell",
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
+      width: "150px",
     },
     {
       label: "Estado",
       key: "estado",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell",
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
+      width: "140px",
     },
     {
-      label: "Mult.Bod.",
+      label: "Mult. Bod.",
       key: "bodegas_uso",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell",
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
+      width: "120px",
     },
-    // {
-    //   label: "Observacion",
-    //   key: "tx_obsSolResInv",
-    //   clickable: false,
-    //   sortable: true,
-    //   thClass: "d-none d-md-table-cell",
-    //   tdClass: "d-none d-md-table-cell",
-    // },
     {
-      label: "F. Aprobacion",
+      label: "F. Aprobación",
       key: "fe_autorizacion_reserva",
       clickable: false,
       sortable: true,
-      thClass: "d-none d-md-table-cell",
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
+      width: "150px",
     },
   ];
 
@@ -135,23 +144,31 @@ export function useApprovedReservationsTable() {
   ]);
 
   const estadoClass = (st) => {
-    switch (st || "") {
+    switch (String(st || "").toLowerCase()) {
       case "pendiente":
-        return "badge bg-dark text-light fw-semibold";
+        return "badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle fw-semibold px-3 py-2";
+
       case "aprobado":
-        return "badge bg-success  fw-semibold";
+        return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
+
       case "rechazada":
-        return "badge bg-danger  fw-semibold";
+        return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
+
       case "cancelada":
-        return "badge bg-warning  fw-semibold";
+        return "badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle fw-semibold px-3 py-2";
+
       case "procesado":
-        return "badge bg-primary  fw-semibold";
+        return "badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-3 py-2";
+
       case "traslado":
-        return "badge bg-light  text-danger fw-semibold";
+        return "badge rounded-pill bg-info-subtle text-info border border-info-subtle fw-semibold px-3 py-2";
+
       default:
-        return "badge bg-secondary";
+        return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
     }
   };
+
+
 
   const totalClass = (total) => {
     if (total > 0) {
@@ -178,7 +195,7 @@ export function useApprovedReservationsTable() {
       ptovta: table.ptovta,
       cliente: table.cliente,
     }
-    return  run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
+    return run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
       loadingRef,
       latestOnly: true,                         // 👈 activa takeLatest
       key: `lista-reserva-aprobadas`,      // 👈 clave para este endpoint
@@ -190,7 +207,7 @@ export function useApprovedReservationsTable() {
         table.totalItems = paginador?.total ?? 0;
       }
     })
-  
+
   }
 
   const refresh = () => {
@@ -235,14 +252,14 @@ export function useApprovedReservationsTable() {
     () => fetchList(1)
   );
 
-    watch(
-        () => [table.fecha_desde, table.fecha_hasta],
-        () => {
-            if (table.fecha_desde && table.fecha_hasta) {
-                fetchList(1)
-            }
-        }
-    );
+  watch(
+    () => [table.fecha_desde, table.fecha_hasta],
+    () => {
+      if (table.fecha_desde && table.fecha_hasta) {
+        fetchList(1)
+      }
+    }
+  );
   return {
     columns,
     listPerpage,

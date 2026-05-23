@@ -1,8 +1,7 @@
-import { fileURLToPath, URL } from "url";
-
+import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 import versionPlugin from './vite.version.plugin';
 
 // https://vitejs.dev/config/

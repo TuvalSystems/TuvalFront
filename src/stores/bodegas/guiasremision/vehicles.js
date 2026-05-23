@@ -13,31 +13,31 @@ export const useVehiclesStore = defineStore("vehicles", () => {
 
     async function fetch({ force = false } = {}) {
         if ((vehicles.value.length || transporters.value.length) > 0 && !force) {
-            return { vehiculos: vehicles.value, transportistas: transporters.value};
+            return { vehiculos: vehicles.value, transportistas: transporters.value };
         };
 
-            return run(() => axiosClient.post(apiVehicle), {
-                loadingRef: loading,
-                successMessage: "Items cargados correctamente.",
-                onSuccess: (resp) => { 
-                    vehicles.value = resp.vehiculos || [];
-                    transporters.value = resp.transportistas || [];
-                 },
-                onError: (backend, error) => {
-                    swalError(
-                        backend?.error ||
-                        backend?.message ||
-                        error?.message ||
-                        "Error al obtener la información"
-                    );
-                },
-            });
+        return run(() => axiosClient.post(apiVehicle), {
+            loadingRef: loading,
+            successMessage: "Items cargados correctamente.",
+            onSuccess: (resp) => {
+                vehicles.value = resp.vehiculos || [];
+                transporters.value = resp.transportistas || [];
+            },
+            onError: (backend, error) => {
+                swalError(
+                    backend?.error ||
+                    backend?.message ||
+                    error?.message ||
+                    "Error al obtener la información"
+                );
+            },
+        });
     }
 
-    function clear() { 
+    function clear() {
         vehicles.value = [];
         transporters.value = [];
-     }
+    }
 
     return { vehicles, transporters, loading, fetch, clear };
 
