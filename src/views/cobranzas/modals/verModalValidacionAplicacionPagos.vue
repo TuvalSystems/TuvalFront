@@ -32,12 +32,7 @@ function aplicarRecomendados() {
 <template>
   <BaseBlock title="Validación de montos aplicados" class="mb-0" transparent>
     <template #options>
-      <button
-        type="button"
-        class="btn-block-option"
-        aria-label="Close"
-        @click="cerrarModal"
-      >
+      <button type="button" class="btn-block-option" aria-label="Close" @click="cerrarModal">
         <i class="fa fa-fw fa-times"></i>
       </button>
     </template>
@@ -89,11 +84,12 @@ function aplicarRecomendados() {
       </div>
 
       <div class="table-responsive excess-table-wrapper">
-        <table class="table table-bordered table-sm align-middle fs-xs mb-0 validation-table">
+      <table class="table table-bordered align-middle mb-0 validation-table">
           <thead>
             <tr class="table-active">
               <th class="type-col">Tipo</th>
               <th class="invoice-col">Factura</th>
+              <th class="devolutions-col">Devoluciones</th>
               <th class="amount-col text-end">Valor ingresado</th>
               <th class="amount-col text-end">Saldo disponible</th>
               <th class="amount-col text-end">Excedente</th>
@@ -102,10 +98,7 @@ function aplicarRecomendados() {
           </thead>
 
           <tbody>
-            <tr
-              v-for="(item, index) in items"
-              :key="index"
-            >
+            <tr v-for="(item, index) in items" :key="index">
               <td>
                 <span class="badge bg-body-secondary text-muted border payment-badge">
                   {{ item.label }}
@@ -115,10 +108,20 @@ function aplicarRecomendados() {
               <td class="fw-semibold invoice-cell">
                 {{ item.invoice }}
               </td>
-
+              <td class="devolutions-cell">
+                <template v-if="item.row.devoluciones_info.length">
+                  <div v-for="(dev, devIndex) in item.row.devoluciones_info" :key="devIndex" class="devolution-item">
+                    {{ dev }}
+                  </div>
+                </template>
+                <span v-else class="text-muted">
+                  Sin devoluciones
+                </span>
+              </td>
               <td class="text-end amount-cell">
                 ${{ formatPrice(item.enteredAmount) }}
               </td>
+
 
               <td class="text-end amount-cell">
                 ${{ formatPrice(item.saldoDisponible) }}
@@ -145,20 +148,11 @@ function aplicarRecomendados() {
   </BaseBlock>
 
   <div class="content text-end mb-4 space-x-2 modal-actions">
-    <button
-      type="button"
-      class="btn btn-alt-secondary btn-sm"
-      @click="cerrarModal"
-    >
+    <button type="button" class="btn btn-alt-secondary btn-sm" @click="cerrarModal">
       Revisar manualmente
     </button>
 
-    <button
-      type="button"
-      class="btn btn-sm btn-success"
-      :disabled="items.length === 0"
-      @click="aplicarRecomendados"
-    >
+    <button type="button" class="btn btn-sm btn-success" :disabled="items.length === 0" @click="aplicarRecomendados">
       <i class="fa fa-check me-1"></i>
       Aplicar recomendados y registrar
     </button>
@@ -207,27 +201,37 @@ function aplicarRecomendados() {
 }
 
 .validation-table th {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   vertical-align: middle;
   white-space: nowrap;
+  padding: 12px 14px;
 }
 
 .validation-table td {
   vertical-align: middle;
+  padding: 12px 14px;
 }
 
 .type-col {
-  width: 115px;
+  width: 120px;
+  min-width: 120px;
 }
 
 .invoice-col {
   width: 190px;
+  min-width: 190px;
+}
+
+.devolutions-col {
+  width: 340px;
+  min-width: 340px;
 }
 
 .amount-col {
-  width: 140px;
+  width: 120px;
+  min-width: 100px;
 }
 
 .invoice-cell {
@@ -238,26 +242,21 @@ function aplicarRecomendados() {
 
 .amount-cell {
   white-space: nowrap;
+  font-size: 13px;
+}
+
+.devolutions-cell {
+  min-width: 340px;
+  max-width: 420px;
+  white-space: normal;
   font-size: 12px;
 }
 
-.payment-badge {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 5px 8px;
-}
-
-.modal-actions {
-  padding-right: 1.25rem;
-}
-
-@media (max-width: 768px) {
-  .invoice-cell {
-    white-space: normal;
-  }
-
-  .amount-col {
-    width: auto;
-  }
+.devolution-item {
+  line-height: 1.0;
+  margin-bottom: 0px;
+  padding: 4px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
 }
 </style>
