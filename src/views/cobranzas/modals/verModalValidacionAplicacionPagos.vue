@@ -84,12 +84,12 @@ function aplicarRecomendados() {
       </div>
 
       <div class="table-responsive excess-table-wrapper">
-      <table class="table table-bordered align-middle mb-0 validation-table">
+        <table class="table table-bordered align-middle mb-0 validation-table">
           <thead>
             <tr class="table-active">
               <th class="type-col">Tipo</th>
               <th class="invoice-col">Factura</th>
-              <th class="devolutions-col">Devoluciones</th>
+              <th class="devolutions-col">NC No Contabilizadas</th>
               <th class="amount-col text-end">Valor ingresado</th>
               <th class="amount-col text-end">Saldo disponible</th>
               <th class="amount-col text-end">Excedente</th>
@@ -104,17 +104,19 @@ function aplicarRecomendados() {
                   {{ item.label }}
                 </span>
               </td>
-
               <td class="fw-semibold invoice-cell">
                 {{ item.invoice }}
               </td>
               <td class="devolutions-cell">
-                <template v-if="item.row.devoluciones_info.length">
-                  <div v-for="(dev, devIndex) in item.row.devoluciones_info" :key="devIndex" class="devolution-item">
-                    {{ dev }}
+                <template v-if="item.row.devoluciones_info?.length">
+                  <div class="devolutions-list">
+                    <div v-for="(dev, devIndex) in item.row.devoluciones_info" :key="devIndex" class="devolution-item">
+                      <span>{{ dev }}</span>
+                    </div>
                   </div>
                 </template>
-                <span v-else class="text-muted">
+
+                <span v-else class="text-muted fst-italic">
                   Sin devoluciones
                 </span>
               </td>
@@ -220,13 +222,13 @@ function aplicarRecomendados() {
 }
 
 .invoice-col {
-  width: 190px;
-  min-width: 190px;
+  width: 150px;
+  min-width: 150px;
 }
 
 .devolutions-col {
-  width: 340px;
-  min-width: 340px;
+  width: 400px;
+  min-width: 400px;
 }
 
 .amount-col {
@@ -246,17 +248,27 @@ function aplicarRecomendados() {
 }
 
 .devolutions-cell {
-  min-width: 340px;
-  max-width: 420px;
+  min-width: 360px;
+  max-width: 480px;
   white-space: normal;
-  font-size: 12px;
+}
+
+.devolutions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .devolution-item {
-  line-height: 1.0;
-  margin-bottom: 0px;
-  padding: 4px 4px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f5f7fb;
+  border: 1px solid #dbe3f0;
+  color: #44546a;
+  font-size: 11px;
+  line-height: 1.4;
 }
 </style>
