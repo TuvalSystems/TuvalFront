@@ -225,19 +225,34 @@ function eliminarcheques() {
 const modalValidacionPagoRef = ref(null);
 const modalValidacionPagoObj = useBootstrapModal(modalValidacionPagoRef);
 
+const disabledPayment = ref(false);
 async function validarAplicacioneFactura() {
-  const resp = await fecthDataValidate(cobranza.value);
-  if (!resp?.ok) {
+  if (disabledPayment.value) {
     return;
   }
 
-  Object.assign(cobranza.value, resp.data);
-
-  if (cobranza.value.hasGlobalExcess) {
-    modalValidacionPagoObj.show();
+  if (!hasCollectionPaymentRecords(cobranza.value)) {
+    showEmptyCollectionWarning();
     return;
   }
-  await registrarcobro();
+
+  disabledPayment.value = true;
+  try {
+    const resp = await fecthDataValidate(cobranza.value);
+    if (!resp?.ok) {
+      return;
+    }
+
+    Object.assign(cobranza.value, resp.data);
+
+    if (cobranza.value.hasGlobalExcess) {
+      modalValidacionPagoObj.show();
+      return;
+    }
+    await registrarcobro();
+  } finally {
+    disabledPayment.value = false;
+  }
 }
 
 
@@ -370,11 +385,18 @@ function resolveValidationLabel(row) {
 
 
 async function applyRecommendationsAndRegister() {
-  applyRecommendedAmounts();
+  if (disabledPayment.value) {
+    return;
+  }
 
-  modalValidacionPagoObj.hide();
-
-  await registrarcobro();
+  disabledPayment.value = true;
+  try {
+    applyRecommendedAmounts();
+    modalValidacionPagoObj.hide();
+    await registrarcobro();
+  } finally {
+    disabledPayment.value = false;
+  }
 }
 
 function applyRecommendedAmounts() {
@@ -667,56 +689,54 @@ async function registrarcobro() {
     showEmptyCollectionWarning();
     return;
   }
-  botonRegistrarCobro.value.classList.add('hide');
 
-  store.dispatch('registrarcobro', cobranza.value).then((res) => {
+  try {
+    await store.dispatch('registrarcobro', cobranza.value);
+
     store.commit('enceraRetencion');
     store.commit('enceraCobranzas');
+
     const cliente = reactive({
       id: currentClienteCobro.value.id
     });
-    store.dispatch('cobrosRegistrados', cliente);
-    botonRegistrarCobro.value.classList.remove('hide');
-    store.dispatch('estadodecuenta', currentClienteCobro.value).then((res) => {
-      store.commit('enceraRetencion');
-      store.commit('enceraCobranzas');
-      store.commit('resetPagoaPedido');
-    })
-      .catch(err => {
-        swalError(err.response.data.error);
-        botonRegistrarCobro.value.classList.remove('hide');
-      });
-  })
-    .catch(err => {
-      const status = err.response?.status ?? 0;
-      const error =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        'Ops! Ha ocurrido un error inesperado';
 
-      if (status === 422) {
-        const htmlMessage = String(error).replace(/\n/g, '<br>');
+    await store.dispatch('cobrosRegistrados', cliente);
 
-        toast.fire({
-          title: 'Cobro bloqueado',
-          html: `
+    await store.dispatch('estadodecuenta', currentClienteCobro.value);
+
+    store.commit('enceraRetencion');
+    store.commit('enceraCobranzas');
+    store.commit('resetPagoaPedido');
+  } catch (err) {
+    const status = err.response?.status ?? 0;
+    const error =
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      'Ops! Ha ocurrido un error inesperado';
+
+    if (status === 422) {
+      const htmlMessage = String(error).replace(/\n/g, '<br>');
+
+      toast.fire({
+        title: 'Cobro bloqueado',
+        html: `
           <div class="text-start" style="font-size: 13px; line-height: 1.5;">
             ${htmlMessage}
           </div>
         `,
-          icon: 'warning',
-          confirmButtonText: 'Entendido',
-          customClass: {
-            confirmButton: 'btn btn-warning m-1',
-          },
-          buttonsStyling: false,
-        });
-      } else {
-        swalError(error);
-      }
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        customClass: {
+          confirmButton: 'btn btn-warning m-1',
+        },
+        buttonsStyling: false,
+      });
 
-      botonRegistrarCobro.value.classList.remove('hide');
-    });
+      return;
+    }
+
+    swalError(error);
+  }
 }
 </script>
 <template>
@@ -1069,7 +1089,7 @@ async function registrarcobro() {
   <div class="text-end my-4"
     v-if="cobranza.retenciones.length > 0 || cobranza.ingreso_efectivo.monto || cobranza.ingreso_tarjeta.monto || cobranza.ingreso_depositos.length > 0 || cobranza.ingreso_aplicaciones.length > 0 || cobranza.ingreso_cheques.monto_original">
     <input ref="botonRegistrarCobro" class="btn btn-success" type="button" value="Registrar Cobro"
-      @click="validarAplicacioneFactura()" />
+      :disabled="disabledPayment" @click="validarAplicacioneFactura()" />
   </div>
 
 
@@ -1078,7 +1098,7 @@ async function registrarcobro() {
     aria-labelledby="modal-validacion-aplicacion-pagos" aria-hidden="true" ref="modalValidacionPagoRef">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-validacion-pagos">
       <div class="modal-content">
-        <verModalValidacionAplicacionPagos :items="excessItems" @close-modal="modalValidacionPagoObj.hide()"
+        <verModalValidacionAplicacionPagos :items="excessItems"   :processing="disabledPayment" @close-modal="modalValidacionPagoObj.hide()"
           @apply-recommendations="applyRecommendationsAndRegister" />
       </div>
     </div>

@@ -12,6 +12,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  processing: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const excessItems = computed(() => {
@@ -268,9 +272,10 @@ function getIssueBadgeClass(item) {
       Revisar manualmente
     </button>
 
-    <button type="button" class="btn btn-sm btn-success" :disabled="items.length === 0" @click="aplicarRecomendados">
+    <button type="button" class="btn btn-sm btn-success" :disabled="items.length === 0 || processing"
+      @click="aplicarRecomendados">
       <i class="fa fa-check me-1"></i>
-      Aplicar recomendados y registrar
+      {{ processing ? 'Procesando...' : 'Aplicar recomendados y registrar' }}
     </button>
   </div>
 </template>
@@ -412,7 +417,7 @@ function getIssueBadgeClass(item) {
   margin-bottom: 6px;
 }
 
-.double-apply-item + div {
+.double-apply-item+div {
   margin-top: 2px;
 }
 </style>
