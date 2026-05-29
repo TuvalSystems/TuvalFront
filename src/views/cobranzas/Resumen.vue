@@ -636,7 +636,6 @@ function showEmptyCollectionWarning() {
 }
 
 async function registrarcobro() {
-  botonRegistrarCobro.value.classList.add('hide');
   cobranza.value.cliente_id = currentClienteCobro.value.id;
   cobranza.value.pago_a_padido = pago_a_padido.value;
   cobranza.value.puntodeventa = store.state.puntodeventaselect;
@@ -646,6 +645,7 @@ async function registrarcobro() {
     showEmptyCollectionWarning();
     return;
   }
+  botonRegistrarCobro.value.classList.add('hide');
 
   store.dispatch('registrarcobro', cobranza.value).then((res) => {
     store.commit('enceraRetencion');
