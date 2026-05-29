@@ -227,6 +227,7 @@ const modalValidacionPagoObj = useBootstrapModal(modalValidacionPagoRef);
 
 async function validarAplicacioneFactura() {
   const resp = await fecthDataValidate(cobranza.value);
+  // console.log('respuesta xd',resp);
 
   if (!resp?.ok) {
     return;
@@ -238,21 +239,26 @@ async function validarAplicacioneFactura() {
     modalValidacionPagoObj.show();
     return;
   }
-  await registrarcobro();
+  // await registrarcobro();
 }
 
 
 const excessItems = computed(() => {
-  return collectExcessItems(cobranza.value);
+  return collectValidationItems(cobranza.value);
 });
 
-function collectExcessItems(data) {
+function collectValidationItems(data) {
   const items = [];
 
   const addItem = ({ source, label, row, field, parent = null }) => {
-    if (!row?.hasExcess) {
+    const hasExcess = Boolean(row?.hasExcess);
+    const hasDoubleApply = Boolean(row?.hasDoubleApply);
+
+    if (!hasExcess && !hasDoubleApply) {
       return;
     }
+
+    const validationType = resolveValidationType(row);
 
     items.push({
       source,
@@ -268,6 +274,12 @@ function collectExcessItems(data) {
       totalApply: toNumber(row.totalApply),
       excessValue: toNumber(row.excessValue),
       priceRecommend: toNumber(row.priceRecommend),
+      hasExcess,
+      hasDoubleApply,
+      validationType,
+      validationLabel: resolveValidationLabel(row),
+      validationMessage: row.validationMessage ?? null,
+      doubleApplyDoc: row.doubleApplyDoc ?? null,
     });
   };
 
@@ -333,6 +345,29 @@ function collectExcessItems(data) {
 
   return items;
 }
+function resolveValidationType(row) {
+  if (row?.hasDoubleApply) {
+    return 'double_apply';
+  }
+
+  if (row?.hasExcess) {
+    return 'excess';
+  }
+
+  return row?.validationType ?? null;
+}
+
+function resolveValidationLabel(row) {
+  if (row?.hasDoubleApply) {
+    return 'Doble aplicación';
+  }
+
+  if (row?.hasExcess) {
+    return 'Excedente';
+  }
+
+  return 'Validación';
+}
 
 
 
@@ -364,6 +399,7 @@ function applyRecommendedAmounts() {
   });
 
   removeZeroAmountApplications(cobranza.value);
+  removeEmptyPaymentApplications(cobranza.value);
   recalculatePaymentHeaders(cobranza.value);
 
   cobranza.value.hasGlobalExcess = false;
@@ -408,7 +444,11 @@ function removeZeroAmountApplications(data) {
   });
 }
 
-
+function removeEmptyPaymentApplications(data) {
+  data.ingreso_aplicaciones = data.ingreso_aplicaciones?.filter((aplicacion) => {
+    return aplicacion.facturas?.length > 0;
+  }) ?? [];
+}
 
 function removePaymentApplicationRow(item) {
   if (!item) {
