@@ -268,7 +268,7 @@ function getIssueBadgeClass(item) {
   </BaseBlock>
 
   <div class="content text-end mb-4 space-x-2 modal-actions">
-    <button type="button" class="btn btn-alt-secondary btn-sm" @click="cerrarModal">
+    <button type="button" class="btn btn-alt-secondary btn-sm" :disabled="processing" @click="cerrarModal">
       Revisar manualmente
     </button>
 
