@@ -227,8 +227,6 @@ const modalValidacionPagoObj = useBootstrapModal(modalValidacionPagoRef);
 
 async function validarAplicacioneFactura() {
   const resp = await fecthDataValidate(cobranza.value);
-  // console.log('respuesta xd',resp);
-
   if (!resp?.ok) {
     return;
   }
@@ -239,7 +237,7 @@ async function validarAplicacioneFactura() {
     modalValidacionPagoObj.show();
     return;
   }
-  // await registrarcobro();
+  await registrarcobro();
 }
 
 
@@ -395,7 +393,10 @@ function applyRecommendedAmounts() {
     updateInvoiceBalanceAfterRecommendation(item, recommended);
 
     item.row.hasExcess = false;
+    item.row.hasDoubleApply = false;
     item.row.excessValue = 0;
+    item.row.validationType = null;
+    item.row.validationMessage = null;
   });
 
   removeZeroAmountApplications(cobranza.value);
@@ -481,9 +482,17 @@ function removePaymentApplicationRow(item) {
   }
 
   if (item.source === 'ingreso_aplicaciones') {
-    removeRowFromArray(item.parent?.facturas, item.row);
+    removePaymentApplicationGroup(item.parent);
     return;
   }
+}
+
+function removePaymentApplicationGroup(application) {
+  if (!application) {
+    return;
+  }
+
+  removeRowFromArray(cobranza.value.ingreso_aplicaciones, application);
 }
 
 function removeRowFromArray(array, row) {
