@@ -582,33 +582,55 @@ function hasRetenciones(data) {
 }
 
 function hasIngresoEfectivo(data) {
-  return Array.isArray(data.ingreso_efectivo?.facturas)
-    && data.ingreso_efectivo.facturas.some((factura) => {
-      return toNumber(factura.aplicar_monto_efectivo) > 0;
-    });
+  const efectivo = data.ingreso_efectivo;
+
+  if (!efectivo || Array.isArray(efectivo)) {
+    return false;
+  }
+
+  return toNumber(efectivo.monto) > 0
+    || toNumber(efectivo.monto_original) > 0
+    || toNumber(efectivo.efectivo_recibido) > 0
+    || toNumber(efectivo.monto_aplicado) > 0
+    || toNumber(efectivo.monto_no_aplicado) > 0;
 }
 
 function hasIngresoTarjeta(data) {
-  return Array.isArray(data.ingreso_tarjeta?.facturas)
-    && data.ingreso_tarjeta.facturas.some((factura) => {
-      return toNumber(factura.aplicar_monto_tarjeta) > 0;
-    });
+  const tarjeta = data.ingreso_tarjeta;
+
+  if (!tarjeta || Array.isArray(tarjeta)) {
+    return false;
+  }
+
+  return toNumber(tarjeta.monto) > 0
+    || toNumber(tarjeta.monto_original) > 0
+    || toNumber(tarjeta.monto_aplicado) > 0
+    || toNumber(tarjeta.monto_no_aplicado) > 0;
 }
 
 function hasIngresoCheques(data) {
-  return Array.isArray(data.ingreso_cheques?.facturas)
-    && data.ingreso_cheques.facturas.some((factura) => {
-      return toNumber(factura.aplicar_monto_cheque) > 0;
-    });
+  const cheques = data.ingreso_cheques;
+
+  if (!cheques || Array.isArray(cheques)) {
+    return false;
+  }
+
+  return toNumber(cheques.monto_original) > 0
+    || toNumber(cheques.monto_aplicado) > 0
+    || toNumber(cheques.monto_no_aplicado) > 0
+    || (
+      Array.isArray(cheques.cheques)
+      && cheques.cheques.some((cheque) => toNumber(cheque.monto) > 0)
+    );
 }
 
 function hasIngresoDepositos(data) {
   return Array.isArray(data.ingreso_depositos)
     && data.ingreso_depositos.some((deposito) => {
-      return Array.isArray(deposito.facturas)
-        && deposito.facturas.some((factura) => {
-          return toNumber(factura.aplicar_monto_deposito) > 0;
-        });
+      return toNumber(deposito.monto) > 0
+        || toNumber(deposito.monto_original) > 0
+        || toNumber(deposito.monto_aplicado) > 0
+        || toNumber(deposito.monto_no_aplicado) > 0;
     });
 }
 
