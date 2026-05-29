@@ -567,6 +567,73 @@ function roundMoney(value, decimals = 2) {
   return Number(toNumber(value).toFixed(decimals));
 }
 
+function hasCollectionPaymentRecords(data) {
+  return hasRetenciones(data)
+    || hasIngresoEfectivo(data)
+    || hasIngresoTarjeta(data)
+    || hasIngresoDepositos(data)
+    || hasIngresoAplicaciones(data)
+    || hasIngresoCheques(data);
+}
+
+function hasRetenciones(data) {
+  return Array.isArray(data.retenciones)
+    && data.retenciones.some((retencion) => toNumber(retencion.total) > 0);
+}
+
+function hasIngresoEfectivo(data) {
+  return Array.isArray(data.ingreso_efectivo?.facturas)
+    && data.ingreso_efectivo.facturas.some((factura) => {
+      return toNumber(factura.aplicar_monto_efectivo) > 0;
+    });
+}
+
+function hasIngresoTarjeta(data) {
+  return Array.isArray(data.ingreso_tarjeta?.facturas)
+    && data.ingreso_tarjeta.facturas.some((factura) => {
+      return toNumber(factura.aplicar_monto_tarjeta) > 0;
+    });
+}
+
+function hasIngresoCheques(data) {
+  return Array.isArray(data.ingreso_cheques?.facturas)
+    && data.ingreso_cheques.facturas.some((factura) => {
+      return toNumber(factura.aplicar_monto_cheque) > 0;
+    });
+}
+
+function hasIngresoDepositos(data) {
+  return Array.isArray(data.ingreso_depositos)
+    && data.ingreso_depositos.some((deposito) => {
+      return Array.isArray(deposito.facturas)
+        && deposito.facturas.some((factura) => {
+          return toNumber(factura.aplicar_monto_deposito) > 0;
+        });
+    });
+}
+
+function hasIngresoAplicaciones(data) {
+  return Array.isArray(data.ingreso_aplicaciones)
+    && data.ingreso_aplicaciones.some((aplicacion) => {
+      return Array.isArray(aplicacion.facturas)
+        && aplicacion.facturas.some((factura) => {
+          return toNumber(factura.aplicar_monto_aplicacion) > 0;
+        });
+    });
+}
+
+function showEmptyCollectionWarning() {
+  toast.fire({
+    title: 'Cobro sin registros',
+    text: 'No existen valores aplicados para registrar el cobro.',
+    icon: 'warning',
+    confirmButtonText: 'Entendido',
+    customClass: {
+      confirmButton: 'btn btn-warning m-1',
+    },
+    buttonsStyling: false,
+  });
+}
 
 async function registrarcobro() {
   botonRegistrarCobro.value.classList.add('hide');
@@ -574,6 +641,12 @@ async function registrarcobro() {
   cobranza.value.pago_a_padido = pago_a_padido.value;
   cobranza.value.puntodeventa = store.state.puntodeventaselect;
   cobranza.value.userId = store.state.user.data.USERID;
+
+  if (!hasCollectionPaymentRecords(cobranza.value)) {
+    showEmptyCollectionWarning();
+    return;
+  }
+
   store.dispatch('registrarcobro', cobranza.value).then((res) => {
     store.commit('enceraRetencion');
     store.commit('enceraCobranzas');
