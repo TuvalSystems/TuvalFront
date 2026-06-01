@@ -70,13 +70,15 @@
                 'bg-warning-light text-warning': verpedido.origen === 'reserva',
                 'bg-success-light text-success': verpedido.origen === 'factura_demanda',
                 'bg-light text-primary': verpedido.origen === 'facturar_existente',
-                'bg-light text-danger': verpedido.origen === 'devolucion'
+                'bg-light text-danger': verpedido.origen === 'devolucion',
+                'bg-info-light text-warning': verpedido.origen === 'app_movil',
               }
             ]">
               {{
                 verpedido.origen === 'factura_demanda' ? 'Factura Demanda' :
                   verpedido.origen === 'facturar_existente' ? 'Factura Existente' :
                     verpedido.origen === 'devolucion' ? 'Refacturación' :
+                    verpedido.origen === 'app_movil' ? 'App Móvil' :
                       verpedido.origen
               }}
             </span>
