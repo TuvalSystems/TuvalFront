@@ -1327,7 +1327,7 @@ onMounted(async () => {
               </div>
               <div v-if="infoSegmento" class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Segmento</small>
+                  <small class="text-muted">Sub segmento</small>
                   <div class="fw-semibold ">{{ form.segmento.subsegmento }}</div>
                 </div>
               </div>

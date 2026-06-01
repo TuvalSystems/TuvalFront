@@ -225,34 +225,53 @@ function eliminarcheques() {
 const modalValidacionPagoRef = ref(null);
 const modalValidacionPagoObj = useBootstrapModal(modalValidacionPagoRef);
 
+const disabledPayment = ref(false);
 async function validarAplicacioneFactura() {
-  const resp = await fecthDataValidate(cobranza.value);
-
-  if (!resp?.ok) {
+  if (disabledPayment.value) {
     return;
   }
 
-  Object.assign(cobranza.value, resp.data);
-
-  if (cobranza.value.hasGlobalExcess) {
-    modalValidacionPagoObj.show();
+  if (!hasCollectionPaymentRecords(cobranza.value)) {
+    showEmptyCollectionWarning();
     return;
   }
-  await registrarcobro();
+
+  disabledPayment.value = true;
+  try {
+    const resp = await fecthDataValidate(cobranza.value);
+    if (!resp?.ok) {
+      return;
+    }
+
+    Object.assign(cobranza.value, resp.data);
+
+    if (cobranza.value.hasGlobalExcess) {
+      modalValidacionPagoObj.show();
+      return;
+    }
+    await registrarcobro();
+  } finally {
+    disabledPayment.value = false;
+  }
 }
 
 
 const excessItems = computed(() => {
-  return collectExcessItems(cobranza.value);
+  return collectValidationItems(cobranza.value);
 });
 
-function collectExcessItems(data) {
+function collectValidationItems(data) {
   const items = [];
 
   const addItem = ({ source, label, row, field, parent = null }) => {
-    if (!row?.hasExcess) {
+    const hasExcess = Boolean(row?.hasExcess);
+    const hasDoubleApply = Boolean(row?.hasDoubleApply);
+
+    if (!hasExcess && !hasDoubleApply) {
       return;
     }
+
+    const validationType = resolveValidationType(row);
 
     items.push({
       source,
@@ -268,6 +287,12 @@ function collectExcessItems(data) {
       totalApply: toNumber(row.totalApply),
       excessValue: toNumber(row.excessValue),
       priceRecommend: toNumber(row.priceRecommend),
+      hasExcess,
+      hasDoubleApply,
+      validationType,
+      validationLabel: resolveValidationLabel(row),
+      validationMessage: row.validationMessage ?? null,
+      doubleApplyDoc: row.doubleApplyDoc ?? null,
     });
   };
 
@@ -333,15 +358,45 @@ function collectExcessItems(data) {
 
   return items;
 }
+function resolveValidationType(row) {
+  if (row?.hasDoubleApply) {
+    return 'double_apply';
+  }
+
+  if (row?.hasExcess) {
+    return 'excess';
+  }
+
+  return row?.validationType ?? null;
+}
+
+function resolveValidationLabel(row) {
+  if (row?.hasDoubleApply) {
+    return 'Doble aplicación';
+  }
+
+  if (row?.hasExcess) {
+    return 'Excedente';
+  }
+
+  return 'Validación';
+}
 
 
 
 async function applyRecommendationsAndRegister() {
-  applyRecommendedAmounts();
+  if (disabledPayment.value) {
+    return;
+  }
 
-  modalValidacionPagoObj.hide();
-
-  await registrarcobro();
+  disabledPayment.value = true;
+  try {
+    applyRecommendedAmounts();
+    modalValidacionPagoObj.hide();
+    await registrarcobro();
+  } finally {
+    disabledPayment.value = false;
+  }
 }
 
 function applyRecommendedAmounts() {
@@ -360,10 +415,14 @@ function applyRecommendedAmounts() {
     updateInvoiceBalanceAfterRecommendation(item, recommended);
 
     item.row.hasExcess = false;
+    item.row.hasDoubleApply = false;
     item.row.excessValue = 0;
+    item.row.validationType = null;
+    item.row.validationMessage = null;
   });
 
   removeZeroAmountApplications(cobranza.value);
+  removeEmptyPaymentApplications(cobranza.value);
   recalculatePaymentHeaders(cobranza.value);
 
   cobranza.value.hasGlobalExcess = false;
@@ -408,7 +467,11 @@ function removeZeroAmountApplications(data) {
   });
 }
 
-
+function removeEmptyPaymentApplications(data) {
+  data.ingreso_aplicaciones = data.ingreso_aplicaciones?.filter((aplicacion) => {
+    return aplicacion.facturas?.length > 0;
+  }) ?? [];
+}
 
 function removePaymentApplicationRow(item) {
   if (!item) {
@@ -441,9 +504,17 @@ function removePaymentApplicationRow(item) {
   }
 
   if (item.source === 'ingreso_aplicaciones') {
-    removeRowFromArray(item.parent?.facturas, item.row);
+    removePaymentApplicationGroup(item.parent);
     return;
   }
+}
+
+function removePaymentApplicationGroup(application) {
+  if (!application) {
+    return;
+  }
+
+  removeRowFromArray(cobranza.value.ingreso_aplicaciones, application);
 }
 
 function removeRowFromArray(array, row) {
@@ -518,61 +589,154 @@ function roundMoney(value, decimals = 2) {
   return Number(toNumber(value).toFixed(decimals));
 }
 
+function hasCollectionPaymentRecords(data) {
+  return hasRetenciones(data)
+    || hasIngresoEfectivo(data)
+    || hasIngresoTarjeta(data)
+    || hasIngresoDepositos(data)
+    || hasIngresoAplicaciones(data)
+    || hasIngresoCheques(data);
+}
+
+function hasRetenciones(data) {
+  return Array.isArray(data.retenciones)
+    && data.retenciones.some((retencion) => toNumber(retencion.total) > 0);
+}
+
+function hasIngresoEfectivo(data) {
+  const efectivo = data.ingreso_efectivo;
+
+  if (!efectivo || Array.isArray(efectivo)) {
+    return false;
+  }
+
+  return toNumber(efectivo.monto) > 0
+    || toNumber(efectivo.monto_original) > 0
+    || toNumber(efectivo.efectivo_recibido) > 0
+    || toNumber(efectivo.monto_aplicado) > 0
+    || toNumber(efectivo.monto_no_aplicado) > 0;
+}
+
+function hasIngresoTarjeta(data) {
+  const tarjeta = data.ingreso_tarjeta;
+
+  if (!tarjeta || Array.isArray(tarjeta)) {
+    return false;
+  }
+
+  return toNumber(tarjeta.monto) > 0
+    || toNumber(tarjeta.monto_original) > 0
+    || toNumber(tarjeta.monto_aplicado) > 0
+    || toNumber(tarjeta.monto_no_aplicado) > 0;
+}
+
+function hasIngresoCheques(data) {
+  const cheques = data.ingreso_cheques;
+
+  if (!cheques || Array.isArray(cheques)) {
+    return false;
+  }
+
+  return toNumber(cheques.monto_original) > 0
+    || toNumber(cheques.monto_aplicado) > 0
+    || toNumber(cheques.monto_no_aplicado) > 0
+    || (
+      Array.isArray(cheques.cheques)
+      && cheques.cheques.some((cheque) => toNumber(cheque.monto) > 0)
+    );
+}
+
+function hasIngresoDepositos(data) {
+  return Array.isArray(data.ingreso_depositos)
+    && data.ingreso_depositos.some((deposito) => {
+      return toNumber(deposito.monto) > 0
+        || toNumber(deposito.monto_original) > 0
+        || toNumber(deposito.monto_aplicado) > 0
+        || toNumber(deposito.monto_no_aplicado) > 0;
+    });
+}
+
+function hasIngresoAplicaciones(data) {
+  return Array.isArray(data.ingreso_aplicaciones)
+    && data.ingreso_aplicaciones.some((aplicacion) => {
+      return Array.isArray(aplicacion.facturas)
+        && aplicacion.facturas.some((factura) => {
+          return toNumber(factura.aplicar_monto_aplicacion) > 0;
+        });
+    });
+}
+
+function showEmptyCollectionWarning() {
+  toast.fire({
+    title: 'Cobro sin registros',
+    text: 'No existen valores aplicados para registrar el cobro.',
+    icon: 'warning',
+    confirmButtonText: 'Entendido',
+    customClass: {
+      confirmButton: 'btn btn-warning m-1',
+    },
+    buttonsStyling: false,
+  });
+}
 
 async function registrarcobro() {
-  botonRegistrarCobro.value.classList.add('hide');
   cobranza.value.cliente_id = currentClienteCobro.value.id;
   cobranza.value.pago_a_padido = pago_a_padido.value;
   cobranza.value.puntodeventa = store.state.puntodeventaselect;
   cobranza.value.userId = store.state.user.data.USERID;
-  store.dispatch('registrarcobro', cobranza.value).then((res) => {
+
+  if (!hasCollectionPaymentRecords(cobranza.value)) {
+    showEmptyCollectionWarning();
+    return;
+  }
+
+  try {
+    await store.dispatch('registrarcobro', cobranza.value);
+
     store.commit('enceraRetencion');
     store.commit('enceraCobranzas');
+
     const cliente = reactive({
       id: currentClienteCobro.value.id
     });
-    store.dispatch('cobrosRegistrados', cliente);
-    botonRegistrarCobro.value.classList.remove('hide');
-    store.dispatch('estadodecuenta', currentClienteCobro.value).then((res) => {
-      store.commit('enceraRetencion');
-      store.commit('enceraCobranzas');
-      store.commit('resetPagoaPedido');
-    })
-      .catch(err => {
-        swalError(err.response.data.error);
-        botonRegistrarCobro.value.classList.remove('hide');
-      });
-  })
-    .catch(err => {
-      const status = err.response?.status ?? 0;
-      const error =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        'Ops! Ha ocurrido un error inesperado';
 
-      if (status === 422) {
-        const htmlMessage = String(error).replace(/\n/g, '<br>');
+    await store.dispatch('cobrosRegistrados', cliente);
 
-        toast.fire({
-          title: 'Cobro bloqueado',
-          html: `
+    await store.dispatch('estadodecuenta', currentClienteCobro.value);
+
+    store.commit('enceraRetencion');
+    store.commit('enceraCobranzas');
+    store.commit('resetPagoaPedido');
+  } catch (err) {
+    const status = err.response?.status ?? 0;
+    const error =
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      'Ops! Ha ocurrido un error inesperado';
+
+    if (status === 422) {
+      const htmlMessage = String(error).replace(/\n/g, '<br>');
+
+      toast.fire({
+        title: 'Cobro bloqueado',
+        html: `
           <div class="text-start" style="font-size: 13px; line-height: 1.5;">
             ${htmlMessage}
           </div>
         `,
-          icon: 'warning',
-          confirmButtonText: 'Entendido',
-          customClass: {
-            confirmButton: 'btn btn-warning m-1',
-          },
-          buttonsStyling: false,
-        });
-      } else {
-        swalError(error);
-      }
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        customClass: {
+          confirmButton: 'btn btn-warning m-1',
+        },
+        buttonsStyling: false,
+      });
 
-      botonRegistrarCobro.value.classList.remove('hide');
-    });
+      return;
+    }
+
+    swalError(error);
+  }
 }
 </script>
 <template>
@@ -925,7 +1089,7 @@ async function registrarcobro() {
   <div class="text-end my-4"
     v-if="cobranza.retenciones.length > 0 || cobranza.ingreso_efectivo.monto || cobranza.ingreso_tarjeta.monto || cobranza.ingreso_depositos.length > 0 || cobranza.ingreso_aplicaciones.length > 0 || cobranza.ingreso_cheques.monto_original">
     <input ref="botonRegistrarCobro" class="btn btn-success" type="button" value="Registrar Cobro"
-      @click="validarAplicacioneFactura()" />
+      :disabled="disabledPayment" @click="validarAplicacioneFactura()" />
   </div>
 
 
@@ -934,7 +1098,7 @@ async function registrarcobro() {
     aria-labelledby="modal-validacion-aplicacion-pagos" aria-hidden="true" ref="modalValidacionPagoRef">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-validacion-pagos">
       <div class="modal-content">
-        <verModalValidacionAplicacionPagos :items="excessItems" @close-modal="modalValidacionPagoObj.hide()"
+        <verModalValidacionAplicacionPagos :items="excessItems"   :processing="disabledPayment" @close-modal="modalValidacionPagoObj.hide()"
           @apply-recommendations="applyRecommendationsAndRegister" />
       </div>
     </div>

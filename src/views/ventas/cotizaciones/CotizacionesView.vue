@@ -158,16 +158,15 @@
                         </span>
                       </td>
                       <td v-else class="fs-sm">
-                        <a v-if="row.estado == 'espera'" href="javascript:void(0)"
-                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-warning"
+                        <a v-if="esEstado(row, 'espera')" href="javascript:void(0)"
+                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-warning pointer"
                           @click="motivoEspera(row)">
                           {{ row.estado }}
                         </a>
-                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill" :class="row.aprobado_comercial_mensaje ? 'pointer bg-danger-light text-danger' : '' || row.estado == 'aprobado' ? 'bg-success-light text-success'
-                          : '' || row.estado == 'rechazado' ? 'bg-danger-light text-danger' : '' || row.estado == 'caducado' ? 'bg-danger-light text-danger'
-                            : '' || row.estado == 'procesado' ? 'bg-info-light text-info' : ''"
-                          @click="row.estado == 'rechazado' && row.aprobado_comercial_mensaje ? swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje) : ''">{{
-                            row.estado }}
+
+                        <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
+                          :class="estadoClass(row)" @click="handleEstadoClick(row)">
+                          {{ row.estado }}
                         </span>
                       </td>
                       <td class="fs-sm text-center">
@@ -200,7 +199,7 @@
                           aria-labelledby="dropOptions">
 
                           <!-- exportaciones -->
-                          <template v-if="row.imprimir === 'yes' && row.estado != 'caducado'">
+                          <template v-if="row.imprimir === 'yes' && !['caducado', 'borrador'].includes(row.estado)">
                             <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Exportar</li>
 
                             <!-- imprimir cotizacion sin imagenes -->
@@ -833,6 +832,41 @@ const BLOCKED_VOLVER_A_PEDIR_STATUSES = ['procesado', 'caducado'];
 const canVolverAPedir = (estado) => {
   return !BLOCKED_VOLVER_A_PEDIR_STATUSES.includes(estado);
 };
+
+
+const estadosClasses  = {
+  aprobado: 'bg-success-light text-success',
+  rechazado: 'bg-danger-light text-danger',
+  caducado: 'bg-danger-light text-danger',
+  procesado: 'bg-info-light text-info',
+  espera: 'bg-warning-light text-warning',
+  borrador: 'bg-info-light text-secondary',
+};
+
+function normalizarEstados(estado) {
+  return String(estado ?? '').trim().toLowerCase();
+}
+
+function estadoClass(row) {
+  const estado = normalizarEstados(row.estado);
+  const hasMensajeRechazo = estado === 'rechazado' && !!row.aprobado_comercial_mensaje;
+  return [
+    estadosClasses[estado] ?? 'bg-secondary-light text-secondary',
+    hasMensajeRechazo ? 'pointer' : '',
+  ];
+}
+
+
+function esEstado(row, estadoComparar) {
+  return normalizarEstados(row.estado) === normalizarEstados(estadoComparar);
+}
+
+function handleEstadoClick(row) {
+  const estado = normalizarEstado(row.estado);
+  if (estado === 'rechazado' && row.aprobado_comercial_mensaje) {
+    swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje);
+  }
+}
 
 </script>
 

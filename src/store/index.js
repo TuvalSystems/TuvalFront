@@ -625,12 +625,6 @@ const store = createStore({
           return res;
         });
     },
-    guardarOrdenPedido() {
-      return axiosClient.post(
-        "/guardarordenpedido",
-        this.state.cotizacion.data
-      );
-    },
     llenarcotizaciones({ commit }, data) {
       commit("setVercotizacionesLoading", true);
       return axiosClient

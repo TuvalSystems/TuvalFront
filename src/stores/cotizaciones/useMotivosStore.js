@@ -16,7 +16,7 @@ export const useMotivosStore = defineStore('motivos', {
 
             try {
                 const response = await axiosClient.get('/cotizaciones/lista-motivos-no-venta');
-                this.motivos = response.data;
+                this.motivos = response.data.data;
                 this.loading = false;
             } catch (error) {
                 this.error = error;
