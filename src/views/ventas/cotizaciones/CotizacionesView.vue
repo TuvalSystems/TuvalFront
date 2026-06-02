@@ -161,12 +161,12 @@
                         <a v-if="esEstado(row, 'espera')" href="javascript:void(0)"
                           class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-warning pointer"
                           @click="motivoEspera(row)">
-                          {{ row.estado }}
+                          {{ estadoLabel(row) }}
                         </a>
 
                         <span v-else class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
                           :class="estadoClass(row)" @click="handleEstadoClick(row)">
-                          {{ row.estado }}
+                          {{ estadoLabel(row) }}
                         </span>
                       </td>
                       <td class="fs-sm text-center">
@@ -199,7 +199,7 @@
                           aria-labelledby="dropOptions">
 
                           <!-- exportaciones -->
-                          <template v-if="row.imprimir === 'yes' && !['caducado', 'borrador'].includes(row.estado)">
+                          <template v-if="row.imprimir === 'yes' && !['caducado', 'borrador_app'].includes(row.estado)">
                             <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Exportar</li>
 
                             <!-- imprimir cotizacion sin imagenes -->
@@ -834,13 +834,13 @@ const canVolverAPedir = (estado) => {
 };
 
 
-const estadosClasses  = {
+const estadosClasses = {
   aprobado: 'bg-success-light text-success',
   rechazado: 'bg-danger-light text-danger',
   caducado: 'bg-danger-light text-danger',
   procesado: 'bg-info-light text-info',
   espera: 'bg-warning-light text-warning',
-  borrador: 'bg-info-light text-secondary',
+  borrador_app: 'bg-info-light text-info',
 };
 
 function normalizarEstados(estado) {
@@ -856,13 +856,26 @@ function estadoClass(row) {
   ];
 }
 
+function estadoLabel(row) {
+  const estado = normalizarEstados(row.estado);
+  const labels = {
+    borrador_app: 'Borrador App Móvil',
+    aprobado: 'Aprobado',
+    rechazado: 'Rechazado',
+    caducado: 'Caducado',
+    procesado: 'Procesado',
+    espera: 'Espera',
+  };
+
+  return labels[estado] ?? row.estado;
+}
 
 function esEstado(row, estadoComparar) {
   return normalizarEstados(row.estado) === normalizarEstados(estadoComparar);
 }
 
 function handleEstadoClick(row) {
-  const estado = normalizarEstado(row.estado);
+  const estado = normalizarEstados(row.estado);
   if (estado === 'rechazado' && row.aprobado_comercial_mensaje) {
     swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje);
   }
