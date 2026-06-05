@@ -293,6 +293,14 @@ const routes = [
           title: "Cobros - Liberar órdenes de despacho",
         },
       },
+       {
+        path: "desaplicacion-cobros",
+        name: "cobranzas-desaplicacion",
+        component: () => import("@/views/cobranzas/desaplicaciones/DesaplicacionIndex.vue"),
+        meta: {
+          title: "Cobros - Desaplicación",
+        },
+      },
     ],
   },
   {

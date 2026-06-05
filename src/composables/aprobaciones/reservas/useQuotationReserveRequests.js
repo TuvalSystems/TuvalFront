@@ -1,6 +1,8 @@
 import axiosClient from "@/axios";
 import { watch, reactive, ref, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
+import { getStatusBadgeClass } from "@/helpers/statusBadge";
+import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 export function useQuotationReserveRequests() {
   const apiList = "/reservas/lista-solicitudes-reserva";
   const { run } = useApiAction();
@@ -106,15 +108,6 @@ export function useQuotationReserveRequests() {
     },
   ];
 
-  const listPerpage = ref([
-    { label: "5", value: "5" },
-    { label: "10", value: "10" },
-    { label: "20", value: "20" },
-    { label: "50", value: "50" },
-  ]);
-
-
-
   const fetchReservationRequests = async (page = 1) => {
     if (ctrl.value) ctrl.value.abort();
     ctrl.value = new AbortController();
@@ -160,27 +153,9 @@ export function useQuotationReserveRequests() {
     table.sortOrder = order;
   };
 
- const estadoClass = (st) => {
-  switch (String(st || "").toLowerCase()) {
-    case "pendiente":
-      return "badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle fw-semibold px-3 py-2";
 
-    case "aprobado":
-      return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
 
-    case "rechazada":
-      return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
-
-    case "cancelada":
-      return "badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle fw-semibold px-3 py-2";
-
-    case "facturado":
-      return "badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-3 py-2";
-
-    default:
-      return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
-  }
-};
+const estadoClass = (st) => getStatusBadgeClass(st, 'documento');
 
   const totalClass = (total) => {
     if (total > 0) {
@@ -209,7 +184,7 @@ export function useQuotationReserveRequests() {
   return {
     //state
     columns,
-    listPerpage,
+    listPerpage: LIST_PER_PAGE_OPTIONS,
     table,
     refresh,
     //actions

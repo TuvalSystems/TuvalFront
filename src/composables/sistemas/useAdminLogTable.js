@@ -1,7 +1,8 @@
 import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-
+import { getStatusBadgeClass } from "@/helpers/statusBadge";
+import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 
 export function useAdminLogTable() {
     const { run } = useApiAction();
@@ -27,13 +28,8 @@ export function useAdminLogTable() {
     const loadingRef = toRef(table, "loading");
 
 
-    const listPerpage = ref([
-        { label: "5", value: "5" },
-        { label: "10", value: "10" },
-        { label: "20", value: "20" },
-        { label: "50", value: "50" },
-    ]);
-
+    const estadoClass = (st) => getStatusBadgeClass(st, 'documento');
+  
     const columns = reactive([
         { label: "ID", key: "id", sortable: true, align: "text-center" },
         { label: "Acción", key: "action", sortable: true, align: "text-start" },
@@ -42,24 +38,6 @@ export function useAdminLogTable() {
         {label: "Fecha", key: "created_at", sortable: true, align: "text-center"},
     ]);
 
-    const estadoClass = (st) => {
-  switch (String(st || "").toLowerCase()) {
-    case "pending":
-      return "badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle fw-semibold px-3 py-2";
-
-    case "resolved":
-      return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
-
-    case "failed":
-      return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
-
-    case "warning":
-      return "badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle fw-semibold px-3 py-2";
-
-    default:
-      return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
-  }
-};
 
 
 
@@ -132,7 +110,7 @@ export function useAdminLogTable() {
         table,
         columns,
         loadingRef,
-        listPerpage,
+        listPerpage : LIST_PER_PAGE_OPTIONS,
         fetchList,
         refresh,
         onSort,

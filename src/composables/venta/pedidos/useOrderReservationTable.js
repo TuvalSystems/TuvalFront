@@ -2,7 +2,8 @@ import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { useStore } from "vuex";
-
+import { getStatusBadgeClass } from "@/helpers/statusBadge";
+import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 export function useOrderReservationTable() {
     const { run } = useApiAction();
     const store = useStore();
@@ -146,39 +147,13 @@ export function useOrderReservationTable() {
     },
 ]);
 
-
-    const listPerpage = ref([
-        { label: "5", value: "5" },
-        { label: "10", value: "10" },
-        { label: "20", value: "20" },
-        { label: "50", value: "50" },
-    ]);
-
-
     const totalClass = (total) => {
         if (total > 0) {
             return "text-end fw-semibold";
         }
         return "text-end fw-semibold";
     };
-    const estadoClass = (st) => {
-        switch (String(st || "").toLowerCase()) {
-            case "espera":
-                return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
-
-            case "facturado":
-                return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
-
-            case "order_de_compra":
-                return "badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-3 py-2";
-
-            case "traslado":
-                return "badge rounded-pill bg-info-subtle text-info border border-info-subtle fw-semibold px-3 py-2";
-
-            default:
-                return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
-        }
-    };
+    const estadoClass = (st) => getStatusBadgeClass(st, 'documento');
 
     async function fetchList(page = 1) {
         if (ctrl.value) ctrl.value.abort();
@@ -253,7 +228,7 @@ export function useOrderReservationTable() {
     return {
         columns,
         table,
-        listPerpage,
+        listPerpage: LIST_PER_PAGE_OPTIONS,
         fetchList,
         onSort,
         refresh,

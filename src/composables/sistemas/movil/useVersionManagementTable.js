@@ -1,7 +1,8 @@
 import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-
+import { getStatusBadgeClass } from "@/helpers/statusBadge";
+import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 export function useVersionManagementTable() {
 
     const { run } = useApiAction();
@@ -24,13 +25,6 @@ export function useVersionManagementTable() {
     });
     const loadingRef = toRef(table, 'loading');
 
-    const listPerpage = ref([
-        { label: "5", value: "5" },
-        { label: "10", value: "10" },
-        { label: "20", value: "20" },
-        { label: "50", value: "50" },
-    ]);
-
 
     const columns = reactive([
         { label: "ID", key: "id", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
@@ -43,16 +37,7 @@ export function useVersionManagementTable() {
         { label: "F. Creación", key: "created_at", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
     ]);
 
-    const estadoClass = (st) => {
-        switch (Boolean(st)) {
-            case true:
-                return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
-            case false:
-                return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
-            default:
-                return "badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold px-3 py-2";
-        }
-    };
+    const estadoClass = (st) => getStatusBadgeClass(st, 'boolean');
 
     async function fetchList(page = 1) {
         if (ctrl.value) ctrl.value.abort();
@@ -117,7 +102,7 @@ export function useVersionManagementTable() {
         table,
         columns,
         loadingRef,
-        listPerpage,
+        listPerpage : LIST_PER_PAGE_OPTIONS,
         fetchList,
         refresh,
         onSort,
