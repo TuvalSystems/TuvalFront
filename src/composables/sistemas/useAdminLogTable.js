@@ -28,7 +28,7 @@ export function useAdminLogTable() {
     const loadingRef = toRef(table, "loading");
 
 
-    const estadoClass = (st) => getStatusBadgeClass(st, 'documento');
+    const estadoClass = (st) => getStatusBadgeClass(st, 'log');
   
     const columns = reactive([
         { label: "ID", key: "id", sortable: true, align: "text-center" },
