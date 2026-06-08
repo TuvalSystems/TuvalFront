@@ -313,7 +313,7 @@ onMounted(() => { });
     </div>
     <div class="d-flex justify-content-end mb-2" v-if="totalSelected > 0">
       <button type="button" class="btn btn-sm btn-success" @click="unapplicationItems(selectedItems)">
-        <i class="fa fa-rotate-left me-1"></i>
+        <i class="fa fa fa-save me-1"></i>
         Desaplicar seleccionados ({{ totalSelected }})
       </button>
     </div>
