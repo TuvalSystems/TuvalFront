@@ -3,7 +3,9 @@ import { nextTick, onMounted, ref } from "vue";
 import BaseTable from "@/components/BaseTable.vue";
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { useUnapplicationTable } from "@/composables/cobranzas/desaplicaciones/useUnapplicationTable";
+import { useUnapplicationProcess } from "@/composables/cobranzas/desaplicaciones/useUnapplicationProcess";
 import { formatPriceJm } from "@/functions";
+import verModalDesaplicacionDetalle from "@/views/cobranzas/desaplicaciones/modals/verModalDesaplicacionDetalle.vue";
 import {
     swalSuccess,
     swalError,
@@ -19,6 +21,15 @@ const {
     refresh,
     onSort,
 } = useUnapplicationTable();
+const {
+    detailPayment,
+    loadingDetail,
+    getDetail
+} = useUnapplicationProcess();
+
+
+const modalUnapplicationRef = ref(null);
+const modalUnapplicationObj = useBootstrapModal(modalUnapplicationRef);
 
 const splitCell = (value) => {
     if (!value) return [];
@@ -51,6 +62,30 @@ function isRowDisabled(row) {
 
 };
 
+const dataModal = ref(null);
+async function openModalUnapplication(row) {
+    const resp = await getDetail(row.ruc, row.factura);
+    if (!resp?.ok) {
+        const msg = resp?.message || "No se pudo actualizar el estado del usuario";
+        (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+        return;
+    }
+
+    dataModal.value = {
+        activos: resp.data?.activos ?? [],
+        inactivos: resp.data?.inactivos ?? [],
+        collectionsIds: resp.data?.collectionsIds ?? [],
+        receiptNumbers: resp.data?.receiptNumbers ?? [],
+        detalle: row,
+    };
+    await modalUnapplicationObj.show();
+}
+
+
+async function closeModal() {
+    await nextTick();
+    modalUnapplicationObj.hide();
+}
 
 onMounted(() => {
     fetchList(1);
@@ -189,32 +224,46 @@ onMounted(() => {
                     <button type="button" class="btn btn-sm btn-alt-secondary" :id="`dropOptions-${row.id}`"
                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-fw fa-ellipsis-v"></i> </button>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
-                        :aria-labelledby="`dropOptions-${row.id}`">
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" :aria-labelledby="`dropOptions-${row.id}`">
                         <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Gestión</li>
-                        <li v-if="row.apk_url">
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" :href="row.apk_url"
-                                target="_blank" rel="noopener noreferrer">
-                                <i class="fa fa-download fa-fw text-success"></i> <span>Descargar APK</span>
-                            </a>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                @click="openModalUnapplication(row)">
+                                <i class="fa fa-circle-info fa-fw text-info"></i><span>Detalle</span>
+                            </button>
                         </li>
                         <li>
-                           
+
                         </li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
                         <li>
-                          
+
                         </li>
                     </ul>
                 </template>
                 <!-- end slot de acciones -->
             </BaseTable>
             <!-- end table -->
-
         </BaseBlock>
+    </div>
 
+
+
+    <!-- modales -->
+    <div class="modal" id="modal-open-unapplication" tabindex="-1" aria-labelledby="modal-open-unapplication"
+        aria-hidden="true" ref="modalUnapplicationRef">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <verModalDesaplicacionDetalle v-if="dataModal" 
+                    :detalle="dataModal.detalle"
+                    :activos="dataModal.activos"
+                    :inactivos="dataModal.inactivos" :documentos-gp="dataModal.collectionsIds"
+                    :documentos-web="dataModal.receiptNumbers" @closeModal="closeModal" @refresh="refresh">
+                </verModalDesaplicacionDetalle>
+            </div>
+        </div>
     </div>
 
 </template>
