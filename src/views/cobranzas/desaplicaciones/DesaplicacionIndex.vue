@@ -235,12 +235,12 @@ onMounted(() => {
                         <li>
 
                         </li>
-                        <li>
+                        <!-- <li>
                             <hr class="dropdown-divider">
                         </li>
                         <li>
 
-                        </li>
+                        </li> -->
                     </ul>
                 </template>
                 <!-- end slot de acciones -->
