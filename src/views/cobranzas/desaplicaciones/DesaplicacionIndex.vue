@@ -6,6 +6,8 @@ import { useUnapplicationTable } from "@/composables/cobranzas/desaplicaciones/u
 import { useUnapplicationProcess } from "@/composables/cobranzas/desaplicaciones/useUnapplicationProcess";
 import { formatPriceJm } from "@/functions";
 import verModalDesaplicacionDetalle from "@/views/cobranzas/desaplicaciones/modals/verModalDesaplicacionDetalle.vue";
+import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
+
 import {
     swalSuccess,
     swalError,
@@ -30,6 +32,8 @@ const {
 
 const modalUnapplicationRef = ref(null);
 const modalUnapplicationObj = useBootstrapModal(modalUnapplicationRef);
+const filtrarClienteModalRef = ref(null);
+const filtrarClienteModalObj = useBootstrapModal(filtrarClienteModalRef);
 
 const splitCell = (value) => {
     if (!value) return [];
@@ -62,6 +66,17 @@ function isRowDisabled(row) {
 
 };
 
+
+// filtro cliente
+
+function levantarFiltrocliente() {
+    filtrarClienteModalObj.show();
+}
+function filtrarClienteConsulta(clienteRuc) {
+    filtrarClienteModalObj.hide();
+    table.filters.cliente = clienteRuc;
+}
+
 const dataModal = ref(null);
 async function openModalUnapplication(row) {
     const resp = await getDetail(row.ruc, row.factura);
@@ -93,15 +108,14 @@ onMounted(() => {
 </script>
 
 <template>
-    <BasePageHeading title="Desaplicaciónes Cobros">
+    <BasePageHeading title="Desaplicaciónes Cobros Web ">
         <template #extra>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb breadcrumb-alt">
                     <li class="breadcrumb-item">
-                        <a class="link-fx" href="javascript:void(0)">Sistemas</a>
+                        <a class="link-fx" href="javascript:void(0)">Cobranzas</a>
                     </li>
-                    <li class="breadcrumb-item" aria-current="page">Móvil</li>
-                    <li class="breadcrumb-item" aria-current="page">Versiones</li>
+                    <li class="breadcrumb-item" aria-current="page">Desaplicaciones</li>
                 </ol>
             </nav>
         </template>
@@ -120,6 +134,17 @@ onMounted(() => {
                     </button>
                 </div>
             </template>
+
+            <div class="row g-3 align-items-center px-2 pt-2 pb-1 mb-4">
+                <div class="col-12 col-sm-6 col-lg-2">
+                    <small class="text-muted text-uppercase fw-bold d-block  mb-2" style=" font-size: 0.7rem;">Cliente</small>
+                    <button type="button" title="Seleccionar cliente" @click="levantarFiltrocliente()"
+                        class="btn btn-outline-info btn-sm w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-2">
+                        <i class="fa fa-user"></i>
+                        <span>Cliente</span>
+                    </button>
+                </div>
+            </div>
 
             <div class="row justify-content-between align-items-center mb-3">
                 <div class="col-md-1">
@@ -256,15 +281,24 @@ onMounted(() => {
         aria-hidden="true" ref="modalUnapplicationRef">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
-                <verModalDesaplicacionDetalle v-if="dataModal" 
-                    :detalle="dataModal.detalle"
-                    :activos="dataModal.activos"
+                <verModalDesaplicacionDetalle v-if="dataModal" :detalle="dataModal.detalle" :activos="dataModal.activos"
                     :inactivos="dataModal.inactivos" :documentos-gp="dataModal.collectionsIds"
                     :documentos-web="dataModal.receiptNumbers" @closeModal="closeModal" @refresh="refresh">
                 </verModalDesaplicacionDetalle>
             </div>
         </div>
     </div>
+
+    <!-- Modal para filtro de cliente -->
+    <div class="modal" id="modal-filtrar-cliente" tabindex="-1" aria-labelledby="modal-filtrar-cliente"
+        aria-hidden="true" ref="filtrarClienteModalRef">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
+            </div>
+        </div>
+    </div>
+
 
 </template>
 

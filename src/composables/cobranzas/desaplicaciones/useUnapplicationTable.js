@@ -18,6 +18,7 @@ export function useUnapplicationTable() {
       fecha_desde: null,
       fecha_hasta: null,
       search: "",
+      cliente: "",
       sortField: "primera_fecha_aplicacion",
       sortOrder: "desc",
     },
@@ -29,11 +30,11 @@ export function useUnapplicationTable() {
     { label: "cliente", key: "cliente", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold", },
     { label: "ruc", key: "ruc", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold", width: "100px" },
     { label: "factura", key: "factura", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold", width: "150px" },
-    { label: "recibos", key: "recibos", sortable: false, align: "text-start", thClass: "text-muted text-uppercase fw-bold", },
-    { label: "documentos gp", key: "documentos_gp", sortable: false, align: "text-start", thClass: "text-muted text-uppercase fw-bold", },
+    { label: "recibos web", key: "recibos", sortable: false, align: "text-start", thClass: "text-muted text-uppercase fw-bold", },
+    { label: "Aplicaciones Web", key: "documentos_gp", sortable: false, align: "text-start", thClass: "text-muted text-uppercase fw-bold", },
     { label: "tipo", key: "tipos_medio", sortable: false, align: "text-start", thClass: "text-muted text-uppercase fw-bold", },
     { label: "Usuarios", key: "usuarios_creadores", sortable: false, align: "text-center", thClass: "text-muted text-uppercase fw-bold", },
-    { label: "total", key: "total_aplicado", sortable: false, align: "text-end", thClass: "text-muted text-uppercase fw-bold", width: "50px" },
+    { label: "total Aplicado", key: "total_aplicado", sortable: false, align: "text-end", thClass: "text-muted text-uppercase fw-bold", width: "50px" },
   ]);
 
   async function fetchList(page = 1) {
@@ -75,6 +76,7 @@ export function useUnapplicationTable() {
       perpage: "10",
       sortField: "primera_fecha_aplicacion",
       sortOrder: "desc",
+      cliente: null
     });
     table.currentPage = 1;
     await fetchList(1);
@@ -97,6 +99,11 @@ export function useUnapplicationTable() {
       }, 350);
     }
   );
+
+    watch(
+        () => [table.filters.cliente],
+        () => fetchList(1)
+    );
   watch(
     () => [table.filters.sortField, table.filters.sortOrder],
     () => fetchList(1)
