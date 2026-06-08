@@ -51,7 +51,6 @@ async function unapplicationItems(items) {
     aplicacion_factura_id: item.aplicacion_factura_id,
     observacion_desaplicacion: item.observacion_desaplicacion
   }));
-  console.log(payload, "payload limpio para desaplicar");
   const resp = await updateUnapplicationItems(payload);
   if (!resp?.ok) {
     const msg = resp?.message || "No se pudo actualizar el estado del usuario";
