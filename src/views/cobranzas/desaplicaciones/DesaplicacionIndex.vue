@@ -92,6 +92,7 @@ async function openModalUnapplication(row) {
         collectionsIds: resp.data?.collectionsIds ?? [],
         receiptNumbers: resp.data?.receiptNumbers ?? [],
         detalle: row,
+        isVisible: resp.data?.isVisible ?? false
     };
     await modalUnapplicationObj.show();
 }
@@ -281,8 +282,12 @@ onMounted(() => {
         aria-hidden="true" ref="modalUnapplicationRef">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
-                <verModalDesaplicacionDetalle v-if="dataModal" :detalle="dataModal.detalle" :activos="dataModal.activos"
-                    :inactivos="dataModal.inactivos" :documentos-gp="dataModal.collectionsIds"
+                <verModalDesaplicacionDetalle v-if="dataModal" 
+                    :detalle="dataModal.detalle" 
+                    :activos="dataModal.activos"
+                    :inactivos="dataModal.inactivos" 
+                    :documentos-gp="dataModal.collectionsIds"
+                    :is-visible="dataModal.isVisible"
                     :documentos-web="dataModal.receiptNumbers" @closeModal="closeModal" @refresh="refresh">
                 </verModalDesaplicacionDetalle>
             </div>

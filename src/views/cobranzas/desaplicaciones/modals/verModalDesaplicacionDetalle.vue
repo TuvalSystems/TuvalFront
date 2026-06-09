@@ -27,6 +27,10 @@ const props = defineProps({
   documentosWeb: {
     type: Array,
     default: () => [],
+  },
+  isVisible :{
+    type : Boolean,
+    default : false
   }
 });
 
@@ -136,7 +140,7 @@ onMounted(() => { });
       </div>
 
       <!-- Documentos encontrados en GP / Web -->
-      <div class="row g-3 mb-3">
+      <div v-if="isVisible" class="row g-3 mb-3">
         <div class="col-md-6">
           <div class="doc-card h-100">
             <div class="d-flex align-items-center justify-content-between mb-2">

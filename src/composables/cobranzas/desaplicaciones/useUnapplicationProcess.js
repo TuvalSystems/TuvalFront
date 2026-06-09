@@ -11,6 +11,7 @@ export function useUnapplicationProcess() {
         inactivos: [],
         collectionsIds: [],
         receiptNumbers: [],
+        isVisible: null
     });
 
     async function getDetail(ruc, factura) {
@@ -25,6 +26,7 @@ export function useUnapplicationProcess() {
                     inactivos: info?.inactivos ?? [],
                     collectionsIds: info?.collectionsIds ?? [],
                     receiptNumbers: info?.receiptNumbers ?? [],
+                    isVisible: info?.isVisible ?? false,
                 };
             },
             onError: () => {
@@ -33,6 +35,7 @@ export function useUnapplicationProcess() {
                     inactivos: [],
                     collectionsIds: [],
                     receiptNumbers: [],
+                    isVisible: false,
                 };
             },
         });
