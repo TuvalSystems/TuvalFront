@@ -16,20 +16,12 @@
             <tr>
               <td>
                 <div class="input-group" style="max-width: 150px;">
-                  <select 
-                    id="cobro_sin_aplicar" 
-                    name="cobro_sin_aplicar" 
-                    class="form-select fs-sm"
-                    v-model="ingreso_aplicacion.cobro"
-                    @change="selectCobro($event)"
-                    :class="{
+                  <select id="cobro_sin_aplicar" name="cobro_sin_aplicar" class="form-select fs-sm"
+                    v-model="ingreso_aplicacion.cobro" @change="selectCobro($event)" :class="{
                       'is-invalid': v$.cobro.$errors.length,
-                    }"
-                    @blur="v$.cobro.$touch"
-                    >
-                        <option v-for="(cobro, index) in cobros_sin_aplicar" :key="index"
-                      :value="index"
-                      >{{cobro.CN_DOCUMENTO}} ${{ cobro.CN_MONTO_ORIGINAL }}</option> 
+                    }" @blur="v$.cobro.$touch">
+                    <option v-for="(cobro, index) in cobros_sin_aplicar" :key="index" :value="index">
+                      {{ cobro.CN_DOCUMENTO }} ${{ cobro.CN_MONTO_ORIGINAL }}</option>
                   </select>
                 </div>
               </td>
@@ -40,7 +32,7 @@
                 {{ cobro_selected.CN_FECHA_EMISION.date.substr(0, 10) }}
               </td>
               <td class="text-end">
-               ${{ cobro_selected.CN_MONTO_ORIGINAL }}
+                ${{ cobro_selected.CN_MONTO_ORIGINAL }}
               </td>
               <td class="text-end">
                 ${{ cobro_selected.CN_SALDO_PENDIENTE }}
@@ -49,18 +41,14 @@
             <tr>
               <td colspan="4">
                 <div class="row">
-                  <label class="col-sm-4 col-form-label text-end" >Comentario:</label>
+                  <label class="col-sm-4 col-form-label text-end">Comentario:</label>
                   <div class="col-sm-8">
-                    <input 
-                      type="text" 
-                      class="form-control" 
-                      v-model="ingreso_aplicacion.comentario"
-                    />
+                    <input type="text" class="form-control" v-model="ingreso_aplicacion.comentario" />
                   </div>
                 </div>
               </td>
               <td class="text-end">
-                <input type="submit" class="btn btn-primary" value="Aplicar" id="aplicar_aplicaciones"/>
+                <input type="submit" class="btn btn-primary" value="Aplicar" id="aplicar_aplicaciones" />
               </td>
             </tr>
           </tbody>
@@ -71,7 +59,7 @@
   <div v-if="ingreso_aplicacion.monto_original" class="row">
     <div class="col-sm-12">
       <div class="row">
-        <div class="col-sm-6 offset-3"> 
+        <div class="col-sm-6 offset-3">
           <table class="table table-bordered table-sm fs-sm">
             <thead>
               <tr>
@@ -92,13 +80,8 @@
       </div>
       <div class="row">
         <div class="col-md-12 justify-content-center">
-          <Dataset
-            v-if="facturas.data && facturas.data.length"
-            v-slot="{ ds }"
-            :ds-data="facturas.data"
-            :ds-sortby="sortBy"
-            :ds-search-in="['ECD_DET_NUM_DOC',]"
-            >
+          <Dataset v-if="facturas.data && facturas.data.length" v-slot="{ ds }" :ds-data="facturas.data"
+            :ds-sortby="sortBy" :ds-search-in="['ECD_DET_NUM_DOC',]">
             <div class="row mb-2">
               <div class="col-sm-3">
                 <div class="input-group ">
@@ -112,19 +95,14 @@
             <table class="table table-bordered table-sm fs-sm centered" style="margin-bottom: 0px;">
               <thead>
                 <tr>
-                  <th
-                    v-for="(th, index) in cols"
-                    :key="th.field"
-                    :class="['sort', th.sort]"
-                    @click="onSort($event, index)"
-                    class="nowrap"
-                    >
+                  <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
+                    @click="onSort($event, index)" class="nowrap">
                     {{ th.name }} <i class="gg-select float-end"></i>
                   </th>
                   <th style="width: 31px;" class="text-center"><i class="fa fa-check"></i></th>
                   <th style="width: 120px;">Aplicar Monto</th>
                   <th>Observación</th>
-                
+
                 </tr>
               </thead>
               <DatasetItem tag="tbody">
@@ -134,47 +112,40 @@
                     <td style="width: 90px;">{{ row.ECD_DET_FECHA_EMISION }}</td>
                     <td style="width: 100px;">{{ row.ECD_DET_FECHA_VENCIMIENTO }}</td>
                     <td style="width: 90px;" class="text-end">${{ row.ECD_DET_MONTO_ORIGINAL }}</td>
-                    <td style="width: 90px;" class="text-end">${{ formatPrice(parseFloat(row.ECD_DET_SALDO_CLIENTE) - parseFloat(row.aplicar_monto_aplicacion)) }}</td>
+                    <td style="width: 90px;" class="text-end">${{ formatPrice(parseFloat(row.ECD_DET_SALDO_CLIENTE) -
+                      parseFloat(row.aplicar_monto_aplicacion)) }}</td>
                     <td style="width: 31px;" class="text-center">
-                        <input type="checkbox" class="form-check-input" v-model="row.aplicar_todo_aplicacion" @change="aplicatodo(row)"/>
+                      <input type="checkbox" class="form-check-input" v-model="row.aplicar_todo_aplicacion"
+                        @change="aplicatodo(row)" />
                     </td>
                     <td style="width: 120px;">
-                      <input 
-                        type="text" 
-                        class="form-control text-end"
-                        v-model="row.aplicar_monto_aplicacion"
-                        @change="aplicarsaldos(row)"
-                        @focus="encera(row)"
-                      />
+                      <input type="text" class="form-control text-end" v-model="row.aplicar_monto_aplicacion"
+                        @change="aplicarsaldos(row)" @focus="encera(row)" />
                     </td>
                     <td>
-                      <input 
-                        type="text" 
-                        class="form-control" 
-                        v-model="row.observacion_aplicacion"
-                      />
+                      <input type="text" class="form-control" v-model="row.observacion_aplicacion" />
                     </td>
                   </tr>
                 </template>
               </DatasetItem>
             </table>
             <div class="mt-2">
-              <DatasetPager class=""/>
+              <DatasetPager class="" />
             </div>
           </Dataset>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12 text-end">
-         <input type="button" class="btn btn-primary" value="Enviar Aplicación" @click="enviaraplicacion()"/>
+          <input type="button" class="btn btn-primary" value="Enviar Aplicación" @click="enviaraplicacion()" />
         </div>
       </div>
     </div>
-  </div>           
+  </div>
 </template>
 <script setup>
 import { ref, reactive, computed } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import useVuelidate from "@vuelidate/core";
 import { formatPrice } from "@/functions";
@@ -253,18 +224,18 @@ const ingreso_aplicacion = computed(() => store.state.ingreso_aplicacion);
 const cobro_selected = ref({
   CN_DOCUMENTO: '',
   CN_MONTO_ORIGINAL: '',
-  CN_FECHA_EMISION: {date:''},
+  CN_FECHA_EMISION: { date: '' },
   CN_MONTO_ORIGINAL: '',
   CN_SALDO_PENDIENTE: '',
 });
 const today = new Date();
-const date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 
 var currentTime = new Date();
-var startDateFrom = new Date(currentTime.getFullYear(),currentTime.getMonth(),1);
+var startDateFrom = new Date(currentTime.getFullYear(), currentTime.getMonth(), 1);
 var d = new Date(today.getFullYear(), today.getMonth(), 0);
 
-function selectCobro(){
+function selectCobro() {
   cobro_selected.value = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro];
   ingreso_aplicacion.value.monto = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro].CN_SALDO_PENDIENTE;
 }
@@ -281,15 +252,15 @@ const v$ = useVuelidate(rules, ingreso_aplicacion);
 
 // On form submission
 async function aplicar_aplicaciones() {
-  
-  facturas.value.data.map(factura=>{
+
+  facturas.value.data.map(factura => {
     factura.aplicar_todo_aplicacion = false;
     factura.aplicar_monto_aplicacion = 0;
   });
 
   store.commit('calculaSaldoFacturas');
   const result = await v$.value.$validate();
-  
+
   if (!result) {
     // notify user form is invalid
     return;
@@ -300,104 +271,149 @@ async function aplicar_aplicaciones() {
   v$.value.$reset();
 }
 
-function aplicatodo(factura){
+function aplicatodo(factura) {
   //factura.aplicar_todo_aplicacion = false;
-  if(factura.aplicar_todo_aplicacion == false){
+  if (factura.aplicar_todo_aplicacion == false) {
     factura.aplicar_monto_aplicacion = 0;
     store.commit('calculaSaldoFacturas');
-    return; 
+    return;
   }
-  
-  if(parseFloat(ingreso_aplicacion.value.monto_no_aplicado) > parseFloat(factura.ECD_DET_SALDO_CLIENTE)){
-      factura.aplicar_monto_aplicacion = formatPrice(factura.ECD_DET_SALDO_CLIENTE);
-      store.commit('calculaSaldoFacturas');
-  }else if(ingreso_aplicacion.value.monto_no_aplicado <= 0){ 
-      swalError('Ya no queda monto por aplicar');
-      factura.aplicar_todo_aplicacion = false;
-      return;
-  }else{
-      factura.aplicar_monto_aplicacion = formatPrice(ingreso_aplicacion.value.monto_no_aplicado);
-      store.commit('calculaSaldoFacturas');
+
+  if (parseFloat(ingreso_aplicacion.value.monto_no_aplicado) > parseFloat(factura.ECD_DET_SALDO_CLIENTE)) {
+    factura.aplicar_monto_aplicacion = formatPrice(factura.ECD_DET_SALDO_CLIENTE);
+    store.commit('calculaSaldoFacturas');
+  } else if (ingreso_aplicacion.value.monto_no_aplicado <= 0) {
+    swalError('Ya no queda monto por aplicar');
+    factura.aplicar_todo_aplicacion = false;
+    return;
+  } else {
+    factura.aplicar_monto_aplicacion = formatPrice(ingreso_aplicacion.value.monto_no_aplicado);
+    store.commit('calculaSaldoFacturas');
   }
 }
 
-function encera(factura){
+function encera(factura) {
   factura.aplicar_monto_aplicacion = 0;
   aplicarsaldos(factura);
 }
 
-function aplicarsaldos(factura){
-  if(isNaN(factura.aplicar_monto_aplicacion)){
-    
+function aplicarsaldos(factura) {
+  console.log('factura', factura);
+  if (isNaN(factura.aplicar_monto_aplicacion)) {
+
     swalError('Ingresar un número');
     store.commit('calculaSaldoFacturas');
     factura.aplicar_monto_aplicacion = 0;
     return false;
   }
 
-  if(parseFloat(factura.aplicar_monto_aplicacion) < 0){
+  if (parseFloat(factura.aplicar_monto_aplicacion) < 0) {
     swalWarning('No se pueden ingresar valores negativos');
     factura.aplicar_monto_aplicacion = 0;
     return false;
   }
-  
-  if(factura.aplicar_monto_aplicacion == ''){
+
+  if (factura.aplicar_monto_aplicacion == '') {
     factura.aplicar_monto_aplicacion = 0;
   }
 
-  if(parseFloat(factura.ECD_DET_SALDO_CLIENTE) < parseFloat(factura.aplicar_monto_aplicacion)){
+  if (parseFloat(factura.ECD_DET_SALDO_CLIENTE) < parseFloat(factura.aplicar_monto_aplicacion)) {
     swalInfo('La cantidad ingresada es mayor al monto pendiente de la factura');
-      factura.aplicar_monto_aplicacion = 0;
-      factura.aplicar_todo_aplicacion = false;
-      store.commit('calculaSaldoFacturas');
-      return; 
+    factura.aplicar_monto_aplicacion = 0;
+    factura.aplicar_todo_aplicacion = false;
+    store.commit('calculaSaldoFacturas');
+    return;
   }
-  
-  if(parseFloat(factura.aplicar_monto_aplicacion) == 0){
-      store.commit('calculaSaldoFacturas');
-      factura.aplicar_todo_aplicacion = false;
-  }else if(parseFloat(ingreso_aplicacion.value.monto_no_aplicado) >= parseFloat(factura.aplicar_monto_aplicacion)){
-      store.commit('calculaSaldoFacturas');
-      factura.aplicar_todo_aplicacion = true;
-  }else if(ingreso_aplicacion.value.monto_no_aplicado == 0){ 
-      swalError('Ya no queda monto por aplicar');
-      factura.aplicar_monto_aplicacion = 0;
-      factura.aplicar_todo_aplicacion = false;
-      return;
-  }else if(parseFloat(ingreso_aplicacion.value.monto_no_aplicado) < parseFloat(factura.aplicar_monto_aplicacion)){
-      swalInfo('La cantidad ingresada es mayor al Monto Pendiente');
-      factura.aplicar_monto_aplicacion = formatPrice(parseFloat(ingreso_aplicacion.value.monto_no_aplicado));
-      factura.aplicar_todo_aplicacion = true;
-      store.commit('calculaSaldoFacturas');
+
+  if (parseFloat(factura.aplicar_monto_aplicacion) == 0) {
+    store.commit('calculaSaldoFacturas');
+    factura.aplicar_todo_aplicacion = false;
+  } else if (parseFloat(ingreso_aplicacion.value.monto_no_aplicado) >= parseFloat(factura.aplicar_monto_aplicacion)) {
+    store.commit('calculaSaldoFacturas');
+    factura.aplicar_todo_aplicacion = true;
+  } else if (ingreso_aplicacion.value.monto_no_aplicado == 0) {
+    swalError('Ya no queda monto por aplicar');
+    factura.aplicar_monto_aplicacion = 0;
+    factura.aplicar_todo_aplicacion = false;
+    return;
+  } else if (parseFloat(ingreso_aplicacion.value.monto_no_aplicado) < parseFloat(factura.aplicar_monto_aplicacion)) {
+    swalInfo('La cantidad ingresada es mayor al Monto Pendiente');
+    factura.aplicar_monto_aplicacion = formatPrice(parseFloat(ingreso_aplicacion.value.monto_no_aplicado));
+    factura.aplicar_todo_aplicacion = true;
+    store.commit('calculaSaldoFacturas');
   }
   store.commit('calculaSaldoFacturas');
 }
 
-function enviaraplicacion(){
+function enviaraplicacion() {
+  const detalleAplicacion = ingreso_aplicacion.value?.detalle ?? {};
+  const documentoAplicacion = String(detalleAplicacion.CN_DOCUMENTO ?? '').trim();
 
-  ingreso_aplicacion.value.facturas = [];
-  facturas.value.data.map(factura=>{
-    if(factura.aplicar_monto_aplicacion > 0){
-      const facturaaplicacion = reactive({
-        ECD_DET_NUM_DOC: factura.ECD_DET_NUM_DOC,
-        ECD_DET_FECHA_VENCIMIENTO: factura.ECD_DET_FECHA_VENCIMIENTO,
-        ECD_DET_MONTO_ORIGINAL: factura.ECD_DET_MONTO_ORIGINAL,
-        ECD_DET_SALDO_CLIENTE: formatPrice(factura.ECD_DET_SALDO_CLIENTE - factura.aplicar_monto_aplicacion),
-        aplicar_monto_aplicacion: factura.aplicar_monto_aplicacion,
-        observacion_aplicacion: factura.observacion_aplicacion,
-      })
-      ingreso_aplicacion.value.facturas.push(facturaaplicacion);
+  if (!documentoAplicacion) {
+    swalWarning('No se encontró el documento de aplicación.');
+    return;
+  }
+
+  const facturasAplicar = [];
+
+  for (const factura of facturas.value.data) {
+    const montoAplicar = Number(factura.aplicar_monto_aplicacion ?? 0);
+
+    if (montoAplicar <= 0) {
+      continue;
     }
-  });
-  
 
-  cobranza.value.ingreso_aplicaciones.push(ingreso_aplicacion.value);
+    const facturaDocumento = String(factura.ECD_DET_NUM_DOC ?? '').trim();
+
+    const yaExiste = cobranza.value.ingreso_aplicaciones.some((aplicacion) => {
+      const docExistente = String(aplicacion?.detalle?.CN_DOCUMENTO ?? '').trim();
+
+      return docExistente === documentoAplicacion &&
+        (aplicacion.facturas ?? []).some((facturaExistente) => {
+          const facturaExistenteDoc = String(facturaExistente.ECD_DET_NUM_DOC ?? '').trim();
+
+          return facturaExistenteDoc === facturaDocumento;
+        });
+    });
+
+    if (yaExiste) {
+      swalWarning(
+        `El documento ${documentoAplicacion} ya fue aplicado a la factura ${facturaDocumento}.`
+      );
+      return;
+    }
+
+    facturasAplicar.push({
+      ECD_DET_NUM_DOC: factura.ECD_DET_NUM_DOC,
+      ECD_DET_FECHA_VENCIMIENTO: factura.ECD_DET_FECHA_VENCIMIENTO,
+      ECD_DET_MONTO_ORIGINAL: factura.ECD_DET_MONTO_ORIGINAL,
+      ECD_DET_SALDO_CLIENTE: formatPrice(
+        Number(factura.ECD_DET_SALDO_CLIENTE ?? 0) - montoAplicar
+      ),
+      aplicar_monto_aplicacion: montoAplicar,
+      observacion_aplicacion: factura.observacion_aplicacion,
+    });
+  }
+
+  if (facturasAplicar.length === 0) {
+    swalWarning('Debe ingresar un monto a aplicar en al menos una factura.');
+    return;
+  }
+
+  const nuevaAplicacion = {
+    ...ingreso_aplicacion.value,
+    facturas: facturasAplicar,
+  };
+
+  cobranza.value.ingreso_aplicaciones.push(nuevaAplicacion);
+
   store.commit('enceraAplicacion');
   store.commit('checkPermitePedido');
 
   const collapseDepositos = document.getElementById('collapseAplicar');
-  new bootstrap.Collapse(collapseDepositos)
+  new bootstrap.Collapse(collapseDepositos);
+
   const collapseCheques = document.getElementById('collapseResumen');
-  new bootstrap.Collapse(collapseCheques)
+  new bootstrap.Collapse(collapseCheques);
 }
 </script>
