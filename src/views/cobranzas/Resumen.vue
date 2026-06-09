@@ -20,7 +20,7 @@ const cobros_sin_aplicar = computed(() => store.state.cobros_sin_aplicar);
 const today = new Date();
 const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 const permite_pedido = computed(() => store.state.permite_pedido);
-const pago_a_padido = ref(() => store.state.pago_a_padido);
+const pago_a_padido = ref(store.state.pago_a_padido);
 const botonRegistrarCobro = ref(null);
 
 const {
@@ -680,7 +680,8 @@ function showEmptyCollectionWarning() {
 }
 
 async function registrarcobro() {
-  cobranza.value.cliente_id = currentClienteCobro.value.id;
+  const clienteActual = { ...currentClienteCobro.value };
+  cobranza.value.cliente_id = clienteActual.id;
   cobranza.value.pago_a_padido = pago_a_padido.value;
   cobranza.value.puntodeventa = store.state.puntodeventaselect;
   cobranza.value.userId = store.state.user.data.USERID;
@@ -696,17 +697,16 @@ async function registrarcobro() {
     store.commit('enceraRetencion');
     store.commit('enceraCobranzas');
 
-    const cliente = reactive({
-      id: currentClienteCobro.value.id
+    await store.dispatch('cobrosRegistrados', {
+      id: clienteActual.id,
     });
 
-    await store.dispatch('cobrosRegistrados', cliente);
-
-    await store.dispatch('estadodecuenta', currentClienteCobro.value);
-
-    store.commit('enceraRetencion');
-    store.commit('enceraCobranzas');
+    await store.dispatch('estadodecuenta', clienteActual);
+    console.log('cliente después de registrar:', store.state.currentClienteCobro);
+    // store.commit('enceraRetencion');
+    // store.commit('enceraCobranzas');
     store.commit('resetPagoaPedido');
+    store.commit('setCurrentclienteCobro', clienteActual);
   } catch (err) {
     const status = err.response?.status ?? 0;
     const error =
@@ -1098,8 +1098,8 @@ async function registrarcobro() {
     aria-labelledby="modal-validacion-aplicacion-pagos" aria-hidden="true" ref="modalValidacionPagoRef">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-validacion-pagos">
       <div class="modal-content">
-        <verModalValidacionAplicacionPagos :items="excessItems"   :processing="disabledPayment" @close-modal="modalValidacionPagoObj.hide()"
-          @apply-recommendations="applyRecommendationsAndRegister" />
+        <verModalValidacionAplicacionPagos :items="excessItems" :processing="disabledPayment"
+          @close-modal="modalValidacionPagoObj.hide()" @apply-recommendations="applyRecommendationsAndRegister" />
       </div>
     </div>
   </div>
