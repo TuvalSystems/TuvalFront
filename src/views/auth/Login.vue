@@ -38,7 +38,7 @@
                       </span>
 
                       <input type="text" class="form-control border-start-0 ps-0" id="login-username"
-                        name="login-username" placeholder="Ingrese su usuario" autocomplete="username"
+                        name="login-username" placeholder=" Ingrese su usuario" autocomplete="username"
                         v-model.trim="state.username" :disabled="isLoading"
                         :class="{ 'is-invalid': v$.username.$error }" @blur="v$.username.$touch" @input="clearError" />
 
@@ -59,7 +59,7 @@
                       </span>
 
                       <input type="password" class="form-control border-start-0 ps-0" id="login-password"
-                        name="login-password" placeholder="Ingrese su contraseña" autocomplete="current-password"
+                        name="login-password" placeholder=" Ingrese su contraseña" autocomplete="current-password"
                         v-model="state.password" :disabled="isLoading" :class="{ 'is-invalid': v$.password.$error }"
                         @blur="v$.password.$touch" @input="clearError" />
 
