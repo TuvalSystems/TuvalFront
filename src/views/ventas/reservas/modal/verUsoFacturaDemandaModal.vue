@@ -59,7 +59,7 @@ async function procesar() {
         }
 
     }
-    let ord = resp?.data
+    let ord = resp?.data?.order
     emit('closeModalUsoFacturaDemanda', true);
     swalSuccess(resp?.message);
     if (ord.requiere_aprobacion_comercial === "yes") {
