@@ -1,7 +1,8 @@
 import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-
+import { getStatusBadgeClass } from "@/helpers/statusBadge";
+import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 export function useUserTable() {
 
     const { run } = useApiAction();
@@ -24,23 +25,8 @@ export function useUserTable() {
     });
 
     const loadingRef = toRef(table, "loading");
-    const listPerpage = ref([
-        { label: "5", value: "5" },
-        { label: "10", value: "10" },
-        { label: "20", value: "20" },
-        { label: "50", value: "50" },
-    ]);
-
-    const estadoClass = (st) => {
-        switch (Boolean(st)) {
-            case true:
-                return "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2";
-            case false:
-                return "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
-            default:
-                return "badge rounded-pill bg-secondary-subtle text-secondary border fw-semibold px-3 py-2";
-        }
-    };
+  
+    const estadoClass = (st) => getStatusBadgeClass(st, 'boolean');
 
     const booleanBadgeClass = (value) => {
         return Boolean(value)
@@ -117,7 +103,7 @@ export function useUserTable() {
 
     return {
         table,
-        listPerpage,
+        listPerpage : LIST_PER_PAGE_OPTIONS,
         columns,
         loadingRef,
         fetchList,
