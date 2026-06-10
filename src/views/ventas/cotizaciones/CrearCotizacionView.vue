@@ -236,6 +236,7 @@ const showInfoClient = ref(false);
 
 async function searchFilterClientes() {
   // clearForm(uploadedFiles);//limpia el formulario 
+  await clearCotizacion();
   showResultClients.value = true;
   showInfoClient.value = false;
   if (dataSearch.search == null || dataSearch.search.length < 4) {
