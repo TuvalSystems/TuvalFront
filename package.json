@@ -52,7 +52,6 @@
     "pusher-js": "^8.4.0",
     "simplebar": "^5.3.6",
     "sweetalert2": "^11.4.6",
-    "uuid": "^8.3.2",
     "v-click-outside": "^3.2.0",
     "vue": "^3.2.31",
     "vue-chart-3": "^3.1.6",
