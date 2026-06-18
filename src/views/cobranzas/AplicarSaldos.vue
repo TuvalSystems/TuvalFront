@@ -23,13 +23,15 @@
                     <option v-for="(cobro, index) in cobros_sin_aplicar" :key="index" :value="index">
                       {{ cobro.CN_DOCUMENTO }} ${{ cobro.CN_MONTO_ORIGINAL }}</option>
                   </select>
+                  <button type="button" class="btn btn-sm btn-primary" @click="updatedListApplicationDocs"> <i
+                      class="si si-refresh"></i></button>
                 </div>
               </td>
               <td>
                 {{ cobro_selected.CN_DOCUMENTO }}
               </td>
               <td>
-                {{ cobro_selected.CN_FECHA_EMISION.date.substr(0, 10) }}
+                  {{ cobro_selected.CN_FECHA_EMISION?.date?.slice(0, 10) ?? '' }}
               </td>
               <td class="text-end">
                 ${{ cobro_selected.CN_MONTO_ORIGINAL }}
@@ -149,6 +151,12 @@ import { useStore } from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import useVuelidate from "@vuelidate/core";
 import { formatPrice } from "@/functions";
+import { useCustomerApplicationsPending } from "@/composables/cobranzas/cobros/useCustomerApplicationsPending";
+
+const {
+  isUpdatingApplicationBalances,
+  refreshPendingApplicationDocumentBalances
+} = useCustomerApplicationsPending();
 import {
   required,
   decimal,
@@ -218,6 +226,7 @@ function onSort(event, i) {
 
 const store = useStore();
 const cobranza = computed(() => store.state.cobranza);
+const currentClienteCobro = computed(() => store.state.currentClienteCobro);
 const facturas = computed(() => store.state.facturas);
 const cobros_sin_aplicar = computed(() => store.state.cobros_sin_aplicar);
 const ingreso_aplicacion = computed(() => store.state.ingreso_aplicacion);
@@ -415,5 +424,42 @@ function enviaraplicacion() {
 
   const collapseCheques = document.getElementById('collapseResumen');
   new bootstrap.Collapse(collapseCheques);
+}
+
+
+async function updatedListApplicationDocs() {
+  const collections = cobros_sin_aplicar.value ?? [];
+  if (!collections.length) {
+    swalWarning("No existen cobros sin aplicar para actualizar.");
+    return;
+  }
+
+  const clientId = currentClienteCobro.value.id;
+  if (!clientId) {
+    swalWarning("No se encontró el cliente para actualizar los saldos.");
+    return;
+  }
+
+  const resp = await refreshPendingApplicationDocumentBalances(clientId, collections);
+  if (!resp?.ok) {
+    const msg = resp?.message || "Opps! Ocurrio un Error inesperado";
+    (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    return;
+  }
+  const updatedCollections = resp?.data ?? [];
+  cobros_sin_aplicar.value.splice(
+    0,
+    cobros_sin_aplicar.value.length,
+    ...updatedCollections
+  );
+  const selectedIndex = ingreso_aplicacion.value?.cobro;
+  if (selectedIndex !== null && selectedIndex !== undefined && selectedIndex !== "") {
+    const selectedCollection = cobros_sin_aplicar.value[selectedIndex];
+    if (selectedCollection) {
+      cobro_selected.value = selectedCollection;
+      ingreso_aplicacion.value.monto = selectedCollection.CN_SALDO_PENDIENTE;
+    }
+  }
+  swalSuccess(resp?.message);
 }
 </script>

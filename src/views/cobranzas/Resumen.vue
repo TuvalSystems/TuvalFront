@@ -682,7 +682,6 @@ function showEmptyCollectionWarning() {
 }
 
 async function registrarcobro() {
-  return;
   const clienteActual = { ...currentClienteCobro.value };
   cobranza.value.cliente_id = clienteActual.id;
   cobranza.value.pago_a_padido = pago_a_padido.value;
@@ -705,7 +704,6 @@ async function registrarcobro() {
     });
 
     await store.dispatch('estadodecuenta', clienteActual);
-    console.log('cliente después de registrar:', store.state.currentClienteCobro);
     // store.commit('enceraRetencion');
     // store.commit('enceraCobranzas');
     store.commit('resetPagoaPedido');
