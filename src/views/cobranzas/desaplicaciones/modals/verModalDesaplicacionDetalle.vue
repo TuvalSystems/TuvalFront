@@ -131,7 +131,7 @@ onMounted(() => { });
           </div>
 
           <div class="col-md-3 text-md-end">
-            <small class="text-label-muted">Total Aplicado</small>
+            <small class="text-label-muted">Total Aplicado Web</small>
             <div class="fw-bold text-success">
               ${{ detalle.total_aplicado ?? '0.00' }}
             </div>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useStore } from 'vuex'
-import { swalError, toast } from "@/functions/swal-alert.js";
+import { swalError, swalWarning, toast } from "@/functions/swal-alert.js";
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
 import { formatPrice } from "@/functions";
 //import de composables 
@@ -240,6 +240,8 @@ async function validarAplicacioneFactura() {
   try {
     const resp = await fecthDataValidate(cobranza.value);
     if (!resp?.ok) {
+      const msg = resp?.message || "Opps! Ocurrio un Error inesperado";
+      (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
       return;
     }
 
@@ -702,7 +704,6 @@ async function registrarcobro() {
     });
 
     await store.dispatch('estadodecuenta', clienteActual);
-    console.log('cliente después de registrar:', store.state.currentClienteCobro);
     // store.commit('enceraRetencion');
     // store.commit('enceraCobranzas');
     store.commit('resetPagoaPedido');
