@@ -20,18 +20,18 @@
                     v-model="ingreso_aplicacion.cobro" @change="selectCobro($event)" :class="{
                       'is-invalid': v$.cobro.$errors.length,
                     }" @blur="v$.cobro.$touch">
-                    <option v-for="(cobro, index) in cobros_sin_aplicar" :key="index" :value="index">
+                    <option v-for="cobro in cobros_sin_aplicar" :key="cobro.CN_DOCUMENTO" :value="cobro.CN_DOCUMENTO">
                       {{ cobro.CN_DOCUMENTO }} ${{ cobro.CN_MONTO_ORIGINAL }}</option>
                   </select>
-                  <button type="button" class="btn btn-sm btn-primary" @click="updatedListApplicationDocs" :disabled="isUpdatingApplicationBalances"> <i
-                      class="si si-refresh"></i></button>
+                  <button type="button" class="btn btn-sm btn-primary" @click="updatedListApplicationDocs"
+                    :disabled="isUpdatingApplicationBalances"> <i class="si si-refresh"></i></button>
                 </div>
               </td>
               <td>
                 {{ cobro_selected.CN_DOCUMENTO }}
               </td>
               <td>
-                  {{ cobro_selected.CN_FECHA_EMISION?.date?.slice(0, 10) ?? '' }}
+                {{ cobro_selected.CN_FECHA_EMISION?.date?.slice(0, 10) ?? '' }}
               </td>
               <td class="text-end">
                 ${{ cobro_selected.CN_MONTO_ORIGINAL }}
@@ -244,9 +244,46 @@ var currentTime = new Date();
 var startDateFrom = new Date(currentTime.getFullYear(), currentTime.getMonth(), 1);
 var d = new Date(today.getFullYear(), today.getMonth(), 0);
 
-function selectCobro() {
-  cobro_selected.value = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro];
-  ingreso_aplicacion.value.monto = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro].CN_SALDO_PENDIENTE;
+function selectCobro($event) {
+  const selectedDoc = String($event.target.value ?? '').trim();
+  const currentDoc = String(cobro_selected.value?.CN_DOCUMENTO ?? '').trim();
+
+
+  const selectedCollection = cobros_sin_aplicar.value.find((item) => {
+    return String(item.CN_DOCUMENTO ?? '').trim() === selectedDoc;
+  });
+  console.log(selectedCollection);
+  
+  if (!selectedCollection) {
+    swalWarning('No se encontró el cobro seleccionado.');
+    return;
+  }
+
+  if (currentDoc && selectedDoc !== currentDoc) {
+    clearSelectedInvoiceApplications();
+  }
+
+  cobro_selected.value = selectedCollection;
+  ingreso_aplicacion.value.monto = selectedCollection.CN_SALDO_PENDIENTE
+  // console.log(cobro_selected.value);
+  // cobro_selected.value = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro];
+  // ingreso_aplicacion.value.monto = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro].CN_SALDO_PENDIENTE;
+}
+
+function clearSelectedInvoiceApplications() {
+  const invoiceList = facturas.value?.data ?? [];
+
+  invoiceList.forEach(factura => {
+    factura.aplicar_todo_aplicacion = false;
+    factura.aplicar_monto_aplicacion = 0;
+    factura.observacion_aplicacion = '';
+  });
+
+  ingreso_aplicacion.value.monto_original = 0;
+  ingreso_aplicacion.value.monto_no_aplicado = 0;
+  ingreso_aplicacion.value.monto_aplicado = 0;
+  ingreso_aplicacion.value.detalle = {};
+  store.commit('calculaSaldoFacturas');
 }
 
 const rules = computed(() => {
@@ -276,7 +313,7 @@ async function aplicar_aplicaciones() {
   }
   ingreso_aplicacion.value.monto_original = ingreso_aplicacion.value.monto;
   ingreso_aplicacion.value.monto_no_aplicado = ingreso_aplicacion.value.monto;
-  ingreso_aplicacion.value.detalle = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro];
+  ingreso_aplicacion.value.detalle = cobro_selected.value;
   v$.value.$reset();
 }
 
@@ -356,8 +393,9 @@ function aplicarsaldos(factura) {
 
 function enviaraplicacion() {
   const detalleAplicacion = ingreso_aplicacion.value?.detalle ?? {};
+  console.log( 'detalle', detalleAplicacion);
   const documentoAplicacion = String(detalleAplicacion.CN_DOCUMENTO ?? '').trim();
-
+  
   if (!documentoAplicacion) {
     swalWarning('No se encontró el documento de aplicación.');
     return;
