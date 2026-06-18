@@ -23,7 +23,7 @@
                     <option v-for="(cobro, index) in cobros_sin_aplicar" :key="index" :value="index">
                       {{ cobro.CN_DOCUMENTO }} ${{ cobro.CN_MONTO_ORIGINAL }}</option>
                   </select>
-                  <button type="button" class="btn btn-sm btn-primary" @click="updatedListApplicationDocs"> <i
+                  <button type="button" class="btn btn-sm btn-primary" @click="updatedListApplicationDocs" :disabled="isUpdatingApplicationBalances"> <i
                       class="si si-refresh"></i></button>
                 </div>
               </td>
