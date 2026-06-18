@@ -252,7 +252,6 @@ function selectCobro($event) {
   const selectedCollection = cobros_sin_aplicar.value.find((item) => {
     return String(item.CN_DOCUMENTO ?? '').trim() === selectedDoc;
   });
-  console.log(selectedCollection);
   
   if (!selectedCollection) {
     swalWarning('No se encontró el cobro seleccionado.');
@@ -265,7 +264,6 @@ function selectCobro($event) {
 
   cobro_selected.value = selectedCollection;
   ingreso_aplicacion.value.monto = selectedCollection.CN_SALDO_PENDIENTE
-  // console.log(cobro_selected.value);
   // cobro_selected.value = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro];
   // ingreso_aplicacion.value.monto = cobros_sin_aplicar.value[ingreso_aplicacion.value.cobro].CN_SALDO_PENDIENTE;
 }
@@ -344,7 +342,6 @@ function encera(factura) {
 }
 
 function aplicarsaldos(factura) {
-  console.log('factura', factura);
   if (isNaN(factura.aplicar_monto_aplicacion)) {
 
     swalError('Ingresar un número');
@@ -393,7 +390,6 @@ function aplicarsaldos(factura) {
 
 function enviaraplicacion() {
   const detalleAplicacion = ingreso_aplicacion.value?.detalle ?? {};
-  console.log( 'detalle', detalleAplicacion);
   const documentoAplicacion = String(detalleAplicacion.CN_DOCUMENTO ?? '').trim();
   
   if (!documentoAplicacion) {
