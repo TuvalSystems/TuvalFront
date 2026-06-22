@@ -175,6 +175,44 @@ export function useArticleSegmentClassification(articles = ref([])) {
         return `${config.descripcionNivel || ""} - Nivel ${config.codigoNivel}/5`;
     }
 
+
+    const selectedSegmentConfig = computed(() => {
+        if (!hasCompleteSegmentFilter.value) {
+            return null;
+        }
+
+        const matches = classificationConfigList.value.filter(conf => {
+            return isSameValue(conf.codigoCategoria, segmentFilters.codigoCategoria)
+                && isSameValue(conf.codigoLinea, segmentFilters.codigoLinea)
+                && isSameValue(conf.codigoClase, segmentFilters.codigoClase);
+        });
+
+        if (matches.length === 0) {
+            return null;
+        }
+
+        return matches
+            .slice()
+            .sort((a, b) => Number(b.codigoNivel || 0) - Number(a.codigoNivel || 0))[0];
+    });
+
+
+    const selectedSegmentLevel = computed(() => {
+        const level = Number(selectedSegmentConfig.value?.codigoNivel || 0);
+        return Math.min(Math.max(level, 0), 5);
+    });
+    
+
+    const selectedSegmentLabel = computed(() => {
+        const config = selectedSegmentConfig.value;
+
+        if (!config) {
+            return "";
+        }
+
+        return `${config.descripcionNivel || ""} - Nivel ${config.codigoNivel}/5`;
+    });
+
     //sort order de nivel 
     const levelSortDirection = ref(null);
     const articlesWithSegmentLevel = computed(() => {
@@ -279,6 +317,9 @@ export function useArticleSegmentClassification(articles = ref([])) {
         categoryList,
         lineList,
         classList,
+        selectedSegmentConfig,
+        selectedSegmentLevel,
+        selectedSegmentLabel,
 
         //limpieza
         clearSegmentFilters,
@@ -290,6 +331,8 @@ export function useArticleSegmentClassification(articles = ref([])) {
         //filtro para asignacion de estrellas 
         getArticleSegmentLevel,
         getArticleSegmentLabel,
+
+
 
         //ordenamiento 
         articlesWithSegmentLevel,

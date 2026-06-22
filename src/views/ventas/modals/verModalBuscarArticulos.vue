@@ -69,6 +69,9 @@ const {
     categoryList,
     lineList,
     classList,
+    selectedSegmentConfig,
+    selectedSegmentLevel,
+    selectedSegmentLabel,
 
     //limpieza
     clearSegmentFilters,
@@ -195,7 +198,7 @@ function sortByLevel() {
 }
 
 onMounted(() => {
-  fetchSegmentConfigLevel();
+    fetchSegmentConfigLevel();
 });
 
 
@@ -218,7 +221,7 @@ onMounted(() => {
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_codigo">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                            }}</option>
+                                }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_codigo"
                             @keyup.enter="buscarArticulo" />
@@ -235,7 +238,7 @@ onMounted(() => {
                         <select class="form-select border-1 shadow-sm" style="flex: 0 0 170px;"
                             v-model="payload.select_nombre">
                             <option v-for="(op, index) in searchOptions" :key="index" :value="op.value"> {{ op.label
-                            }}</option>
+                                }}</option>
                         </select>
                         <input type="text" class="form-control border-1 shadow-sm" v-model="payload.text_nombre"
                             @keyup.enter="buscarArticulo" />
@@ -266,14 +269,24 @@ onMounted(() => {
                     <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
                         Filtro por clasificación
                     </small>
-
                     <div class="d-flex align-items-center gap-2 mt-1">
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
                             {{ form.segmento?.subsegmento || 'Sin subsegmento' }}
                         </span>
+                    </div>
+                    <div v-if="hasCompleteSegmentFilter" class="d-flex align-items-center gap-2 mt-2">
+                        <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
+                            Nivel:
+                        </small>
 
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
-                            <!-- {{ filteredArticles.length }} items -->
+                        <span class="text-nowrap" :title="selectedSegmentLabel">
+                            <i v-for="star in 5" :key="star" class="fa fa-star me-1" :class="star <= selectedSegmentLevel
+                                ? 'text-warning'
+                                : 'text-muted opacity-25'"></i>
+                        </span>
+
+                        <span class="badge bg-light text-muted border">
+                            {{ selectedSegmentLevel }}/5
                         </span>
                     </div>
                 </div>
@@ -374,7 +387,8 @@ onMounted(() => {
                         </thead>
                         <DatasetItem tag="tbody" class="fs-sm">
                             <template #default="{ row }">
-                                <tr :class="['fs-sm', {'table-danger' : row.debe_resaltar}]" :style="getArticleSegmentRowStyle(row)">
+                                <tr :class="['fs-sm', { 'table-danger': row.debe_resaltar }]"
+                                    :style="getArticleSegmentRowStyle(row)">
                                     <td>
                                         <a v-if="row.imagenes.length" href="javascript:void(0)"
                                             @click="showPhoto(row.imagenes)">
