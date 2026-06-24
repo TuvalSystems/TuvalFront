@@ -4,7 +4,7 @@
       <div class="row justify-content-center">
         <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
           <div class="login-card">
-            <BaseBlock class="mb-0 overflow-hidden border-0 shadow-lg rounded-4">
+            <BaseBlock class="mb-0 overflow-hidden border-0 shadow-lg rounded-3">
               <div class="p-4 p-sm-5">
 
                 <!-- Logo / Header -->
