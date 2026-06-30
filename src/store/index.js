@@ -1820,6 +1820,8 @@ const store = createStore({
       state.user.token = null;
       state.user.home = null;
       state.user.menu = [];
+      state.home = null;
+      state.menu = [];
       state.currentCliente = null;
       state.currentSucursal = null;
       state.currentTest = null;
@@ -1944,6 +1946,18 @@ const store = createStore({
         "PUNTODEVENTASELECT",
         userData.puntodeventaselect.PTO_VTA_ID
       );
+    },
+    setUserAccess: (state, data) => {
+      const menu = Array.isArray(data?.menu) ? data.menu : [];
+      const home = typeof data?.home === "string" ? data.home : data?.home?.to;
+
+      state.menu = menu;
+      sessionStorage.setItem("MENU", JSON.stringify(menu));
+
+      if (home) {
+        state.home = home;
+        sessionStorage.setItem("HOME", home);
+      }
     },
     setSeccionesLoading: (state, loading) => {
       state.sections.loading = loading;

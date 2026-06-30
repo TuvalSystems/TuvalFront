@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
 import { ref, reactive } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-
+import { SYSTEM_USERS_API_ROUTES } from "@/constants/apiRoutes/sistema/userRoutes";
 
 
 function hasMobileAppAccess(row) {
@@ -111,13 +111,26 @@ export function useUserActions() {
     });
     const loadingUpdateProfiles = ref(false);
     const apiChangeDetailUser = 'usuario/actualizar-perfiles';
-    async function updateProfilesUser(){
-        return run(() => axiosClient.post(apiChangeDetailUser, {form}),{
-            loadingRef : loadingUpdateProfiles,
+    async function updateProfilesUser() {
+        return run(() => axiosClient.post(apiChangeDetailUser, { form }), {
+            loadingRef: loadingUpdateProfiles,
         });
     }
 
 
+
+    const loadingSectionsActive = ref(false);
+    const listSectionsActives = ref([]);
+    const homeSectionActive = ref(null);
+    async function fetchSectionsActivesByUser() {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.OBTENER_SECCIONES_ACTIVAS), {
+            loadingRef: loadingSectionsActive,
+            onSuccess: (info) => {
+                listSectionsActives.value = Array.isArray(info?.menu) ? info.menu : [];
+                homeSectionActive.value = info?.home ?? null;
+            }
+        });
+    }
 
 
 
@@ -154,7 +167,13 @@ export function useUserActions() {
         //proceso de actualizacion de detalle de usuario 
         form,
         loadingUpdateProfiles,
-        updateProfilesUser
+        updateProfilesUser,
+
+        //secciones activas del usuario autenticado
+        loadingSectionsActive,
+        listSectionsActives,
+        homeSectionActive,
+        fetchSectionsActivesByUser
 
     }
 }
