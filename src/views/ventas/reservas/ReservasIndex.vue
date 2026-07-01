@@ -336,6 +336,16 @@ onBeforeUnmount(() => {
                         {{ bod }}
                         </code>
                 </template>
+                <!-- diseño de las campos autorizadores -->
+                <template #cell-usuario_aprobador="{value}" >
+                    <span v-if="value" class="badge-usuario-aprobador">{{ value }}</span>
+                    <span v-else> Sin Aprobador</span>
+                </template> 
+                <template #cell-fe_ingreso_autorizacion_reserva="{value}">
+                    <span v-if="value" class="badge-fecha-autorizacion" >{{ value }}</span>
+                    <span v-else> Sin Fecha</span>
+
+                </template>
                 <template #actions="{ row }">
                     <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -420,3 +430,31 @@ onBeforeUnmount(() => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.badge-usuario-aprobador {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 6px;
+    background-color: #e7f1ff;
+    color: #0d47a1;
+    border: 1px solid #b6d4fe;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-fecha-autorizacion {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 6px;
+    background-color: #e7f1ff;
+    color: #0d47a1;
+    border: 1px solid #b6d4fe;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+</style>
