@@ -98,6 +98,9 @@ onUnmounted(() => {
               </button>
               <div class="dropdown-menu dropdown-menu-end fs-sm smini-hide border-0 shadow-sm" aria-labelledby="sidebar-themes-dropdown">
                 <h6 class="dropdown-header border-bottom">Paleta de Colores</h6>
+                <button type="button" class="dropdown-item d-flex align-items-center justify-content-between fw-medium" @click="store.setColorTheme({ theme: 'minimal' })">
+                  <span>Minimal</span> <i class="fa fa-circle text-minimal"></i>
+                </button>
                 <button type="button" class="dropdown-item d-flex align-items-center justify-content-between fw-medium" @click="store.setColorTheme({ theme: '' })">
                   <span>Por defecto</span> <i class="fa fa-circle text-default"></i>
                 </button>

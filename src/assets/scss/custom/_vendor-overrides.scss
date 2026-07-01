@@ -1,0 +1,55 @@
+//
+// Vendor overrides
+// --------------------------------------------------
+
+.swal2-popup {
+  color: var(--tuval-text) !important;
+  background-color: var(--tuval-surface) !important;
+  border: 1px solid var(--tuval-border) !important;
+  border-radius: var(--tuval-radius-lg) !important;
+  box-shadow: var(--tuval-shadow-md) !important;
+}
+
+.swal2-title {
+  color: var(--tuval-text) !important;
+}
+
+.swal2-html-container {
+  color: var(--tuval-text-muted) !important;
+}
+
+.swal2-input,
+.swal2-textarea {
+  color: var(--tuval-text) !important;
+  background-color: var(--tuval-surface) !important;
+  border-color: var(--tuval-border) !important;
+}
+
+.vs__dropdown-toggle,
+.vs__dropdown-menu {
+  border-color: var(--tuval-border);
+  border-radius: var(--tuval-radius-sm);
+}
+
+.vs__dropdown-option--highlight {
+  background-color: var(--tuval-primary);
+}
+
+.dropzone {
+  border-color: var(--tuval-border);
+  border-radius: var(--tuval-radius-md);
+}
+
+#nprogress .bar {
+  background-color: var(--tuval-primary);
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--tuval-primary), 0 0 5px var(--tuval-primary);
+}
+
+.vel-btns-wrapper .btn__next,
+.vel-btns-wrapper .btn__prev {
+  padding: 30px;
+  background: #000;
+}

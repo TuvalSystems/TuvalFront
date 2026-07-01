@@ -5,6 +5,7 @@ import router from './router'
 import App from './App.vue'
 import Maska from 'maska'
 import { echo } from './resources/echo'
+import "@/assets/scss/app.scss";
 import {
   Dataset,
   DatasetItem,

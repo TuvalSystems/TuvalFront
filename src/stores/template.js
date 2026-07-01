@@ -24,12 +24,12 @@ export const useTemplateStore = defineStore({
     // Default template settings
     // Various of them are also set in each layout variation under layouts/variations/ folder
     settings: {
-      colorTheme: "", // 'amethyst', 'city', 'flat', 'modern', 'smooth'
+      colorTheme: "minimal", // 'minimal', 'amethyst', 'city', 'flat', 'modern', 'smooth'
       darkMode: false,
       darkModeSystem: true,
       sidebarLeft: true,
       sidebarMini: false,
-      sidebarDark: true,
+      sidebarDark: false,
       sidebarVisibleDesktop: true,
       sidebarVisibleMobile: false,
       sideOverlayVisible: false,

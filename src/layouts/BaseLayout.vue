@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watchEffect } from "vue";
 import { useTemplateStore } from "@/stores/template";
 
 // Import all layout partials
@@ -13,6 +13,19 @@ const store = useTemplateStore();
 // Set default color theme
 store.setColorTheme({
   theme: store.settings.colorTheme,
+});
+
+watchEffect(() => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.body.classList.toggle("dark-mode", store.settings.darkMode);
+  document.documentElement.dataset.bsTheme = store.settings.darkMode
+    ? "dark"
+    : "light";
+  document.documentElement.dataset.colorTheme =
+    store.settings.colorTheme || "default";
 });
 
 // Render main classes based on store options

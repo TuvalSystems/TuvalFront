@@ -42,6 +42,16 @@ const store = useTemplateStore();
         </div>
         <div class="col-6 col-xl-2 py-4">
           <a
+            @click="store.setColorTheme({ theme: 'minimal' })"
+            class="item item-link-pop item-circle bg-minimal text-white-75 mx-auto mb-3"
+            href="javascript:void(0)"
+          >
+            <i class="fa fa-paint-roller"></i>
+          </a>
+          <div class="fw-semibold">Minimal</div>
+        </div>
+        <div class="col-6 col-xl-2 py-4">
+          <a
             @click="store.setColorTheme({ theme: 'amethyst' })"
             class="item item-link-pop item-circle bg-amethyst text-white-75 mx-auto mb-3"
             href="javascript:void(0)"
