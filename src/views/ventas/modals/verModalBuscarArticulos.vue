@@ -1,8 +1,7 @@
 <script setup>
 import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle";
-import { useArticleSegmentClassification } from "@/composables/venta/cotizaciones/crearCotizacion/useArticleSegmentClassification";
-import { watch, onMounted } from 'vue';
-import { swalError, swalWarning } from "@/functions/swal-alert";
+import { onMounted, watch } from 'vue';
+import { swalError } from "@/functions/swal-alert";
 import VueEasyLightbox from "vue-easy-lightbox";
 import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4 } from "@/functions";
 
@@ -59,48 +58,9 @@ const {
     fetchStockExposicion
 } = useSearchArticle();
 
-
-const {
-    loadingConfig,
-    classificationConfigList,
-    segmentFilters,
-
-    //listas 
-    categoryList,
-    lineList,
-    classList,
-    selectedSegmentConfig,
-    selectedSegmentLevel,
-    selectedSegmentLabel,
-
-    //limpieza
-    clearSegmentFilters,
-    hasActiveSegmentFilter,
-    hasCompleteSegmentFilter,
-
-    fetchSegmentClassificationConfig,
-
-    //filtro para asignacion de estrellas 
-    getArticleSegmentLevel,
-    getArticleSegmentLabel,
-
-    //ordenamiento 
-    articlesWithSegmentLevel,
-    toggleLevelSort,
-    clearLevelSort,
-
-    //configuracion de color 
-    loadingConfigLevel,
-    configLevel,
-    fetchSegmentConfigLevel,
-    getArticleSegmentRowStyle
-
-} = useArticleSegmentClassification(articles);
-
 watch(
     () => props.form?.cliente?.CLI_NIVEL_PRECIO,
     (newVal) => {
-
         if (newVal) {
             payload.nivel_precio = newVal;
         }
@@ -111,7 +71,6 @@ watch(
 async function buscarArticulo() {
     if (!validateSearch()) return;
     const resp = await fetchSearchArticles();
-    clearSegmentFilters();
     if (!resp.ok) {
         swalError(resp.message);
         return
@@ -160,48 +119,7 @@ async function closeModal() {
     emit('closeModal');
 }
 
-async function resetSearchAndFilters() {
-    await resetSearch();
-    clearSegmentFilters();
-}
-
-
-/**filtro de segmentacion de clasificacion */
-
-watch(
-    () => props.form?.segmento?.coAtrHijo,
-    async (codigoSegmento) => {
-        if (!codigoSegmento) return;
-        segmentFilters.codigoSegmento = codigoSegmento;
-        clearSegmentFilters();
-        const resp = await fetchSegmentClassificationConfig();
-        if (resp && !resp.ok) {
-            const msg = resp?.message || "No se pudo actualizar el estado del usuario";
-            (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
-        }
-    },
-    { immediate: true }
-);
-
-
-function sortColumn(event, index) {
-    clearLevelSort();
-    onSort(event, index);
-}
-
-function sortByLevel() {
-    cols.forEach(col => {
-        col.sort = "";
-    });
-
-    toggleLevelSort();
-}
-
-onMounted(() => {
-    fetchSegmentConfigLevel();
-});
-
-
+onMounted(() => { });
 </script>
 
 <template>
@@ -250,7 +168,7 @@ onMounted(() => {
                         v-model="payload.terminal" @keyup.enter="buscarArticulo" />
                 </div>
                 <div class="col-12 text-end mt-3 ">
-                    <button class="btn btn-sm btn-alt-secondary me-2" @click="resetSearchAndFilters">
+                    <button class="btn btn-sm btn-alt-secondary me-2" @click="resetSearch">
                         <i class="fa fa-eraser"></i>
                     </button>
                     <button class="btn btn-sm btn-primary px-4" @click="buscarArticulo">
@@ -258,94 +176,8 @@ onMounted(() => {
                     </button>
                 </div>
             </div>
-
-
-        </div>
-        <!-- filtros de segmentación -->
-        <div v-if="articles.length > 0 && !loadingArt" class="mt-3 px-3 py-2 border rounded">
-            <div class="row g-2 align-items-end">
-
-                <div class="col-12 col-lg-3">
-                    <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
-                        Filtro por clasificación
-                    </small>
-                    <div class="d-flex align-items-center gap-2 mt-1">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
-                            {{ form.segmento?.subsegmento || 'Sin subsegmento' }}
-                        </span>
-                    </div>
-                    <div v-if="hasCompleteSegmentFilter" class="d-flex align-items-center gap-2 mt-2">
-                        <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
-                            Nivel:
-                        </small>
-
-                        <span class="text-nowrap" :title="selectedSegmentLabel">
-                            <i v-for="star in 5" :key="star" class="fa fa-star me-1" :class="star <= selectedSegmentLevel
-                                ? 'text-warning'
-                                : 'text-muted opacity-25'"></i>
-                        </span>
-
-                        <span class="badge bg-light text-muted border">
-                            {{ selectedSegmentLevel }}/5
-                        </span>
-                    </div>
-                </div>
-                <!-- Categoría -->
-                <div class="col-12 col-md-4 col-lg-3">
-                    <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
-                        Categoría
-                    </small>
-                    <select name="select-clasificacion-categoria" id="select-clasificacion-categoria"
-                        class="form-select form-select-sm border-1 shadow-sm" v-model="segmentFilters.codigoCategoria"
-                        :disabled="loadingConfig">
-                        <option value="" disabled>Seleccione categoría</option>
-                        <option v-for="cat in categoryList" :key="cat.value" :value="cat.value">{{ cat.label }}
-                        </option>
-                    </select>
-                </div>
-
-                <!-- Línea -->
-                <div v-if="segmentFilters.codigoCategoria" class="col-12 col-md-4 col-lg-3">
-                    <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
-                        Línea
-                    </small>
-                    <select id="select-clasificacion-linea" name="select-clasificacion-linea"
-                        class="form-select form-select-sm border-1 shadow-sm" v-model="segmentFilters.codigoLinea">
-                        <option value="" disabled>Seleccione línea</option>
-                        <option v-for="line in lineList" :key="line.value" :value="line.value">{{ line.label }}
-                        </option>
-                    </select>
-                </div>
-
-                <!-- Clase -->
-                <div v-if="segmentFilters.codigoLinea" class="col-12 col-md-4 col-lg-2">
-                    <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
-                        Clase
-                    </small>
-                    <select id="select-clasificacion-clase" name="select-clasificacion-clase"
-                        class="form-select form-select-sm border-1 shadow-sm" v-model="segmentFilters.codigoClase">
-                        <option value="" disabled>Seleccione clase</option>
-                        <option v-for="cls in classList" :key="cls.value" :value="cls.value">{{ cls.label }}
-                        </option>
-                    </select>
-                </div>
-
-                <!-- Limpiar -->
-                <div class="col-12 col-lg-1 text-end">
-                    <button type="button" class="btn btn-sm btn-alt-secondary w-100" @click="clearSegmentFilters"
-                        :disabled="!hasActiveSegmentFilter" title="Limpiar filtros">
-                        <i class="fa fa-eraser"></i>
-                    </button>
-                </div>
-
-
-            </div>
-
         </div>
 
-
-
-        <!-- estado de carga de datos -->
         <div v-if="loadingArt" class="text-center py-4">
             <div class="spinner-border text-primary mt-4"><span class="visually-hidden">Loading...</span>
             </div>
@@ -353,7 +185,7 @@ onMounted(() => {
 
         <!-- detalle de busqueda -->
         <div v-if="articles.length > 0 && !loadingArt" class="block-content block-content-full">
-            <Dataset v-slot="{ ds }" :ds-data="articlesWithSegmentLevel" :ds-sortby="sortBy"
+            <Dataset v-slot="{ ds }" :ds-data="articles" :ds-sortby="sortBy"
                 :ds-search-in="['ART_CODIGO', 'ART_DESCRIPCION', 'ART_CODIGO_TRES_LETRAS', 'ART_PLAN_UMEDIDA', 'ART_STOCK', 'ART_VALOR']">
                 <div class="row" :data-page-count="ds.dsPagecount">
                     <div id="datasetLengthPedidos" class="col-md-8 py-1">
@@ -375,53 +207,35 @@ onMounted(() => {
                         <thead>
                             <tr>
                                 <th></th>
-                                <th class="text-center sort" style="width: 6rem; cursor: pointer;" @click="sortByLevel">
-                                    Nivel
-                                    <i class="gg-select float-end"></i>
-                                </th>
                                 <th v-for="(th, index) in cols" :key="th.field" :class="['sort', th.sort]"
-                                    @click="sortColumn($event, index)" class="text-center">
+                                    @click="onSort($event, index)" class="text-center">
                                     {{ th.name }} <i class="gg-select float-end"></i>
                                 </th>
                             </tr>
                         </thead>
                         <DatasetItem tag="tbody" class="fs-sm">
                             <template #default="{ row }">
-                                <tr :class="['fs-sm', { 'table-danger': row.debe_resaltar }]"
-                                    :style="getArticleSegmentRowStyle(row)">
+                                <tr :class="row.debe_resaltar ? 'table-danger fs-sm' : ''">
                                     <td>
                                         <a v-if="row.imagenes.length" href="javascript:void(0)"
                                             @click="showPhoto(row.imagenes)">
                                             <i class="fa fa-search"></i>
                                         </a>
                                     </td>
-                                    <td class="text-center text-nowrap" style="width: 6rem;">
-                                        <template v-if="getArticleSegmentLevel(row) > 0">
-                                            <span :title="getArticleSegmentLabel(row)">
-                                                <i v-for="star in 5" :key="star" class="fa fa-star me-1" :class="star <= getArticleSegmentLevel(row)
-                                                    ? 'text-warning'
-                                                    : 'text-muted opacity-25'"></i>
-                                            </span>
-                                        </template>
-                                        <span v-else class="text-muted">-</span>
-                                    </td>
                                     <td class="fs-sm " style="width: 7.5rem;justify-content: center;">
                                         <a v-if="isSelectable(row)" href="javascript:void(0)"
-                                            @click="addItemToQuote(row)">{{
-                                                row.ART_CODIGO }}</a>
+                                            @click="addItemToQuote(row)">{{ row.ART_CODIGO }}</a>
                                         <span v-else>{{ row.ART_CODIGO }}</span>
                                     </td>
                                     <td class="fs-sm " style="width: 7.5rem;justify-content: center;">
                                         <a v-if="isSelectable(row)" href="javascript:void(0)"
-                                            @click="addItemToQuote(row)">{{
-                                                row.ART_CODIGO_ZAFIRO
+                                            @click="addItemToQuote(row)">{{ row.ART_CODIGO_ZAFIRO
                                             }}</a>
                                         <span v-else>{{ row.ART_CODIGO_ZAFIRO }}</span>
                                     </td>
                                     <td class="fs-sm">
                                         <a v-if="isSelectable(row)" href="javascript:void(0)"
-                                            @click="addItemToQuote(row)">{{
-                                                row.ART_DESCRIPCION
+                                            @click="addItemToQuote(row)">{{ row.ART_DESCRIPCION
                                             }}</a>
                                         <span v-else>{{ row.ART_DESCRIPCION }}</span>
                                     </td>
@@ -460,8 +274,7 @@ onMounted(() => {
                                         </div>
                                         <div v-else-if="isShowStock(row)">
                                             <code v-for="stock in row.stock" class="d-block mb-0 fs-xs text-nowrap"
-                                                :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{
-                                                    stock.STO_ART_STOCK_DISPONIBLE }}</code>
+                                                :key="stock.STO_ART_BODEGA">{{ stock.STO_ART_BODEGA }} - {{ stock.STO_ART_STOCK_DISPONIBLE }}</code>
                                         </div>
                                         <div v-else-if="isButtonStockWarehouse(row)">
                                             <button class="btn btn-sm btn-primary" @click="searchStockWarehouse(row)">
@@ -482,8 +295,8 @@ onMounted(() => {
                                             </div>
                                         </div>
                                         <div v-else-if="isShowStockExposicion(row)">
-                                            <code class="d-block mb-0 fs-xs text-nowrap">{{ row.stockExposicion.bodega }} - {{
-                                                row.stockExposicion.disponible }}</code>
+                                            <code
+                                                class="d-block mb-0 fs-xs text-nowrap">{{ row.stockExposicion.bodega }} - {{ row.stockExposicion.disponible }}</code>
                                         </div>
                                         <div v-else-if="isButtonStockExposicion(row)">
                                             <button class="btn btn-sm btn-primary" @click="searchStockExposicion(row)">

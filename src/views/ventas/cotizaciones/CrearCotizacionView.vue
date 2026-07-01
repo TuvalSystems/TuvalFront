@@ -23,6 +23,7 @@ import verModalModificacionPeso from "@/views/ventas/modals/verModalModificacion
 import verModalProveedores from "@/views/ventas/modals/verModalProveedores.vue";
 import verModalListaBorradores from "@/views/ventas/modals/verModalListaBorradores.vue";
 import { useRouter, useRoute } from "vue-router";
+import ConfiguracionSegmentacionCard from "@/views/ventas/cotizaciones/crear-cotizacion/components/ConfiguracionSegmentacionCard.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -1423,6 +1424,11 @@ onMounted(async () => {
           </div>
         </BaseBlock>
       </BaseBlock>
+      <!-- banner de seleccion de clasificacion -->
+      <div v-if="showInfoClient && form.cliente?.id">
+      <ConfiguracionSegmentacionCard :form="form"></ConfiguracionSegmentacionCard>
+      </div>
+      <!-- seccion de seleccion de articulos  -->
       <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
         <template #title>
           <div class="d-flex flex-wrap align-items-center justify-content-between w-100">
