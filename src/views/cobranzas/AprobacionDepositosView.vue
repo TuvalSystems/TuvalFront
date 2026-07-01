@@ -24,6 +24,7 @@
       <table class="table table-hover table-vcenter">
             <thead>
               <tr>
+                <th>Agencia</th>
                 <th>RCB</th>
                 <th>Cliente</th>
                 <th>Ruc</th>
@@ -38,6 +39,9 @@
             <tbody>
               <tr v-for="(deposito, index) in depositos_por_aprobar" :key="index">
                 <td class="fs-sm">
+                  {{ deposito.PTO_VTA_DESCRIPCION }}
+                </td>
+                <td class="fs-sm">
                   {{ deposito.numero_recibo }}
                 </td>
                 <td class="fs-sm">
@@ -50,7 +54,7 @@
                   {{ deposito.CB_DESCRIPCION }}
                 </td>
                 <td class="fs-sm">
-                  {{ deposito.fecha }}
+                  {{ deposito.fecha_creacion_cobro }}
                 </td>
                 <td class="fs-sm">
                   <span v-if="deposito.tipo === 'DP'"

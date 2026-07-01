@@ -22,6 +22,7 @@ const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.ge
 const permite_pedido = computed(() => store.state.permite_pedido);
 const pago_a_padido = ref(store.state.pago_a_padido);
 const botonRegistrarCobro = ref(null);
+const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
 
 const {
   loadingPayment,
