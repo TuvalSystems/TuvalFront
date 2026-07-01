@@ -13,7 +13,8 @@ export function useArticleSegmentClassification(articles = ref([])) {
         codigoSegmento: "",
         codigoCategoria: "",
         codigoLinea: "",
-        codigoClase: ""
+        codigoClase: "",
+        codigoMarca: "",
     });
 
     function clearSegmentFilters() {
@@ -93,12 +94,26 @@ export function useArticleSegmentClassification(articles = ref([])) {
         return getUniqueOptions(rows, "codigoClase", "nivelClase");
     });
 
+    const marcaList = computed(() => {
+        if(!segmentFilters.codigoCategoria && !segmentFilters.codigoLinea && !segmentFilters.codigoClase){
+            return [];
+        }
+        const rows = classificationConfigList.value.filter(row => {
+            return (normalizeValues(row.codigoCategoria) === segmentFilters.codigoCategoria)
+                && (normalizeValues(row.codigoLinea) === segmentFilters.codigoLinea)
+                && (normalizeValues(row.codigoClase) === segmentFilters.codigoClase);
+        });
+        return getUniqueOptions(rows, "codigoMarca", "nivelMarca");
+
+    });
+
 
     watch(
         () => segmentFilters.codigoCategoria,
         () => {
             segmentFilters.codigoLinea = "";
             segmentFilters.codigoClase = "";
+            segmentFilters.codigoMarca = "";
         }
     );
 
@@ -106,6 +121,7 @@ export function useArticleSegmentClassification(articles = ref([])) {
         () => segmentFilters.codigoLinea,
         () => {
             segmentFilters.codigoClase = "";
+            segmentFilters.codigoMarca = "";
         }
     );
 
@@ -126,6 +142,7 @@ export function useArticleSegmentClassification(articles = ref([])) {
         categoryList,
         lineList,
         classList,
+        marcaList,
 
         //limpieza
         clearSegmentFilters,
