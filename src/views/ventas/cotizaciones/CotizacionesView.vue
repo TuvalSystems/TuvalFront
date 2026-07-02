@@ -195,7 +195,7 @@
                         <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                           <i class="fa fa-fw fa-ellipsis-v"></i> </button>
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                        <ul class="dropdown-menu dropdown-menu-end  shadow-sm"
                           aria-labelledby="dropOptions">
 
                           <!-- exportaciones -->
@@ -893,8 +893,6 @@ function handleEstadoClick(row) {
 
 /* BLINDAJE VISUAL */
 .dropdown-menu {
-  /* Asegura que el fondo sea sólido y no transparente */
-  background-color: #262b34 !important;
 
   /* Asegura que el menú flote por encima de las otras filas de la tabla */
   z-index: 9999 !important;

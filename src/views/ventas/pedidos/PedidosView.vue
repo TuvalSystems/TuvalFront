@@ -635,7 +635,7 @@ const handleVisibilityChange = () => {
               Estado
               <i class="fa fa-angle-down ms-1"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+            <div class="dropdown-menu dropdown-menu-end  shadow-sm"
               aria-labelledby="dropdown-recent-orders-filters">
               <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
                 @click="llenarpedidos('todos');" href="javascript:void(0)">
@@ -793,7 +793,7 @@ const handleVisibilityChange = () => {
                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                           <i class="fa fa-fw fa-ellipsis-v"></i> </button>
 
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                        <ul class="dropdown-menu dropdown-menu-end  shadow-sm"
                           aria-labelledby="dropOptions">
 
                           <template v-if="row.imprimir === 'yes'">
@@ -983,7 +983,6 @@ const handleVisibilityChange = () => {
 /* BLINDAJE VISUAL */
 .dropdown-menu {
   /* Asegura que el fondo sea sólido y no transparente */
-  background-color: #262b34 !important;
 
   /* Asegura que el menú flote por encima de las otras filas de la tabla */
   z-index: 9999 !important;
