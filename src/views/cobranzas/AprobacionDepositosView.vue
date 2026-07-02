@@ -55,7 +55,7 @@
         <tbody>
           <tr v-for="(deposito, index) in depositos_por_aprobar" :key="index">
             <td class="fs-sm">
-              {{ deposito.PTO_VTA_DESCRIPCION }}
+              {{ deposito.agencia }}
             </td>
             <td class="fs-sm">
               {{ deposito.numero_recibo }}
