@@ -1,5 +1,6 @@
 <script setup>
-import { formatPrice } from "@/functions";
+import { formatPriceJm } from "@/functions";
+
 defineProps({
     data: {
         type: Array,
@@ -19,7 +20,7 @@ defineProps({
             <i class="fa fa-file-invoice-dollar me-1 text-danger"></i> Retenciones
         </span>
         <span class="fs-sm fw-bold text-primary">
-            Total: ${{ formatPrice(total) }}
+            Total: ${{ formatPriceJm(total) }}
         </span>
     </div>
 
@@ -60,20 +61,20 @@ defineProps({
                         <div class="text-muted" style="font-size: 0.65rem;">{{ saldo.CLI_RUC }} </div>
                     </td>
                     <td class="text-end text-muted">
-                        {{ saldo.ret_porcentaje_iva }}% - ${{ formatPrice(saldo.ret_iva) }}
+                        {{ saldo.ret_porcentaje_iva }}% - ${{ formatPriceJm(saldo.ret_iva) }}
                     </td>
                     <td class="text-end fw-bold text-primary">
-                        {{ saldo.ret_porcentaje_renta }}% - ${{ formatPrice(saldo.ret_renta) }}
+                        {{ saldo.ret_porcentaje_renta }}% - ${{ formatPriceJm(saldo.ret_renta) }}
                     </td>
                     <td class="text-end fw-bold text-primary">
                         <div class="fw-bold text-dark" v-if="saldo.ret_iva_srv > 0">
-                            {{ saldo.ret_porcentaje_iva_srv }}% - ${{ formatPrice(saldo.ret_iva_srv) }}
+                            {{ saldo.ret_porcentaje_iva_srv }}% - ${{ formatPriceJm(saldo.ret_iva_srv) }}
                         </div>
                         <div v-else class="text-muted"> - </div>
                     </td>
                     <td class="text-end fw-bold text-primary">
                         <div class="fw-bold text-dark" v-if="saldo.ret_renta_srv > 0">
-                            {{ saldo.ret_porcentaje_renta_srv }}% - ${{ formatPrice(saldo.ret_renta_srv) }}
+                            {{ saldo.ret_porcentaje_renta_srv }}% - ${{ formatPriceJm(saldo.ret_renta_srv) }}
                         </div>
                         <div v-else class="text-muted"> - </div>
                     </td>

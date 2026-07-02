@@ -1,6 +1,7 @@
 
 <script setup>
-import { formatPrice } from "@/functions";
+import { formatPriceJm } from "@/functions";
+
 defineProps({
     data: {
         type: Array,
@@ -19,7 +20,7 @@ defineProps({
             <i class="fa fa-money-bill-wave me-1 text-warning"></i> Efectivo
         </span>
         <span class="fs-sm fw-bold text-primary">
-            Total: ${{ formatPrice(total) }}
+            Total: ${{ formatPriceJm(total) }}
         </span>
     </div>
 
@@ -45,10 +46,10 @@ defineProps({
                         <div class="text-muted" style="font-size: 0.65rem;">{{ saldo.CLI_RUC }} </div>
                     </td>
                     <td class="text-end text-muted">
-                        ${{ formatPrice(saldo.monto) }}
+                        ${{ formatPriceJm(saldo.monto) }}
                     </td>
                     <td class="text-end fw-bold text-primary">
-                        ${{ formatPrice(saldo.aplicado) }}
+                        ${{ formatPriceJm(saldo.aplicado) }}
                     </td>
                     <td class="text-center text-muted d-none d-md-table-cell" style="font-size: 0.7rem;">
                         {{ saldo.fecha }}
