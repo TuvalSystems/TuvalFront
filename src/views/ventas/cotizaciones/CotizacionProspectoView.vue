@@ -223,6 +223,7 @@
           >
             <template #item="{ element, index }">
               <tr>
+                {{ element }}
                 <td class="fs-sm">{{ index + 1 }}</td>
                 <td class="fs-sm">
                   {{ element.ART_CODIGO }}
@@ -262,7 +263,7 @@
                 <td class="fs-sm text-end col-1">
                   {{ format(parseFloat(element.descuento)) }}%
                 </td>
-                <td class="fs-sm text-end">${{ format(parseFloat(element.subtotal)) }}</td>
+                <td class="fs-sm text-end">${{ format(parseFloat(element.subtotal || 0)) }}</td>
                 <td class="fs-sm text-end nowrap">
                   <button
                     type="button"
@@ -690,6 +691,11 @@ function selectformapago() {
 
 let validaCantidad = ref(true);
 
+function redondear(num, decimales = 2) {
+    const factor = Math.pow(10, decimales);
+    return Math.round((num + Number.EPSILON) * factor) / factor;
+}
+
 function calcTotales() {
   subtotal.value = 0;
   descuento.value = 0;
@@ -703,11 +709,17 @@ function calcTotales() {
       articulo.ART_VALOR_ORIGINAL = formatPrice4(articulo.ART_VALOR_ORIGINAL);
     }
 
-    articulo.ART_DESCUENTO = formatPrice(
-      articulo.ART_VALOR * (articulo.descuento / 100)
-    );
-    articulo.ART_DESCUENTO = formatPrice4((articulo.ART_VALOR * (articulo.descuento / 100))) //formatPrice3
-    articulo.subtotal = formatPrice(formatPrice4((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD))
+    const priceCaculated = articulo.ART_VALOR;
+    const discountPorcentil = Number.parseFloat(articulo.descuento);
+    const discountAmount = priceCaculated * (discountPorcentil / 100);
+
+    articulo.ART_DESCUENTO =  redondear(discountAmount + 0.000001, 4);
+    const priceWithDiscount = priceCaculated - discountAmount;
+    const subtotalCalculated = redondear((priceWithDiscount * articulo.ART_CANTIDAD) + 0.000001, 4);
+  
+    
+    articulo.subtotal = subtotalCalculated;
+
     subtotal.value +=  articulo.subtotal
     descuento.value +=  articulo.ART_DESCUENTO * articulo.ART_CANTIDAD;
     articulo.ART_IVA = formatPrice(formatPrice4((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD)) * (articulo.ART_IMP_VTA / 100)
@@ -731,7 +743,6 @@ function limpiarCotizacion() {
 let validaStock = ref(true);
 
 function verificarProveedores(){
-  console.log('verificar')
 }
 
 function verificarStock() {
