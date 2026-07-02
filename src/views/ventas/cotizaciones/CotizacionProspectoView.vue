@@ -154,8 +154,8 @@
                 <td class="fs-sm col-1">
                   <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
                     placeholder="Cantidad" :class="element.errorCantidad || element.ART_CANTIDAD == 0
-                        ? 'is-invalid'
-                        : ''
+                      ? 'is-invalid'
+                      : ''
                       " :value="element.ART_CANTIDAD" @change="updateCantidad($event, element, index)"
                     :tablindex="index" />
                 </td>
@@ -256,7 +256,8 @@
                   <div class="input-group">
                     <input v-model="orden_de_compra" type="text" id="orden-de-compra" class="form-control"
                       placeholder="Orden de compra" :maxlength="max_length" />
-                    <span v-if="orden_de_compra" class="input-group-text">{{ max_length - orden_de_compra.length }}</span>
+                    <span v-if="orden_de_compra" class="input-group-text">{{ max_length - orden_de_compra.length
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -530,7 +531,11 @@ function redondear(num, decimales = 2) {
   return Math.round((num + Number.EPSILON) * factor) / factor;
 }
 
-function calcTotales() {
+const  calcTotales = () =>{
+  let tempSubtotal = 0;
+  let tempDiscount = 0;
+  let tempIva = 0;
+  let tempPeso = 0;
   subtotal.value = 0;
   descuento.value = 0;
   iva.value = 0;
@@ -538,23 +543,23 @@ function calcTotales() {
   peso.value = 0;
   validaCantidad.value = true;
   cotizacion.value.data.forEach((articulo) => {
+    const qty = Number.parseFloat(articulo.ART_CANTIDAD) || 0;
+    const ivaPorcentaje = Number.parseFloat(articulo.ART_IMP_VTA) || 0;
     const tipoCompra = (articulo.ART_TIPO_COMPRA || '').trim().toUpperCase();
     if (tipoCompra != 'L') {
       let unitPrice = Number.parseFloat(articulo.ART_VALOR_ORIGINAL || 0);
       const modifier = Number.parseFloat(articulo.modificador || 0);
       let priceCalculated = unitPrice + (unitPrice * modifier / 100);
       const diference = Math.abs(priceCalculated - Number.parseFloat(articulo.ART_VALOR || 0));
-      if(articulo.cambiar_valor){
+      if (articulo.cambiar_valor) {
 
-      }else {
-        if(diference < 0.001){
+      } else {
+        if (diference < 0.001) {
           articulo.ART_VALOR = redondear(articulo.ART_VALOR, 4);
-        }else{
+        } else {
           articulo.ART_VALOR = redondear(priceCalculated, 4);
         }
       }
-    
-     
     }
 
     const priceCaculated = articulo.ART_VALOR;
@@ -563,24 +568,32 @@ function calcTotales() {
 
     articulo.ART_DESCUENTO = redondear(discountAmount + 0.000001, 4);
     const priceWithDiscount = priceCaculated - discountAmount;
-    const subtotalCalculated = redondear((priceWithDiscount * articulo.ART_CANTIDAD) + 0.000001, 4);
+    const subtotalLine = redondear((priceWithDiscount * qty) + 0.000001, 4);
 
 
-    articulo.subtotal = subtotalCalculated;
+    articulo.subtotal = subtotalLine;
+    tempSubtotal += subtotalLine;
+    tempDiscount += (discountAmount * qty);
 
-    subtotal.value += articulo.subtotal
-    descuento.value += articulo.ART_DESCUENTO * articulo.ART_CANTIDAD;
-    articulo.ART_IVA = formatPrice(formatPrice4((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD)) * (articulo.ART_IMP_VTA / 100)
-    iva.value = Math.round((iva.value + articulo.ART_IVA + Number.EPSILON) * 100) / 100;
+    const ivaLinea = subtotalLine * (ivaPorcentaje / 100);
+    articulo.ART_IVA = redondear(ivaLinea + 0.000001, 2); //se aplico por bloque de seguridad
+    tempIva += ivaLinea;
+
     if (articulo.ART_CANTIDAD == 0) {
       validaCantidad.value = false;
     }
+
     if (articulo.ART_VALOR == 0) {
       validaPrecio.value = false;
     }
-    peso.value += formatPrice(articulo.ART_PESO) * articulo.ART_CANTIDAD;
+
+   tempPeso += (Number.parseFloat(articulo.ART_PESO) || 0) * qty;
   });
-  total.value = formatPrice(subtotal.value + iva.value);
+  peso.value = redondear(tempPeso + 0.000001, 2);
+  descuento.value = redondear(tempDiscount + 0.000001, 2);
+  subtotal.value = redondear(tempSubtotal + 0.000001, 2);
+  iva.value = redondear(tempIva + 0.000001, 2);
+  total.value = redondear((subtotal.value + iva.value) + 0.000001, 2);
 }
 
 function limpiarCotizacion() {
