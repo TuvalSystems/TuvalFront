@@ -19,44 +19,23 @@
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC"
-                  >Cédula / RUC</label
-                >
+                <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC">Cédula / RUC</label>
                 <div class="col-sm-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="input-CLI_RUC"
-                    v-model="nuevoProspecto.CLI_RUC"
-                    placeholder="Cédula / RUC"
-                    :class="{
+                  <input type="text" class="form-control" id="input-CLI_RUC" v-model="nuevoProspecto.CLI_RUC"
+                    placeholder="Cédula / RUC" :class="{
                       'is-invalid': v$.CLI_RUC.$errors.length,
-                    }"
-                    @blur="v$.CLI_RUC.$touch"
-                    @change="checkRuc"
-                  />
+                    }" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
                 </div>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label
-                  class="col-sm-3 col-form-label text-end"
-                  for="input-CLI_RAZON_SOCIAL"
-                  >Razón Social</label
-                >
+                <label class="col-sm-3 col-form-label text-end" for="input-CLI_RAZON_SOCIAL">Razón Social</label>
                 <div class="col-sm-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="input-CLI_RAZON_SOCIAL"
-                    v-model="nuevoProspecto.CLI_RAZON_SOCIAL"
-                    placeholder="Apellidos y Nombres"
-                    :class="{
+                  <input type="text" class="form-control" id="input-CLI_RAZON_SOCIAL"
+                    v-model="nuevoProspecto.CLI_RAZON_SOCIAL" placeholder="Apellidos y Nombres" :class="{
                       'is-invalid': v$.CLI_RAZON_SOCIAL.$errors.length,
-                    }"
-                    @blur="v$.CLI_RAZON_SOCIAL.$touch"
-                  />
+                    }" @blur="v$.CLI_RAZON_SOCIAL.$touch" />
                 </div>
               </div>
             </div>
@@ -65,39 +44,21 @@
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label
-                  class="col-sm-3 col-form-label text-end"
-                  for="input-CLI_CORREO_ELECT_SRI"
-                  >Correo electrónico</label
-                >
+                <label class="col-sm-3 col-form-label text-end" for="input-CLI_CORREO_ELECT_SRI">Correo
+                  electrónico</label>
                 <div class="col-sm-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="input-CLI_CORREO_ELECT_SRI"
-                    placeholder="Correo electrónico..."
-                    v-model="nuevoProspecto.CLI_CORREO_ELECT_SRI"
-                  />
+                  <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_SRI"
+                    placeholder="Correo electrónico..." v-model="nuevoProspecto.CLI_CORREO_ELECT_SRI" />
                 </div>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TELEFONO_1"
-                  >Teléfono</label
-                >
+                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TELEFONO_1">Teléfono</label>
                 <div class="col-sm-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="input-CLI_TELEFONO_1"
-                    placeholder="Teléfono"
-                    :class="{
-                      'is-invalid': v$.CLI_TELEFONO_1.$errors.length,
-                    }"
-                    @blur="v$.CLI_TELEFONO_1.$touch"
-                    v-model="nuevoProspecto.CLI_TELEFONO_1"
-                  />
+                  <input type="text" class="form-control" id="input-CLI_TELEFONO_1" placeholder="Teléfono" :class="{
+                    'is-invalid': v$.CLI_TELEFONO_1.$errors.length,
+                  }" @blur="v$.CLI_TELEFONO_1.$touch" v-model="nuevoProspecto.CLI_TELEFONO_1" />
                 </div>
               </div>
             </div>
@@ -105,21 +66,12 @@
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_DIRECCION"
-                  >Dirección</label
-                >
+                <label class="col-sm-3 col-form-label text-end" for="input-CLI_DIRECCION">Dirección</label>
                 <div class="col-sm-9">
-                  <textarea
-                    class="form-control"
-                    id="input-CLI_DIRECCION"
-                    v-model="nuevoProspecto.CLI_DIRECCION"
-                    placeholder="Dirección completa..."
-                    :maxlength="122"
-                  ></textarea>
-                  <p
-                    v-if="122 - nuevoProspecto.CLI_DIRECCION.length == 0"
-                    class="text-danger fs-sm bg-danger-light rounded p-2 mt-2 mb-0"
-                  >
+                  <textarea class="form-control" id="input-CLI_DIRECCION" v-model="nuevoProspecto.CLI_DIRECCION"
+                    placeholder="Dirección completa..." :maxlength="122"></textarea>
+                  <p v-if="122 - nuevoProspecto.CLI_DIRECCION.length == 0"
+                    class="text-danger fs-sm bg-danger-light rounded p-2 mt-2 mb-0">
                     máximo 122 caracteres
                   </p>
                 </div>
@@ -127,53 +79,25 @@
             </div>
           </div>
           <div class="row mb-4">
-            <label for="select-bodega-despacho" class="col-sm-1 col-form-label text-left"
-              >Bodega:</label
-            >
+            <label for="select-bodega-despacho" class="col-sm-1 col-form-label text-left">Bodega:</label>
             <div class="col-sm-4">
-              <select
-                class="form-select"
-                id="select-bodega-despacho"
-                name="select-bodega-despacho"
-                v-model="bodegaFacturacion"
-                @change="changebodega()"
-              >
-                <option
-                  v-for="(bodega, index) in bodegas"
-                  :key="index"
-                  :value="bodega.PTO_VTA_BOD_REL_BODEGA"
-                >
+              <select class="form-select" id="select-bodega-despacho" name="select-bodega-despacho"
+                v-model="bodegaFacturacion" @change="changebodega()">
+                <option v-for="(bodega, index) in bodegas" :key="index" :value="bodega.PTO_VTA_BOD_REL_BODEGA">
                   {{ bodega.PTO_VTA_BOD_REL_BODEGA }}
                 </option>
               </select>
             </div>
             <div class="col-sm-7 text-end">
               <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="radio"
-                  id="despacho-punto"
-                  value="Retiro en bodega"
-                  v-model="despacho"
-                />
-                <label class="form-check-label" for="despacho-punto"
-                  >Retiro en bodega</label
-                >
+                <input class="form-check-input" type="radio" id="despacho-punto" value="Retiro en bodega"
+                  v-model="despacho" />
+                <label class="form-check-label" for="despacho-punto">Retiro en bodega</label>
               </div>
-              <div
-                v-if="bodega_selected.PERMITE_DESPACHO"
-                class="form-check form-check-inline"
-              >
-                <input
-                  class="form-check-input"
-                  type="radio"
-                  id="despacho-ruta"
-                  value="Despacho en ruta"
-                  v-model="despacho"
-                />
-                <label class="form-check-label" for="despacho-ruta"
-                  >Despacho en ruta</label
-                >
+              <div v-if="bodega_selected.PERMITE_DESPACHO" class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" id="despacho-ruta" value="Despacho en ruta"
+                  v-model="despacho" />
+                <label class="form-check-label" for="despacho-ruta">Despacho en ruta</label>
               </div>
             </div>
           </div>
@@ -182,9 +106,7 @@
     </BaseBlock>
 
     <BaseBlock title="Cotizacion" class="pb-4">
-      <form
-          class="row row-cols-lg-auto g-3 align-items-center"
-      >
+      <form class="row row-cols-lg-auto g-3 align-items-center">
         <div>
           <button type="button" @click="buscararticulo" class="btn btn-primary">Buscar Artículo</button>
         </div>
@@ -195,10 +117,8 @@
         </div>
       </div>
       <div class="table-responsive">
-        <table
-          v-if="cotizacion.data.length && !cotizacion.loading"
-          class="table table-hover table-sm table-vcenter mt-4"
-        >
+        <table v-if="cotizacion.data.length && !cotizacion.loading"
+          class="table table-hover table-sm table-vcenter mt-4">
           <thead>
             <tr>
               <th>#</th>
@@ -215,12 +135,7 @@
             </tr>
           </thead>
 
-          <draggable
-            v-model="cotizacion.data"
-            tag="tbody"
-            item-key="orden"
-            handle=".handle"
-          >
+          <draggable v-model="cotizacion.data" tag="tbody" item-key="orden" handle=".handle">
             <template #item="{ element, index }">
               <tr>
                 <td class="fs-sm">{{ index + 1 }}</td>
@@ -237,20 +152,12 @@
                   {{ element.ART_PLAN_UMEDIDA }}
                 </td>
                 <td class="fs-sm col-1">
-                  <input
-                    type="text"
-                    :id="`updatecantidad-${element.id}`"
-                    class="form-control text-end"
-                    placeholder="Cantidad"
-                    :class="
-                      element.errorCantidad || element.ART_CANTIDAD == 0
+                  <input type="text" :id="`updatecantidad-${element.id}`" class="form-control text-end"
+                    placeholder="Cantidad" :class="element.errorCantidad || element.ART_CANTIDAD == 0
                         ? 'is-invalid'
                         : ''
-                    "
-                    :value="element.ART_CANTIDAD"
-                    @change="updateCantidad($event, element, index)"
-                    :tablindex="index"
-                  />
+                      " :value="element.ART_CANTIDAD" @change="updateCantidad($event, element, index)"
+                    :tablindex="index" />
                 </td>
                 <!-- <td class="fs-sm text-end">
                   {{ element.ART_STOCK }}
@@ -264,21 +171,14 @@
                 </td>
                 <td class="fs-sm text-end">${{ format(parseFloat(element.subtotal || 0)) }}</td>
                 <td class="fs-sm text-end nowrap">
-                  <button
-                    type="button"
-                    class="btn btn-danger btn-sm mx-1"
-                    @click="confirmeliminarArticulo(element, index)"
-                  >
+                  <button type="button" class="btn btn-danger btn-sm mx-1"
+                    @click="confirmeliminarArticulo(element, index)">
                     <i class="fa fa-trash-can"></i>
                   </button>
-                  <a class="btn btn-primary btn-sm handle mx-1" style="cursor: move"
-                    ><i class="fa fa-arrows-up-down-left-right"></i
-                  ></a>
-                  <button class="btn btn-success btn-sm mx-1"
-                          v-if="element.imagenes && element.imagenes.length"
-                          href="javascript:void(0)"
-                          @click="showPhoto(element.imagenes)"
-                  >
+                  <a class="btn btn-primary btn-sm handle mx-1" style="cursor: move"><i
+                      class="fa fa-arrows-up-down-left-right"></i></a>
+                  <button class="btn btn-success btn-sm mx-1" v-if="element.imagenes && element.imagenes.length"
+                    href="javascript:void(0)" @click="showPhoto(element.imagenes)">
                     <i class="fa fa-search"></i>
                   </button>
                 </td>
@@ -326,48 +226,22 @@
         <div class="col-md-12">
           <div class="row">
             <div class="col-md-4">
-              <label
-                for="select-condicion-pago"
-                class="col-auto col-form-label text-right"
-                >Condición de pago:</label
-              >
+              <label for="select-condicion-pago" class="col-auto col-form-label text-right">Condición de pago:</label>
               <div class="col-auto">
-                <select
-                  class="form-select"
-                  id="select-condicion-pago"
-                  name="select-condicion-pago"
-                  v-model="condiciondepago_id"
-                  @change="selectcondicionpago($event)"
-                  :disabled="1"
-                >
-                  <option
-                    v-for="(condicion, index) in condiciondepago"
-                    :key="index"
-                    :value="condicion.COND_ID"
-                  >
+                <select class="form-select" id="select-condicion-pago" name="select-condicion-pago"
+                  v-model="condiciondepago_id" @change="selectcondicionpago($event)" :disabled="1">
+                  <option v-for="(condicion, index) in condiciondepago" :key="index" :value="condicion.COND_ID">
                     {{ condicion.COND_ID }}
                   </option>
                 </select>
               </div>
             </div>
             <div class="col-md-4">
-              <label for="select-forma-pago" class="col-auto col-form-label text-right"
-                >Forma de pago:</label
-              >
+              <label for="select-forma-pago" class="col-auto col-form-label text-right">Forma de pago:</label>
               <div class="col-auto">
-                <select
-                  disabled
-                  class="form-select"
-                  id="select-forma-pago"
-                  name="select-forma-pago"
-                  v-model="formadepago_id"
-                  @change="selectformapago($event)"
-                >
-                  <option
-                    v-for="(pago, index) in formadepago"
-                    :key="index"
-                    :value="pago.DESC_FORMA_PAGO_CODIGO"
-                  >
+                <select disabled class="form-select" id="select-forma-pago" name="select-forma-pago"
+                  v-model="formadepago_id" @change="selectformapago($event)">
+                  <option v-for="(pago, index) in formadepago" :key="index" :value="pago.DESC_FORMA_PAGO_CODIGO">
                     {{ pago.DESC_FORMA_PAGO_TIPO_CREDITO }}
                   </option>
                 </select>
@@ -378,38 +252,23 @@
             <div class="col-md-4">
               <div class="row">
                 <div class="col-sm-6">
-                  <label for="orden-de-compra" class="col-auto col-form-label text-right"
-                    >Orden de compra:</label
-                  >
+                  <label for="orden-de-compra" class="col-auto col-form-label text-right">Orden de compra:</label>
                   <div class="input-group">
-                    <input
-                        v-model="orden_de_compra"
-                        type="text"
-                        id="orden-de-compra"
-                        class="form-control"
-                        placeholder="Orden de compra"
-                        :maxlength="max_length"
-                    />
-                    <span
-                        v-if="orden_de_compra"
-                        class="input-group-text"
-                    >{{max_length - orden_de_compra.length}}</span>
+                    <input v-model="orden_de_compra" type="text" id="orden-de-compra" class="form-control"
+                      placeholder="Orden de compra" :maxlength="max_length" />
+                    <span v-if="orden_de_compra" class="input-group-text">{{ max_length - orden_de_compra.length }}</span>
                   </div>
                 </div>
               </div>
             </div>
             <div class="col-md-4">
-              <label for="nota-cliente" class="col-auto col-form-label text-right"
-                >Nota cliente:</label
-              >
+              <label for="nota-cliente" class="col-auto col-form-label text-right">Nota cliente:</label>
               <div class="col-auto">
                 <textarea class="form-control" v-model="nota_cliente"></textarea>
               </div>
             </div>
             <div class="col-md-4">
-              <label for="nota-interna" class="col-auto col-form-label text-right"
-                >Nota interna:</label
-              >
+              <label for="nota-interna" class="col-auto col-form-label text-right">Nota interna:</label>
               <div class="col-auto">
                 <textarea class="form-control" v-model="nota_interna"></textarea>
               </div>
@@ -422,12 +281,7 @@
               </button>
             </div>
             <div class="col-md-6 text-end">
-              <button
-                type="button"
-                class="btn btn-success mx-4"
-                :disabled="!validaCantidad"
-                @click="guardarCotizacion"
-              >
+              <button type="button" class="btn btn-success mx-4" :disabled="!validaCantidad" @click="guardarCotizacion">
                 Guardar Cotización
               </button>
             </div>
@@ -436,41 +290,22 @@
       </div>
     </BaseBlock>
   </div>
-  <div
-    class="modal"
-    id="modal-articulo"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-articulo"
-    aria-hidden="true"
-    ref="articuloModal"
-  >
+  <div class="modal" id="modal-articulo" tabindex="-1" role="dialog" aria-labelledby="modal-articulo" aria-hidden="true"
+    ref="articuloModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 90vw;">
       <div class="modal-content">
 
-        <ArticulosModal
-            @verificarProveedores="verificarProveedores()"
-            @verificarStock="verificarStock()"
-            @calcTotales="calcTotales()"
-        ></ArticulosModal>
+        <ArticulosModal @verificarProveedores="verificarProveedores()" @verificarStock="verificarStock()"
+          @calcTotales="calcTotales()"></ArticulosModal>
         <div class="block-content block-content-full text-end bg-body">
-          <button
-            type="button"
-            class="btn btn-sm btn-alt-secondary me-1"
-            data-bs-dismiss="modal"
-          >
+          <button type="button" class="btn btn-sm btn-alt-secondary me-1" data-bs-dismiss="modal">
             Cerrar
           </button>
         </div>
       </div>
     </div>
   </div>
-  <VueEasyLightbox
-      :visible="gallery.visible"
-      :index="gallery.index"
-      :imgs="gallery.photos"
-      @hide="handleHide"
-  />
+  <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
@@ -487,7 +322,7 @@ import VueEasyLightbox from "vue-easy-lightbox";
 
 import useVuelidate from "@vuelidate/core";
 import { required, maxLength, email } from "@vuelidate/validators";
-import {formatPrice, format, formatPrice4} from "@/functions";
+import { formatPrice, format, formatPrice4 } from "@/functions";
 
 const gallery = reactive({
   visible: false,
@@ -571,7 +406,7 @@ function checkRuc() {
 }
 
 function confirmCliente(cliente) {
-  swalInfo('El cliente '+ cliente.CLI_RAZON_SOCIAL + ' ya existe, se ha cargado la ventana de pedido regular')
+  swalInfo('El cliente ' + cliente.CLI_RAZON_SOCIAL + ' ya existe, se ha cargado la ventana de pedido regular')
   cargarCliente(cliente);
 }
 
@@ -649,7 +484,7 @@ function changebodega() {
 
 let errorbuscararticulo = ref(false);
 
-function buscararticulo(){
+function buscararticulo() {
   store.commit('resetArticulo');
   store.commit('limpiarBusqueda');
   articuloModalObj.show();
@@ -689,10 +524,10 @@ function selectformapago() {
 }
 
 let validaCantidad = ref(true);
-
+const validaPrecio = ref(true);
 function redondear(num, decimales = 2) {
-    const factor = Math.pow(10, decimales);
-    return Math.round((num + Number.EPSILON) * factor) / factor;
+  const factor = Math.pow(10, decimales);
+  return Math.round((num + Number.EPSILON) * factor) / factor;
 }
 
 function calcTotales() {
@@ -702,31 +537,45 @@ function calcTotales() {
   total.value = 0;
   peso.value = 0;
   validaCantidad.value = true;
-  cotizacion.value.data.map((articulo) => {
-    if(articulo.ART_TIPO_COMPRA != 'L'){
-      articulo.ART_VALOR = formatPrice4(articulo.ART_VALOR_ORIGINAL - (articulo.ART_VALOR_ORIGINAL * parseFloat(articulo.modificador) / 100));
-      articulo.ART_VALOR_ORIGINAL = formatPrice4(articulo.ART_VALOR_ORIGINAL);
+  cotizacion.value.data.forEach((articulo) => {
+    const tipoCompra = (articulo.ART_TIPO_COMPRA || '').trim().toUpperCase();
+    if (tipoCompra != 'L') {
+      let unitPrice = Number.parseFloat(articulo.ART_VALOR_ORIGINAL || 0);
+      const modifier = Number.parseFloat(articulo.modificador || 0);
+      let priceCalculated = unitPrice + (unitPrice * modifier / 100);
+      const diference = Math.abs(priceCalculated - Number.parseFloat(articulo.ART_VALOR || 0));
+      if(articulo.cambiar_valor){
+
+      }else {
+        if(diference < 0.001){
+          articulo.ART_VALOR = redondear(articulo.ART_VALOR, 4);
+        }else{
+          articulo.ART_VALOR = redondear(priceCalculated, 4);
+        }
+      }
+    
+     
     }
 
     const priceCaculated = articulo.ART_VALOR;
     const discountPorcentil = Number.parseFloat(articulo.descuento);
     const discountAmount = priceCaculated * (discountPorcentil / 100);
 
-    articulo.ART_DESCUENTO =  redondear(discountAmount + 0.000001, 4);
+    articulo.ART_DESCUENTO = redondear(discountAmount + 0.000001, 4);
     const priceWithDiscount = priceCaculated - discountAmount;
     const subtotalCalculated = redondear((priceWithDiscount * articulo.ART_CANTIDAD) + 0.000001, 4);
-  
-    
+
+
     articulo.subtotal = subtotalCalculated;
 
-    subtotal.value +=  articulo.subtotal
-    descuento.value +=  articulo.ART_DESCUENTO * articulo.ART_CANTIDAD;
+    subtotal.value += articulo.subtotal
+    descuento.value += articulo.ART_DESCUENTO * articulo.ART_CANTIDAD;
     articulo.ART_IVA = formatPrice(formatPrice4((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD)) * (articulo.ART_IMP_VTA / 100)
     iva.value = Math.round((iva.value + articulo.ART_IVA + Number.EPSILON) * 100) / 100;
-    if(articulo.ART_CANTIDAD == 0){
+    if (articulo.ART_CANTIDAD == 0) {
       validaCantidad.value = false;
     }
-    if(articulo.ART_VALOR == 0){
+    if (articulo.ART_VALOR == 0) {
       validaPrecio.value = false;
     }
     peso.value += formatPrice(articulo.ART_PESO) * articulo.ART_CANTIDAD;
@@ -741,7 +590,7 @@ function limpiarCotizacion() {
 
 let validaStock = ref(true);
 
-function verificarProveedores(){
+function verificarProveedores() {
 }
 
 function verificarStock() {
