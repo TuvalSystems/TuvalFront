@@ -1,98 +1,90 @@
 <template>
-  <div class="login-page hero-static d-flex align-items-center">
-    <div class="content">
-      <div class="row justify-content-center">
-        <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
-          <div class="login-card">
-            <BaseBlock class="mb-0 overflow-hidden border-0 shadow-lg rounded-3">
-              <div class="p-4 p-sm-5">
-
-                <!-- Logo / Header -->
-                <div class="text-center mb-4">
-                  <!-- <div class="login-logo mx-auto mb-3">
-                    <span>T</span>
-                  </div> -->
-
-                  <h1 class="h3 fw-bold mb-1">TUVAL</h1>
-                  <p class="text-muted mb-0">
-                    Ingresa tus credenciales para continuar
-                  </p>
-                </div>
-
-                <!-- Error -->
-                <div v-if="errorMsg" class="alert alert-danger d-flex align-items-center rounded-3" role="alert">
-                  <i class="fa fa-fw fa-exclamation-triangle me-2"></i>
-                  <span>{{ errorMsg }}</span>
-                </div>
-
-                <!-- Formulario -->
-                <form @submit.prevent="login">
-                  <div class="mb-4">
-                    <label class="form-label fw-semibold" for="login-username">
-                      Usuario
-                    </label>
-
-                    <div class="input-group input-group-lg">
-                      <span class="input-group-text bg-body border-end-0">
-                        <i class="fa fa-user text-muted"></i>
-                      </span>
-
-                      <input type="text" class="form-control border-start-0 ps-0" id="login-username"
-                        name="login-username" placeholder=" Ingrese su usuario" autocomplete="username"
-                        v-model.trim="state.username" :disabled="isLoading"
-                        :class="{ 'is-invalid': v$.username.$error }" @blur="v$.username.$touch" @input="clearError" />
-
-                      <div v-if="v$.username.$error" class="invalid-feedback animated fadeIn">
-                        {{ getUsernameError }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="mb-4">
-                    <label class="form-label fw-semibold" for="login-password">
-                      Contraseña
-                    </label>
-
-                    <div class="input-group input-group-lg">
-                      <span class="input-group-text bg-body border-end-0">
-                        <i class="fa fa-lock text-muted"></i>
-                      </span>
-
-                      <input type="password" class="form-control border-start-0 ps-0" id="login-password"
-                        name="login-password" placeholder=" Ingrese su contraseña" autocomplete="current-password"
-                        v-model="state.password" :disabled="isLoading" :class="{ 'is-invalid': v$.password.$error }"
-                        @blur="v$.password.$touch" @input="clearError" />
-
-                      <div v-if="v$.password.$error" class="invalid-feedback animated fadeIn">
-                        Por favor ingrese su contraseña
-                      </div>
-                    </div>
-                  </div>
-
-                  <button type="submit"  class="btn btn-lg w-100 login-btn" :disabled="isLoading">
-                    <template v-if="isLoading">
-                      <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                      Validando acceso...
-                    </template>
-
-                    <template v-else>
-                      <i class="fa fa-fw fa-sign-in-alt me-2"></i>
-                      Ingresar
-                    </template>
-                  </button>
-                </form>
-              </div>
-            </BaseBlock>
-          </div>
-
-          <div class="fs-sm text-muted text-center mt-4">
-            <strong>{{ store.app.name + " " + store.app.version }}</strong> &copy;
-            {{ store.app.copyright }}
-          </div>
+  <main class="login-page">
+    <section class="login-shell" aria-label="Acceso TUVAL">
+      <section class="login-panel" aria-labelledby="login-title">
+        <div class="login-panel-header">
+          <img class="login-logo" src="/assets/images/tuval-logo.jpg" alt="TUVAL" />
+          <h2 id="login-title">Iniciar sesión</h2>
+          <p>Ingresa tus credenciales para continuar.</p>
         </div>
-      </div>
-    </div>
-  </div>
+
+        <div v-if="errorMsg" class="login-alert" role="alert">
+          <i class="fa fa-fw fa-exclamation-triangle"></i>
+          <span>{{ errorMsg }}</span>
+        </div>
+
+        <form class="login-form" @submit.prevent="login" novalidate>
+          <div class="login-control">
+            <label for="login-username">Usuario</label>
+            <div class="login-field" :class="{ 'is-invalid': v$.username.$error }">
+              <i class="fa fa-user"></i>
+              <input
+                id="login-username"
+                v-model.trim="state.username"
+                type="text"
+                name="login-username"
+                placeholder="Ingrese su usuario"
+                autocomplete="username"
+                :disabled="isLoading"
+                @blur="v$.username.$touch"
+                @input="clearError"
+              />
+            </div>
+            <div v-if="v$.username.$error" class="login-feedback">
+              {{ getUsernameError }}
+            </div>
+          </div>
+
+          <div class="login-control">
+            <label for="login-password">Contraseña</label>
+            <div class="login-field" :class="{ 'is-invalid': v$.password.$error }">
+              <i class="fa fa-lock"></i>
+              <input
+                id="login-password"
+                v-model="state.password"
+                :type="showPassword ? 'text' : 'password'"
+                name="login-password"
+                placeholder="Ingrese su contraseña"
+                autocomplete="current-password"
+                :disabled="isLoading"
+                @blur="v$.password.$touch"
+                @input="clearError"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                :disabled="isLoading"
+                @click="showPassword = !showPassword"
+              >
+                <i :class="showPassword ? 'fa fa-eye-slash' : 'fa fa-eye'"></i>
+              </button>
+            </div>
+            <div v-if="v$.password.$error" class="login-feedback">
+              Por favor ingrese su contraseña
+            </div>
+          </div>
+
+          <button type="submit" class="btn login-btn" :disabled="isLoading">
+            <template v-if="isLoading">
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              Validando acceso...
+            </template>
+
+            <template v-else>
+              <i class="fa fa-fw fa-sign-in-alt"></i>
+              Ingresar
+            </template>
+          </button>
+        </form>
+
+        <p class="login-footer">
+          <strong>{{ store.app.name + " " + store.app.version }}</strong>
+          <span>&copy; {{ store.app.copyright }}</span>
+        </p>
+      </section>
+    </section>
+  </main>
 </template>
 
 <script setup>
@@ -109,6 +101,7 @@ const router = useRouter();
 
 const isLoading = ref(false);
 const errorMsg = ref("");
+const showPassword = ref(false);
 
 const state = reactive({
   username: "",
@@ -197,89 +190,244 @@ async function login() {
 }
 </script>
 
-
 <style scoped>
 .login-page {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(13, 110, 253, 0.16), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(32, 201, 151, 0.12), transparent 35%),
-    linear-gradient(135deg, #f6f8fb 0%, #eef2f7 100%);
+  display: grid;
+  align-items: center;
+  padding: clamp(1rem, 3vw, 2rem);
+  color: var(--login-text);
+  background-color: var(--login-bg);
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  --login-bg: #f6f7f9;
+  --login-surface: #ffffff;
+  --login-surface-muted: #f8fafc;
+  --login-border: #e2e8f0;
+  --login-border-strong: #cbd5e1;
+  --login-text: #0f172a;
+  --login-muted: #64748b;
+  --login-primary: #2563eb;
+  --login-action: #c2410c;
+  --login-action-hover: #9a3412;
+  --login-danger: #dc2626;
+  --login-focus: 0 0 0 0.16rem rgba(37, 99, 235, 0.18);
 }
 
-.login-card {
-  animation: fadeInUp 0.35s ease-out;
+.login-shell {
+  width: min(100%, 460px);
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--login-surface);
+  border: 1px solid var(--login-border);
+  border-radius: 8px;
+  box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, 0.1);
 }
 
 .login-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-  color: #fff;
+  display: block;
+  width: 148px;
+  max-width: 70%;
+  height: auto;
+  margin: 0 auto 1.75rem;
+  object-fit: contain;
+}
+
+.login-panel-header h2 {
+  margin: 0;
+  color: inherit;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.login-panel-header p,
+.login-footer {
+  color: var(--login-muted);
+}
+
+.login-panel {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  font-size: 34px;
-  font-weight: 800;
-  box-shadow: 0 12px 30px rgba(13, 110, 253, 0.3);
+  padding: clamp(2rem, 5vw, 3.5rem);
 }
 
-.login-btn {
-  border-radius: 12px;
-  font-weight: 600;
-  padding-top: 0.85rem;
-  padding-bottom: 0.85rem;
-  background-color: #EA580C;
-  border-color: #EA580C;
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(234, 88, 12, 0.25);
+.login-panel-header {
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
-.login-btn:hover {
-  background-color: #C2410C;
-  border-color: #C2410C;
-  color: #fff;
+.login-panel-header h2 {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  line-height: 1.1;
 }
 
-.login-btn:disabled {
-  background-color: #EA580C;
-  border-color: #EA580C;
-  color: #fff;
-  opacity: 0.75;
-  cursor: not-allowed;
+.login-panel-header p {
+  margin: 0.75rem 0 0;
 }
 
-.input-group-text {
-  border-radius: 12px 0 0 12px;
-}
-
-.form-control {
-  border-radius: 0 12px 12px 0;
-}
-
-.form-control:focus {
-  box-shadow: none;
-  border-color: #86b7fe;
-}
-
-.input-group:focus-within .input-group-text {
-  border-color: #86b7fe;
-}
-
-.alert {
+.login-alert {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
   font-size: 0.925rem;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
+.login-alert i {
+  margin-top: 0.125rem;
+}
+
+.login-form {
+  display: grid;
+  gap: 1.125rem;
+}
+
+.login-control label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--login-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.login-field {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 48px;
+  background: var(--login-surface-muted);
+  border: 1px solid var(--login-border);
+  border-radius: 8px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.login-field:focus-within {
+  background: var(--login-surface);
+  border-color: var(--login-primary);
+  box-shadow: var(--login-focus);
+}
+
+.login-field.is-invalid {
+  border-color: var(--login-danger);
+}
+
+.login-field > i {
+  color: var(--login-muted);
+  text-align: center;
+}
+
+.login-field input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding: 0;
+  color: var(--login-text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.login-field input::placeholder {
+  color: var(--login-muted);
+}
+
+.login-field input:disabled,
+.password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.password-toggle {
+  display: grid;
+  width: 42px;
+  height: 46px;
+  padding: 0;
+  color: var(--login-muted);
+  background: transparent;
+  border: 0;
+  place-items: center;
+}
+
+.password-toggle:hover,
+.password-toggle:focus {
+  color: var(--login-text);
+  outline: 0;
+}
+
+.login-feedback {
+  margin-top: 0.45rem;
+  color: var(--login-danger);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+  color: #ffffff;
+  background-color: var(--login-action);
+  border-color: var(--login-action);
+  border-radius: 8px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.login-btn:hover,
+.login-btn:focus {
+  color: #ffffff;
+  background-color: var(--login-action-hover);
+  border-color: var(--login-action-hover);
+}
+
+.login-btn:focus {
+  box-shadow: 0 0 0 0.16rem rgba(194, 65, 12, 0.2);
+}
+
+.login-btn:disabled {
+  color: #ffffff;
+  background-color: var(--login-action);
+  border-color: var(--login-action);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.login-footer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0 0;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    align-items: stretch;
+    padding: 0;
+    background-image: none;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .login-shell {
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .login-panel {
+    justify-content: center;
+    padding: 1.5rem;
   }
 }
 </style>
