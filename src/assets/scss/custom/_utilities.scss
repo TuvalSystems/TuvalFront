@@ -84,8 +84,37 @@
   display: none;
 }
 
+.accordion {
+  --bs-accordion-color: var(--tuval-text);
+  --bs-accordion-bg: var(--tuval-surface);
+  --bs-accordion-border-color: var(--tuval-border);
+  --bs-accordion-btn-color: var(--tuval-text);
+  --bs-accordion-btn-bg: var(--tuval-surface);
+  --bs-accordion-active-color: var(--tuval-primary-strong);
+  --bs-accordion-active-bg: var(--tuval-primary-soft);
+  --bs-accordion-btn-focus-border-color: var(--tuval-primary);
+  --bs-accordion-btn-focus-box-shadow: var(--tuval-focus-ring);
+}
+
 .accordion-item {
-  background-color: var(--tuval-surface);
+  color: var(--bs-accordion-color);
+  background-color: var(--bs-accordion-bg);
+  border-color: var(--bs-accordion-border-color);
+}
+
+.accordion-button {
+  color: var(--bs-accordion-btn-color);
+  background-color: var(--bs-accordion-btn-bg);
+}
+
+.accordion-button:not(.collapsed) {
+  color: var(--bs-accordion-active-color);
+  background-color: var(--bs-accordion-active-bg);
+}
+
+.dark-mode .accordion-button::after {
+  filter: invert(1) grayscale(1) brightness(1.55);
+  opacity: 0.75;
 }
 
 .gg-select {
