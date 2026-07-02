@@ -468,7 +468,7 @@
                 <td colspan="5"><b>Número de autorización:</b> {{ retencion.ret_autorizacion }}</td>
             </tr>
             <tr>
-                <td colspan="7" class="text-end"><b>Total Retenido ${{ formatPrice(retencion.total) }}</b></td>
+                <td colspan="7" class="text-end"><b>Total Retenido ${{ formatPriceJm(retencion.total) }}</b></td>
             </tr>
           </tbody>
         </table>
@@ -491,7 +491,7 @@ import {
 
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
-import { formatPrice, formatPrice4 } from "@/functions";
+import { formatPrice, formatPrice4, formatPriceJm } from "@/functions";
 const flatPickrState = reactive({
   // Configuration, get more form https://chmln.github.io/flatpickr/options/
   emision: {

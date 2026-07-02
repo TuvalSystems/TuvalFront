@@ -82,7 +82,7 @@
                         {{ row.fecha_entrega }}
                       </td>
                       <td class="text-end fs-sm">
-                        ${{ row.total }}
+                        ${{ formatPriceJm(row.total) }}
                       </td>
                       <td class="text-end">
                         <div class="btn-group">
@@ -179,6 +179,7 @@ import { useStore} from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 import VerPedidoModal from "../ventas/modals/VerPedidoModal.vue"
+import { formatPriceJm } from "@/functions";
 
 // Helper variables
 const cols = reactive([

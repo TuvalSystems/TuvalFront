@@ -90,7 +90,7 @@
               {{ deposito.comprobante }}
             </td>
             <td class="text-end fs-sm">
-              ${{ format(parseFloat(deposito.monto)) }}
+              ${{ formatPriceJm(parseFloat(deposito.monto)) }}
             </td>
             <td class="text-end">
               <div class="btn-group">
@@ -143,7 +143,7 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
-import { formatPrice, format } from "@/functions";
+import { formatPriceJm } from "@/functions";
 
 const depositos_por_aprobar = computed(() => store.state.depositos_por_aprobar);
 const store = useStore();

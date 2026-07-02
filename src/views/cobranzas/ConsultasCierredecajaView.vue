@@ -110,7 +110,7 @@
                 <td>{{ saldo.cobro }}</td>
                 <td>{{ saldo.tipo }}</td>
                 <td class="text-end">${{ saldo.monto }}</td>
-                <td class="text-end">${{ formatPrice(saldo.aplicado) }}</td>
+                <td class="text-end">${{ formatPriceJm(saldo.aplicado) }}</td>
                 <td>{{ saldo.CLI_RUC }}</td>
                 <td>{{ saldo.CLI_RAZON_SOCIAL }}</td>
                 <td>{{ saldo.fecha }}</td>
@@ -144,7 +144,7 @@
                 <td>{{  deposito.CB_DESCRIPCION }}</td>
                 <td>{{  deposito.fecha_deposito }}</td>
                 <td class="text-end">${{  deposito.monto }}</td>
-                <td class="text-end">${{  formatPrice(deposito.aplicado) }}</td>
+                <td class="text-end">${{  formatPriceJm(deposito.aplicado) }}</td>
                 <td>{{ deposito.CLI_RUC }}</td>
                 <td>{{ deposito.CLI_RAZON_SOCIAL }}</td>
                 <td>{{ deposito.fecha }}</td>
@@ -182,7 +182,7 @@
                 <td>{{  cheque.fecha_emision }}</td>
                 <td>{{  cheque.fecha_vencimiento }}</td>
                 <td class="text-end">${{  cheque.monto }}</td>
-                <td class="text-end">${{  formatPrice(cheque.aplicado) }}</td>
+                <td class="text-end">${{  formatPriceJm(cheque.aplicado) }}</td>
                 <td>{{ cheque.CLI_RUC }}</td>
                 <td>{{ cheque.CLI_RAZON_SOCIAL }}</td>
                 <td>{{ cheque.fecha }}</td>
@@ -220,7 +220,7 @@
                 <td>{{  cheque.fecha_emision }}</td>
                 <td>{{  cheque.fecha_vencimiento }}</td>
                 <td class="text-end">${{  cheque.monto }}</td>
-                <td class="text-end">${{  formatPrice(cheque.aplicado) }}</td>
+                <td class="text-end">${{  formatPriceJm(cheque.aplicado) }}</td>
                 <td>{{ cheque.CLI_RUC }}</td>
                 <td>{{ cheque.CLI_RAZON_SOCIAL }}</td>
                 <td>{{ cheque.fecha }}</td>
@@ -248,7 +248,7 @@
               <tr v-for="(efectivo, index) in cobros_caja_usuario.efectivo" :key="index">
                 <td>{{  efectivo.numero_recibo }}<span v-if="efectivo.mensaje_ws !== 'Registro de cobro guardado correctamente.'"> * </span></td>
                 <td class="text-end">${{  efectivo.monto }}</td>
-                <td class="text-end">${{  formatPrice(efectivo.aplicado) }}</td>
+                <td class="text-end">${{  formatPriceJm(efectivo.aplicado) }}</td>
                 <td>{{ efectivo.CLI_RUC }}</td>
                 <td>{{ efectivo.CLI_RAZON_SOCIAL }}</td>
                 <td>{{ efectivo.fecha }}</td>
@@ -328,7 +328,7 @@
                 <td>{{  tarjeta.comprobante }}<span v-if="tarjeta.mensaje_ws !== 'Registro de cobro guardado correctamente.'"> * </span></td>
                 <td>{{  tarjeta.banco }}</td>
                 <td class="text-end">${{  tarjeta.monto }}</td>
-                <td class="text-end">${{  formatPrice(tarjeta.aplicado) }}</td>
+                <td class="text-end">${{  formatPriceJm(tarjeta.aplicado) }}</td>
                 <td>{{ tarjeta.CLI_RUC }}</td>
                 <td>{{ tarjeta.CLI_RAZON_SOCIAL }}</td>
                 <td>{{ tarjeta.fecha }}</td>
@@ -348,7 +348,7 @@ import { useStore} from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
-import { formatPrice } from "@/functions";
+import { formatPriceJm } from "@/functions";
 
 const flatPickrState = reactive({
   // Configuration, get more form https://chmln.github.io/flatpickr/options/

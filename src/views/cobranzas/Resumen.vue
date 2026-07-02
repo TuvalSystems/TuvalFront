@@ -3,7 +3,7 @@ import { ref, reactive, computed } from "vue";
 import { useStore } from 'vuex'
 import { swalError, swalWarning, toast } from "@/functions/swal-alert.js";
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
-import { formatPrice } from "@/functions";
+import { formatPriceJm } from "@/functions";
 //import de composables 
 import verModalValidacionAplicacionPagos from '@/views/cobranzas/modals/verModalValidacionAplicacionPagos.vue';
 import { useCustomerPaymentApply } from "@/composables/cobranzas/cobros/useCustomerPaymentApply";
@@ -844,7 +844,7 @@ async function registrarcobro() {
         <table class="table table-bordered table-sm fs-sm">
           <thead>
             <tr class="table-active">
-              <th colspan="7">Efectivo: ${{ cobranza.ingreso_efectivo.monto }} <button
+              <th colspan="7">Efectivo: ${{ formatPriceJm( cobranza.ingreso_efectivo.monto) }} <button
                   class="btn btn-warning btn-sm float-end" @click="confirmeliminarefectivo()"><i
                     class="fa fa-trash"></i></button></th>
             </tr>
@@ -862,11 +862,11 @@ async function registrarcobro() {
             <tr v-for="(factura, index) in cobranza.ingreso_efectivo.facturas" :key="index">
               <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
               <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
                 parseFloat(factura.aplicar_monto_efectivo)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_efectivo) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPriceJm(factura.aplicar_monto_efectivo) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPriceJm(factura.ECD_DET_SALDO_CLIENTE) }}</td>
               <td>{{ factura.observacion_efectivo }}</td>
             </tr>
           </tbody>
@@ -911,11 +911,11 @@ async function registrarcobro() {
             <tr v-for="(factura, index) in deposito.facturas" :key="index">
               <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
               <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
                 parseFloat(factura.aplicar_monto_deposito)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_deposito) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPriceJm(factura.aplicar_monto_deposito) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPriceJm(factura.ECD_DET_SALDO_CLIENTE) }}</td>
               <td>{{ factura.observacion_deposito }}</td>
             </tr>
           </tbody>
@@ -952,7 +952,7 @@ async function registrarcobro() {
             </tr>
             <tr>
               <th scope colspan="4" class="text-end">TOTAL </th>
-              <th scope class="text-end">${{ formatPrice(cobranza.ingreso_cheques.monto_original) }}</th>
+              <th scope class="text-end">${{ formatPriceJm(cobranza.ingreso_cheques.monto_original) }}</th>
               <th scope colspan="3"></th>
             </tr>
           </tbody>
@@ -971,11 +971,11 @@ async function registrarcobro() {
             <tr v-for="(factura, index) in cobranza.ingreso_cheques.facturas" :key="index">
               <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
               <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
                 parseFloat(factura.aplicar_monto_cheque)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_cheque) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPriceJm(factura.aplicar_monto_cheque) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPriceJm(factura.ECD_DET_SALDO_CLIENTE) }}</td>
               <td>{{ factura.observacion_deposito }}</td>
             </tr>
           </tbody>
@@ -1008,11 +1008,11 @@ async function registrarcobro() {
             <tr v-for="(factura, index) in cobranza.ingreso_tarjeta.facturas" :key="index">
               <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
               <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
                 parseFloat(factura.aplicar_monto_tarjeta)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_tarjeta) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPriceJm(factura.aplicar_monto_tarjeta) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPriceJm(factura.ECD_DET_SALDO_CLIENTE) }}</td>
               <td>{{ factura.observacion_efectivo }}</td>
             </tr>
           </tbody>
@@ -1059,11 +1059,11 @@ async function registrarcobro() {
             <tr v-for="(factura, index) in aplicacion.facturas" :key="index">
               <td style="width: 150px;">{{ factura.ECD_DET_NUM_DOC }}</td>
               <td style="width: 150px;">{{ factura.ECD_DET_FECHA_VENCIMIENTO }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
-              <td style="width: 110px;" class="text-end">${{ formatPrice(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(factura.ECD_DET_MONTO_ORIGINAL) }}</td>
+              <td style="width: 110px;" class="text-end">${{ formatPriceJm(parseFloat(factura.ECD_DET_SALDO_CLIENTE) +
                 parseFloat(factura.aplicar_monto_aplicacion)) }}</td>
-              <td style="width: 150px;" class="text-end">${{ formatPrice(factura.aplicar_monto_aplicacion) }}</td>
-              <td class="text-end" style="width: 150px;">${{ formatPrice(factura.ECD_DET_SALDO_CLIENTE) }}</td>
+              <td style="width: 150px;" class="text-end">${{ formatPriceJm(factura.aplicar_monto_aplicacion) }}</td>
+              <td class="text-end" style="width: 150px;">${{ formatPriceJm(factura.ECD_DET_SALDO_CLIENTE) }}</td>
               <td>{{ factura.observacion_aplicacion }}</td>
             </tr>
           </tbody>
@@ -1082,7 +1082,7 @@ async function registrarcobro() {
             <option v-for="(pedido, index) in pedidos_por_cobrar" :key="index" :value="pedido.pedido">{{ pedido.pedido
             }}
               -
-              ${{ pedido.total }}</option>
+              ${{ formatPriceJm(pedido.total )}}</option>
           </select>
         </div>
       </div>

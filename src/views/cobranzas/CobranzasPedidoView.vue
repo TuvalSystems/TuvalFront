@@ -216,7 +216,7 @@
                         {{ row.created_at }}
                       </td>
                       <td class="fs-sm text-end">
-                        {{ formatPrice(row.total) }}
+                        {{ formatPriceJm(row.total) }}
                       </td>
                       <td class="fs-sm">
                         <a
@@ -518,7 +518,7 @@ import {ref, reactive, computed, onMounted, watch} from "vue";
 import { useStore} from 'vuex'
 import { useTemplateStore } from "@/stores/template";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import { formatPrice } from "@/functions";
+import { formatPrice, formatPriceJm } from "@/functions";
 import IngresoRetenciones from "../cobranzas/IngresoRetenciones.vue";
 import IngresoEfectivo from "../cobranzas/IngresoEfectivo.vue";
 import DepositosTransferencias from "../cobranzas/DepositosTransferencias.vue";
