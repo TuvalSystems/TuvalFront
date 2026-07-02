@@ -223,7 +223,6 @@
           >
             <template #item="{ element, index }">
               <tr>
-                {{ element }}
                 <td class="fs-sm">{{ index + 1 }}</td>
                 <td class="fs-sm">
                   {{ element.ART_CODIGO }}
