@@ -303,6 +303,14 @@ const routes = [
           title: "Cobros - Desaplicación",
         },
       },
+      {
+        path: "depositos-historicos",
+        name: "cobranzas-depositos-historicos",
+        component: () => import("@/views/cobranzas/depositos/DepositosHistoricoIndex.vue"),
+        meta: {
+          title: "Cobros - Depositos Historico",
+        },
+      },
     ],
   },
   {
