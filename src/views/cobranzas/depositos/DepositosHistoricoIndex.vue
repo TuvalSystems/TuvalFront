@@ -1,6 +1,21 @@
 <script setup>
 import { onMounted } from 'vue';
-onMounted(() => { });
+import { useHistoricalDepositsTable } from '@/composables/cobranzas/depositos-historicos/useHistoricalDepositsTable';
+
+const {
+  table,
+  listPerpage,
+  columns,
+  loadingRef,
+  fetchList,
+  onSort,
+  refresh,
+  statusClass
+} = useHistoricalDepositsTable();
+onMounted(() => { 
+  fetchList(1);
+
+});
 </script>
 
 <template>

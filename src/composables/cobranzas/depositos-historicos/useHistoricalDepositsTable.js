@@ -46,7 +46,7 @@ export function useHistoricalDepositsTable() {
 
     async function fetchList(page = 1) {
         if (ctrl.value) ctrl.value.abort();
-        ctr.value = new AbortController();
+        ctrl.value = new AbortController();
         table.currentPage = page;
         const payload = {
             ...table.filters,
