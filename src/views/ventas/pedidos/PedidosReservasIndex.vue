@@ -234,7 +234,7 @@ onMounted(async () => {
                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-fw fa-ellipsis-v"></i> </button>
 
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+                    <ul class="dropdown-menu dropdown-menu-end  shadow-sm"
                         aria-labelledby="dropOptions">
                         <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">Gestión</li>
                         <li v-if="canRescheduleInvoice(row)">

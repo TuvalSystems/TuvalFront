@@ -28,14 +28,14 @@ export function useApprovedReservationsTable() {
 
   const columns = [
     {
-      label: "Pto. Venta",
+      label: "Agencia",
       key: "PTO_VTA_DESCRIPCION",
       clickable: false,
       sortable: true,
       render: (value) => value,
       align: "text-start",
       thClass: "text-muted text-uppercase fw-bold",
-      width: "150px",
+      width: "120px",
     },
     {
       label: "Cotización",
@@ -47,7 +47,7 @@ export function useApprovedReservationsTable() {
       width: "120px",
     },
     {
-      label: "Fecha",
+      label: "F. Cotización",
       key: "cot_created_at",
       clickable: false,
       sortable: true,
@@ -64,7 +64,7 @@ export function useApprovedReservationsTable() {
       align: "text-start",
       thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
-      width: "260px",
+      width: "200px",
     },
     {
       label: "Total",
@@ -74,17 +74,17 @@ export function useApprovedReservationsTable() {
       render: (value) => value,
       align: "text-end",
       thClass: "text-muted text-uppercase fw-bold",
-      width: "120px",
+      width: "80px",
     },
     {
-      label: "Tipo Reserva",
+      label: "Tipo",
       key: "tipo_reserva",
       clickable: false,
       sortable: true,
       align: "text-center",
       thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
-      width: "150px",
+      width: "110px",
     },
     {
       label: "F. Solicitud",
@@ -94,7 +94,17 @@ export function useApprovedReservationsTable() {
       align: "text-center",
       thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
-      width: "150px",
+      width: "120px",
+    },
+    {
+      label: "F. Aprobrada",
+      key: "fe_autorizacion_reserva",
+      clickable: false,
+      sortable: true,
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
+      tdClass: "d-none d-md-table-cell",
+      width: "130px",
     },
     {
       label: "Estado",
@@ -104,10 +114,10 @@ export function useApprovedReservationsTable() {
       align: "text-center",
       thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
-      width: "140px",
+      width: "110px",
     },
     {
-      label: "Mult. Bod.",
+      label: "Multi. Bod",
       key: "bodegas_uso",
       clickable: false,
       sortable: true,
@@ -117,14 +127,25 @@ export function useApprovedReservationsTable() {
       width: "120px",
     },
     {
-      label: "F. Aprobación",
-      key: "fe_autorizacion_reserva",
+      label: "Autorizado Por",
+      key: "usuario_aprobador",
       clickable: false,
       sortable: true,
       align: "text-center",
       thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
       tdClass: "d-none d-md-table-cell",
-      width: "150px",
+      width: "120px",
+    },
+
+    {
+      label: "Registro Autorización",
+      key: "fe_ingreso_autorizacion_reserva",
+      clickable: false,
+      sortable: true,
+      align: "text-center",
+      thClass: "d-none d-md-table-cell text-muted text-uppercase fw-bold",
+      tdClass: "d-none d-md-table-cell",
+      width: "160px",
     },
   ];
 
@@ -231,7 +252,7 @@ export function useApprovedReservationsTable() {
   );
   return {
     columns,
-    listPerpage : LIST_PER_PAGE_OPTIONS,
+    listPerpage: LIST_PER_PAGE_OPTIONS,
     listStatus,
     table,
     fetchList,

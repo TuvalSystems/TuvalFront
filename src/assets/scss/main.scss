@@ -122,33 +122,3 @@
 
 // Dark mode
 @import "oneui/dark-mode";
-
-// User styles (your own styles/overrides)
-@import "custom/main";
-
-
-/* === FIX SWEETALERT DARK MODE === */
-
-/* Detecta si el body o html tiene clase oscura */
-.dark-mode {
-  .swal2-popup {
-    background-color: #262c35 !important; /* Fondo oscuro OneUI */
-    color: #dfe3ea !important;            /* Texto claro OneUI */
-    border: 1px solid #333;               /* Borde sutil */
-  }
-
-  .swal2-title {
-    color: #ffffff !important;
-  }
-
-  .swal2-html-container {
-    color: #ced4da !important;
-  }
-  
-  /* Ajuste para inputs si usas alertas con formularios */
-  .swal2-input, .swal2-textarea {
-    background-color: #1a2029 !important;
-    color: #fff !important;
-    border-color: #3e4d5f !important;
-  }
-}

@@ -1,6 +1,81 @@
 import { defineStore } from "pinia";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "";
+const templatePreferencesKey = "tuval.template.preferences";
+const defaultSettings = {
+  colorTheme: "minimal", // 'minimal', 'amethyst', 'city', 'flat', 'modern', 'smooth'
+  darkMode: false,
+  darkModeSystem: true,
+  sidebarLeft: true,
+  sidebarMini: false,
+  sidebarDark: true,
+  sidebarVisibleDesktop: true,
+  sidebarVisibleMobile: false,
+  sideOverlayVisible: false,
+  sideOverlayHoverable: false,
+  pageOverlay: true,
+  headerFixed: true,
+  headerDark: false,
+  headerSearch: false,
+  headerLoader: false,
+  pageLoader: false,
+  rtlSupport: false,
+  sideTransitions: true,
+  mainContent: "", // 'boxed', 'narrow'
+};
+
+function prefersDarkMode() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+}
+
+function readTemplatePreferences() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    return JSON.parse(localStorage.getItem(templatePreferencesKey)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function persistTemplatePreferences(settings) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const preferences = {
+    colorTheme: settings.colorTheme,
+    darkMode: settings.darkMode,
+    darkModeSystem: settings.darkModeSystem,
+    sidebarDark: settings.sidebarDark,
+  };
+
+  try {
+    localStorage.setItem(templatePreferencesKey, JSON.stringify(preferences));
+  } catch {
+    // Keep rendering even if browser storage is unavailable.
+  }
+}
+
+function getInitialSettings() {
+  const settings = {
+    ...defaultSettings,
+    ...readTemplatePreferences(),
+  };
+
+  if (settings.darkModeSystem) {
+    settings.darkMode = prefersDarkMode();
+  }
+
+  return settings;
+}
+
 // Main Pinia Store
 export const useTemplateStore = defineStore({
   id: "template",
@@ -23,27 +98,7 @@ export const useTemplateStore = defineStore({
 
     // Default template settings
     // Various of them are also set in each layout variation under layouts/variations/ folder
-    settings: {
-      colorTheme: "", // 'amethyst', 'city', 'flat', 'modern', 'smooth'
-      darkMode: false,
-      darkModeSystem: true,
-      sidebarLeft: true,
-      sidebarMini: false,
-      sidebarDark: true,
-      sidebarVisibleDesktop: true,
-      sidebarVisibleMobile: false,
-      sideOverlayVisible: false,
-      sideOverlayHoverable: false,
-      pageOverlay: true,
-      headerFixed: true,
-      headerDark: false,
-      headerSearch: false,
-      headerLoader: false,
-      pageLoader: false,
-      rtlSupport: false,
-      sideTransitions: true,
-      mainContent: "", // 'boxed', 'narrow'
-    },
+    settings: getInitialSettings(),
   }),
   actions: {
     setLayout(payload = {}) {
@@ -105,6 +160,8 @@ export const useTemplateStore = defineStore({
       } else if (payload.mode === "toggle") {
         this.settings.sidebarDark = !this.settings.sidebarDark;
       }
+
+      persistTemplatePreferences(this.settings);
     },
     // Sets side overlay visibility (open, close, toggle)
     sideOverlay(payload) {
@@ -206,6 +263,8 @@ export const useTemplateStore = defineStore({
       } else if (payload.mode === "toggle") {
         this.settings.darkMode = !this.settings.darkMode;
       }
+
+      persistTemplatePreferences(this.settings);
     },
     // Dark Mode System based
     darkModeSystem(payload) {
@@ -213,10 +272,7 @@ export const useTemplateStore = defineStore({
         this.settings.darkModeSystem = true;
 
         // Check system preference
-        if (
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
+        if (prefersDarkMode()) {
           this.settings.darkMode = true;
         } else {
           this.settings.darkMode = false;
@@ -224,6 +280,8 @@ export const useTemplateStore = defineStore({
       } else if (payload.mode === "off") {
         this.settings.darkModeSystem = false;
       }
+
+      persistTemplatePreferences(this.settings);
     },
     // Sets active color theme
     setColorTheme(payload) {
@@ -240,6 +298,8 @@ export const useTemplateStore = defineStore({
       if (payload.theme) {
         document.body.classList.add("theme-" + payload.theme);
       }
+
+      persistTemplatePreferences(this.settings);
     },
     // Sets side transitions
     setSideTransitions(payload) {

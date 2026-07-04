@@ -1,0 +1,105 @@
+//
+// Minimal Theme
+// --------------------------------------------------
+
+$theme-minimal-primary: #2563eb !default;
+$theme-minimal-light: tint-color($theme-minimal-primary, 45%) !default;
+$theme-minimal-lighter: tint-color($theme-minimal-primary, 82%) !default;
+$theme-minimal-dark: #334155 !default;
+$theme-minimal-darker: #111827 !default;
+
+$theme-minimal-body-bg: #f6f7f9 !default;
+$theme-minimal-body-bg-dark: #e5e7eb !default;
+$theme-minimal-body-bg-light: #ffffff !default;
+
+$theme-minimal-body-color: #1e293b !default;
+$theme-minimal-body-color-dark: #0f172a !default;
+$theme-minimal-body-color-light: #e5e7eb !default;
+
+$theme-minimal-link-color: $theme-minimal-primary !default;
+$theme-minimal-link-hover-color: shade-color($theme-minimal-primary, 18%) !default;
+
+$theme-minimal-headings-color: $theme-minimal-body-color-dark !default;
+
+$theme-minimal-input-btn-focus-color: rgba($theme-minimal-primary, 0.18) !default;
+$theme-minimal-input-btn-focus-box-shadow: 0 0 0 $input-btn-focus-width
+  $theme-minimal-input-btn-focus-color !default;
+
+$theme-minimal-input-bg: #ffffff !default;
+$theme-minimal-input-color: $theme-minimal-body-color !default;
+$theme-minimal-input-border-color: #d8dee8 !default;
+
+$theme-minimal-input-focus-bg: #ffffff !default;
+$theme-minimal-input-focus-color: $theme-minimal-body-color-dark !default;
+$theme-minimal-input-focus-border-color: tint-color(
+  $theme-minimal-primary,
+  25%
+) !default;
+
+$theme-minimal-header-bg: rgba(255, 255, 255, 0.9) !default;
+$theme-minimal-header-dark-bg: $theme-minimal-darker !default;
+$theme-minimal-sidebar-bg: #ffffff !default;
+$theme-minimal-sidebar-dark-bg: $theme-minimal-darker !default;
+$theme-minimal-side-overlay-bg: #ffffff !default;
+
+.theme-minimal {
+  @include color-theme(
+    $theme-minimal-primary,
+    $theme-minimal-light,
+    $theme-minimal-lighter,
+    $theme-minimal-dark,
+    $theme-minimal-darker,
+    $theme-minimal-body-bg,
+    $theme-minimal-body-bg-dark,
+    $theme-minimal-body-bg-light,
+    $theme-minimal-body-color,
+    $theme-minimal-body-color-dark,
+    $theme-minimal-body-color-light,
+    $theme-minimal-link-color,
+    $theme-minimal-link-hover-color,
+    $theme-minimal-headings-color,
+    $theme-minimal-input-btn-focus-color,
+    $theme-minimal-input-btn-focus-box-shadow,
+    $theme-minimal-input-bg,
+    $theme-minimal-input-color,
+    $theme-minimal-input-border-color,
+    $theme-minimal-input-focus-bg,
+    $theme-minimal-input-focus-color,
+    $theme-minimal-input-focus-border-color,
+    $theme-minimal-header-bg,
+    $theme-minimal-header-dark-bg,
+    $theme-minimal-sidebar-bg,
+    $theme-minimal-sidebar-dark-bg,
+    $theme-minimal-side-overlay-bg
+  );
+
+  @include color-theme-dark(
+    $theme-minimal-primary,
+    $theme-minimal-light,
+    $theme-minimal-lighter,
+    $theme-minimal-dark,
+    $theme-minimal-darker,
+    $theme-minimal-body-bg,
+    $theme-minimal-body-bg-dark,
+    $theme-minimal-body-bg-light,
+    $theme-minimal-body-color,
+    $theme-minimal-body-color-dark,
+    $theme-minimal-body-color-light,
+    $theme-minimal-link-color,
+    $theme-minimal-link-hover-color
+  );
+}
+
+@include text-emphasis-variant(".text-minimal", $theme-minimal-primary);
+@include text-emphasis-variant(".text-minimal-dark", $theme-minimal-dark);
+@include text-emphasis-variant(".text-minimal-darker", $theme-minimal-darker);
+@include text-emphasis-variant(".text-minimal-light", $theme-minimal-light);
+@include text-emphasis-variant(".text-minimal-lighter", $theme-minimal-lighter);
+
+@include bg-variant(".bg-minimal", $theme-minimal-primary);
+@include bg-variant(".bg-minimal-op", rgba($theme-minimal-primary, 0.75));
+@include bg-variant(".bg-minimal-dark", $theme-minimal-dark);
+@include bg-variant(".bg-minimal-dark-op", rgba($theme-minimal-dark, 0.8));
+@include bg-variant(".bg-minimal-darker", $theme-minimal-darker);
+@include bg-variant(".bg-minimal-light", $theme-minimal-light);
+@include bg-variant(".bg-minimal-lighter", $theme-minimal-lighter);

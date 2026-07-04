@@ -3,8 +3,6 @@ import {
   createWebHistory,
   RouterView,
 } from "vue-router";
-
-
 // Main layout variations
 import LayoutBackend from "@/layouts/variations/Backend.vue";
 
@@ -95,6 +93,10 @@ const recibirDevolucionesIndex = () => import("@/views/bodegas/devoluciones/Reci
 
 import store from "../store";
 import Maintenance from '@/views/errors/Page503.vue';
+import {
+  canAccessRouteFromMenu,
+  getHomeRouteName,
+} from "@/utils/routeAccess";
 const routes = [
   {
     path: "/",
@@ -293,7 +295,7 @@ const routes = [
           title: "Cobros - Liberar órdenes de despacho",
         },
       },
-       {
+      {
         path: "desaplicacion-cobros",
         name: "cobranzas-desaplicacion",
         component: () => import("@/views/cobranzas/desaplicaciones/DesaplicacionIndex.vue"),
@@ -643,10 +645,42 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+let userActionsPromise = null;
+
+async function getUserActions() {
+  if (!userActionsPromise) {
+    userActionsPromise = import(
+      "@/composables/sistemas/seguridad/usuarios/useUserActions"
+    ).then(({ useUserActions }) => useUserActions());
+  }
+
+  return userActionsPromise;
+}
+
+async function refreshUserAccessForRoute() {
+  const { fetchSectionsActivesByUser } = await getUserActions();
+  const result = await fetchSectionsActivesByUser();
+
+  if (!result.ok) {
+    const error = result.raw || new Error(result.message);
+    error.status = result.status;
+    throw error;
+  }
+
+  const accessData = result.data ?? {};
+  store.commit("setUserAccess", accessData);
+
+  return {
+    menu: Array.isArray(accessData?.menu) ? accessData.menu : [],
+    homeRouteName: getHomeRouteName(accessData?.home) || store.state.home,
+  };
+}
+
+router.beforeEach(async (to, from, next) => {
   const isAuthenticated = !!store.state.user.token;
   const isGuestRoute = to.meta.isGuest;
   const requiresAuth = to.meta.requiresAuth;
+  let homeRouteName = store.state.home;
   const must_change_password =
     store.state.must_change_password ||
     JSON.parse(sessionStorage.getItem("MUST_CHANGE_PASSWORD"));
@@ -658,7 +692,21 @@ router.beforeEach((to, from, next) => {
 
   // usuario autenticado en ruta de invitados como login
   if (isAuthenticated && isGuestRoute) {
-    return next({ name: store.state.home });
+    try {
+      const access = await refreshUserAccessForRoute();
+      homeRouteName = access.homeRouteName || homeRouteName;
+    } catch (error) {
+      const status = error?.response?.status || error?.status;
+
+      if (status === 401) {
+        store.commit("logout");
+        return next({ name: "Login" });
+      }
+      // Si falla el refresco, se conserva el home local para no bloquear el flujo.
+    }
+
+    if (!homeRouteName) return next();
+    return next({ name: homeRouteName });
   }
 
   //usuario autenticado pero debe cambiar su contraseña e intenta ir a cualquier ruta que no sea password-change
@@ -678,9 +726,47 @@ router.beforeEach((to, from, next) => {
     (must_change_password === false ||
       must_change_password === 0 ||
       must_change_password === "0") &&
-    to.name === "password-change"
+    to.name === "password-change" &&
+    homeRouteName
   ) {
-    return next({ name: store.state.home });
+    return next({ name: homeRouteName });
+  }
+
+  if (
+    isAuthenticated &&
+    requiresAuth &&
+    !to.meta.public &&
+    to.name !== "password-change"
+  ) {
+    let menu = store.state.menu;
+    let accessWasRefreshed = false;
+
+    try {
+      const access = await refreshUserAccessForRoute();
+      menu = access.menu;
+      homeRouteName = access.homeRouteName || homeRouteName;
+      accessWasRefreshed = true;
+    } catch (error) {
+      const status = error?.response?.status || error?.status;
+
+      if (status === 401) {
+        store.commit("logout");
+        return next({ name: "Login" });
+      }
+
+      if (status === 403 && homeRouteName) {
+        return next({ name: homeRouteName });
+      }
+    }
+
+    if (
+      homeRouteName &&
+      !canAccessRouteFromMenu(to, menu, homeRouteName, {
+        allowEmptyMenu: !accessWasRefreshed,
+      })
+    ) {
+      return next({ name: homeRouteName });
+    }
   }
 
   // Setear título y continuar normalmente

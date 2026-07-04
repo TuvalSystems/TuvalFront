@@ -456,7 +456,7 @@ onMounted(() => {
               Estado
               <i class="fa fa-angle-down ms-1"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
+            <div class="dropdown-menu dropdown-menu-end  shadow-sm"
               aria-labelledby="dropdown-recent-orders-filters">
               <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
                 @click="llenarpedidos('todos');" href="javascript:void(0)">
@@ -689,8 +689,7 @@ onMounted(() => {
 
 /* BLINDAJE VISUAL */
 .dropdown-menu {
-  /* Asegura que el fondo sea sólido y no transparente */
-  background-color: #262b34 !important;
+  
 
   /* Asegura que el menú flote por encima de las otras filas de la tabla */
   z-index: 9999 !important;

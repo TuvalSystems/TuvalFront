@@ -202,15 +202,15 @@
             <thead>
               <tr>
                 <th class="text-end">Monto original</th>
-                <th class="text-end">${{ formatPrice(ingreso_cheque.monto_original) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_cheque.monto_original) }}</th>
               </tr>
               <tr>
                 <th class="text-end">Monto no aplicado</th>
-                <th class="text-end">${{ formatPrice(ingreso_cheque.monto_no_aplicado) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_cheque.monto_no_aplicado) }}</th>
               </tr>
               <tr>
                 <th class="text-end">Monto aplicado</th>
-                <th class="text-end">${{ formatPrice(ingreso_cheque.monto_aplicado) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_cheque.monto_aplicado) }}</th>
               </tr>
             </thead>
           </table>
@@ -220,7 +220,6 @@
         <div class="col-md-12 justify-content-center">
           <Dataset
             v-if="facturas.data && facturas.data.length"
-            v-slot="{ ds }"
             :ds-data="facturas.data"
             :ds-sortby="sortBy"
             :ds-search-in="['ECD_DET_NUM_DOC',]"
@@ -254,13 +253,13 @@
                 </tr>
               </thead>
               <DatasetItem tag="tbody">
-                <template #default="{ row, index }">
+                <template #default="{ row }">
                   <tr>
                     <td style="width: 140px;" class="numero_factura_efe">{{ row.ECD_DET_NUM_DOC }}</td>
                     <td style="width: 90px;">{{ row.ECD_DET_FECHA_EMISION }}</td>
                     <td style="width: 100px;">{{ row.ECD_DET_FECHA_VENCIMIENTO }}</td>
-                    <td style="width: 90px;" class="text-end">${{ formatPrice(row.ECD_DET_MONTO_ORIGINAL) }}</td>
-                    <td style="width: 90px;" class="text-end">${{ formatPrice(row.ECD_DET_SALDO_CLIENTE) }}</td>
+                    <td style="width: 90px;" class="text-end">${{ formatPriceJm(row.ECD_DET_MONTO_ORIGINAL) }}</td>
+                    <td style="width: 90px;" class="text-end">${{ formatPriceJm(row.ECD_DET_SALDO_CLIENTE) }}</td>
                     <td style="width: 31px;" class="text-center">
                         <input type="checkbox" class="form-check-input" v-model="row.aplicar_todo_cheque" @change="aplicatodo(row)"/>
                     </td>
@@ -303,7 +302,7 @@ import { ref, reactive, computed } from "vue";
 import { useStore} from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import useVuelidate from "@vuelidate/core";
-import { onSort, formatPrice } from '@/functions';
+import { onSort, formatPriceJm, formatPrice } from '@/functions';
 import {
   required,
   decimal,

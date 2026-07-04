@@ -34,10 +34,10 @@
                 {{ cobro_selected.CN_FECHA_EMISION?.date?.slice(0, 10) ?? '' }}
               </td>
               <td class="text-end">
-                ${{ cobro_selected.CN_MONTO_ORIGINAL }}
+                ${{ formatPriceJm(Number.parseFloat(cobro_selected.CN_MONTO_ORIGINAL)) }}
               </td>
               <td class="text-end">
-                ${{ cobro_selected.CN_SALDO_PENDIENTE }}
+                ${{ formatPriceJm(Number.parseFloat(cobro_selected.CN_SALDO_PENDIENTE)) }}
               </td>
             </tr>
             <tr>
@@ -66,15 +66,15 @@
             <thead>
               <tr>
                 <th class="text-end">Monto original</th>
-                <th class="text-end">${{ formatPrice(ingreso_aplicacion.monto_original) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_aplicacion.monto_original) }}</th>
               </tr>
               <tr>
                 <th class="text-end">Monto no aplicado</th>
-                <th class="text-end">${{ formatPrice(ingreso_aplicacion.monto_no_aplicado) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_aplicacion.monto_no_aplicado) }}</th>
               </tr>
               <tr>
                 <th class="text-end">Monto aplicado</th>
-                <th class="text-end">${{ formatPrice(ingreso_aplicacion.monto_aplicado) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_aplicacion.monto_aplicado) }}</th>
               </tr>
             </thead>
           </table>
@@ -82,8 +82,8 @@
       </div>
       <div class="row">
         <div class="col-md-12 justify-content-center">
-          <Dataset v-if="facturas.data && facturas.data.length" v-slot="{ ds }" :ds-data="facturas.data"
-            :ds-sortby="sortBy" :ds-search-in="['ECD_DET_NUM_DOC',]">
+          <Dataset v-if="facturas.data && facturas.data.length" :ds-data="facturas.data" :ds-sortby="sortBy"
+            :ds-search-in="['ECD_DET_NUM_DOC',]">
             <div class="row mb-2">
               <div class="col-sm-3">
                 <div class="input-group ">
@@ -108,14 +108,14 @@
                 </tr>
               </thead>
               <DatasetItem tag="tbody">
-                <template #default="{ row, index }">
+                <template #default="{ row }">
                   <tr>
                     <td style="width: 140px;" class="numero_factura_efe">{{ row.ECD_DET_NUM_DOC }}</td>
                     <td style="width: 90px;">{{ row.ECD_DET_FECHA_EMISION }}</td>
                     <td style="width: 100px;">{{ row.ECD_DET_FECHA_VENCIMIENTO }}</td>
-                    <td style="width: 90px;" class="text-end">${{ row.ECD_DET_MONTO_ORIGINAL }}</td>
-                    <td style="width: 90px;" class="text-end">${{ formatPrice(parseFloat(row.ECD_DET_SALDO_CLIENTE) -
-                      parseFloat(row.aplicar_monto_aplicacion)) }}</td>
+                    <td style="width: 90px;" class="text-end">${{ formatPriceJm(Number.parseFloat(row.ECD_DET_MONTO_ORIGINAL)) }}</td>
+                    <td style="width: 90px;" class="text-end">${{ formatPriceJm(Number.parseFloat(row.ECD_DET_SALDO_CLIENTE) -
+                      Number.parseFloat(row.aplicar_monto_aplicacion)) }}</td>
                     <td style="width: 31px;" class="text-center">
                       <input type="checkbox" class="form-check-input" v-model="row.aplicar_todo_aplicacion"
                         @change="aplicatodo(row)" />
@@ -150,7 +150,7 @@ import { ref, reactive, computed } from "vue";
 import { useStore } from 'vuex'
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import useVuelidate from "@vuelidate/core";
-import { formatPrice } from "@/functions";
+import { formatPrice, formatPriceJm } from "@/functions";
 import { useCustomerApplicationsPending } from "@/composables/cobranzas/cobros/useCustomerApplicationsPending";
 
 const {
@@ -252,7 +252,7 @@ function selectCobro($event) {
   const selectedCollection = cobros_sin_aplicar.value.find((item) => {
     return String(item.CN_DOCUMENTO ?? '').trim() === selectedDoc;
   });
-  
+
   if (!selectedCollection) {
     swalWarning('No se encontró el cobro seleccionado.');
     return;
@@ -391,7 +391,7 @@ function aplicarsaldos(factura) {
 function enviaraplicacion() {
   const detalleAplicacion = ingreso_aplicacion.value?.detalle ?? {};
   const documentoAplicacion = String(detalleAplicacion.CN_DOCUMENTO ?? '').trim();
-  
+
   if (!documentoAplicacion) {
     swalWarning('No se encontró el documento de aplicación.');
     return;

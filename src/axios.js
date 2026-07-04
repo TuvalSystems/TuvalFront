@@ -1,6 +1,7 @@
 import axios from 'axios';
 import store from './store';
 import router from './router';
+import { SYSTEM_USERS_API_ROUTES } from "@/constants/apiRoutes/sistema/userRoutes";
 
 const axiosClient = axios.create({
     baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
@@ -18,6 +19,13 @@ axiosClient.interceptors.request.use(config => {
     if (store.state.user.token) {
         config.headers.Authorization = `Bearer ${store.state.user.token}`;
     }
+
+    const currentRoute = router.currentRoute.value;
+    const currentRouteName = currentRoute?.meta?.extends || currentRoute?.name;
+    if (currentRouteName && !config.headers["X-Current-Route"]) {
+        config.headers["X-Current-Route"] = currentRouteName;
+    }
+
     return config;
 }, error => {
     return Promise.reject(error);
@@ -52,7 +60,20 @@ axiosClient.interceptors.response.use(
         }
 
         // Caso 3: Error 403 (Forbidden / Sin permisos)
-        // Puedes redirigir a una página de "No autorizado" si quieres
+        // Redirige a la vista home si el backend revoca el acceso.
+
+        if (response && response.status === 403) {
+            if (error.config?.url === SYSTEM_USERS_API_ROUTES.OBTENER_SECCIONES_ACTIVAS) {
+                return Promise.reject(error);
+            }
+
+            const homeRouteName = store.state.home || sessionStorage.getItem("HOME");
+
+            if (homeRouteName && router.currentRoute.value.name !== homeRouteName) {
+                router.push({ name: homeRouteName });
+                return new Promise(() => { });
+            }
+        }
 
         return Promise.reject(error);
     }

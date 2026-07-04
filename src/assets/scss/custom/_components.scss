@@ -1,0 +1,193 @@
+//
+// Minimal UI refinements
+// --------------------------------------------------
+
+html {
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--tuval-bg);
+  color: var(--tuval-text);
+  letter-spacing: 0;
+}
+
+#page-container,
+#main-container {
+  background: var(--tuval-bg);
+}
+
+#page-header {
+  border-bottom: 1px solid var(--tuval-border);
+  box-shadow: none;
+}
+
+@supports (backdrop-filter: blur(12px)) {
+  #page-header {
+    backdrop-filter: saturate(1.2) blur(12px);
+  }
+}
+
+#sidebar {
+  border-right: 1px solid var(--tuval-border);
+  box-shadow: none;
+}
+
+.sidebar-r #sidebar {
+  border-right: 0;
+  border-left: 1px solid var(--tuval-border);
+}
+
+#sidebar .content-header img {
+  max-height: 72px !important;
+  object-fit: contain;
+}
+
+.block,
+.card,
+.modal-content,
+.dropdown-menu,
+.toast {
+  border-color: var(--tuval-border);
+  border-radius: var(--tuval-radius-lg);
+  box-shadow: var(--tuval-shadow-sm);
+}
+
+.block {
+  border: 1px solid var(--tuval-border);
+  margin-bottom: 1rem;
+}
+
+.block-header,
+.block-header-default {
+  border-bottom-color: var(--tuval-border);
+}
+
+.block.block-fx-shadow,
+.block.block-fx-pop,
+a.block.block-link-shadow:hover,
+a.block.block-link-pop:hover {
+  box-shadow: var(--tuval-shadow-md);
+}
+
+.btn {
+  border-radius: var(--tuval-radius-sm);
+  box-shadow: none !important;
+  letter-spacing: 0;
+}
+
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+.page-link:focus {
+  box-shadow: var(--tuval-focus-ring);
+}
+
+.btn-alt-secondary {
+  color: var(--tuval-text);
+  background-color: var(--tuval-surface-muted);
+  border-color: var(--tuval-border);
+}
+
+.btn-alt-secondary:hover,
+.btn-alt-secondary:focus {
+  color: var(--tuval-text);
+  background-color: var(--tuval-surface);
+  border-color: var(--tuval-border-strong);
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+  border-color: var(--tuval-border);
+  border-radius: var(--tuval-radius-sm);
+}
+
+.form-control::placeholder {
+  color: var(--tuval-text-muted);
+}
+
+.dropdown-menu {
+  padding: 0.4rem;
+}
+
+.dropdown-item {
+  border-radius: var(--tuval-radius-sm);
+}
+
+.table {
+  --bs-table-border-color: var(--tuval-border);
+  --bs-table-hover-bg: rgba(37, 99, 235, 0.045);
+
+  border-color: var(--tuval-border);
+}
+
+.table > :not(caption) > * > * {
+  vertical-align: middle;
+}
+
+.badge {
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.nav-main-heading {
+  letter-spacing: 0;
+}
+
+.nav-main-link {
+  border-radius: var(--tuval-radius-sm);
+  margin: 0.125rem 0.5rem;
+}
+
+.nav-main-link-name {
+  line-height: 1.25;
+}
+
+.sidebar-dark #sidebar,
+.page-header-dark #page-header {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-dark #sidebar {
+  --tuval-sidebar-icon: #cbd5e1;
+  --tuval-sidebar-icon-active: #ffffff;
+  --tuval-sidebar-control-bg: rgba(255, 255, 255, 0.08);
+  --tuval-sidebar-control-bg-hover: rgba(255, 255, 255, 0.14);
+  --tuval-sidebar-control-border: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-dark #sidebar .btn-alt-secondary {
+  color: var(--tuval-sidebar-icon);
+  background-color: var(--tuval-sidebar-control-bg);
+  border-color: var(--tuval-sidebar-control-border);
+}
+
+.sidebar-dark #sidebar .btn-alt-secondary:hover,
+.sidebar-dark #sidebar .btn-alt-secondary:focus {
+  color: var(--tuval-sidebar-icon-active);
+  background-color: var(--tuval-sidebar-control-bg-hover);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.sidebar-dark #sidebar .btn-alt-secondary i,
+.sidebar-dark #sidebar .nav-main-link-icon {
+  color: currentColor;
+}
+
+.sidebar-dark #sidebar .nav-main-link {
+  color: var(--tuval-sidebar-icon);
+}
+
+.sidebar-dark #sidebar .nav-main-link:hover,
+.sidebar-dark #sidebar .nav-main-link:focus,
+.sidebar-dark #sidebar .nav-main-link.active,
+.sidebar-dark #sidebar .nav-main-item.open > .nav-main-link-submenu {
+  color: var(--tuval-sidebar-icon-active);
+}
+
+.sidebar-dark #sidebar .nav-main-submenu {
+  background-color: rgba(255, 255, 255, 0.04);
+}

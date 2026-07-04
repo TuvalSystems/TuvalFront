@@ -32,7 +32,7 @@
     "@fullcalendar/timegrid": "^5.10.1",
     "@fullcalendar/vue3": "^5.10.1",
     "@highlightjs/vue-plugin": "^2.1.0",
-    "@popperjs/core": "^2.11.4",
+    "@popperjs/core": "2.11.6",
     "@tiptap/starter-kit": "^2.0.0-beta.183",
     "@tiptap/vue-3": "^2.0.0-beta.90",
     "@vueform/slider": "^2.0.9",
@@ -41,7 +41,7 @@
     "@vueuse/core": "^14.1.0",
     "axios": "^1.16.1",
     "baseline-browser-mapping": "^2.10.29",
-    "bootstrap": "^5.1.3",
+    "bootstrap": "5.2.3",
     "browser-image-compression": "^2.0.2",
     "caniuse-lite": "^1.0.30001792",
     "dropzone": "^6.0.0-beta.2",
@@ -61,18 +61,18 @@
     "vue-flatpickr-component": "^11.0.5",
     "vue-meta": "^2.4.0",
     "vue-router": "^4.0.14",
-    "vue-select": "^4.0.0-beta.3",
+    "vue-select": "4.0.0-beta.3",
     "vue-star-rating": "^2.1.0",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.1.4",
+    "@vitejs/plugin-vue": "5.2.4",
     "autoprefixer": "^10.4.5",
     "eslint": "^8.11.0",
     "eslint-plugin-vue": "^8.5.0",
     "postcss": "^8.4.13",
-    "sass": "^1.49.9",
-    "vite": "^6.4.3"
+    "sass": "1.51.0",
+    "vite": "6.4.3"
   }
 }

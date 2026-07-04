@@ -273,7 +273,7 @@ export function useSearchArticle() {
     }
 
 
-   
+
 
     //exposicion 
     const isShowStockExposicion = (row) => {
@@ -290,8 +290,8 @@ export function useSearchArticle() {
     }
 
     const isEmptyStockExposicion = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L' 
-        && row.stockExposicion?.disponible >= 0;
+        return row.ART_TIPO_COMPRA !== 'L'
+            && row.stockExposicion?.disponible >= 0;
     }
 
     const apiStockExposicion = 'consultas/stock-exposicion';

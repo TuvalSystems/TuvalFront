@@ -139,15 +139,15 @@
             <thead>
               <tr>
                 <th class="text-end">Monto original</th>
-                <th class="text-end">${{ formatPrice(ingreso_deposito.monto_original) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_deposito.monto_original) }}</th>
               </tr>
               <tr>
                 <th class="text-end">Monto no aplicado</th>
-                <th class="text-end">${{ formatPrice(ingreso_deposito.monto_no_aplicado) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_deposito.monto_no_aplicado) }}</th>
               </tr>
               <tr>
                 <th class="text-end">Monto aplicado</th>
-                <th class="text-end">${{ formatPrice(ingreso_deposito.monto_aplicado) }}</th>
+                <th class="text-end">${{ formatPriceJm(ingreso_deposito.monto_aplicado) }}</th>
               </tr>
             </thead>
           </table>
@@ -158,7 +158,6 @@
         <div class="col-md-12 justify-content-center">
           <Dataset
             v-if="facturas.data && facturas.data.length"
-            v-slot="{ ds }"
             :ds-data="facturas.data"
             :ds-sortby="sortBy"
             :ds-search-in="['ECD_DET_NUM_DOC',]"
@@ -193,13 +192,13 @@
               
               </thead>
               <DatasetItem tag="tbody">
-                <template #default="{ row, index }">
+                <template #default="{ row }">
                   <tr>
                     <td style="width: 140px;" class="numero_factura_efe">{{ row.ECD_DET_NUM_DOC }}</td>
                     <td style="width: 90px;">{{ row.ECD_DET_FECHA_EMISION }}</td>
                     <td style="width: 100px;">{{ row.ECD_DET_FECHA_VENCIMIENTO }}</td>
-                    <td style="width: 90px;" class="text-end">${{ formatPrice(row.ECD_DET_MONTO_ORIGINAL) }}</td>
-                    <td style="width: 90px;" class="text-end">${{ formatPrice(parseFloat(row.ECD_DET_SALDO_CLIENTE) - parseFloat(row.aplicar_monto_deposito)) }}</td>
+                    <td style="width: 90px;" class="text-end">${{ formatPriceJm(row.ECD_DET_MONTO_ORIGINAL) }}</td>
+                    <td style="width: 90px;" class="text-end">${{ formatPriceJm(parseFloat(row.ECD_DET_SALDO_CLIENTE) - parseFloat(row.aplicar_monto_deposito)) }}</td>
                     <td style="width: 31px;" class="text-center">
                         <input type="checkbox" class="form-check-input" v-model="row.aplicar_todo_deposito" @change="aplicatodo(row)"/>
                     </td>
@@ -248,7 +247,7 @@ import {
 } from "@vuelidate/validators";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
-import { formatPrice, formatPrice4 } from "@/functions";
+import { formatPrice, formatPriceJm } from "@/functions";
 const flatPickrState = reactive({
   // Configuration, get more form https://chmln.github.io/flatpickr/options/
   dep_fecha: {

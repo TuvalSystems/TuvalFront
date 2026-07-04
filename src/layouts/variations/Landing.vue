@@ -60,13 +60,21 @@ store.mainContent({ mode: "boxed" });
           <button
             type="button"
             class="dropdown-item d-flex align-items-center justify-content-between fw-medium"
+            @click.prevent="store.setColorTheme({ theme: 'minimal' })"
+          >
+            <span>Minimal</span>
+            <i class="fa fa-circle text-minimal"></i>
+          </button>
+          <button
+            type="button"
+            class="dropdown-item d-flex align-items-center justify-content-between fw-medium"
             @click.prevent="store.setColorTheme({ theme: '' })"
           >
             <span>Default</span>
             <i class="fa fa-circle text-default"></i>
           </button>
           <button
-            type="buttbuttonn"
+            type="button"
             class="dropdown-item d-flex align-items-center justify-content-between fw-medium"
             @click.prevent="store.setColorTheme({ theme: 'amethyst' })"
           >

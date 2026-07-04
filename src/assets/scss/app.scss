@@ -1,0 +1,38 @@
+//
+// Global stylesheet entrypoint
+// --------------------------------------------------
+
+// Framework core
+@import "main";
+
+// OneUI color themes
+@import "oneui/themes/amethyst";
+@import "oneui/themes/city";
+@import "oneui/themes/flat";
+@import "oneui/themes/modern";
+@import "oneui/themes/smooth";
+
+// App color themes
+@import "custom/theme-minimal";
+
+// SweetAlert2
+@import "sweetalert2/dist/sweetalert2.min.css";
+
+// Flatpickr + custom overrides
+@import "flatpickr/dist/flatpickr.css";
+@import "vendor/flatpickr";
+
+// Vue Select + custom overrides
+@import "vue-select/src/scss/vue-select";
+@import "vendor/vue-select";
+
+// Vue Form Slider + custom overrides
+@import "@vueform/slider/themes/default.css";
+@import "vendor/vueform-slider";
+
+// Dropzone + custom overrides
+@import "dropzone/dist/dropzone.css";
+@import "vendor/dropzone";
+
+// App overrides must stay last.
+@import "custom/main";
