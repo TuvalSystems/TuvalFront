@@ -70,7 +70,7 @@
               {{ deposito.CB_DESCRIPCION }}
             </td>
             <td class="fs-sm">
-              {{ deposito.fecha_creacion_cobro }}
+              {{ deposito.fecha }}
             </td>
             <td class="fs-sm">
               <span v-if="deposito.tipo === 'DP'"
