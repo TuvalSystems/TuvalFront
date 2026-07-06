@@ -42,10 +42,10 @@
           <tr>
             <th>Agencia</th>
             <th>RCB</th>
+            <th>F. Registro</th>
             <th>Cliente</th>
-            <th>Ruc</th>
             <th>Banco</th>
-            <th>Fecha</th>
+            <th>F. Deposito</th>
             <th>Tipo</th>
             <th>Comprobante</th>
             <th class="text-end">Monto</th>
@@ -61,10 +61,10 @@
               {{ deposito.numero_recibo }}
             </td>
             <td class="fs-sm">
-              {{ deposito.CLI_RAZON_SOCIAL }}
+              {{ deposito.fecha_creacion_cobro }}
             </td>
             <td class="fs-sm">
-              {{ deposito.CLI_RUC }}
+              {{ deposito.CLI_RAZON_SOCIAL }}
             </td>
             <td class="fs-sm">
               {{ deposito.CB_DESCRIPCION }}
