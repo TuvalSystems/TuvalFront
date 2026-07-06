@@ -2,6 +2,7 @@
 import { onMounted } from 'vue';
 import { useHistoricalDepositsTable } from '@/composables/cobranzas/depositos-historicos/useHistoricalDepositsTable';
 import BaseTable from '@/components/BaseTable.vue';
+import { formatPriceJm } from '@/functions';
 
 const {
   table,
@@ -61,6 +62,17 @@ onMounted(() => {
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
         :sortField="table.filters.sortField" :sortOrder="table.filters.sortOrder" @onSort="onSort"
         @onPageChange="fetchList" @onClick="handleClick" @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">
+        <!-- estado -->
+        <template #cell-estado="{ value, row }">
+          <span :class="statusClass(value)">
+            {{ row.estado }}
+          </span>
+        </template>
+
+        <!-- formato de monto -->
+        <template #cell-monto="{ value }">
+          <span class="fw-bold"> ${{ formatPriceJm(value) }}</span>
+        </template>
       </BaseTable>
 
     </BaseBlock>

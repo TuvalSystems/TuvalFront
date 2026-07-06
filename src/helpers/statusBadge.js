@@ -24,6 +24,7 @@ const COMMON_STATUS_MAP = {
     //cobros
     enviado: "success",
     revisado: "secondary",
+    iniciado : "info"
 };
 
 const STATUS_MAPS = {
