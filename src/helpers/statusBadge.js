@@ -20,6 +20,10 @@ const COMMON_STATUS_MAP = {
     cancelado: "warning",
     procesado: "primary",
     traslado: "info",
+
+    //cobros
+    enviado: "success",
+    revisado: "secondary",
 };
 
 const STATUS_MAPS = {
