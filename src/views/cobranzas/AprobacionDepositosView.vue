@@ -92,15 +92,13 @@
             <td class="text-end fs-sm">
               ${{ formatPriceJm(parseFloat(deposito.monto)) }}
             </td>
-            <td class="text-end">
-              <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-success mx-2 nowrap" @click="confirmAprobar(deposito)">
-                  <i class="fa fa-check"></i> Aprobar
+            <td class="fs-sm text-end nowrap space-x-1">
+                <button type="button" class="btn btn-sm btn-success" @click="confirmAprobar(deposito)">
+                  <i class="fa fa-check"></i> 
                 </button>
-                <button type="button" class="btn btn-sm btn-danger mx-2 nowrap" @click="confirmRechazar(deposito)">
-                  <i class="fa fa-xmark"></i> Rechazar
+                <button type="button" class="btn btn-sm btn-danger" @click="confirmRechazar(deposito)">
+                  <i class="fa fa-xmark"></i> 
                 </button>
-              </div>
             </td>
           </tr>
         </tbody>
