@@ -27,13 +27,13 @@ export function useHistoricalDepositsTable() {
     const loadingRef = toRef(table, "loading");
     const statusClass = (st) => getStatusBadgeClass(st, 'documento');
     const columns = reactive([
-        { label: "agencia", key: "agencia", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label: "agencia", key: "agencia", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
         { label: "cobro", key: "numero_recibo", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"f. ingreso", key :"fecha_creacion_cobro", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"usuario ingreso", key :"usuario_ingreso", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"ruc", key :"ruc", sortable: false, align: "text-end", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"ruc", key :"ruc", sortable: false, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"razón social", key :"razon_social", sortable: false, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"banco", key :"banco", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"banco", key :"banco", sortable: false, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"tipo", key :"tipo", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"comprobante", key :"comprobante", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"monto", key :"monto", sortable: false, align: "text-end", thClass: "text-muted  text-uppercase fw-bold" },
