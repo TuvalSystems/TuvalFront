@@ -22,7 +22,7 @@ export function useApprovalOrder() {
 
 
     async function fetchListOrdersConsult() {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_COTIZACIONES_PENDIENTES_CONSULTA, { puntodeventa_id: ptoVtaSelect.value }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_PEDIDOS_PENDIENTES_CONSULTA, { puntodeventa_id: ptoVtaSelect.value }), {
             loadingRef: loadingOrderConsult,
             onSuccess: (info) => (orderConsult.value = info),
             successMessage: "Proceso realizado exitosamente.",
