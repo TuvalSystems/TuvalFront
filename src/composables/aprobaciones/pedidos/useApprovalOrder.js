@@ -1,5 +1,6 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
+import { APPROVAL_API_ROUTES } from "@/constants/apiRoutes/aprobaciones/approvalRoutes";
 import { ref, computed } from "vue";
 import { useStore } from 'vuex'
 const orders = ref([]);
@@ -10,9 +11,8 @@ export function useApprovalOrder() {
     const { run } = useApiAction();
     const store = useStore();
     const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
-    const apiListOrders = "aprobaciones/pedidos/lista-pedidos-pendientes";
     async function fetchListOrders() {
-        return run(() => axiosClient.post(apiListOrders, { puntodeventa_id: ptoVtaSelect.value }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_PEDIDOS_PENDIENTES, { puntodeventa_id: ptoVtaSelect.value }), {
             loadingRef: loadingOrders,
             onSuccess: (info) => (orders.value = info),
             successMessage: "Proceso realizado exitosamente.",
@@ -21,9 +21,8 @@ export function useApprovalOrder() {
     const countOrders = computed(() => orders.value.length);
 
 
-    const apiListOrdersConsult = "aprobaciones/pedidos/consulta/lista-pedidos-pendientes";
     async function fetchListOrdersConsult() {
-        return run(() => axiosClient.post(apiListOrdersConsult, { puntodeventa_id: ptoVtaSelect.value }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_COTIZACIONES_PENDIENTES_CONSULTA, { puntodeventa_id: ptoVtaSelect.value }), {
             loadingRef: loadingOrderConsult,
             onSuccess: (info) => (orderConsult.value = info),
             successMessage: "Proceso realizado exitosamente.",
@@ -31,6 +30,17 @@ export function useApprovalOrder() {
     }
 
     const countOrdersConsult = computed(() => orderConsult.value.length);
+
+
+
+
+    const loadingValidateStockOrderApproval  = ref(false);
+    async function validateStockForOrderApproval(id){
+      return run(() => axiosClient.post(APPROVAL_API_ROUTES.VERIFICAR_STOCK_PEDIDOS_APROBACIONES, {id : id}),{
+        loadingRef : loadingValidateStockOrderApproval ,
+
+      });
+    }
 
 
     return {
@@ -41,6 +51,10 @@ export function useApprovalOrder() {
         fetchListOrdersConsult,
         orderConsult,
         loadingOrderConsult,
-        countOrdersConsult
+        countOrdersConsult,
+
+        //consulta de stock para pedido antes de aprobar 
+        loadingValidateStockOrderApproval,
+        validateStockForOrderApproval 
     };
 }

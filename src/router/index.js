@@ -337,7 +337,9 @@ const routes = [
       {
         path: "crediticias",
         name: "aprobaciones-crediticias",
-        component: AprobacionesCrediticias,
+        // component: AprobacionesCrediticias,
+        component: () => import("@/views/aprobaciones/crediticia/CrediticiaIndex.vue"),
+
         meta: {
           title: "Aprobaciones - Crediticias",
         },

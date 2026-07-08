@@ -6,12 +6,25 @@ import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from
 import VerPedidoAprobarModal from "../modals/VerPedidoAprobarModal.vue";
 import { formatPrice, format } from "@/functions";
 import { useApprovalOrder } from "@/composables/aprobaciones/pedidos/useApprovalOrder";
+import { useCommercialOrdersActions } from "@/composables/aprobaciones/pedidos/useCommercialOrdersActions.js";
 
 const {
   loadingOrders,
   fetchListOrders,
-  orders
+  orders,
+
+  //consulta de stock para pedido antes de aprobar 
+  loadingValidateStockOrderApproval,
+  validateStockForOrderApproval
 } = useApprovalOrder();
+const {
+  loadingCommercialApproval,
+  approveComercialOrder,
+  loadingCommercialRejection,
+  rejectionCommercialOrder,
+  loadingCommercialRejectionStock,
+  rejectionCommercialOrderStock
+} = useCommercialOrdersActions();
 // Helper variables
 const cols = reactive([
   {
@@ -110,101 +123,49 @@ let errorMsg = ref('');
 const pedidos = computed(() => store.state.pedidos);
 
 
-function confirmAprobar(pedido) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De aprobar el pedido " + pedido.pedido + "",
-      icon: "question",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, aprobarlo",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        aprobarPedido(pedido);
-      }
-    });
-}
 
-function aprobarPedido(pedido) {
-  pedido.chao = true;
+
+
+
+
+async function approveOrder(order) {
   verpedidoModalObj.hide();
-  store.dispatch('consultaParaAprobarPedido', pedido).then(res => {
-    if (res.success == true) {
-      store.dispatch('aprobarPedido', pedido).then(() => {
-        swalSuccess(res.message);
-      }).catch(err => {
-        errorMsg.value = err.response.data.error
-        swalError(errorMsg.value);
-        return;
-      });
-    } else {
-      pedido.alert = res.message;
-      store.dispatch('rechazarPedidoPorStock', pedido).then(() => {
-        swalInfo(res.message);
-      }).catch(err => {
-        errorMsg.value = err.response.data.error
-        swalError(errorMsg.value);
-        return;
-      });
-    }
-  }).catch(err => {
-    errorMsg.value = err.response.data.error
-    swalError(errorMsg.value);
+  const resp = await validateStockForOrderApproval(order?.id);
+  if (!resp?.ok) {
+    const respRejection = await rejectionCommercialOrderStock(order?.id, resp?.message)
+    verpedidoModalObj.hide();
+    swalWarning(respRejection?.message);
+    fetchListOrders();
     return;
-  });
-}
+  }
 
-function confirmRechazarPedido(pedido) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De rechazar el pedido " + pedido.pedido + "",
-      icon: "warning",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-danger m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, rechazarlo",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        rechazarPedido(pedido);
-      }
-    });
-}
-
-function rechazarPedido(pedido) {
-  pedido.chao = true;
+  const respApproval = await approveComercialOrder(order?.id, order?.aprobado_comercial_mensaje);
+  if (respApproval?.ok) {
+    verpedidoModalObj.hide();
+    swalSuccess(respApproval?.message);
+    fetchListOrders();
+    return;
+  }
   verpedidoModalObj.hide();
-  store.dispatch('rechazarPedido', pedido).then(() => {
-  }).catch(err => {
-    errorMsg.value = err.response.data.error
-  });
+  const msg = resp?.message || "Opps! Ocurrio un problema al momento de aprobar el pedido";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
+
+async function rejectedOrder(order) {
+  const resp = await rejectionCommercialOrder(order?.id, order?.aprobado_comercial_mensaje);
+  if (resp?.ok) {
+    verpedidoModalObj.hide();
+    swalSuccess(resp?.message);
+    fetchListOrders();
+    return;
+  }
+  verpedidoModalObj.hide();
+  const msg = resp?.message || "Opps! Ocurrio un problema al momento de aprobar el pedido";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+
+}
+
+
 
 const verpedido = ref({});
 const indexPedido = ref(null);
@@ -311,9 +272,9 @@ onMounted(() => {
                     ${{ format(parseFloat(row.total)) }}
                   </td>
                   <td class="fs-sm text-end nowrap space-x-1">
-                    <button type="button" class="btn btn-success btn-sm " @click="aprobarPedido(row)"><i
+                    <button type="button" class="btn btn-success btn-sm " @click="approveOrder(row)"><i
                         class="fa fa-check"></i> </button>
-                    <button type="button" class="btn btn-danger btn-sm " @click="rechazarPedido(row)"><i
+                    <button type="button" class="btn btn-danger btn-sm " @click="rejectedOrder(row)"><i
                         class="fa fa-times"></i> </button>
                   </td>
                 </tr>
@@ -334,7 +295,7 @@ onMounted(() => {
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <VerPedidoAprobarModal :verpedido="verpedido" :indexPedido="indexPedido" :tipo="tipo"
-          @rechazar="rechazarPedido(verpedido)" @aprobar="aprobarPedido(verpedido)"></VerPedidoAprobarModal>
+          @rechazar="rejectedOrder(verpedido)" @aprobar="approveOrder(verpedido)"></VerPedidoAprobarModal>
       </div>
     </div>
   </div>

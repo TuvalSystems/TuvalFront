@@ -24,7 +24,7 @@ const COMMON_STATUS_MAP = {
     //cobros
     enviado: "success",
     revisado: "secondary",
-    iniciado : "info"
+    iniciado: "info"
 };
 
 const STATUS_MAPS = {
@@ -59,6 +59,16 @@ const STATUS_MAPS = {
         resolved: "success",
         failed: "danger",
         warning: "warning",
+    },
+    booleanInverted: {
+        "1": "danger",
+        "0": "success",
+        "true": "danger",
+        "false": "success",
+        activo: "danger",
+        inactivo: "success",
+        si: "danger",
+        no: "success",
     },
 };
 

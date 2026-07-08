@@ -1,14 +1,14 @@
 import axiosClient from "@/axios";
 import { watch, reactive, ref, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
+import { APPROVAL_API_ROUTES } from "@/constants/apiRoutes/aprobaciones/approvalRoutes";
 
 export function useUpdateQuotationStatus() {
     const { run } = useApiAction();
     const loadingChange = ref(false);
-    const apiChangeStatus = "aprobaciones/cotizacion/rechazar-estado-espera";
 
     async function changeStatusQuoteBeenWaiting(id) {
-        return run(() => axiosClient.post(apiChangeStatus, { id },
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_CAMBIAR_ESTADO_COTIZACION, { id },
             { headers: { "Content-Type": "application/json" } }
         ), {
             loadingRef: loadingChange,
