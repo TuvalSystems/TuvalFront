@@ -39,7 +39,7 @@ export function useHistoricalDepositsTable() {
         { label:"monto", key :"monto", sortable: false, align: "text-end", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"estado", key :"estado", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"f. registro", key :"fecha_registro", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"usuario registro", key :"usuario_regitro", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"usuario registro", key :"usuario_registro", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         
         
     ]);
