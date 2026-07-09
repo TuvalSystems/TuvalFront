@@ -31,15 +31,15 @@ export function useHistoricalDepositsTable() {
         { label: "cobro", key: "numero_recibo", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" , width : "100px"},
         { label:"f. ingreso", key :"fecha_creacion_cobro", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"usuario ingreso", key :"usuario_ingreso", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"ruc", key :"ruc", sortable: false, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"razón social", key :"razon_social", sortable: false, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"banco", key :"banco", sortable: false, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"tipo", key :"tipo", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"ruc", key :"ruc", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"razón social", key :"razon_social", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"banco", key :"banco", sortable: true, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"tipo", key :"tipo", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"comprobante", key :"comprobante", sortable: false, align: "text-start", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"monto", key :"monto", sortable: false, align: "text-end", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"estado", key :"estado", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         { label:"f. registro", key :"fecha_registro", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
-        { label:"usuario registro", key :"usuario_regitro", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
+        { label:"usuario registro", key :"usuario_regitro", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold" },
         
         
     ]);
