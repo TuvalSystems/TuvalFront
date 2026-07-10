@@ -22,16 +22,24 @@ const currentCliente = ref(actions.state.currentCliente);
 const currentSucursal = ref(actions.state.currentSucursal);
 
 function selectpuntodeventa(event,) {
+  const puntoVenta = puntosdeventa.value[event.target.value];
+
   sessionStorage.setItem('CURRENTCLIENTE', null);
   sessionStorage.setItem('CURRENTSUCURSAL', null);
   currentCliente.value = null;
   currentSucursal.value = null;
   sessionStorage.setItem('PTO_ANTERIOR', actions.state.puntodeventaselect);
 
-  sessionStorage.setItem('PUNTODEVENTASELECT', puntosdeventa.value[event.target.value].PTO_VTA_ID);
-  actions.state.puntodeventaselect = puntosdeventa.value[event.target.value].PTO_VTA_ID;
-  actions.state.bodegas = puntosdeventa.value[event.target.value].bodegas;
-  sessionStorage.setItem('BODEGAS', JSON.stringify(puntosdeventa.value[event.target.value].bodegas));
+  sessionStorage.setItem('PUNTODEVENTASELECT', puntoVenta.PTO_VTA_ID);
+  if (puntoVenta.id) {
+    sessionStorage.setItem('PUNTOVENTASELECTID', puntoVenta.id);
+  } else {
+    sessionStorage.removeItem('PUNTOVENTASELECTID');
+  }
+  actions.state.puntodeventaselect = puntoVenta.PTO_VTA_ID;
+  actions.state.puntoventaselectid = puntoVenta.id ?? null;
+  actions.state.bodegas = puntoVenta.bodegas;
+  sessionStorage.setItem('BODEGAS', JSON.stringify(puntoVenta.bodegas));
 
   const url = new URL(window.location.href);
   if (url.searchParams.has('draft')) {
