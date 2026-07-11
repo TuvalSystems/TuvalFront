@@ -1,8 +1,6 @@
 <template>
   <!-- Hero -->
-  <BasePageHeading
-    title="Cobro facturas"
-  >
+  <BasePageHeading title="Cobro facturas">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
@@ -16,106 +14,98 @@
   </BasePageHeading>
   <!-- END Hero -->
 
-   <!-- Page Content -->
+  <!-- Page Content -->
   <div class="content">
     <BaseBlock v-if="currentCaja" title="Caja: " :subtitle="currentCaja.CAJA_DESCRIPCION" class="pb-4">
       <div class="row">
         <div class="col-sm-6">
-          <p>Estado: <span :class="currentCaja.estado == 'abierto' ? 'bg-success-light text-success':'bg-danger-light text-danger'" class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill">{{ currentCaja.estado }}</span> </p>
+          <p>Estado: <span
+              :class="currentCaja.estado == 'abierto' ? 'bg-success-light text-success' : 'bg-danger-light text-danger'"
+              class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill">{{ currentCaja.estado }}</span> </p>
           <template v-if="currentCaja.estado == 'sin cierre'">
-            <p class="alert alert-warning"><i class="fa fa-triangle-exclamation"></i> La caja no se cerró en la última fecha registrada</p>
-            <router-link :to="{ name:'cobranzas-cierredecaja'}">
+            <p class="alert alert-warning"><i class="fa fa-triangle-exclamation"></i> La caja no se cerró en la última
+              fecha registrada</p>
+            <router-link :to="{ name: 'cobranzas-cierredecaja' }">
               Ir a cerrar la caja
             </router-link>
           </template>
-          
+
         </div>
         <div class="col-sm-6 text-end">
           <template v-if="currentCaja.estado == 'cerrado'">
-            <button class="btn btn-success btn-sm" @click="confirmAbrirCaja()"> <i class="fa fa-cash-register"></i> Abrir Caja</button>
+            <button class="btn btn-success btn-sm" @click="confirmAbrirCaja()"> <i class="fa fa-cash-register"></i>
+              Abrir Caja</button>
           </template>
         </div>
       </div>
     </BaseBlock>
     <!-- Full Table -->
     <BaseBlock v-if="currentCaja && currentCaja.estado == 'abierto'" title="Cliente" class="pb-4">
-      <form
-          class="row row-cols-lg-auto g-3 align-items-center"
-          @submit.prevent="onSubmit"
-          >
-          <div class="col-12">
-              <label class="visually-hidden" for="buscar-cliente"
-                  >Buscar cliente...</label
-              >
-              <input
-                  type="text"
-                  class="form-control"
-                  :class="errorbuscarcliente ? 'is-invalid':''"
-                  id="buscar-cliente"
-                  name="buscar-cliente"
-                  placeholder="Buscar cliente..."
-                  @keyup.enter="buscarclientes"
-                  v-model="buscarcliente.busqueda"
-              />
-          </div>
-          <div>
-              <button type="button" v-on:click="buscarclientes" class="btn btn-primary">Buscar</button>
-          </div>
-          
+      <form class="row row-cols-lg-auto g-3 align-items-center" @submit.prevent="onSubmit">
+        <div class="col-12">
+          <label class="visually-hidden" for="buscar-cliente">Buscar cliente...</label>
+          <input type="text" class="form-control" :class="errorbuscarcliente ? 'is-invalid' : ''" id="buscar-cliente"
+            name="buscar-cliente" placeholder="Buscar cliente..." @keyup.enter="buscarclientes"
+            v-model="buscarcliente.busqueda" />
+        </div>
+        <div>
+          <button type="button" v-on:click="buscarclientes" class="btn btn-primary">Buscar</button>
+        </div>
+
       </form>
-      
+
       <div v-if="clientes.loading" class="text-center">
-        <div class="spinner-border text-primary mt-4" ><span class="visually-hidden">Loading...</span></div>
+        <div class="spinner-border text-primary mt-4"><span class="visually-hidden">Loading...</span></div>
       </div>
       <BaseBlock v-if="verclientes && clientes.data.length && !clientes.loading" class="mb-0">
         <div class="table-responsive">
           <table class="table table-hover table-sm table-vcenter">
             <thead>
-            <tr>
-              <th>RUC</th>
-              <th>Razón Social</th>
-              <th>Contacto</th>
-              <th>Ciudad</th>
-              <th>Provincia</th>
-              <th>Teléfono</th>
-              <th>Correo</th>
-            </tr>
+              <tr>
+                <th>RUC</th>
+                <th>Razón Social</th>
+                <th>Contacto</th>
+                <th>Ciudad</th>
+                <th>Provincia</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="(cliente, index) in clientes.data" :key="index">
+              <tr v-for="(cliente, index) in clientes.data" :key="index">
                 <td class="">
-                    <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RUC }} </a>
+                  <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RUC }} </a>
                 </td>
                 <td class="fs-sm">
-                    <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{  cliente.CLI_RAZON_SOCIAL }} </a>
+                  <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RAZON_SOCIAL }} </a>
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_CONTACTO }}
+                  {{ cliente.CLI_CONTACTO }}
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_CIUDAD }}
+                  {{ cliente.CLI_CIUDAD }}
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_PROVINCIA }}
+                  {{ cliente.CLI_PROVINCIA }}
                 </td>
                 <td class="fs-sm">
-                    {{ cliente.CLI_TELEFONO_1 }}
+                  {{ cliente.CLI_TELEFONO_1 }}
                 </td>
                 <td class="fs-sm">
-                    <a :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{cliente.CLI_CORREO_ELECT_SRI}}</a>
+                  <a :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{ cliente.CLI_CORREO_ELECT_SRI }}</a>
                 </td>
-                
-            </tr>
+
+              </tr>
             </tbody>
           </table>
         </div>
       </BaseBlock>
 
       <div v-if="cargaCliente" class="text-center">
-        <div class="spinner-border text-primary mt-4" ><span class="visually-hidden">Loading...</span></div>
+        <div class="spinner-border text-primary mt-4"><span class="visually-hidden">Loading...</span></div>
       </div>
 
-      <BaseBlock  v-if="currentClienteCobro && !verclientes && !cargaCliente" class="mt-4 mb-0">
+      <BaseBlock v-if="currentClienteCobro && !verclientes && !cargaCliente" class="mt-4 mb-0">
         <template #content>
           <div class="block-content">
             <section class="cobro-client-header">
@@ -127,16 +117,15 @@
                   <div class="min-w-0">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                       <h2 class="h4 mb-0 text-break">{{ currentClienteCobro.CLI_RAZON_SOCIAL }}</h2>
-                      <span
-                        class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                        :class="currentClienteCobro.suspendido == 0 ? 'bg-success-light text-success' : 'bg-danger-light text-danger'"
-                      >
+                      <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
+                        :class="currentClienteCobro.suspendido == 0 ? 'bg-success-light text-success' : 'bg-danger-light text-danger'">
                         {{ currentClienteCobro.suspendido == 1 ? 'Suspendido' : 'Activo' }}
                       </span>
                     </div>
                     <div class="client-meta text-muted fs-sm">
                       <span><i class="fa fa-id-card me-1"></i>{{ currentClienteCobro.CLI_RUC }}</span>
-                      <span><i class="fa fa-location-dot me-1"></i>{{ currentClienteCobro.CLI_CIUDAD }} / {{ currentClienteCobro.CLI_PROVINCIA }}</span>
+                      <span><i class="fa fa-location-dot me-1"></i>{{ currentClienteCobro.CLI_CIUDAD }} / {{
+                        currentClienteCobro.CLI_PROVINCIA }}</span>
                       <span><i class="fa fa-file-signature me-1"></i>{{ currentClienteCobro.CLI_CONDICION_PAGO }}</span>
                     </div>
                   </div>
@@ -158,10 +147,8 @@
                 <div class="col-md-4">
                   <div class="cobro-metric">
                     <span class="metric-label">Cupo disponible</span>
-                    <strong
-                      class="metric-value"
-                      :class="parseFloat(currentClienteCobro.cupo_disponible) < 0 ? 'text-danger' : 'text-success'"
-                    >
+                    <strong class="metric-value"
+                      :class="parseFloat(currentClienteCobro.cupo_disponible) < 0 ? 'text-danger' : 'text-success'">
                       ${{ currentClienteCobro.cupo_disponible }}
                     </strong>
                   </div>
@@ -189,15 +176,9 @@
                 <div class="col-xl-3">
                   <nav class="payment-nav" aria-label="Metodos de cobro">
                     <div class="payment-nav-label">Metodos de cobro</div>
-                    <button
-                      v-for="method in paymentMethods"
-                      :key="method.id"
-                      type="button"
-                      class="payment-nav-item"
+                    <button v-for="method in paymentMethods" :key="method.id" type="button" class="payment-nav-item"
                       :class="{ active: activePaymentMethod === method.id }"
-                      :aria-pressed="activePaymentMethod === method.id"
-                      @click="activePaymentMethod = method.id"
-                    >
+                      :aria-pressed="activePaymentMethod === method.id" @click="activePaymentMethod = method.id">
                       <span class="payment-nav-icon" :class="'payment-nav-icon-' + method.tone">
                         <i :class="method.icon"></i>
                       </span>
@@ -216,7 +197,8 @@
                         <span class="text-muted fs-xs text-uppercase fw-semibold">Gestion de cobro</span>
                         <h3 class="payment-panel-title">{{ activePayment.title }}</h3>
                       </div>
-                      <span class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-primary-light text-primary">
+                      <span
+                        class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-primary-light text-primary">
                         {{ activePayment.description }}
                       </span>
                     </header>
@@ -268,7 +250,7 @@
 </template>
 <script setup>
 import { ref, reactive, computed } from "vue";
-import { useStore} from 'vuex'
+import { useStore } from 'vuex'
 import { useTemplateStore } from "@/stores/template";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import IngresoRetenciones from "../cobranzas/IngresoRetenciones.vue";
@@ -352,37 +334,37 @@ const activePayment = computed(() => {
 let errorbuscarcliente = ref(false);
 
 store.dispatch('estadoCaja').then((res) => {
-  if(!res.success){
+  if (!res.success) {
     swalError(res.message)
   }
 }).catch(err => {
   swalError(err.response.data.error)
 });
 
-async function buscarclientes(ev){
-  if(buscarcliente.busqueda.length < 3){
+async function buscarclientes(ev) {
+  if (buscarcliente.busqueda.length < 3) {
     errorbuscarcliente.value = true;
     return;
   }
-  
+
   errorbuscarcliente.value = false;
   verclientes.value = true;
   ev.preventDefault();
   store.dispatch('buscarclientes', buscarcliente)
-  .catch(err => {
+    .catch(err => {
       verclientes.value = false;
       errorMsg.value = err.response.data.error
-  });
+    });
 }
 
-function selectcliente(cliente){
+function selectcliente(cliente) {
   store.commit('resetRegistroCopia');
   verclientes.value = false;
   cargaCliente.value = true;
-  store.dispatch('cupoDisponible', cliente.CLI_RUC).then( (cupo) => {
+  store.dispatch('cupoDisponible', cliente.CLI_RUC).then((cupo) => {
     store.dispatch('estadodecuenta', cliente).then((res) => {
       cargaCliente.value = false;
-      store.dispatch('cobrosRegistrados', cliente).then( () => {
+      store.dispatch('cobrosRegistrados', cliente).then(() => {
         store.commit('enceraRetencion');
         store.commit('enceraCobranzas');
         cliente.suspendido = cupo.suspendido;
@@ -394,69 +376,69 @@ function selectcliente(cliente){
 
 
     })
-        .catch(err => {
-          errorMsg.value = err.response.data.error
-        });
+      .catch(err => {
+        errorMsg.value = err.response.data.error
+      });
   });
 }
 
-function imprimirEstadodeCuenta(){
-  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuval/'+currentClienteCobro.value.CLI_RUC)
-  .then((response) => {
-    if(response.status == 200){
+function imprimirEstadodeCuenta() {
+  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuval/' + currentClienteCobro.value.CLI_RUC)
+    .then((response) => {
+      if (response.status == 200) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'estadodecuenta-'+currentClienteCobro.value.CLI_RUC+'.pdf');
+        link.setAttribute('download', 'estadodecuenta-' + currentClienteCobro.value.CLI_RUC + '.pdf');
         document.body.appendChild(link);
         link.click();
-    }
-  });
+      }
+    });
 }
 
-function imprimirEstadodeCuentaExcel(){
-  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuvalexcel/'+currentClienteCobro.value.CLI_RUC)
-      .then((response) => {
-        if(response.status == 200){
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'estadodecuenta-'+currentClienteCobro.value.CLI_RUC+'.xlsx');
-          document.body.appendChild(link);
-          link.click();
-        }
-      });
+function imprimirEstadodeCuentaExcel() {
+  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuvalexcel/' + currentClienteCobro.value.CLI_RUC)
+    .then((response) => {
+      if (response.status == 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'estadodecuenta-' + currentClienteCobro.value.CLI_RUC + '.xlsx');
+        document.body.appendChild(link);
+        link.click();
+      }
+    });
 }
 
-function abrirCaja(){
+function abrirCaja() {
   store.dispatch('abrirCaja').then(() => {
     store.dispatch('estadoCaja');
   })
-  .catch(err => {
+    .catch(err => {
       errorMsg.value = err.response.data.error
-  });
+    });
 }
 
-function confirmAbrirCaja(index, retencion){
+function confirmAbrirCaja(index, retencion) {
   toast.fire({
-      title: "Estás seguro?",
-      text: "De abrir la caja: "+currentCaja.value.CAJA_DESCRIPCION,
-      icon: "warning",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, abrirla!",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
+    title: "Estás seguro?",
+    text: "De abrir la caja: " + currentCaja.value.CAJA_DESCRIPCION,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: "btn btn-success m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: "Si, abrirla!",
+    html: false,
+    preConfirm: () => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 50);
+      });
+    },
+  })
     .then((result) => {
       if (result.value) {
         abrirCaja();
@@ -575,7 +557,7 @@ function confirmAbrirCaja(index, retencion){
   transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.payment-nav-item + .payment-nav-item {
+.payment-nav-item+.payment-nav-item {
   margin-top: 0.25rem;
 }
 
@@ -699,7 +681,7 @@ function confirmAbrirCaja(index, retencion){
     grid-column: 1 / -1;
   }
 
-  .payment-nav-item + .payment-nav-item {
+  .payment-nav-item+.payment-nav-item {
     margin-top: 0;
   }
 
@@ -713,6 +695,7 @@ function confirmAbrirCaja(index, retencion){
 }
 
 @media (max-width: 575.98px) {
+
   .cobro-client-header,
   .payment-panel-body {
     padding: 1rem;

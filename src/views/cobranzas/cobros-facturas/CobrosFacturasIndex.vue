@@ -10,6 +10,7 @@ import BaseBlock from '@/components/BaseBlock.vue';
 //componentes
 import CashBoxStatusCard from './components/CashBoxStatusCard.vue';
 import CustomerSearchTable from './components/CustomerSearchTable.vue';
+import CustomerInfoCard from './components/CustomerInfoCard.vue';
 
 const {
     //obtener estado de caja
@@ -62,13 +63,19 @@ async function confirmOpenCashBox() {
 
 async function updateCustomerSearchTerm(textSearch) {
     dataSearch.search = textSearch;
-    showCustomerResults.value = true;
+    const hasSearchText = (textSearch?.trim().length ?? 0) > 4;
+
+
+    showCustomerResults.value = hasSearchText;
+    if (hasSearchText) {
+        selectedCustomer.value = null;
+    }
 }
 
 async function searchCustomerFilters() {
     showCustomerResults.value = true;
 
-    if (dataSearch.search == null || dataSearch.search.length < 4) {
+    if (!dataSearch.search || dataSearch.search.trim().length <= 4) {
         errorSearchClient.value = true
         showCustomerResults.value = false;
         return;
@@ -89,23 +96,23 @@ async function searchCustomerFilters() {
 /** variable para la visualizacion de tabla de resultados de 
  *  clientes 
  */
+const selectedCustomer = ref(null);
 const showCustomerResults = ref(true);
-
 async function handleCustomerSelected(selection) {
-    
+    selectedCustomer.value = selection;
     showCustomerResults.value = false;
-    cleanSearhClients();
+    cleanSearchClients();
+
     const availableResponse = await fetchAvailableCreditCustomer(selection.CLI_RUC);
     if (!availableResponse?.ok) {
         const message = availableResponse?.message || 'Opps! Ocurrio un error al obtener la lista de clientes.';
         (availableResponse?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
         return;
     }
-
 }
 
 
-async function cleanSearhClients() {
+async function cleanSearchClients() {
     dataSearch.search = '';
     clients.value = [];
 }
@@ -154,7 +161,7 @@ onMounted(() => {
         <!-- end cabecera de estado de caja-->
 
 
-        <BaseBlock v-if="dataCashBoxStatus" title="Cliente" class="mb-2" rounded>
+        <BaseBlock v-if="dataCashBoxStatus" title="Cliente" class="mb-3" rounded>
             <!-- busqueda de cliente y seleccion de cliente-->
             <CustomerSearchTable :clients="clients" :loading="loadingSearch" :error-search="errorSearchClient"
                 :show-results="showCustomerResults" @search-term-change="updateCustomerSearchTerm"
@@ -163,23 +170,9 @@ onMounted(() => {
             <!-- end seccion clientes -->
 
             <!-- informacion del cliente -->
-            <div v-if="!showCustomerResults && loadingAvailableCredit" class="text-center py-3">
-                <div class="spinner-border text-primary spinner-border-sm">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <div class="fs-sm text-muted mt-2">
-                    Obteniendo información del Cliente...
-                </div>
-            </div>
-            <div v-else-if="infoClient && !showCustomerResults && !loadingAvailableCredit">
-                <p>
-                    {{ infoClient }}
-                </p>
-                <p>
-                    {{ infoSegmento }}
-                </p>
-            </div>
-
+            <CustomerInfoCard v-if="selectedCustomer" :loading="loadingAvailableCredit" :client="infoClient"
+                :segment="infoSegmento" class="mb-3"></CustomerInfoCard>
+            <!-- end informacion del cliente -->
 
         </BaseBlock>
     </div>
