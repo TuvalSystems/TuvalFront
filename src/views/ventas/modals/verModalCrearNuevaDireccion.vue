@@ -103,7 +103,12 @@ const rules = computed(() => ({
             required
         ),
     },
-
+    telefono: {
+        required: helpers.withMessage(
+            'Debe ingresar el teléfono.',
+            required
+        ),
+    },
     email: {
         required: helpers.withMessage(
             'El correo electrónico es obligatorio.',
@@ -336,7 +341,12 @@ onMounted(() => {
                             <div class="kv">
                                 <small class="text-muted">Telefono</small>
                                 <div class="fw-semibold">
-                                    <input type="text" class="form-control" v-model="form.telefono">
+                                    <input id="input-telefono" type="text" class="form-control" v-model="form.telefono"
+                                        :class="{ 'is-invalid': v$.telefono.$error }" maxlength="200"
+                                        placeholder="Teléfono..." @blur="v$.telefono.$touch()">
+                                    <div v-if="v$.telefono.$error" class="invalid-feedback">
+                                        {{ v$.telefono.$errors[0].$message }}
+                                    </div>
                                 </div>
 
                             </div>
@@ -348,7 +358,6 @@ onMounted(() => {
                                     <input id="input-email" v-model="form.email" type="email" class="form-control"
                                         :class="{ 'is-invalid': v$.email.$error }" maxlength="200"
                                         placeholder="Correo electrónico..." @blur="v$.email.$touch()">
-
                                     <div v-if="v$.email.$error" class="invalid-feedback">
                                         {{ v$.email.$errors[0].$message }}
                                     </div>
