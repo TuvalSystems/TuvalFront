@@ -278,7 +278,6 @@ const routes = [
           title: "Cobros - Cierre de caja",
         },
       },
-
       {
         path: "consulta-cierre-caja",
         name: "cobranza-consulta-cierre-caja",
@@ -317,6 +316,14 @@ const routes = [
         component: () => import("@/views/cobranzas/depositos/DepositosHistoricoIndex.vue"),
         meta: {
           title: "Cobros - Depositos Historico",
+        },
+      },
+       {
+        path: "consulta-ordenes-despacho",
+        name: "cobranzas-consulta-ordenes-despacho",
+        component: () => import("@/views/cobranzas/ordenes-despacho/ConsultaOrdenesDespachoIndex.vue"),
+        meta: {
+          title: "Cobros - Consulta Ordenes de Despacho",
         },
       },
     ],
