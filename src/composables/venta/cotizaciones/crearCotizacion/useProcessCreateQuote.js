@@ -5,6 +5,7 @@ import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
 import { watchDebounced } from '@vueuse/core';
 import { useRoute } from "vue-router";
+import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
 
 function redondear(num, decimales = 2) {
     const factor = Math.pow(10, decimales);
@@ -89,11 +90,10 @@ export function useProcessCreateQuote(draftId = 'default') {
     form.value.draft_id = draftId;
 
     const loadingGetCurrentDraft = ref(false);
-    const apiDrafts = 'borradores/get';
     async function fetchCurrentDraft() {
         const idToFetch = route.query.draft || draftId;
         isRecoveringQuote.value = true;
-        return await run(() => axiosClient.post(apiDrafts, { draft_id: idToFetch }), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.GET, { draft_id: idToFetch }), {
             loadingRef: loadingGetCurrentDraft,
             onSuccess: (info) => {
                 const rawData = info.data;
@@ -126,7 +126,6 @@ export function useProcessCreateQuote(draftId = 'default') {
     }
 
 
-    const apiSyncDrafts = 'borradores/sync';
     const loadingSyncDraft = ref(false);
     watchDebounced(
         () => form.value, async (newVal) => {
@@ -136,7 +135,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             const currentId = newVal.draft_id;
             if (!currentId || currentId === 'undefined') return;
             const { imagenesoperaciones, documentos_pdf, ...cleanData } = newVal;
-            return await run(() => axiosClient.post(apiSyncDrafts, {
+            return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, {
                 draft_id: currentId,
                 pto_vta_id: ptoVtaSelect.value,
                 data: {
@@ -150,18 +149,16 @@ export function useProcessCreateQuote(draftId = 'default') {
         }, { deep: true, debounce: 1000 });
 
 
-    const apiListDrafts = 'borradores/list';
     const loadingListDrafts = ref(false);
     async function getActiveDrafts() {
-        return await run(() => axiosClient.post(apiListDrafts, { pto_vta_id: ptoVtaSelect.value }), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pto_vta_id: ptoVtaSelect.value }), {
             loadingRef: loadingListDrafts
         });
     }
 
-    const apiRemoveDraft = 'borradores/delete';
     const loadingRemoveDraft = ref(false);
     async function removeDraft(draftIdToRemove) {
-        return await run(() => axiosClient.post(apiRemoveDraft, { draft_id: draftIdToRemove }), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.DELETE, { draft_id: draftIdToRemove }), {
             loadingRef: loadingRemoveDraft,
             onError: (err) => {
                 console.error("Error al eliminar borrador:", err);
@@ -373,11 +370,10 @@ export function useProcessCreateQuote(draftId = 'default') {
     //proceso de items alternativos
     //proceso para listado de items alternativos 
     const descripcionAlternativa = ref('');
-    const apiSearchAlternativesItems = '/cotizaciones/lista-items-alternativos';
     const listItemsAlternatives = ref([]);
     const loadingListAlternative = ref(false);
     async function getAlternativeDescriptions(artCode) {
-        return run(() => axiosClient.post(apiSearchAlternativesItems, { item: artCode }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.LIST_ALTERNATIVE_ITEMS, { item: artCode }), {
             loadingRef: loadingListAlternative,
             onSuccess: (res) => {
                 listItemsAlternatives.value = res;
@@ -546,7 +542,6 @@ export function useProcessCreateQuote(draftId = 'default') {
     }
 
 
-    const apiUpdateStockItemsByBatch = 'cotizaciones/articulo-stock-por-bodega';
     const loadingUpdateStockItemsByBatch = ref(false);
     async function updateStockItemsByBatch(item, tipo, cotizacionId) {
         const payloadBatch = {
@@ -555,7 +550,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
-        return run(() => axiosClient.post(apiUpdateStockItemsByBatch, payloadBatch), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.GET_ITEM_STOCK_BY_WAREHOUSE, payloadBatch), {
             loadingRef: loadingUpdateStockItemsByBatch,
             onError: (err) => {
                 console.log(err, 'updateStockItemsByBatch');
@@ -606,9 +601,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     }
 
-    const apiUpdateStockBatch = 'cotizaciones/articulo-stock-por-bodega-v2';
     const loadingUpdateStockBatch = ref(false);
-
     async function updateStockItemsBatchAPI(item, tipo, cotizacionId) {
         const payloadBatch = {
             'articulos': item,
@@ -616,7 +609,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
-        return await run(() => axiosClient.post(apiUpdateStockBatch, payloadBatch), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.GET_ITEM_STOCK_BY_WAREHOUSE_V2, payloadBatch), {
             loadingRef: loadingUpdateStockBatch,
             onError: (err) => {
                 console.log(err, 'updateStockItemsByBatch');
@@ -646,11 +639,10 @@ export function useProcessCreateQuote(draftId = 'default') {
     //obtener margen item L 
     const loadingMarginItemL = ref(false);
     const margenItemL = ref(null);
-    const apiGetMarginItemL = '/cotizaciones/obtener-magen-item-l';
 
     async function getMargenFotItemL(artCode) {
         if (!artCode) return;
-        return run(() => axiosClient.post(apiGetMarginItemL, { articulo: artCode }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.GET_ITEM_MARGIN, { articulo: artCode }), {
             loadingRef: loadingMarginItemL,
             onSuccess: (res) => {
                 margenItemL.value = res;
@@ -1036,7 +1028,6 @@ export function useProcessCreateQuote(draftId = 'default') {
      * */
 
     const loadingCreateQuotation = ref(false);
-    const apiCreateQuote = 'cotizaciones/crear-cotizacion-v2';
     async function createQuote(mode) {
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
@@ -1154,7 +1145,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
-        return run(() => axiosClient.post(apiCreateQuote, formData), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE_QUOTE, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
                 console.error('Error al crear la cotización:', error);
@@ -1206,11 +1197,10 @@ export function useProcessCreateQuote(draftId = 'default') {
      * 
      */
     const isRecoveringQuote = ref(false); // Variable para controlar la recuperación y manejarla en los watchs
-    const apiGetQuoteData = 'cotizaciones/recuperar-cotizacion-v2';
     const loadingGetQuoteData = ref(false);
 
     async function fetchAndFillQuotation(quoteId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(apiGetQuoteData, { id: quoteId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECOVER_QUOTE, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
             onSuccess: async (res) => {
                 isRecoveringQuote.value = true;
@@ -1335,11 +1325,10 @@ export function useProcessCreateQuote(draftId = 'default') {
      * 
      */
 
-    const apiLoadCopyData = 'cotizaciones/volver-a-pedir-cotizacion-v2';
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef, uploadedPdfsRef) {
 
-        return run(() => axiosClient.post(apiLoadCopyData, { id: quoteId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECREATE_QUOTE, { id: quoteId }), {
             loadingRef: loadingReorder,
             onSuccess: (res) => {
                 const initialState = getInitialState();
@@ -1450,11 +1439,9 @@ export function useProcessCreateQuote(draftId = 'default') {
      * PROCESO DE COPIAR COTIZACION
      */
 
-    const apiCopyRawQuoteOrOrder = 'pedidos/copiar-cotizacion-o-pedido-v2';
     const loadingCopyQuoteOrOrder = ref(false);
-
     async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(apiCopyRawQuoteOrOrder, {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.COPY_QUOTE_OR_ORDER, {
             rowId: originalId,
             tipo: type,
             cliente_id: clienteId,
@@ -1562,11 +1549,10 @@ export function useProcessCreateQuote(draftId = 'default') {
      * PROCESO DE VOLVER A PEDIR UN  PEDIDO 
      */
 
-    const apiReorder = 'pedidos/voler-a-pedir-pedido-v2'
+    
     const loadingIsReordering = ref(false);
-
     async function reOrder(rowId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(apiReorder, { id: rowId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.REORDER, { id: rowId }), {
             loadingRef: loadingIsReordering,
             onSuccess: (res) => {
                 const initialState = getInitialState();
@@ -1668,7 +1654,6 @@ export function useProcessCreateQuote(draftId = 'default') {
      * PROCESO DE GUARDAR UN PEDIDO 
      */
 
-    const apiSaveOrder = 'pedidos/crear-pedido-v2';
     const loadingSaveOrder = ref(false);
     async function saveOrder() {
         if (!form.value.cliente) {
@@ -1782,7 +1767,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
-        return run(() => axiosClient.post(apiSaveOrder, formData), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE_ORDER, formData), {
             loadingRef: loadingSaveOrder,
             onError: (error) => {
                 console.error('Error al crear el pedido:', error);
@@ -1795,11 +1780,9 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     /** proceso de cotizaciones de prospecto  */
 
-    const apiUpdateQuoteProspect = 'cotizaciones/prospecto/actualizar';
     const loadingUpdateQuoteProspect = ref(false);
-
     async function updateQuoteProspect(params) {
-        return await run(() => axiosClient.post(apiUpdateQuoteProspect, params), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.PROSPECTS.UPDATE, params), {
             loadingRef: loadingUpdateQuoteProspect,
             onError: (error) => {
                 console.error('Error al actualizar el pedido:', error);
