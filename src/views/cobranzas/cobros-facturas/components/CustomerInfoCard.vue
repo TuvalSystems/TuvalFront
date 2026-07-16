@@ -2,6 +2,18 @@
 import { formatPriceJm } from '@/functions';
 import { computed } from 'vue';
 import { onMounted } from 'vue';
+import { useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
+import { swalError, swalSuccess, swalWarning } from '@/functions/swal-alert';
+const {
+    //download pdf 
+    loadingDownloadPdf,
+    printPdfStatusAccountClient,
+
+    //download excel
+    loadingDownloadExcel,
+    printExcelStatusAccountClient
+
+} = useInvoiceCollectionActions();
 const props = defineProps({
     loading: {
         type: Boolean,
@@ -19,12 +31,22 @@ const props = defineProps({
 
 const infoClient = computed(() => props.client);
 async function printAccountStatementExcel() {
-    console.log(infoClient.value);
-
+    const resp = await printExcelStatusAccountClient(infoClient.value.id);
+    if (!resp?.ok) {
+        const msg = resp?.message || "Opps! No se pudo generar el archivo Excel";
+        (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    }
+    swalSuccess(resp?.message || 'Excel Generado exitosamente');
 }
 
-async function printAccountStatement() {
-    console.log(infoClient.value);
+async function printAccountStatementPdf() {
+    const resp = await printPdfStatusAccountClient(infoClient.value.id);
+    if (!resp?.ok) {
+        const msg = resp?.message || "Opps! No se pudo generar el archivo Pdf";
+        (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    }
+    swalSuccess(resp?.message || 'Pdf Generado exitosamente');
+
 }
 
 onMounted(() => { });
@@ -66,20 +88,19 @@ onMounted(() => { });
                         </div>
                     </div>
                     <div class="client-actions d-flex flex-wrap gap-2 justify-content-xl-end">
-                        <button class="btn btn-sm btn-alt-primary" @click="printAccountStatementExcel()">
+                        <button class="btn btn-sm btn-alt-primary" @click="printAccountStatementExcel()"
+                            :disabled="loadingDownloadExcel">
                             <i class="fa fa-file-excel me-1"></i> Excel
                         </button>
-                        <button class="btn btn-sm btn-alt-success" @click="printAccountStatement()">
+                        <button class="btn btn-sm btn-alt-success" @click="printAccountStatementPdf()"
+                            :disabled="loadingDownloadPdf">
                             <i class="fa fa-print me-1"></i> PDF
                         </button>
-                        <!-- <button class="btn btn-sm btn-alt-warning" @click="selectcliente(client)">
-                            <i class="fa fa-refresh me-1"></i> Actualizar
-                        </button> -->
                     </div>
                 </div>
                 <div class="row g-2 mt-3">
                     <div class="col-md-3">
-                       
+
                         <div class="cobro-metric cobro-status-metric" :class="client.suspendido == 1
                             ? 'cobro-status-suspended'
                             : 'cobro-status-active'">
@@ -98,7 +119,7 @@ onMounted(() => { });
                                     <strong class="status-value">
                                         {{ client.suspendido == 1
                                             ? 'SI'
-                                        : 'NO' }}
+                                            : 'NO' }}
                                     </strong>
                                 </div>
                             </div>

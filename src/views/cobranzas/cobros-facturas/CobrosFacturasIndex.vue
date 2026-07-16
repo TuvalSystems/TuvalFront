@@ -1,7 +1,7 @@
 <script setup>
-import {  useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
+import { useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
 import { swalError, swalSuccess, swalWarning } from '@/functions/swal-alert.js';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import BaseBlock from '@/components/BaseBlock.vue';
 
@@ -53,6 +53,13 @@ async function confirmOpenCashBox() {
     swalSuccess(openResponse?.message || 'Caja abierta correctamente.');
 }
 
+
+
+const cannotProcessCollection = computed(() => {
+    const status = dataCashBoxStatus.value?.estado;
+
+    return ['cerrado', 'sin_cierre'].includes(status);
+});
 
 
 /** 
@@ -150,7 +157,6 @@ onMounted(() => {
                 Consultando estado de caja...
             </div>
         </div>
-
         <CashBoxStatusCard v-else-if="dataCashBoxStatus" :cash-box="dataCashBoxStatus" :loading="loadingOpenCashBox"
             @open-cash-box="confirmOpenCashBox" />
 
@@ -160,8 +166,7 @@ onMounted(() => {
         </div>
         <!-- end cabecera de estado de caja-->
 
-
-        <BaseBlock v-if="dataCashBoxStatus" title="Cliente" class="mb-3" rounded>
+        <BaseBlock v-if="dataCashBoxStatus && !cannotProcessCollection" title="Cliente" class="mb-3" rounded>
             <!-- busqueda de cliente y seleccion de cliente-->
             <CustomerSearchTable :clients="clients" :loading="loadingSearch" :error-search="errorSearchClient"
                 :show-results="showCustomerResults" @search-term-change="updateCustomerSearchTerm"
