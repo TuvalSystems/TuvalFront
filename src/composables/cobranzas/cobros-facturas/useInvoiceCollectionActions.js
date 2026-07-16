@@ -1,11 +1,11 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { COBROS_FACTURAS_API_ROUTES } from "@/constants/apiRoutes/cobranzas/invoiceCollectionRoutes";
+import { INVOICE_COLLECTION_API_ROUTES } from "@/constants/apiRoutes/cobranzas/invoiceCollectionRoutes";
 import { ref, computed } from "vue";
 import { useStore } from 'vuex'
 
 
-export function useInvoiceCollection() {
+export function useInvoiceCollectionActions() {
     const { run } = useApiAction();
     const store = useStore();
     const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
@@ -15,7 +15,7 @@ export function useInvoiceCollection() {
     const loadingCashBoxStatus = ref(false);
     const dataCashBoxStatus = ref(null);
     async function getUserCashBoxStatus(date = null) {
-        return run(() => axiosClient.post(COBROS_FACTURAS_API_ROUTES.OBTENER_ESTADO_CAJA_USUARIO, {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.GET_USER_CASH_BOX_STATUS, {
             pvId: selectedPointSaleId.value,
             pvCodigo: selectedPointSaleCode.value,
             fecha: date
@@ -30,7 +30,7 @@ export function useInvoiceCollection() {
 
     const loadingOpenCashBox = ref(false);
     async function openCashBoxed(){
-        return run(() => axiosClient.post(COBROS_FACTURAS_API_ROUTES.APERTURAR_CAJA_USUARIO,{
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.OPEN_USER_CASH_BOX,{
             pvId : selectedPointSaleId.value
         }),{
             loadingRef :loadingOpenCashBox

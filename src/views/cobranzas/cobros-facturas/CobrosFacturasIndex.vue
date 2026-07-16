@@ -1,5 +1,5 @@
 <script setup>
-import { useInvoiceCollection } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollection';
+import {  useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
 import { swalError, swalSuccess, swalWarning } from '@/functions/swal-alert.js';
 import { onMounted, ref } from 'vue';
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
@@ -21,7 +21,7 @@ const {
     //aperturar caja
     loadingOpenCashBox,
     openCashBoxed
-} = useInvoiceCollection();
+} = useInvoiceCollectionActions();
 const {
     //search Customers
     clients,

@@ -1,5 +1,5 @@
-export const COBROS_FACTURAS_API_ROUTES = {
-    
-    OBTENER_ESTADO_CAJA_USUARIO : 'cobranzas/cobros-facturas/estado-caja',
-    APERTURAR_CAJA_USUARIO : 'cobranzas/cobros-facturas/aperturar-caja'
+export const INVOICE_COLLECTION_API_ROUTES = {
+
+    GET_USER_CASH_BOX_STATUS: 'cobranzas/cobros-facturas/estado-caja',
+    OPEN_USER_CASH_BOX: 'cobranzas/cobros-facturas/aperturar-caja'
 }
