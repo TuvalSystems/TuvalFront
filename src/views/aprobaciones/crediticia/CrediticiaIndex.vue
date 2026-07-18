@@ -254,6 +254,15 @@ onMounted(() => {
             <i v-else class="fa fa-gear"></i>
           </button>
         </template>
+        <!-- Slot de vacío -->
+        <template #empty>
+          <div class="text-center py-5">
+            <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">
+              No se encontraron registros para mostrar
+            </p>
+          </div>
+        </template>
       </BaseTable>
     </BaseBlock>
   </div>
@@ -279,7 +288,7 @@ onMounted(() => {
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <verEstadoCuentaModal v-if="dataCustomerStatement" :info="dataCustomerStatement"
-          @closeModal="closeModalCustomers"   @refresh="refresh">
+          @closeModal="closeModalCustomers" @refresh="refresh">
         </verEstadoCuentaModal>
       </div>
     </div>
