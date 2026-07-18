@@ -1,7 +1,6 @@
 <script setup>
 import { formatPriceJm } from '@/functions';
 import { computed } from 'vue';
-import { onMounted } from 'vue';
 import { useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
 import { swalError, swalSuccess, swalWarning } from '@/functions/swal-alert';
 const {
@@ -14,6 +13,8 @@ const {
     printExcelStatusAccountClient
 
 } = useInvoiceCollectionActions();
+const emit = defineEmits(["refresh-info"]);
+
 const props = defineProps({
     loading: {
         type: Boolean,
@@ -26,6 +27,10 @@ const props = defineProps({
     segment: {
         type: [Object, Array],
         default: null
+    },
+    loadingInfo: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -35,6 +40,7 @@ async function printAccountStatementExcel() {
     if (!resp?.ok) {
         const msg = resp?.message || "Opps! No se pudo generar el archivo Excel";
         (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+        return;
     }
     swalSuccess(resp?.message || 'Excel Generado exitosamente');
 }
@@ -44,12 +50,15 @@ async function printAccountStatementPdf() {
     if (!resp?.ok) {
         const msg = resp?.message || "Opps! No se pudo generar el archivo Pdf";
         (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+        return;
     }
     swalSuccess(resp?.message || 'Pdf Generado exitosamente');
 
 }
 
-onMounted(() => { });
+async function refreshCollection() {
+    emit("refresh-info", infoClient.value);
+}
 </script>
 
 <template>
@@ -87,14 +96,44 @@ onMounted(() => { });
                             </div>
                         </div>
                     </div>
-                    <div class="client-actions d-flex flex-wrap gap-2 justify-content-xl-end">
-                        <button class="btn btn-sm btn-alt-primary" @click="printAccountStatementExcel()"
-                            :disabled="loadingDownloadExcel">
-                            <i class="fa fa-file-excel me-1"></i> Excel
+                    <div class="client-actions">
+                        <button type="button" class="client-action-button client-action-excel"
+                            title="Descargar estado de cuenta en Excel" aria-label="Descargar estado de cuenta en Excel"
+                            @click="printAccountStatementExcel()" :disabled="loadingDownloadExcel">
+                            <span class="client-action-icon">
+                                <span v-if="loadingDownloadExcel" class="spinner-border spinner-border-sm"></span>
+                                <i v-else class="fa fa-file-excel"></i>
+                            </span>
+                            <span class="client-action-label">
+                                <span>{{ loadingDownloadExcel ? 'Generando...' : 'Excel' }}</span>
+                                <small>Estado cuenta</small>
+                            </span>
                         </button>
-                        <button class="btn btn-sm btn-alt-success" @click="printAccountStatementPdf()"
-                            :disabled="loadingDownloadPdf">
-                            <i class="fa fa-print me-1"></i> PDF
+
+                        <button type="button" class="client-action-button client-action-pdf"
+                            title="Descargar estado de cuenta en PDF" aria-label="Descargar estado de cuenta en PDF"
+                            @click="printAccountStatementPdf()" :disabled="loadingDownloadPdf">
+                            <span class="client-action-icon">
+                                <span v-if="loadingDownloadPdf" class="spinner-border spinner-border-sm"></span>
+                                <i v-else class="fa fa-print"></i>
+                            </span>
+                            <span class="client-action-label">
+                                <span>{{ loadingDownloadPdf ? 'Generando...' : 'PDF' }}</span>
+                                <small>Estado cuenta</small>
+                            </span>
+                        </button>
+
+                        <button type="button" class="client-action-button client-action-refresh"
+                            title="Actualizar informacion del cliente" aria-label="Actualizar informacion del cliente"
+                            @click="refreshCollection()" :disabled="loadingInfo">
+                            <span class="client-action-icon">
+                                <span v-if="loadingInfo" class="spinner-border spinner-border-sm"></span>
+                                <i v-else class="fa fa-arrows-rotate"></i>
+                            </span>
+                            <span class="client-action-label">
+                                <span>{{ loadingInfo ? 'Actualizando...' : 'Actualizar' }}</span>
+                                <small>Datos de cobro</small>
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -195,8 +234,86 @@ onMounted(() => { });
     min-width: 0;
 }
 
-.client-actions .btn {
-    min-height: 2.125rem;
+.client-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(7.5rem, 1fr));
+    gap: .5rem;
+    min-width: min(100%, 27rem);
+}
+
+.client-action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    min-height: 2.75rem;
+    padding: .45rem .65rem;
+    border: 1px solid var(--tuval-border, var(--bs-border-color));
+    border-radius: var(--tuval-radius-md, 8px);
+    background: var(--bs-body-bg);
+    color: var(--tuval-text, var(--bs-body-color));
+    line-height: 1.1;
+    text-align: left;
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.client-action-button:hover:not(:disabled) {
+    border-color: rgba(var(--bs-primary-rgb), .35);
+    background: rgba(var(--bs-primary-rgb), .04);
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .04);
+}
+
+.client-action-button:focus {
+    outline: 0;
+    box-shadow: 0 0 0 .15rem rgba(var(--bs-primary-rgb), .18);
+}
+
+.client-action-button:disabled {
+    cursor: not-allowed;
+    opacity: .72;
+}
+
+.client-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 2rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    font-size: .9rem;
+}
+
+.client-action-label {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.client-action-label small {
+    margin-top: .15rem;
+    color: var(--tuval-text-muted, var(--bs-secondary-color));
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.client-action-excel .client-action-icon {
+    color: var(--bs-success);
+    background: rgba(var(--bs-success-rgb), .1);
+}
+
+.client-action-pdf .client-action-icon {
+    color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), .1);
+}
+
+.client-action-refresh .client-action-icon {
+    color: var(--bs-warning);
+    background: rgba(var(--bs-warning-rgb), .14);
 }
 
 .cobro-metric {
@@ -230,5 +347,18 @@ onMounted(() => { });
     margin-top: 0.25rem;
     color: var(--tuval-text-muted, var(--bs-secondary-color));
     font-size: 0.78rem;
+}
+
+@media (max-width: 1199.98px) {
+    .client-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .client-actions {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

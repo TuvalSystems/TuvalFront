@@ -85,6 +85,65 @@ export function useInvoiceCollectionActions() {
         });
     }
 
+    const clientInvoices = ref([]);
+    const retentionInvoices = ref([]);
+    const loadingClientInvoices = ref(false);
+    async function fetchClientInvoices(id) {
+        return run(
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.INVOICE_CLIENTS, { id: id }),
+            {
+                loadingRef: loadingClientInvoices,
+                onSuccess: (data) => {
+                    clientInvoices.value = data.facturas ?? data.invoices ?? [];
+                    retentionInvoices.value = data.facturas_retenciones  ?? [];
+                }
+
+            }
+        );
+    }
+
+    const pendingApplicationDocuments = ref([]);
+    const loadingPendingApplicationDocuments = ref(false);
+    async function fetchPendingApplicationDocuments(id) {
+        return run(
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.APPLICATIONS_PENDING, { id: id }),
+            {
+                loadingRef: loadingPendingApplicationDocuments,
+                onSuccess: (data) => {
+                    pendingApplicationDocuments.value = data ?? [];
+                }
+            }
+        );
+    }
+
+    const bankTuval = ref([]);
+    const bankClient = ref([]);
+    const bankCard = ref([]);
+    const loadingCollectionBanks = ref(false);
+    async function fetchCollectionBanks() {
+        return run(
+            () => axiosClient.get(INVOICE_COLLECTION_API_ROUTES.GET_BANKS),
+            {
+                loadingRef: loadingCollectionBanks,
+                onSuccess: (data) => {
+                    bankTuval.value = data.bancos_tuval ?? [];
+                    bankClient.value = data.bancos_cientes ?? [];
+                    bankCard.value = data.bancos_tarjetas ?? [];
+                }
+            }
+        );
+    }
+
+    function resetCustomerCollectionData() {
+        clientInvoices.value = [];
+        retentionInvoices.value = [];
+        pendingApplicationDocuments.value = [];
+        bankTuval.value = [];
+        bankClient.value = [];
+        bankCard.value = [];
+    }
+
+
 
 
 
@@ -104,7 +163,27 @@ export function useInvoiceCollectionActions() {
         printPdfStatusAccountClient,
         //download excel
         loadingDownloadExcel,
-        printExcelStatusAccountClient
+        printExcelStatusAccountClient,
+
+        //carga de facturas y facturas retenciones
+        clientInvoices,
+        retentionInvoices,
+        loadingClientInvoices,
+        fetchClientInvoices,
+
+        //carga de documentos pendiente de aplicacion 
+        pendingApplicationDocuments,
+        loadingPendingApplicationDocuments,
+        fetchPendingApplicationDocuments,
+        //carga de bancos 
+        bankTuval,
+        bankClient,
+        bankCard,
+        loadingCollectionBanks,
+        fetchCollectionBanks,
+
+        //limpieza de data del cliente
+        resetCustomerCollectionData
 
     }
 }
