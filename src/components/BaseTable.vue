@@ -155,7 +155,7 @@ const getHeaderJustifyClass = (col) => {
                                 </div>
                             </th>
                             <!-- Si hay acciones, se añade una columna adicional -->
-                            <th v-if="$slots.actions" class="text-center nowrap" style="font-size: 12px">
+                            <th v-if="$slots.actions" class="text-center text-nowrap text-muted text-uppercase fw-bold" style="font-size: 12px">
                                 Acciones
                             </th>
                         </tr>

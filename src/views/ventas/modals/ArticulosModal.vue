@@ -216,15 +216,21 @@ const currentSucursal = computed(() => store.state.currentSucursal);
 const buscar_articulo = computed(() => store.state.buscar_articulo);
 const emit = defineEmits(["verificarProveedores", "verificarStock", "calcTotales"]);
 import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle";
+import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions";
+const {
+
+  //opciones exposicion
+  isEmptyStockExposicion,
+  isButtonStockExposicion,
+  isShowStockExposicion,
+  fetchStockExposicion
+} = useSearchArticle();
 
 const {
-    
-    //opciones exposicion
-    isEmptyStockExposicion,
-    isButtonStockExposicion,
-    isShowStockExposicion,
-    fetchStockExposicion
-} = useSearchArticle();
+  loadingDefault,
+  fetchDefaultPriceListBySalesPoint
+} = useQuoteProspectActions();
+
 // Sort by functionality
 const sortBy = computed(() => {
   return cols.reduce((acc, o) => {
@@ -285,13 +291,20 @@ function onSort(event, i) {
   sortEl.sort = toset;
 }
 
-function buscarArticulo() {
+async function buscarArticulo() {
   if (!buscar_articulo.value.text_codigo && !buscar_articulo.value.codigo3l && !buscar_articulo.value.text_nombre && !buscar_articulo.value.terminal) {
     swalError('Es necesario ingresar alguno de los parámetros de búsqueda')
     return;
   }
-
-  let nivel_precio = 'GENERAL';
+  const resp = await fetchDefaultPriceListBySalesPoint();
+  if (!resp?.ok) {
+    const msg = resp?.message || "No se pudo obtener la lista de precio por defecto";
+    (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    return;
+  }
+  
+  let nivel_precio = resp.data?.listaPrecio;
+  // let nivel_precio = 'GENERAL';
   if (currentCliente.value) {
     nivel_precio = currentCliente.value.CLI_NIVEL_PRECIO
   }
@@ -533,11 +546,11 @@ async function selectArticulo(articulo) {
 }
 
 async function searchStockExposicion(row) {
-    const resp = await fetchStockExposicion(row);
-    if (!resp.ok) {
-        swalError(resp.message);
-        return;
-    }
+  const resp = await fetchStockExposicion(row);
+  if (!resp.ok) {
+    swalError(resp.message);
+    return;
+  }
 }
 
 </script>

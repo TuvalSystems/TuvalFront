@@ -43,7 +43,7 @@
             </div>
           </div>
           <div class="block-options-item">
-            <button type="button" title="Refrescar tabla" @click="llenarcotizaciones('pendientes')"
+            <button type="button" title="Refrescar tabla" @click="refreshTable"
               class="btn btn-success btn-sm">
               <i class="si si-refresh"></i>
             </button>
@@ -55,31 +55,13 @@
               Filtrar
               <i class="fa fa-angle-down ms-1"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-sm"
-              aria-labelledby="dropdown-recent-orders-filters">
-              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarcotizaciones('pendientes')" href="javascript:void(0)">
-                Pendientes
-              </a>
-              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarcotizaciones('procesadas')" href="javascript:void(0)">
-                Procesadas
-              </a>
-              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarcotizaciones('prospectos')" href="javascript:void(0)">
-                Prospectos
-              </a>
-              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarcotizaciones('caducado')" href="javascript:void(0)">
-                Caducadas
-              </a>
-              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarcotizaciones('rechazadas')" href="javascript:void(0)">
-                Rechazadas
-              </a>
-              <a class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                @click="llenarcotizaciones('todas')" href="javascript:void(0)">
-                Todas
+            <div class="dropdown-menu dropdown-menu-end  shadow-sm" aria-labelledby="dropdown-recent-orders-filters">
+
+              <a v-for="item in listStatusQuote" :key="item.value"
+                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
+                :class="{ active: selectedStatus === item.value }" @click="selectQuoteStatus(item.value)"
+                href="javascript:void(0)">
+                {{ item.label }}
               </a>
             </div>
           </div>
@@ -195,8 +177,7 @@
                         <button type="button" class="btn btn-sm btn-alt-secondary" id="dropOptions"
                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                           <i class="fa fa-fw fa-ellipsis-v"></i> </button>
-                        <ul class="dropdown-menu dropdown-menu-end  shadow-sm"
-                          aria-labelledby="dropOptions">
+                        <ul class="dropdown-menu dropdown-menu-end  shadow-sm" aria-labelledby="dropOptions">
 
                           <!-- exportaciones -->
                           <template v-if="row.imprimir === 'yes' && !['caducado', 'borrador_app'].includes(row.estado)">
@@ -316,7 +297,7 @@
     <div class="modal-dialog modal-md modal-dialog-centered">
       <div class="modal-content">
         <VerNoVentaModalComponent v-if="datosModalNoVenta && datosModalNoVenta.id" :vercotizacion="datosModalNoVenta"
-          @actualizarEstado="llenarcotizaciones('pendientes')"></VerNoVentaModalComponent>
+          @actualizarEstado="refreshQuotes()"></VerNoVentaModalComponent>
       </div>
     </div>
   </div>
@@ -336,7 +317,7 @@
 
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from "vue";
+import { ref, reactive, computed, onMounted, nextTick, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
@@ -486,14 +467,14 @@ const estado_filtro = ref(null);
 function limpiarFecha() {
   fecha_desde.value = null;
   fecha_hasta.value = null;
-  llenarcotizaciones("pendientes");
+  llenarcotizaciones();
 }
 
 function refrescarFecha() {
   if (!fecha_desde.value) return;
   if (!fecha_hasta.value) return;
 
-  llenarcotizaciones(estado_filtro.value);
+  llenarcotizaciones();
 }
 async function funcionvercotizacion(cotizacion, index) {
 
@@ -506,7 +487,7 @@ async function funcionvercotizacion(cotizacion, index) {
 async function closeModalVerCotizacion() {
   vercotizacionModalObj.hide();
   vercotizacion.value = {};
-  llenarcotizaciones("pendientes");
+  llenarcotizaciones();
 }
 
 
@@ -559,7 +540,7 @@ async function verModalReserva(row) {
 async function modalReservaHide() {
   verReservaModalObj?.hide();
   datosModalReserva.value = null
-  llenarcotizaciones('pendientes');
+  llenarcotizaciones();
 }
 
 function motivoEspera(cotizacion) {
@@ -586,25 +567,23 @@ let errorMsg = ref("");
 const cotizaciones = computed(() => store.state.cotizaciones);
 const vercotizaciones = ref(false);
 
-llenarcotizaciones("pendientes");
+// llenarcotizaciones("pendientes");
 
-async function llenarcotizaciones(estado) {
-  estado_filtro.value = estado;
-  const consulta = reactive({
+async function llenarcotizaciones() {
+  const consulta = {
     puntodeventa_id: store.state.puntodeventaselect,
-    estado: estado,
+    estado: selectedStatus.value,
     fecha_desde: fecha_desde.value,
     fecha_hasta: fecha_hasta.value,
-  });
-  store
-    .dispatch("llenarcotizaciones", consulta)
-    .then(() => {
-      vercotizaciones.value = true;
-    })
-    .catch((err) => {
-      vercotizaciones.value = false;
-      swalError(err.response.data.error);
-    });
+  };
+
+  try {
+    await store.dispatch('llenarcotizaciones', consulta);
+    vercotizaciones.value = true;
+  } catch (err) {
+    vercotizaciones.value = false;
+    swalError(err.response?.data?.error || 'Error al consultar las cotizaciones');
+  }
 }
 
 
@@ -701,7 +680,7 @@ async function imprimircotizacion(cotizacion) {
         document.body.appendChild(link);
         link.click();
       }
-      llenarcotizaciones("pendientes");
+      llenarcotizaciones();
     });
 }
 
@@ -723,7 +702,7 @@ async function imprimircotizacionimagenes(cotizacion) {
         document.body.appendChild(link);
         link.click();
       }
-      //llenarcotizaciones('pendientes');
+      llenarcotizaciones();
     });
 }
 
@@ -745,7 +724,7 @@ async function imprimircotizacionprospecto(cotizacion) {
         document.body.appendChild(link);
         link.click();
       }
-      llenarcotizaciones("pendientes");
+      llenarcotizaciones();
     });
 }
 
@@ -787,9 +766,15 @@ function getReminderClass(row) {
   return 'bg-danger-light text-danger';
 }
 
+function refreshQuotes(){
+  llenarcotizaciones();
+}
+
 
 
 onMounted(() => {
+  llenarcotizaciones();
+
   vercotizacionModalObj = new Modal(vercotizacionModal.value);
   verReservaModalObj = new Modal(verReservaModal.value);
   levantarClienteModalObj = new Modal(levantarClienteModal.value);
@@ -824,7 +809,7 @@ async function rechazarCotizacionEstadoEspera(id) {
     return swalError("No se pudo rechazar la cotización");
   }
   swalSuccess("Cotización rechazada");
-  llenarcotizaciones("pendientes");
+  llenarcotizaciones();
 }
 
 
@@ -880,6 +865,31 @@ function handleEstadoClick(row) {
     swalWarning('Motivo de rechazo', row.aprobado_comercial_mensaje);
   }
 }
+
+
+/** opciones de filtro de estado */
+const selectedStatus = ref('pendientes');
+const listStatusQuote = reactive([
+  { label: "Todos", value: "" },
+  { label: "Pendientes", value: "pendientes" },
+  { label: "Procesadas", value: "procesadas" },
+  { label: "Prospectos", value: "prospectos" },
+  { label: "Caducadas", value: "caducado" },
+  { label: "Rechazadas", value: "rechazadas" },
+]);
+
+function selectQuoteStatus(status) {
+  selectedStatus.value = status;
+  llenarcotizaciones();
+}
+
+
+async function refreshTable(){
+  selectedStatus.value = 'pendientes';
+  llenarcotizaciones();
+  
+}
+
 
 </script>
 

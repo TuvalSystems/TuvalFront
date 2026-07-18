@@ -137,8 +137,8 @@
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
                   <td class="fs-sm">
-                    <span  v-if="hasChangePorcentil(articulo)"
-                      @click="verPorcentajesDeCambio(articulo)" class="text-danger">{{ articulo.ART_CODIGO }}</span>
+                    <span v-if="hasChangePorcentil(articulo)" @click="verPorcentajesDeCambio(articulo)"
+                      class="text-danger">{{ articulo.ART_CODIGO }}</span>
                     <span v-else>{{ articulo.ART_CODIGO }}</span>
 
                   </td>
@@ -251,9 +251,9 @@
           placeholder="Motivo de rechazo" @change="guardarMensaje(verpedido)" />
       </div>
       <div class="col-sm-3 text-end">
-        <button type="button" class="btn btn-success btn-sm" @click="emit('aprobar')"><i class="fa fa-check"></i>
+        <button type="button" class="btn btn-success btn-sm" @click="approveOrder"><i class="fa fa-check"></i>
           Aprobar</button>
-        <button type="button" class="btn btn-danger btn-sm mx-2" @click="emit('rechazar')"><i class="fa fa-times"></i>
+        <button type="button" class="btn btn-danger btn-sm mx-2" @click="rejectedOrder"><i class="fa fa-times"></i>
           Rechazar</button>
       </div>
     </div>
@@ -289,6 +289,20 @@ let errorMsg = ref('');
 
 const emit = defineEmits(["aprobar", "rechazar"]);
 
+function approveOrder() {
+  emit("aprobar", {
+    id: verpedido?.id,
+    message: verpedido?.aprobado_comercial_mensaje,
+  });
+}
+
+function rejectedOrder() {
+  emit("rechazar", {
+    id: verpedido?.id,
+    message: verpedido?.aprobado_comercial_mensaje,
+  });
+}
+
 function verdiferenciacondicion(pedido) {
   let msg = 'simon';
   swalInfo('Cambio condición de pago', 'de <b>' + pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
@@ -316,7 +330,7 @@ function verdiferenciadescuento(articulo) {
 
 
 const hasChangePorcentil = (articulo) => {
- const pChange = Number.parseFloat(articulo.priceChange) || 0;
+  const pChange = Number.parseFloat(articulo.priceChange) || 0;
   const dChange = Number.parseFloat(articulo.discountChange) || 0;
 
   return Math.abs(pChange) > 0.01 || Math.abs(dChange) > 0.01;

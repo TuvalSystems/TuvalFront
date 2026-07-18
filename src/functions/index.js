@@ -1,48 +1,48 @@
 
 export const removeAccents = (str) => {
-    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-String.prototype.like = function(search) {
-    if (typeof search !== 'string' || this === null) {return false; }
-    // Remove special chars
-    search = search.replace(new RegExp("([\\.\\\\\\+\\*\\?\\[\\^\\]\\$\\(\\)\\{\\}\\=\\!\\<\\>\\|\\:\\-])", "g"), "\\$1");
-    // Replace % and _ with equivalent regex
-    search = search.replace(/%/g, '.*').replace(/_/g, '.');
-    // Check matches
-    return RegExp('^' + search + '$', 'gi').test(this);
+String.prototype.like = function (search) {
+  if (typeof search !== 'string' || this === null) { return false; }
+  // Remove special chars
+  search = search.replace(new RegExp("([\\.\\\\\\+\\*\\?\\[\\^\\]\\$\\(\\)\\{\\}\\=\\!\\<\\>\\|\\:\\-])", "g"), "\\$1");
+  // Replace % and _ with equivalent regex
+  search = search.replace(/%/g, '.*').replace(/_/g, '.');
+  // Check matches
+  return RegExp('^' + search + '$', 'gi').test(this);
 }
 export const searchLike = (value, searchString, rowData) => {
-    const like = searchString.replace(' ', '%');
-    return value.like('%'+like+'%');
+  const like = searchString.replace(' ', '%');
+  return value.like('%' + like + '%');
 }
 
 
 export const onSort = (event, i, cols) => {
-    let toset;
-    const sortEl = cols[i];
-    if (!event.shiftKey) {
-        cols.forEach((o) => {
-            if (o.field !== sortEl.field) {
-                o.sort = "";
-            }
-        });
-    }
-    if (!sortEl.sort) {
-        toset = "asc";
-    }
-    if (sortEl.sort === "desc") {
-        toset = event.shiftKey ? "" : "asc";
-    }
-    if (sortEl.sort === "asc") {
-        toset = "desc";
-    }
-    sortEl.sort = toset;
+  let toset;
+  const sortEl = cols[i];
+  if (!event.shiftKey) {
+    cols.forEach((o) => {
+      if (o.field !== sortEl.field) {
+        o.sort = "";
+      }
+    });
+  }
+  if (!sortEl.sort) {
+    toset = "asc";
+  }
+  if (sortEl.sort === "desc") {
+    toset = event.shiftKey ? "" : "asc";
+  }
+  if (sortEl.sort === "asc") {
+    toset = "desc";
+  }
+  sortEl.sort = toset;
 }
 
 export const format4 = (num) => num.toLocaleString('en-US', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
+  minimumFractionDigits: 4,
+  maximumFractionDigits: 4,
 });
 
 const format3 = (num) => num.toLocaleString('en-US', {
@@ -51,14 +51,14 @@ const format3 = (num) => num.toLocaleString('en-US', {
 });
 
 export const format = (num) => num.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 export const formatClean = (num, decimals) => {
- const n = Number(num) || 0;
+  const n = Number(num) || 0;
   const factor = Math.pow(10, decimals);
-  return Math.round((n+ Number.EPSILON)* factor) /factor;
+  return Math.round((n + Number.EPSILON) * factor) / factor;
 }
 
 export const formatClean3 = (num, decimals) => {
@@ -66,15 +66,15 @@ export const formatClean3 = (num, decimals) => {
 }
 
 export const formatPrice = (value) => {
-    return formatClean(value * 1, 2)//.replace(',','').replace(',','');
-    //return (value * 1).toFixed(2);
+  return formatClean(value * 1, 2)//.replace(',','').replace(',','');
+  //return (value * 1).toFixed(2);
 }
 
 export const formatPriceClean = (value) => {
-    return formatClean(value * 1);
+  return formatClean(value * 1);
 }
 export const formatPrice4 = (value) => {
-  const cleanValue =  formatCleanPrice4(value * 1, 4);
+  const cleanValue = formatCleanPrice4(value * 1, 4);
   return cleanValue.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 }
 export const formatCleanPrice4 = (num, decimals = 4) => {
@@ -85,7 +85,7 @@ export const formatPrice3 = (value) => {
   return formatClean3(value * 1);
 }
 
-export const addDays = (d, qty) =>{
+export const addDays = (d, qty) => {
   let dd = d.getDate();
   let mm = d.getMonth() + 1;
   let yyyy = d.getFullYear();
@@ -106,7 +106,7 @@ const toNumber = (v) => {
   return Number.isFinite(n) ? n : null
 }
 
-export const formatPriceJm = (v , locale = 'en-US') => {
+export const formatPriceJm = (v, locale = 'en-US') => {
   const n = toNumber(v)
   return n == null ? null : n.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
@@ -128,8 +128,26 @@ export const roundTo = (n, decimals = 2) => {
 };
 
 
-export const toNum =(v) => {
+export const toNum = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
-export default {removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt,roundTo, toNum, formatCleanPrice4, formatClean};
+
+
+/**
+ *  funcion para agregar 1 dia mas a la fecha actual por ejemplo 
+ *  2025-01-01 
+ * return 2025-01-02
+ */
+export const addOnDay = (fecha, days = 1) => {
+  const [year, month, day] = fecha.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + days);
+
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+export default { removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt, roundTo, toNum, formatCleanPrice4, formatClean };

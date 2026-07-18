@@ -270,7 +270,6 @@ const routes = [
           title: "Cobros - Cierre de caja",
         },
       },
-
       {
         path: "consulta-cierre-caja",
         name: "cobranza-consulta-cierre-caja",
@@ -303,6 +302,22 @@ const routes = [
           title: "Cobros - Desaplicación",
         },
       },
+      {
+        path: "depositos-historicos",
+        name: "cobranzas-depositos-historicos",
+        component: () => import("@/views/cobranzas/depositos/DepositosHistoricoIndex.vue"),
+        meta: {
+          title: "Cobros - Depositos Historico",
+        },
+      },
+       {
+        path: "consulta-ordenes-despacho",
+        name: "cobranzas-consulta-ordenes-despacho",
+        component: () => import("@/views/cobranzas/ordenes-despacho/ConsultaOrdenesDespachoIndex.vue"),
+        meta: {
+          title: "Cobros - Consulta Ordenes de Despacho",
+        },
+      },
     ],
   },
   {
@@ -329,7 +344,9 @@ const routes = [
       {
         path: "crediticias",
         name: "aprobaciones-crediticias",
-        component: AprobacionesCrediticias,
+        // component: AprobacionesCrediticias,
+        component: () => import("@/views/aprobaciones/crediticia/CrediticiaIndex.vue"),
+
         meta: {
           title: "Aprobaciones - Crediticias",
         },

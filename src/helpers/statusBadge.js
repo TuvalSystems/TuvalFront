@@ -20,6 +20,13 @@ const COMMON_STATUS_MAP = {
     cancelado: "warning",
     procesado: "primary",
     traslado: "info",
+
+    //cobros
+    enviado: "success",
+    revisado: "secondary",
+    iniciado: "info",
+
+
 };
 
 const STATUS_MAPS = {
@@ -48,13 +55,29 @@ const STATUS_MAPS = {
         order_de_compra: "primary",
         orden_de_compra: "primary",
     },
-
+    dispatchOrder: {
+        pendiente: "warning",
+        liberada: "primary",
+        despachada: "success",
+        cancelada: "danger",
+    },
     log: {
         pending: "dark",
         resolved: "success",
         failed: "danger",
         warning: "warning",
     },
+    booleanInverted: {
+        "1": "danger",
+        "0": "success",
+        "true": "danger",
+        "false": "success",
+        activo: "danger",
+        inactivo: "success",
+        si: "danger",
+        no: "success",
+    },
+
 };
 
 function normalizeStatus(value) {

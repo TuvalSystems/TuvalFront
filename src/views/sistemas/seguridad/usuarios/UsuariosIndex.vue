@@ -107,7 +107,7 @@ async function changeStatusUser(row) {
   const resp = await UpdateStatus(row.id);
   if (resp?.ok) {
     swalSuccess(resp.message);
-    refresh();
+    refreshAnyFilters();
     return;
   }
   const msg = resp?.message || "No se pudo actualizar el estado del usuario";
@@ -142,7 +142,7 @@ async function resetPassword(row) {
   const resp = await resetPasswordUser(row.id);
   if (resp?.ok) {
     swalSuccess(resp.message);
-    refresh();
+    refreshAnyFilters();
     return;
   }
   const msg = resp?.message || "No se pudo actualizar el estado del usuario";
@@ -181,7 +181,7 @@ async function changeMobileAppAccess(row) {
 
   if (resp?.ok) {
     swalSuccess(resp.message);
-    refresh();
+    refreshAnyFilters();
     return;
   }
 
@@ -219,7 +219,7 @@ async function changeAdminCollectionAccess(row) {
 
   if (resp?.ok) {
     swalSuccess(resp.message);
-    refresh();
+    refreshAnyFilters();
     return;
   }
 
@@ -251,16 +251,17 @@ async function openModalGestionPerfiles(row) {
     (errorResponse?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
     return;
   }
-
-
   await nextTick();
   modalSeleccionObj.show();
-
 }
 
 async function closeModal() {
   await nextTick();
   modalSeleccionObj.hide();
+}
+
+async function refreshAnyFilters(){
+  fetchList(1);
 }
 
 
@@ -472,7 +473,7 @@ onMounted(() => {
       <div class="modal-content">
         <verModalGestionUsuario v-if="detailUser"
           :detail-user="detailUser" :perfiles-web="perfilesWeb" :perfiles-app="perfilesApp" @closeModal="closeModal"
-          @refresh="refresh">
+          @refresh="refreshAnyFilters">
         </verModalGestionUsuario>
       </div>
     </div>
