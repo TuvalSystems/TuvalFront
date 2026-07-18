@@ -94,9 +94,17 @@ function assignInvoiceToRetention(invoice) {
     swalWarning('Esta factura ya tiene una retención ingresada');
     return;
   }
+  console.log(invoice.fechaEmision);
 
-  const retentionDate = calculateAllowedRetentionDate(invoice?.fechaEmision);
+  const retentionDate = calculateAllowedRetentionDate(invoice.fechaEmision);
   console.log(retentionDate);
+  if (!retentionDate) {
+    resetPayloadRetention();
+    swalWarning(
+      'No puede ingresar una retención de una factura de hace más de un mes'
+    );
+    return false;
+  }
 
 }
 
@@ -112,9 +120,72 @@ function isInvoiceAlreadyAssigned(doc) {
 
 function calculateAllowedRetentionDate(invoiceIssueDate) {
   const invoiceDate = parseLocalDate(invoiceIssueDate);
-  console.log(invoiceDate);
 
-  ;
+  console.log(invoiceDate, 'invoiceDate');
+  if (!invoiceDate) {
+    return null;
+  }
+
+  const currentDate = new Date();
+
+  const currentMonthStart = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+  /*
+ * JavaScript controla automáticamente el cambio de año:
+ * si estamos en enero, mes -1 corresponde a diciembre
+ * del año anterior.
+ */
+  const previousMonthStart = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    1
+  );
+
+  const invoiceMonthStart = new Date(
+    invoiceDate.getFullYear(),
+    invoiceDate.getMonth(),
+    1
+  );
+
+  const isCurrentMonth =
+    invoiceMonthStart.getTime() === currentMonthStart.getTime();
+
+  const isPreviousMonth =
+    invoiceMonthStart.getTime() === previousMonthStart.getTime();
+
+  /*
+   * Factura del mes actual:
+   * fecha de factura + 6 días.
+   */
+  if (isCurrentMonth) {
+    const allowedDate = new Date(invoiceDate);
+
+    allowedDate.setDate(
+      allowedDate.getDate() + 6
+    );
+
+    return allowedDate;
+  }
+
+  /*
+   * Factura del mes anterior:
+   * día 5 del mes actual.
+   */
+  if (isPreviousMonth) {
+    return new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      5
+    );
+  }
+
+  /*
+   * La factura tiene más de un mes.
+   */
+  return null;
 }
 
 

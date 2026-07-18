@@ -1,5 +1,5 @@
 export function parseLocalDate(dateValue) {
-    if (dateValue) {
+    if (!dateValue) {
         return null;
     }
 
@@ -40,5 +40,4 @@ function formatDateForInput(date) {
     ).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
-
 }
