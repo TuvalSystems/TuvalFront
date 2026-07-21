@@ -45,7 +45,7 @@ export function useInvoiceCollectionDraft() {
 
     // retenciones
     function addRetention(retention) {
-        collectionDraft.retenciones.push(retention);
+        collectionDraft.retenciones.push({ ...retention });
     }
     function removeRetention(index) {
         collectionDraft.retenciones.splice(index, 1);

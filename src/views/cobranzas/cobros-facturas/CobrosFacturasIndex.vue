@@ -1,6 +1,6 @@
 <script setup>
 import { swalError, swalSuccess, swalWarning } from '@/functions/swal-alert.js';
-import { onMounted, ref, computed, markRaw } from 'vue';
+import { onMounted, ref, computed, markRaw, nextTick } from 'vue';
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import BaseBlock from '@/components/BaseBlock.vue';
 
@@ -114,11 +114,12 @@ const paymentMethodSections = computed(() => {
             component: paymentComponents.retenciones,
             props: {
                 facturasRetenciones : retentionInvoices.value,
-                retenciones: collectionDraft.retenciones
+                retenciones: collectionDraft.retenciones,
+                cliente : selectedCustomer.value
                 
             },
             events: {
-                'add-retention': addRetention,
+                'add-retention': (retention) => handlePaymentMethodAdded('retenciones', addRetention, retention),
                 'remove-retention': removeRetention
             }
         },
@@ -131,6 +132,15 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-money-bill-wave',
             count: collectionDraft.efectivo ? 1 : 0,
             component: paymentComponents.efectivo,
+            props : {
+                facturas : clientInvoices.value,
+                efectivo : collectionDraft.efectivo,
+                cliente : selectedCustomer.value
+            }, 
+            events : {
+                'add-cash' : (cash) => handlePaymentMethodAdded('efectivo', addCash, cash),
+                'remove-cash' : removeCash
+            }
         },
         {
             key: 'depositos',
@@ -184,6 +194,49 @@ const paymentMethodSections = computed(() => {
 const totalPaymentRecords = computed(() => {
     return paymentMethodSections.value.reduce((total, section) => total + section.count, 0);
 });
+
+const collectionSummaryRef = ref(null);
+const canShowCollectionSummary = computed(() =>
+    collectionDraft.cliente_id && totalPaymentRecords.value > 0
+);
+
+function hidePaymentMethodCollapse(methodKey) {
+    const paymentMethod = paymentMethodSections.value.find(
+        section => section.key === methodKey
+    );
+
+    if (!paymentMethod || typeof window === 'undefined') {
+        return;
+    }
+
+    const Collapse = window.bootstrap?.Collapse;
+    const collapseElement = document.getElementById(paymentMethod.collapseId);
+
+    if (!Collapse || !collapseElement) {
+        return;
+    }
+
+    const collapseInstance = typeof Collapse.getOrCreateInstance === 'function'
+        ? Collapse.getOrCreateInstance(collapseElement, { toggle: false })
+        : new Collapse(collapseElement, { toggle: false });
+
+    collapseInstance.hide();
+}
+
+function scrollToCollectionSummary() {
+    collectionSummaryRef.value?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+    });
+}
+
+async function handlePaymentMethodAdded(methodKey, addPayment, payload) {
+    addPayment(payload);
+    await nextTick();
+    hidePaymentMethodCollapse(methodKey);
+    await nextTick();
+    scrollToCollectionSummary();
+}
 
 async function confirmOpenCashBox() {
     const openResponse = await openCashBoxed();
@@ -429,8 +482,8 @@ onMounted(() => {
             </div>
             <!-- fin proceso de cobros a ejecutar -->
 
-            <div v-if="collectionDraft.cliente_id" class="mb-2">
-                <h1>Resumén</h1>
+            <div v-if="canShowCollectionSummary" ref="collectionSummaryRef" class="mb-2">
+                <h1>Resumen</h1>
                 {{ collectionDraft }}
             </div>
         </BaseBlock>

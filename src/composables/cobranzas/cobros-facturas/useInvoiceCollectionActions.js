@@ -95,7 +95,7 @@ export function useInvoiceCollectionActions() {
                 loadingRef: loadingClientInvoices,
                 onSuccess: (data) => {
                     clientInvoices.value = data.facturas ?? data.invoices ?? [];
-                    retentionInvoices.value = data.facturas_retenciones  ?? [];
+                    retentionInvoices.value = data.facturas_retenciones ?? [];
                 }
 
             }
@@ -146,6 +146,21 @@ export function useInvoiceCollectionActions() {
 
 
 
+    const loadingRetentionReceiptValidation = ref(false);
+    async function validateRetentionReceiptNumber(clientId, receiptNumber) {
+        return run(
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_RECEIPT_NUMBER,{
+                id: clientId,
+                comprobante: receiptNumber
+            }),
+            {
+                loadingRef: loadingRetentionReceiptValidation
+            });
+    }
+
+
+
+
 
 
     return {
@@ -183,7 +198,11 @@ export function useInvoiceCollectionActions() {
         fetchCollectionBanks,
 
         //limpieza de data del cliente
-        resetCustomerCollectionData
+        resetCustomerCollectionData,
+
+        //validacion de comprobante
+        loadingRetentionReceiptValidation,
+        validateRetentionReceiptNumber
 
     }
 }

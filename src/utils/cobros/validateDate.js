@@ -28,7 +28,7 @@ export function parseLocalDate(dateValue) {
     return date;
 }
 
-function formatDateForInput(date) {
+export function formatDateForInput(date) {
     const year = date.getFullYear();
 
     const month = String(

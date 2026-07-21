@@ -100,7 +100,7 @@ export const addDays = (d, qty) => {
 }
 
 // new functions
-const toNumber = (v) => {
+export const toNumber = (v) => {
   if (v == null || v === '') return null
   const n = typeof v === 'string' ? Number(v.replace(/[^\d.-]/g, '')) : Number(v)
   return Number.isFinite(n) ? n : null
@@ -129,8 +129,8 @@ export const roundTo = (n, decimals = 2) => {
 
 
 export const toNum = (v) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+  const n = toNumber(v);
+  return n == null ? 0 : n;
 }
 
 
@@ -150,4 +150,4 @@ export const addOnDay = (fecha, days = 1) => {
 
   return `${yyyy}-${mm}-${dd}`;
 }
-export default { removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt, roundTo, toNum, formatCleanPrice4, formatClean };
+export default { removeAccents, searchLike, onSort, formatPrice, formatPrice4, formatPrice3, formatPriceClean, addDays, format, format4, formatPriceJm, formatJm, toInt, roundTo, toNumber, toNum, formatCleanPrice4, formatClean };
