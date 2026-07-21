@@ -69,8 +69,17 @@ export function useInvoiceCollectionDraft() {
     }
 
     //efectivo
+    function cloneCash(cash) {
+        return {
+            ...cash,
+            facturas: Array.isArray(cash?.facturas)
+                ? cash.facturas.map((invoice) => ({ ...invoice }))
+                : [],
+        };
+    }
+
     function addCash(cash) {
-        collectionDraft.efectivo = cash;
+        collectionDraft.efectivo = cloneCash(cash);
     }
 
     function removeCash(index) {

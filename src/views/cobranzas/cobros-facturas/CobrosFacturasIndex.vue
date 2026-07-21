@@ -151,6 +151,15 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-building-columns',
             count: collectionDraft.depositos.length,
             component: paymentComponents.depositos,
+            props : {
+                bancosTuval :bankTuval.value,
+                facturas : clientInvoices.value,
+                depositos : collectionDraft.depositos
+            },
+            events : {
+                'add-deposit' : (deposit) => handlePaymentMethodAdded('depositos', addDeposits, deposit),
+                'remove-deposit' : removeDeposits
+            }
         },
         {
             key: 'cheques',

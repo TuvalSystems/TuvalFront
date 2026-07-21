@@ -349,16 +349,10 @@ function removeRetention(index) {
         </span>
       </div>
 
-      <div
-        v-if="retentions.length"
-        class="retention-cards"
-        :class="{ 'retention-cards-scroll': retentions.length > 2 }"
-      >
-        <article
-          v-for="(retencion, index) in retentions"
-          :key="`${retencion.documento}-${retencion.comprobante}-${index}`"
-          class="retention-card"
-        >
+      <div v-if="retentions.length" class="retention-cards"
+        :class="{ 'retention-cards-scroll': retentions.length > 2 }">
+        <article v-for="(retencion, index) in retentions"
+          :key="`${retencion.documento}-${retencion.comprobante}-${index}`" class="retention-card">
           <header class="retention-card-header">
             <div class="d-flex align-items-start gap-3 min-w-0">
               <div class="retention-card-icon">
@@ -374,12 +368,8 @@ function removeRetention(index) {
               </div>
             </div>
 
-            <button
-              class="btn btn-sm btn-alt-danger retention-icon-button"
-              type="button"
-              title="Eliminar retencion"
-              @click="removeRetention(index)"
-            >
+            <button class="btn btn-sm btn-alt-danger retention-icon-button" type="button" title="Eliminar retencion"
+              @click="removeRetention(index)">
               <i class="fa fa-trash"></i>
             </button>
           </header>
@@ -440,7 +430,7 @@ function removeRetention(index) {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
   margin-bottom: 0.18rem;
 
 }
