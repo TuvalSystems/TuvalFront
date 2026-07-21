@@ -103,6 +103,9 @@ async function closeModal() {
     modalUnapplicationObj.hide();
 }
 
+async function refreshAnyFilter(){
+     await fetchList(1);
+}
 onMounted(() => {
     fetchList(1);
 });
@@ -288,7 +291,7 @@ onMounted(() => {
                     :inactivos="dataModal.inactivos" 
                     :documentos-gp="dataModal.collectionsIds"
                     :is-visible="dataModal.isVisible"
-                    :documentos-web="dataModal.receiptNumbers" @closeModal="closeModal" @refresh="refresh">
+                    :documentos-web="dataModal.receiptNumbers" @closeModal="closeModal" @refresh="refreshAnyFilter">
                 </verModalDesaplicacionDetalle>
             </div>
         </div>
