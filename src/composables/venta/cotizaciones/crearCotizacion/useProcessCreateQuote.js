@@ -317,6 +317,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             proveedores: [],
             proveedores_listo: false,
             descuento_temporal: 0,
+            validador_l : false,
         }
         form.value.items.push(itemEstandarizado);
         calculateTotals();
