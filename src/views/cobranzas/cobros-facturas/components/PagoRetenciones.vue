@@ -6,6 +6,7 @@ import { useInvoiceCollectionRetentions } from '@/composables/cobranzas/cobros-f
 import { formatPriceJm } from '@/functions';
 
 const {
+  loadingRetentionReceiptValidation,
   validateRetentionReceiptNumber
 } = useInvoiceCollectionActions();
 
@@ -70,6 +71,7 @@ function removeRetention(index) {
 
       <!-- boton de agregar -->
       <button type="button" class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-2"
+       :disabled="loadingRetentionReceiptValidation"
         @click="addRetention()">
         <i class="fa fa-circle-plus"></i> INGRESAR
       </button>

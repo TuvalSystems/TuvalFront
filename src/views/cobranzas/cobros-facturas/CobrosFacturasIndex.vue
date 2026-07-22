@@ -113,10 +113,11 @@ const paymentMethodSections = computed(() => {
             count: collectionDraft.retenciones.length,
             component: paymentComponents.retenciones,
             props: {
-                facturasRetenciones : retentionInvoices.value,
+                facturasRetenciones: retentionInvoices.value,
                 retenciones: collectionDraft.retenciones,
-                cliente : selectedCustomer.value
-                
+                cliente: selectedCustomer.value,
+                loadingDocs: loadingCustomerCollectionData
+
             },
             events: {
                 'add-retention': (retention) => handlePaymentMethodAdded('retenciones', addRetention, retention),
@@ -132,14 +133,15 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-money-bill-wave',
             count: collectionDraft.efectivo ? 1 : 0,
             component: paymentComponents.efectivo,
-            props : {
-                facturas : clientInvoices.value,
-                efectivo : collectionDraft.efectivo,
-                cliente : selectedCustomer.value
-            }, 
-            events : {
-                'add-cash' : (cash) => handlePaymentMethodAdded('efectivo', addCash, cash),
-                'remove-cash' : removeCash
+            props: {
+                facturas: clientInvoices.value,
+                efectivo: collectionDraft.efectivo,
+                cliente: selectedCustomer.value,
+                loadingDocs: loadingCustomerCollectionData
+            },
+            events: {
+                'add-cash': (cash) => handlePaymentMethodAdded('efectivo', addCash, cash),
+                'remove-cash': removeCash
             }
         },
         {
@@ -151,14 +153,16 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-building-columns',
             count: collectionDraft.depositos.length,
             component: paymentComponents.depositos,
-            props : {
-                bancosTuval :bankTuval.value,
-                facturas : clientInvoices.value,
-                depositos : collectionDraft.depositos
+            props: {
+                bancosTuval: bankTuval.value,
+                facturas: clientInvoices.value,
+                depositos: collectionDraft.depositos,
+                cliente: selectedCustomer.value,
+                loadingDocs: loadingCustomerCollectionData
             },
-            events : {
-                'add-deposit' : (deposit) => handlePaymentMethodAdded('depositos', addDeposits, deposit),
-                'remove-deposit' : removeDeposits
+            events: {
+                'add-deposit': (deposit) => handlePaymentMethodAdded('depositos', addDeposits, deposit),
+                'remove-deposit': removeDeposits
             }
         },
         {
@@ -170,6 +174,17 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-money-check-dollar',
             count: collectionDraft.cheque ? 1 : 0,
             component: paymentComponents.cheques,
+            props: {
+                facturas: clientInvoices.value,
+                cheque: collectionDraft.cheque,
+                cliente: selectedCustomer.value,
+                bancoClientes: bankClient.value,
+                loadingDocs: loadingCustomerCollectionData
+            },
+            events: {
+                'add-check': (check) => handlePaymentMethodAdded('cheques', addCheck, check),
+                'remove-check': removeCheck
+            }
         },
         {
             key: 'tarjetas',
@@ -180,6 +195,16 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-credit-card',
             count: collectionDraft.tarjetas.length,
             component: paymentComponents.tarjetas,
+            props: {
+                facturas: clientInvoices.value,
+                tarjetas: collectionDraft.tarjetas,
+                cliente: selectedCustomer.value,
+                loadingDocs: loadingCustomerCollectionData
+            },
+            events: {
+                'add-card': (card) => handlePaymentMethodAdded('tarjetas', addCards, card),
+                'remove-card': removeCards
+            }
         },
         {
             key: 'aplicaciones',
@@ -190,6 +215,16 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-scale-balanced',
             count: collectionDraft.aplicaciones.length,
             component: paymentComponents.aplicaciones,
+            props : {
+                facturas: clientInvoices.value,
+                cliente: selectedCustomer.value,
+                aplicacionesPendientes : pendingApplicationDocuments.value,
+                aplicaciones : collectionDraft.aplicaciones
+            },
+            events :{
+                'add-application': (apply) => handlePaymentMethodAdded('aplicaciones', addApplications, apply),
+                'remove-card': removeApplications
+            }
         },
     ];
 
@@ -470,7 +505,7 @@ onMounted(() => {
                                 <span class="payment-method-title">
                                     <span class="fw-semibold text-uppercase  fw-bold" style="font-size:12px">{{
                                         method.title
-                                    }}</span>
+                                        }}</span>
                                     <!-- <span class="fs-sm text-muted">{{ method.subtitle }}</span> -->
                                 </span>
 

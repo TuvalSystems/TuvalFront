@@ -39,6 +39,10 @@ const props = defineProps({
     type: String,
     default: 'saldoCliente'
   },
+  balanceLabel: {
+    type: String,
+    default: 'Saldo'
+  },
   applyAllKey: {
     type: String,
     default: 'aplicarTodo'
@@ -188,7 +192,7 @@ function handleObservationChange(invoice) {
             <th class="invoice-col-date">Emision</th>
             <th class="invoice-col-date">Vencimiento</th>
             <th class="text-end invoice-col-money">Monto original</th>
-            <th class="text-end invoice-col-money">Saldo</th>
+            <th class="text-end invoice-col-money">{{ balanceLabel }}</th>
             <th v-if="showApplyAll" class="text-center invoice-col-check">{{ applyAllLabel }}</th>
             <th class="text-end invoice-col-amount">{{ amountLabel }}</th>
             <th class="text-end invoice-col-money">{{ remainingLabel }}</th>
@@ -209,7 +213,7 @@ function handleObservationChange(invoice) {
             <td class="text-end invoice-col-money" data-label="Monto original">
               ${{ formatInvoiceAmount(getValue(invoice, originalAmountKey)) }}
             </td>
-            <td class="text-end invoice-col-money" data-label="Saldo">
+            <td class="text-end invoice-col-money" :data-label="balanceLabel">
               ${{ formatInvoiceAmount(getValue(invoice, balanceKey)) }}
             </td>
             <td v-if="showApplyAll" class="text-center invoice-col-check" :data-label="applyAllLabel">

@@ -9,6 +9,7 @@ export const INVOICE_COLLECTION_API_ROUTES = {
     INVOICE_CLIENTS: 'cobranzas/cobros-facturas/facturas-cliente',
     APPLICATIONS_PENDING: 'cobranzas/cobros-facturas/aplicaciones-pendientes',
     GET_BANKS: 'cobranzas/cobros-facturas/obtener-bancos',
-    VALIDATE_RECEIPT_NUMBER : 'cobranzas/cobros-facturas/verificar-comprobante'
-
+    VALIDATE_RECEIPT_NUMBER: 'cobranzas/cobros-facturas/verificar-comprobante',
+    VALIDATE_DEPOSIT_RECEIP_NUMBER: 'cobranzas/cobros-facturas/verificar-comprobante-deposito',
+    VALIDATE_CHECK: 'cobranzas/cobros-facturas/verificar-cheque'
 }

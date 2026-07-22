@@ -149,7 +149,7 @@ export function useInvoiceCollectionActions() {
     const loadingRetentionReceiptValidation = ref(false);
     async function validateRetentionReceiptNumber(clientId, receiptNumber) {
         return run(
-            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_RECEIPT_NUMBER,{
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_RECEIPT_NUMBER, {
                 id: clientId,
                 comprobante: receiptNumber
             }),
@@ -159,6 +159,29 @@ export function useInvoiceCollectionActions() {
     }
 
 
+    const loadingDepositReceiptValidation = ref(false);
+    async function validateDepositReceiptNumber(clientId, bankId, receiptNumber) {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_DEPOSIT_RECEIP_NUMBER, {
+            cliente_id: clientId,
+            banco_id: bankId,
+            comprobante: receiptNumber
+        }), {
+            loadingRef: loadingDepositReceiptValidation
+        });
+    }
+
+
+    const loadingCheckReceiptValidation = ref(false);
+    async function validateCheckReceiptNumber(clientId, bankId, account, receiptNumber) {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_CHECK, {
+            cliente_id: clientI,
+            banco_id: bankId,
+            cheque: receiptNumber,
+            cuenta: account
+        }), {
+            loadingRef: loadingCheckReceiptValidation
+        });
+    }
 
 
 
@@ -202,7 +225,16 @@ export function useInvoiceCollectionActions() {
 
         //validacion de comprobante
         loadingRetentionReceiptValidation,
-        validateRetentionReceiptNumber
+        validateRetentionReceiptNumber,
+
+
+        //validacion de comprobante de 
+        loadingDepositReceiptValidation,
+        validateDepositReceiptNumber,
+
+        //validacion de cheque
+        loadingCheckReceiptValidation,
+        validateCheckReceiptNumber
 
     }
 }
