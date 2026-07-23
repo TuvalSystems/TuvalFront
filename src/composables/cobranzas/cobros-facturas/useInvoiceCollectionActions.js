@@ -127,7 +127,7 @@ export function useInvoiceCollectionActions() {
                 loadingRef: loadingCollectionBanks,
                 onSuccess: (data) => {
                     bankTuval.value = data.bancos_tuval ?? [];
-                    bankClient.value = data.bancos_cientes ?? [];
+                    bankClient.value = data.bancos_clientes ?? [];
                     bankCard.value = data.bancos_tarjetas ?? [];
                 }
             }
@@ -174,7 +174,7 @@ export function useInvoiceCollectionActions() {
     const loadingCheckReceiptValidation = ref(false);
     async function validateCheckReceiptNumber(clientId, bankId, account, receiptNumber) {
         return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_CHECK, {
-            cliente_id: clientI,
+            cliente_id: clientId,
             banco_id: bankId,
             cheque: receiptNumber,
             cuenta: account

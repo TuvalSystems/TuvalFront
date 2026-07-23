@@ -214,7 +214,7 @@ function handleDepositDataChanged() {
           <div class="deposit-action">
             <button
               type="button"
-              class="btn btn-primary btn-sm deposit-apply-button"
+              class="btn btn-outline-primary btn-sm deposit-apply-button"
               :disabled="loadingDepositReceiptValidation"
               @click="handleApplyDeposit"
             >

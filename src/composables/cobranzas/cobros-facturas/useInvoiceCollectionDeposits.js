@@ -204,7 +204,6 @@ export function useInvoiceCollectionDeposits({
     function getDepositInvoiceAppliedAmount(invoice) {
         return toNumber(
             invoice?.aplicarMontoDeposito ??
-            invoice?.montoAplicado ??
             0
         ) ?? 0;
     }
@@ -414,7 +413,7 @@ export function useInvoiceCollectionDeposits({
     /**validacion de comprobante de deposito */
     async function validateReceiptNumber() {
         const clientId = client.value?.id;
-        const bankId = String(depositPayload.banco_id ?? "").trim();
+        const bankId = depositPayload.banco_id;
         const receiptNumber = String(depositPayload.comprobante ?? "").trim();
 
         if (!clientId) {

@@ -88,6 +88,50 @@ const {
     removeApplications
 } = useInvoiceCollectionDraft();
 
+
+
+
+
+
+/** 
+ * proceso de refresco de data del cliente 
+ *
+ *  */
+const loadingCustomerCollectionData = computed(() =>
+    loadingClientInvoices.value ||
+    loadingPendingApplicationDocuments.value ||
+    loadingCollectionBanks.value
+);
+
+async function refreshCustomerCollectionData(customer) {
+    const clientId = customer?.id;
+    if (!clientId) {
+        swalWarning('Debe seleccionar un cliente.');
+        return false;
+    }
+    const responses = await Promise.all([
+        fetchClientInvoices(clientId),
+        fetchPendingApplicationDocuments(clientId),
+        fetchCollectionBanks()
+    ]);
+
+    const errorResponse = responses.find(
+        response => response?.ok === false
+    );
+
+    if (errorResponse) {
+        const msg = errorResponse?.message || 'No se pudo cargar la información del cliente';
+        (errorResponse?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+        return false;
+    }
+    swalSuccess('Información Actualizada Exitosamente');
+    return true;
+}
+
+
+
+
+
 function paymentCountLabel(count) {
     return count === 1 ? '1 registro' : `${count} registros`;
 }
@@ -116,7 +160,7 @@ const paymentMethodSections = computed(() => {
                 facturasRetenciones: retentionInvoices.value,
                 retenciones: collectionDraft.retenciones,
                 cliente: selectedCustomer.value,
-                loadingDocs: loadingCustomerCollectionData
+                loadingDocs: loadingCustomerCollectionData.value
 
             },
             events: {
@@ -137,7 +181,7 @@ const paymentMethodSections = computed(() => {
                 facturas: clientInvoices.value,
                 efectivo: collectionDraft.efectivo,
                 cliente: selectedCustomer.value,
-                loadingDocs: loadingCustomerCollectionData
+                loadingDocs: loadingCustomerCollectionData.value
             },
             events: {
                 'add-cash': (cash) => handlePaymentMethodAdded('efectivo', addCash, cash),
@@ -158,7 +202,7 @@ const paymentMethodSections = computed(() => {
                 facturas: clientInvoices.value,
                 depositos: collectionDraft.depositos,
                 cliente: selectedCustomer.value,
-                loadingDocs: loadingCustomerCollectionData
+                loadingDocs: loadingCustomerCollectionData.value
             },
             events: {
                 'add-deposit': (deposit) => handlePaymentMethodAdded('depositos', addDeposits, deposit),
@@ -179,7 +223,7 @@ const paymentMethodSections = computed(() => {
                 cheque: collectionDraft.cheque,
                 cliente: selectedCustomer.value,
                 bancoClientes: bankClient.value,
-                loadingDocs: loadingCustomerCollectionData
+                loadingDocs: loadingCustomerCollectionData.value
             },
             events: {
                 'add-check': (check) => handlePaymentMethodAdded('cheques', addCheck, check),
@@ -199,7 +243,7 @@ const paymentMethodSections = computed(() => {
                 facturas: clientInvoices.value,
                 tarjetas: collectionDraft.tarjetas,
                 cliente: selectedCustomer.value,
-                loadingDocs: loadingCustomerCollectionData
+                loadingDocs: loadingCustomerCollectionData.value
             },
             events: {
                 'add-card': (card) => handlePaymentMethodAdded('tarjetas', addCards, card),
@@ -215,13 +259,14 @@ const paymentMethodSections = computed(() => {
             icon: 'fa-scale-balanced',
             count: collectionDraft.aplicaciones.length,
             component: paymentComponents.aplicaciones,
-            props : {
+            props: {
                 facturas: clientInvoices.value,
                 cliente: selectedCustomer.value,
-                aplicacionesPendientes : pendingApplicationDocuments.value,
-                aplicaciones : collectionDraft.aplicaciones
+                aplicacionesPendientes: pendingApplicationDocuments.value,
+                aplicaciones: collectionDraft.aplicaciones,
+                loadingDocs: loadingCustomerCollectionData.value
             },
-            events :{
+            events: {
                 'add-application': (apply) => handlePaymentMethodAdded('aplicaciones', addApplications, apply),
                 'remove-card': removeApplications
             }
@@ -384,41 +429,6 @@ async function cleanSearchClients() {
 
 
 
-/** 
- * proceso de refresco de data del cliente 
- *
- *  */
-const loadingCustomerCollectionData = computed(() =>
-    loadingClientInvoices.value ||
-    loadingPendingApplicationDocuments.value ||
-    loadingCollectionBanks.value
-);
-
-async function refreshCustomerCollectionData(customer) {
-    const clientId = customer?.id;
-    if (!clientId) {
-        swalWarning('Debe seleccionar un cliente.');
-        return false;
-    }
-    const responses = await Promise.all([
-        fetchClientInvoices(clientId),
-        fetchPendingApplicationDocuments(clientId),
-        fetchCollectionBanks()
-    ]);
-
-    const errorResponse = responses.find(
-        response => response?.ok === false
-    );
-
-    if (errorResponse) {
-        const msg = errorResponse?.message || 'No se pudo cargar la información del cliente';
-        (errorResponse?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
-        return false;
-    }
-    swalSuccess('Información Actualizada Exitosamente');
-    return true;
-}
-
 onMounted(() => {
     getUserCashBoxStatus();
 });
@@ -505,7 +515,7 @@ onMounted(() => {
                                 <span class="payment-method-title">
                                     <span class="fw-semibold text-uppercase  fw-bold" style="font-size:12px">{{
                                         method.title
-                                        }}</span>
+                                    }}</span>
                                     <!-- <span class="fs-sm text-muted">{{ method.subtitle }}</span> -->
                                 </span>
 

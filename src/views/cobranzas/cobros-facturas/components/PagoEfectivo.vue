@@ -139,7 +139,7 @@ onMounted(() => { });
         </div>
 
         <div class="cash-action">
-          <button type="button" class="btn btn-primary btn-sm cash-apply-button" @click="handleApplyCash()">
+          <button type="button" class="btn btn-outline-primary btn-sm cash-apply-button" @click="handleApplyCash()">
             <i class="fa fa-check"></i> APLICAR
           </button>
         </div>
