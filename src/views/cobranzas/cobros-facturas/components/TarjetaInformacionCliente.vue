@@ -137,7 +137,7 @@ async function refreshCollection() {
                         </button>
                     </div>
                 </div>
-                <div class="row g-2 mt-3">
+                <div class="row g-2 mt-3 client-metrics-row">
                     <div class="col-md-3">
 
                         <div class="cobro-metric cobro-status-metric" :class="client.suspendido == 1
@@ -207,25 +207,45 @@ async function refreshCollection() {
 
 
 .cobro-client-header {
-    padding: 1.25rem;
+    padding: 0.75rem;
     border: 1px solid var(--tuval-border, var(--bs-border-color));
     border-radius: var(--tuval-radius-md, 8px);
+}
+
+.cobro-client-header h2 {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.cobro-client-header .rounded-pill {
+    padding: 0.15rem 0.55rem !important;
+    font-size: 0.62rem;
+}
+
+.cobro-client-header > .d-flex {
+    gap: 0.65rem !important;
+}
+
+.cobro-client-header .row.mt-3 {
+    margin-top: 0.55rem !important;
 }
 
 .client-avatar {
     display: grid;
     flex: 0 0 auto;
-    width: 3rem;
-    height: 3rem;
+    width: 2.25rem;
+    height: 2.25rem;
     place-items: center;
     border-radius: var(--tuval-radius-md, 8px);
     color: var(--tuval-primary, var(--bs-primary));
+    font-size: 0.85rem;
 }
 
 .client-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1.25rem;
+    gap: 0.25rem 0.75rem;
+    font-size: 0.72rem;
 }
 
 .client-meta span {
@@ -236,17 +256,17 @@ async function refreshCollection() {
 
 .client-actions {
     display: grid;
-    grid-template-columns: repeat(3, minmax(7.5rem, 1fr));
-    gap: .5rem;
-    min-width: min(100%, 27rem);
+    grid-template-columns: repeat(3, minmax(6.25rem, 1fr));
+    gap: .35rem;
+    min-width: min(100%, 22rem);
 }
 
 .client-action-button {
     display: inline-flex;
     align-items: center;
-    gap: .6rem;
-    min-height: 2.75rem;
-    padding: .45rem .65rem;
+    gap: .4rem;
+    min-height: 2.15rem;
+    padding: .3rem .45rem;
     border: 1px solid var(--tuval-border, var(--bs-border-color));
     border-radius: var(--tuval-radius-md, 8px);
     background: var(--bs-body-bg);
@@ -276,26 +296,26 @@ async function refreshCollection() {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 2rem;
-    width: 2rem;
-    height: 2rem;
+    flex: 0 0 1.55rem;
+    width: 1.55rem;
+    height: 1.55rem;
     border-radius: 8px;
-    font-size: .9rem;
+    font-size: .78rem;
 }
 
 .client-action-label {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    font-size: .78rem;
+    font-size: .7rem;
     font-weight: 800;
     text-transform: uppercase;
 }
 
 .client-action-label small {
-    margin-top: .15rem;
+    margin-top: .08rem;
     color: var(--tuval-text-muted, var(--bs-secondary-color));
-    font-size: .68rem;
+    font-size: .6rem;
     font-weight: 700;
     text-transform: none;
     white-space: nowrap;
@@ -318,35 +338,72 @@ async function refreshCollection() {
 
 .cobro-metric {
     display: flex;
-    min-height: 3.5rem;
+    width: 100%;
+    height: 100%;
+    min-height: 2.65rem;
     flex-direction: column;
     justify-content: center;
-    padding: 0.875rem 1rem;
+    padding: 0.45rem 0.6rem;
     border: 1px solid var(--tuval-border, var(--bs-border-color));
     border-radius: var(--tuval-radius-md, 8px);
     background: var(--tuval-surface-muted, var(--bs-light));
 }
 
 .metric-label {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.12rem;
     color: var(--tuval-text-muted, var(--bs-secondary-color));
-    font-size: 0.75rem;
+    font-size: 0.62rem;
     font-weight: 700;
     text-transform: uppercase;
 }
 
 .metric-value {
     color: var(--tuval-text, var(--bs-body-color));
-    font-size: 1.2rem;
+    font-size: 0.95rem;
     font-weight: 800;
     line-height: 1.25;
     overflow-wrap: anywhere;
 }
 
 .metric-note {
-    margin-top: 0.25rem;
+    margin-top: 0.12rem;
     color: var(--tuval-text-muted, var(--bs-secondary-color));
-    font-size: 0.78rem;
+    font-size: 0.65rem;
+}
+
+.client-metrics-row > [class*="col-"] {
+    display: flex;
+}
+
+.cobro-status-metric {
+    position: relative;
+    padding-left: 2.35rem;
+}
+
+.cobro-status-metric .d-flex {
+    display: block !important;
+    gap: 0.5rem !important;
+}
+
+.cobro-status-metric .metric-label {
+    margin-bottom: 0.12rem !important;
+}
+
+.status-icon {
+    position: absolute;
+    top: 50%;
+    left: 0.65rem;
+    transform: translateY(-50%);
+    width: 1.1rem;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.status-value {
+    display: block;
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1.25;
 }
 
 @media (max-width: 1199.98px) {

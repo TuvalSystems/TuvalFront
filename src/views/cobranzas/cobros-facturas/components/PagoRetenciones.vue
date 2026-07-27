@@ -24,6 +24,10 @@ const props = defineProps({
   cliente: {
     type: Object,
     default: () => ({})
+  },
+  loadingDocs: {
+    type : Boolean,
+    default : () => false
   }
 });
 
@@ -94,7 +98,7 @@ function removeRetention(index) {
           <div class="invoice-selector">
             <VueSelect class="retention-select" v-model="payloadRetention.documento" :options="retentionOptions"
               :reduce="(option) => option.documento" placeholder="Buscar..." label="documento"
-              :class="{ 'is-invalid': v$.documento.$errors.length }"></VueSelect>
+              :class="{ 'is-invalid': v$.documento.$errors.length }" :disabled="loadingDocs"></VueSelect>
             <button type="button" class="btn btn-alt-primary retention-icon-button" title="Cargar Factura"
               @click="selectedInvoice(payloadRetention.documento)">
               <i class="fa fa-upload"></i>

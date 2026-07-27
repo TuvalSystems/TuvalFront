@@ -8,7 +8,7 @@ function createEmptyDraft() {
         cheque: null,
         depositos: [],
         efectivo: null,
-        tarjetas: [],
+        tarjeta: null,
         aplicaciones: [],
         pvCodigo: null,
         pvId : null,
@@ -86,13 +86,22 @@ export function useInvoiceCollectionDraft() {
         collectionDraft.efectivo = null;
     }
 
-    //tarjetas
-    function addCards(card) {
-        collectionDraft.tarjetas.push(card);
+    function cloneCard(card) {
+        return {
+            ...card,
+            facturas: Array.isArray(card?.facturas)
+                ? card.facturas.map((invoice) => ({ ...invoice }))
+                : [],
+        };
     }
 
-    function removeCards(index) {
-        collectionDraft.tarjetas.splice(index, 1);
+    //tarjeta
+    function addCard(card) {
+        collectionDraft.tarjeta = cloneCard(card);
+    }
+
+    function removeCard() {
+        collectionDraft.tarjeta = null;
     }
 
     //aplicaciones
@@ -114,11 +123,9 @@ export function useInvoiceCollectionDraft() {
         ...(collectionDraft.efectivo
             ? [{ tipo: 'efectivo', index: 0, item: collectionDraft.efectivo }]
             : []),
-        ...collectionDraft.tarjetas.map((item, index) => ({
-            tipo: 'tarjeta',
-            index,
-            item,
-        })),
+        ...(collectionDraft.tarjeta
+            ? [{ tipo: 'tarjeta', index: 0, item: collectionDraft.tarjeta }]
+            : []),
         ...(collectionDraft.cheque
             ? [{ tipo: 'cheque', index: 0, item: collectionDraft.cheque }]
             : []),
@@ -157,9 +164,9 @@ export function useInvoiceCollectionDraft() {
         //efectivo
         addCash,
         removeCash,
-        //tarjetas
-        addCards,
-        removeCards,
+        //tarjeta
+        addCard,
+        removeCard,
         //aplicaciones
         addApplications,
         removeApplications

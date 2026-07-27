@@ -81,9 +81,9 @@ const {
     //efectivo
     addCash,
     removeCash,
-    //tarjetas
-    addCards,
-    removeCards,
+    //tarjeta
+    addCard,
+    removeCard,
     //aplicaciones
     addApplications,
     removeApplications
@@ -203,6 +203,10 @@ function getPaymentEntriesByMethod(methodKey) {
 
     if (methodKey === 'cheques') {
         return normalizePaymentEntries(collectionDraft.cheque);
+    }
+
+    if (methodKey === 'tarjetas') {
+        return normalizePaymentEntries(collectionDraft.tarjeta);
     }
 
     return normalizePaymentEntries(collectionDraft[methodKey]);
@@ -360,17 +364,18 @@ const paymentMethodSections = computed(() => {
             title: 'Tarjetas de credito',
             subtitle: 'Voucher o comprobante de tarjeta',
             icon: 'fa-credit-card',
-            count: collectionDraft.tarjetas.length,
+            count: collectionDraft.tarjeta ? 1 : 0,
             component: paymentComponents.tarjetas,
             props: {
                 facturas: getAvailableInvoicesForPaymentMethod('tarjetas'),
-                tarjetas: collectionDraft.tarjetas,
+                bancoTarjetas : bankCard.value,
+                tarjeta: collectionDraft.tarjeta,
                 cliente: selectedCustomer.value,
-                loadingDocs: loadingCustomerCollectionData.value
+                loadingDocs: loadingCustomerCollectionData.value,
             },
             events: {
-                'add-card': (card) => handlePaymentMethodAdded('tarjetas', addCards, card),
-                'remove-card': removeCards
+                'add-card': (card) => handlePaymentMethodAdded('tarjetas', addCard, card),
+                'remove-card': removeCard
             }
         },
         {

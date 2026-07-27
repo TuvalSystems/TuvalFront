@@ -23,6 +23,10 @@ const props = defineProps({
   cliente: {
     type: Object,
     default: () => ({})
+  },
+  loadingDocs : {
+    type : Boolean,
+    default : () => false
   }
 });
 
@@ -142,6 +146,7 @@ function handleDepositDataChanged() {
               :class="{ 'is-invalid': v$.banco_id.$errors.length }"
               @change="handleDepositDataChanged"
               @blur="v$.banco_id.$touch"
+              :disabled="loadingDocs"
             >
               <option value="" disabled>
                 {{ bankTuvalOptions.length ? 'Seleccione un banco' : 'Sin bancos disponibles' }}
@@ -271,7 +276,7 @@ function handleDepositDataChanged() {
       </div>
 
       <TablaFacturasDisponibles
-        v-if="showTableInvoices"
+        v-if="showTableInvoices && !loadingDocs"
         :invoices="depositInvoices"
         title="Aplicacion del deposito"
         document-label="factura(s)"
@@ -429,7 +434,7 @@ function handleDepositDataChanged() {
 .deposit-summary-item span {
   display: block;
   color: var(--tuval-text-muted, var(--bs-secondary-color));
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   font-weight: 800;
   line-height: 1.12;
   text-transform: uppercase;
@@ -437,11 +442,11 @@ function handleDepositDataChanged() {
 
 .deposit-summary-item strong {
   display: block;
-  margin-top: 0.1rem;
+  margin-top: 0.06rem;
   color: var(--tuval-text, var(--bs-body-color));
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.15;
   overflow-wrap: anywhere;
 }
 
@@ -451,25 +456,24 @@ function handleDepositDataChanged() {
 
 .deposit-summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.35rem;
 }
 
 .deposit-summary-item {
   min-width: 0;
-  padding: 0.48rem 0.55rem;
+  padding: 0.34rem 0.42rem;
   border: 1px solid var(--tuval-border, var(--bs-border-color));
   border-radius: var(--tuval-radius-md, 8px);
   background: var(--tuval-surface-muted, var(--bs-light));
 }
 
 .deposit-summary-item strong {
-  font-size: 0.82rem;
   text-align: right;
 }
 
 .deposit-summary-bank {
-  grid-column: span 2;
+  grid-column: span 1;
 }
 
 .deposit-summary-warning {
@@ -517,10 +521,6 @@ function handleDepositDataChanged() {
 
   .deposit-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .deposit-summary-bank {
-    grid-column: auto;
   }
 }
 

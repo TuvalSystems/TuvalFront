@@ -20,6 +20,10 @@ const props = defineProps({
   cliente: {
     type: Object,
     default: () => ({})
+  },
+  loadingDocs : {
+    type : Boolean,
+    default : () => false
   }
 });
 
@@ -176,7 +180,7 @@ onMounted(() => { });
       </div>
 
       <!-- tabla de facturas -->
-      <TablaFacturasDisponibles v-if="showTableInvoices" :invoices="cashInvoices" apply-all-key="aplicarTodoEfectivo"
+      <TablaFacturasDisponibles v-if="showTableInvoices && !loadingDocs" :invoices="cashInvoices" apply-all-key="aplicarTodoEfectivo"
         amount-key="aplicarMontoEfectivo" observation-key="observacionEfectivo"
         empty-text="Sin facturas disponibles para aplicar efectivo" :format-amount="formatCashAmount"
         :remaining-balance-resolver="getInvoiceRemainingBalance" @apply-all-change="applyFullCashToInvoice"
