@@ -2,6 +2,7 @@
 import { swalError, swalSuccess, swalWarning } from '@/functions/swal-alert.js';
 import { onMounted, ref, computed, markRaw, nextTick } from 'vue';
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
+import { roundTo, toNumber } from '@/functions';
 import BaseBlock from '@/components/BaseBlock.vue';
 
 //composables
@@ -145,6 +146,128 @@ const paymentComponents = {
     aplicaciones: markRaw(PagoAplicaciones),
 };
 
+const paymentInvoiceAmountFields = {
+    efectivo: ['aplicarMontoEfectivo', 'aplicar_monto_efectivo'],
+    depositos: ['aplicarMontoDeposito', 'aplicar_monto_deposito'],
+    cheques: ['aplicarMontoCheque', 'aplicar_monto_cheque'],
+    tarjetas: ['aplicarMontoTarjeta', 'aplicar_monto_tarjeta'],
+    aplicaciones: ['aplicarMontoAplicacion', 'aplicar_monto_aplicacion'],
+};
+
+const paymentMethodsWithInvoiceBalance = [
+    'efectivo',
+    'depositos',
+    'cheques',
+    'tarjetas',
+    'aplicaciones',
+];
+
+function normalizeItems(source) {
+    if (Array.isArray(source)) {
+        return source;
+    }
+
+    return Object.values(source ?? {});
+}
+
+function normalizePaymentEntries(source) {
+    if (Array.isArray(source)) {
+        return source;
+    }
+
+    if (source && typeof source === 'object' && Object.keys(source).length > 0) {
+        return [source];
+    }
+
+    return [];
+}
+
+function getInvoiceDocument(invoice) {
+    return String(
+        invoice?.documento ??
+        ''
+    ).trim();
+}
+
+function getInvoiceBalance(invoice) {
+    return toNumber(
+        invoice?.saldoCliente ??
+        0
+    ) ?? 0;
+}
+
+function getPaymentEntriesByMethod(methodKey) {
+    if (methodKey === 'efectivo') {
+        return normalizePaymentEntries(collectionDraft.efectivo);
+    }
+
+    if (methodKey === 'cheques') {
+        return normalizePaymentEntries(collectionDraft.cheque);
+    }
+
+    return normalizePaymentEntries(collectionDraft[methodKey]);
+}
+
+function getPaymentInvoiceAppliedAmount(invoice, methodKey) {
+    const fields = paymentInvoiceAmountFields[methodKey] ?? [];
+
+    for (const field of fields) {
+        const amount = toNumber(invoice?.[field]);
+
+        if (amount !== null && amount !== undefined) {
+            return amount;
+        }
+    }
+
+    return 0;
+}
+
+function getAppliedAmountForInvoice(documentNumber, excludedMethod = null) {
+    if (!documentNumber) {
+        return 0;
+    }
+
+    return roundTo(
+        paymentMethodsWithInvoiceBalance.reduce((total, methodKey) => {
+            if (methodKey === excludedMethod) {
+                return total;
+            }
+
+            return total + getPaymentEntriesByMethod(methodKey).reduce((methodTotal, payment) => {
+                return methodTotal + normalizeItems(payment?.facturas).reduce((invoiceTotal, invoice) => {
+                    if (getInvoiceDocument(invoice) !== documentNumber) {
+                        return invoiceTotal;
+                    }
+
+                    return invoiceTotal + getPaymentInvoiceAppliedAmount(invoice, methodKey);
+                }, 0);
+            }, 0);
+        }, 0),
+        2
+    );
+}
+
+function getAvailableInvoicesForPaymentMethod(methodKey) {
+    return normalizeItems(clientInvoices.value).map((invoice) => {
+        const invoiceBalance = getInvoiceBalance(invoice);
+        const appliedByOtherMethods = getAppliedAmountForInvoice(
+            getInvoiceDocument(invoice),
+            methodKey
+        );
+        const availableBalance = roundTo(
+            Math.max(invoiceBalance - appliedByOtherMethods, 0),
+            2
+        );
+
+        return {
+            ...invoice,
+            saldoCliente: availableBalance,
+            saldo: availableBalance,
+            saldoAplicadoOtrosMetodos: appliedByOtherMethods,
+        };
+    });
+}
+
 const paymentMethodSections = computed(() => {
     const sections = [
         {
@@ -178,7 +301,7 @@ const paymentMethodSections = computed(() => {
             count: collectionDraft.efectivo ? 1 : 0,
             component: paymentComponents.efectivo,
             props: {
-                facturas: clientInvoices.value,
+                facturas: getAvailableInvoicesForPaymentMethod('efectivo'),
                 efectivo: collectionDraft.efectivo,
                 cliente: selectedCustomer.value,
                 loadingDocs: loadingCustomerCollectionData.value
@@ -199,7 +322,7 @@ const paymentMethodSections = computed(() => {
             component: paymentComponents.depositos,
             props: {
                 bancosTuval: bankTuval.value,
-                facturas: clientInvoices.value,
+                facturas: getAvailableInvoicesForPaymentMethod('depositos'),
                 depositos: collectionDraft.depositos,
                 cliente: selectedCustomer.value,
                 loadingDocs: loadingCustomerCollectionData.value
@@ -219,7 +342,7 @@ const paymentMethodSections = computed(() => {
             count: collectionDraft.cheque ? 1 : 0,
             component: paymentComponents.cheques,
             props: {
-                facturas: clientInvoices.value,
+                facturas: getAvailableInvoicesForPaymentMethod('cheques'),
                 cheque: collectionDraft.cheque,
                 cliente: selectedCustomer.value,
                 bancoClientes: bankClient.value,
@@ -240,7 +363,7 @@ const paymentMethodSections = computed(() => {
             count: collectionDraft.tarjetas.length,
             component: paymentComponents.tarjetas,
             props: {
-                facturas: clientInvoices.value,
+                facturas: getAvailableInvoicesForPaymentMethod('tarjetas'),
                 tarjetas: collectionDraft.tarjetas,
                 cliente: selectedCustomer.value,
                 loadingDocs: loadingCustomerCollectionData.value
@@ -260,7 +383,7 @@ const paymentMethodSections = computed(() => {
             count: collectionDraft.aplicaciones.length,
             component: paymentComponents.aplicaciones,
             props: {
-                facturas: clientInvoices.value,
+                facturas: getAvailableInvoicesForPaymentMethod('aplicaciones'),
                 cliente: selectedCustomer.value,
                 aplicacionesPendientes: pendingApplicationDocuments.value,
                 aplicaciones: collectionDraft.aplicaciones,

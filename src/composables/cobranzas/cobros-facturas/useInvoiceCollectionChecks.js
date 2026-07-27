@@ -84,26 +84,8 @@ function getBankName(bank) {
     return bank?.CB_DESCRIPCION ?? bank?.nombre ?? "Banco no definido";
 }
 
-function normalizeRegisteredChecks(source) {
-    const checks = resolveSource(source);
-
-    if (Array.isArray(checks)) {
-        return checks;
-    }
-
-    if (checks && typeof checks === "object" && Object.keys(checks).length > 0) {
-        return [checks];
-    }
-
-    return [];
-}
-
-
-
-
 export function useInvoiceCollectionChecks({
     facturas,
-    cheque,
     cliente,
     bancoClientes,
     validateCheckReceiptNumber
@@ -124,7 +106,6 @@ export function useInvoiceCollectionChecks({
 
     const invoiceOptions = computed(() => normalizeCollectionItems(facturas));
     const bankClientsOptions = computed(() => normalizeCollectionItems(bancoClientes));
-    const registeredCheck = computed(() => normalizeRegisteredChecks(cheque));
     const client = computed(() => resolveSource(cliente) ?? {});
     const checkPayload = reactive(createEmptyCheck());
 
@@ -168,31 +149,6 @@ export function useInvoiceCollectionChecks({
     }
 
 
-    function getChecksInvoiceItems(check) {
-        return normalizeCollectionItems(check?.facturas);
-    }
-
-
-    function getCheckInvoiceAppliedAmount(invoice) {
-        return toNumber(invoice?.aplicarMontoCheque ?? 0) ?? 0;
-    }
-
-    function receiptAlreadyRegistered() {
-        const checkNumber = String(checkPayload.cheque ?? "").trim().toLowerCase();
-        const account = String(checkPayload.cuenta ?? "").trim().toLowerCase();
-        const bankId = String(checkPayload.banco_id ?? "");
-
-        return registeredCheck.value.some((check) => {
-            const registeredCheckNumber = String(check?.cheque ?? "").trim().toLowerCase();
-            const registeredAccount = String(check?.cuenta ?? "").trim().toLowerCase();
-            const registeredBankId = String(check?.banco_id ?? "");
-
-            return registeredCheckNumber === checkNumber
-                && registeredAccount === account
-                && registeredBankId === bankId;
-        });
-    }
-
     async function validateCheckAccountAndNumber() {
         const clientId = client.value?.id;
         const bankId = checkPayload.banco_id;
@@ -221,11 +177,6 @@ export function useInvoiceCollectionChecks({
 
         if (typeof validateCheckReceiptNumber !== "function") {
             swalWarning("No se pudo validar el cheque");
-            return false;
-        }
-
-        if (receiptAlreadyRegistered()) {
-            swalWarning("Este cheque ya fue ingresado para la cuenta y banco seleccionados.");
             return false;
         }
 
@@ -281,30 +232,11 @@ export function useInvoiceCollectionChecks({
         return {
             ...invoice,
             saldoDisponibleCheque: availableBalance,
-            chequeAplicadoPrevio: getRegisteredCheckAmountForInvoice(invoice),
+            chequeAplicadoPrevio: 0,
             aplicarTodoCheque: false,
             aplicarMontoCheque: 0,
             observacionCheque: ""
         }
-    }
-
-    function getRegisteredCheckAmountForInvoice(invoice) {
-        const documentNumber = getInvoiceDocument(invoice);
-        if (!documentNumber) {
-            return 0;
-        }
-        return roundTo(
-            registeredCheck.value.reduce((checkTotal, check) => {
-                const appliedInvoices = getChecksInvoiceItems(check);
-                return checkTotal + appliedInvoices.reduce((invoiceTotal, appliedInvoices) => {
-                    if (getInvoiceDocument(appliedInvoices) !== documentNumber) {
-                        return invoiceTotal;
-                    }
-                    return invoiceTotal + getCheckInvoiceAppliedAmount(appliedInvoices);
-                }, 0);
-            }, 0)
-            , 2
-        );
     }
 
     function getInvoiceCheckBalance(invoice) {
@@ -313,8 +245,7 @@ export function useInvoiceCollectionChecks({
 
     function getInvoiceAvailableBalance(invoice) {
         const invoiceBalance = toNumber(invoice?.saldoCliente) ?? 0;
-        const registeredAmount = getRegisteredCheckAmountForInvoice(invoice);
-        return roundTo(Math.max(invoiceBalance - registeredAmount, 0), 2)
+        return roundTo(Math.max(invoiceBalance, 0), 2)
     }
 
     function createCheckInvoiceToAdd(invoice) {
@@ -481,7 +412,6 @@ export function useInvoiceCollectionChecks({
     return {
         invoiceOptions,
         bankClientsOptions,
-        registeredCheck,
         flatPickrState,
         checkPayload,
         v$,
