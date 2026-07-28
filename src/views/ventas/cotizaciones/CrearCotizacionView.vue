@@ -1044,8 +1044,12 @@ watch(
 
 
 
+/** funcion para bloquear el selector de bodega si el origen es reserva */
 
-
+const isWarehouseSelectionDisabled = computed(() => {
+  return loadingWarehouseByUser.value
+    || form.value.origen === 'reserva';
+});
 
 
 
@@ -1337,7 +1341,7 @@ onMounted(async () => {
                 <div class="kv space-y-2">
                   <small class="text-muted">Bodegas</small>
                   <select class="form-select form-select-sm" v-model="form.bodega_facturacion"
-                    :disabled="loadingWarehouseByUser">
+                    :disabled="isWarehouseSelectionDisabled">
                     <option v-for="(bod, index) in warehouseByUser" :key="index"
                       :value="bod.relacion_bodega.BOD_BODEGA">
                       {{ bod.relacion_bodega.BOD_BODEGA }}
