@@ -396,7 +396,7 @@ const paymentMethodSections = computed(() => {
             },
             events: {
                 'add-application': (apply) => handlePaymentMethodAdded('aplicaciones', addApplications, apply),
-                'remove-card': removeApplications
+                'remove-application': removeApplications
             }
         },
     ];
