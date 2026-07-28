@@ -95,12 +95,12 @@ function handleDepositDataChanged() {
 
 <template>
   <section class="deposit-entry">
-    <div class="deposit-toolbar">
+    <!-- <div class="deposit-toolbar">
       <div class="min-w-0">
         <span class="deposit-kicker">Deposito o transferencia</span>
         <h4 class="deposit-title">Ingreso de depositos</h4>
       </div>
-    </div>
+    </div> -->
 
     <div class="deposit-section">
       <div class="section-heading">

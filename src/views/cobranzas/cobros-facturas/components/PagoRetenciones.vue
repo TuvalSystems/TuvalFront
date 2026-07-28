@@ -68,10 +68,10 @@ function removeRetention(index) {
   <section class="retention-entry">
 
     <div class="retention-toolbar">
-      <div class="min-w-0">
+      <!-- <div class="min-w-0">
         <span class="retention-kicker">Comprobante SRI</span>
         <h4 class="retention-title">Ingreso de retencion</h4>
-      </div>
+      </div> -->
 
       <!-- boton de agregar -->
       <button type="button" class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-2"

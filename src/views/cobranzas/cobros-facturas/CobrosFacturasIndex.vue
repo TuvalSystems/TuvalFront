@@ -641,7 +641,7 @@ onMounted(() => {
                                 </span>
 
                                 <span class="payment-method-title">
-                                    <span class="fw-semibold text-uppercase  fw-bold" style="font-size:12px">{{
+                                    <span class="fw-semibold text-uppercase fw-bold payment-method-name">{{
                                         method.title
                                     }}</span>
                                     <!-- <span class="fs-sm text-muted">{{ method.subtitle }}</span> -->
@@ -700,10 +700,23 @@ td input.form-control {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: .75rem;
-    padding: .95rem 1rem;
+    gap: .5rem;
+    padding: .6rem .75rem;
     border-bottom: 1px solid var(--tuval-border, var(--bs-border-color));
     background: var(--tuval-surface-muted, var(--bs-light));
+}
+
+.payment-methods-header h3 {
+    font-size: .82rem;
+}
+
+.payment-methods-header .fs-sm {
+    font-size: .68rem !important;
+}
+
+.payment-methods-header .badge {
+    font-size: .64rem;
+    padding: .25rem .5rem;
 }
 
 .payment-accordion {
@@ -723,9 +736,9 @@ td input.form-control {
 
 .payment-accordion-button {
     display: flex;
-    gap: .75rem;
+    gap: .5rem;
     align-items: center;
-    padding: .85rem 1rem;
+    padding: .52rem .75rem;
     color: var(--tuval-text, var(--bs-body-color));
     background: var(--bs-body-bg);
     box-shadow: none;
@@ -745,12 +758,13 @@ td input.form-control {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 2.25rem;
-    width: 2.25rem;
-    height: 2.25rem;
+    flex: 0 0 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
     border-radius: var(--tuval-radius-md, 8px);
     color: var(--tuval-primary, var(--bs-primary));
     background: rgba(var(--bs-primary-rgb), .08);
+    font-size: .72rem;
 }
 
 .payment-method-title {
@@ -758,17 +772,23 @@ td input.form-control {
     flex: 1 1 auto;
     flex-direction: column;
     min-width: 0;
-    line-height: 1.25;
+    line-height: 1.15;
+}
+
+.payment-method-name {
+    font-size: .68rem;
 }
 
 .payment-method-badge {
     flex: 0 0 auto;
-    margin-right: .75rem;
+    margin-right: .45rem;
+    padding: .24rem .48rem;
+    font-size: .62rem;
 }
 
 .payment-accordion-body {
-    min-height: 4.5rem;
-    padding: 1rem;
+    min-height: 3.5rem;
+    padding: .65rem;
     background: var(--bs-body-bg);
 }
 

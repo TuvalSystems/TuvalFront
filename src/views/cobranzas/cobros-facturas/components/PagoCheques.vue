@@ -99,12 +99,12 @@ function handleCheckDataChanged() {
 <template>
   <section class="check-entry">
     <!-- titulo -->
-    <div class="check-toolbar">
+    <!-- <div class="check-toolbar">
       <div class="min-w-0">
         <span class="check-kicker"> Cheques</span>
         <h4 class="check-title">Ingreso de Cheques</h4>
       </div>
-    </div>
+    </div> -->
 
     <div class="check-section">
       <!-- cabecera -->

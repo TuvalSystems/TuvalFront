@@ -80,12 +80,12 @@ onMounted(() => { });
 
 <template>
   <section class="cash-entry">
-    <div class="cash-toolbar">
+    <!-- <div class="cash-toolbar">
       <div class="min-w-0">
         <span class="cash-kicker">Pago directo</span>
         <h4 class="cash-title">Ingreso de efectivo</h4>
       </div>
-    </div>
+    </div> -->
 
     <div class="cash-section">
       <div class="section-heading">

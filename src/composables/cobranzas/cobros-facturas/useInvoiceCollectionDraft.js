@@ -1,4 +1,4 @@
-import { computed, reactive } from "vue";
+import { computed, reactive, watch } from "vue";
 import { useStore } from 'vuex'
 
 function createEmptyDraft() {
@@ -19,28 +19,50 @@ export function useInvoiceCollectionDraft() {
     const store = useStore();
     const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
     const selectedPointSaleCode = computed(() => store.state.puntodeventaselect);
-    const collectionDraft = reactive(createEmptyDraft());
+    const collectionDraft = reactive(createDraftWithPointSale());
 
+    function getPointSaleDraftData() {
+        return {
+            pvId: selectedPointSaleId.value ?? null,
+            pvCodigo: selectedPointSaleCode.value ?? null,
+        };
+    }
+
+    function createDraftWithPointSale() {
+        return {
+            ...createEmptyDraft(),
+            ...getPointSaleDraftData(),
+        };
+    }
+
+    function syncPointSaleDraftData() {
+        Object.assign(collectionDraft, getPointSaleDraftData());
+    }
 
     function setCustomer(customer) {
-        collectionDraft.cliente_id = customer.id;
+        collectionDraft.cliente_id = customer?.id ?? null;
+        syncPointSaleDraftData();
     }
 
  
     //limpia todo
     function resetDraft() {
-        Object.assign(collectionDraft, createEmptyDraft());
+        Object.assign(collectionDraft, createDraftWithPointSale());
     }
 
     //limpia pero sin tocar el cliente
     function resetDraftPreservingClient() {
         const clientId = collectionDraft.cliente_id;
-        Object.assign(collectionDraft, createEmptyDraft(), {
+        Object.assign(collectionDraft, createDraftWithPointSale(), {
             cliente_id: clientId,
-            pvId : selectedPointSaleId.value,
-            pvCodigo : selectedPointSaleCode.value
         });
     }
+
+    watch(
+        [selectedPointSaleId, selectedPointSaleCode],
+        syncPointSaleDraftData,
+        { immediate: true }
+    );
 
 
     // retenciones

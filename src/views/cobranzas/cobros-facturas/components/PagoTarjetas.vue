@@ -89,12 +89,12 @@ function hasRegisteredCard() {
 
 <template>
   <section class="cards-entry">
-    <div class="cards-toolbar">
+    <!-- <div class="cards-toolbar">
       <div class="min-w-0">
         <span class="cards-kicker">Tarjetas de credito</span>
         <h4 class="cards-title">Ingreso de tarjeta</h4>
       </div>
-    </div>
+    </div> -->
 
     <div class="cards-section">
       <div class="section-heading">
@@ -224,7 +224,7 @@ function hasRegisteredCard() {
         </div>
       </div>
 
-      <div v-if="showTableInvoices" class="cards-detail">
+      <div v-if="showTableInvoices " class="cards-detail">
         <div class="cards-summary-grid">
           <div class="cards-summary-item cards-summary-bank">
             <span>Emisor</span>
@@ -271,7 +271,7 @@ function hasRegisteredCard() {
       </div>
 
       <TablaFacturasDisponibles
-        v-if="showTableInvoices"
+        v-if="showTableInvoices && !loadingDocs"
         :invoices="cardInvoices"
         title="Aplicacion de la tarjeta"
         document-label="factura(s)"
