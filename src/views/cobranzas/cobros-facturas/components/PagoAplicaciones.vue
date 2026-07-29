@@ -1,12 +1,13 @@
 
 <script setup>
 import { toRefs } from "vue";
-import flatPickr from "vue-flatpickr-component";
 
 // componentes
 import TablaFacturasDisponibles from "./TablaFacturasDisponibles.vue";
+import { useInvoiceCollectionApplications } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionApplications.js";
+import { formatPriceJm } from "@/functions/index.js";
 
-const emits = defineEmits(["add-application", "remove-application"]);
+const emit = defineEmits(["add-application", "remove-application"]);
 const props = defineProps({
   facturas: {
     type: Array,
@@ -34,6 +35,53 @@ const props = defineProps({
 
 const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
   toRefs(props);
+
+const {
+  //data
+  applicationPayload,
+  applicationInvoices,
+  pendingApplicationOptions,
+  //validaciones
+  v$,
+  validationMessage,
+  //estados
+  showTableInvoices,
+  // funciones
+  selectPendingApplicationDocument,
+  applySelectedPendingDocument,
+  resetApplicationPayload,
+  createApplicationToAdd,
+
+  //funciones de componente de tabla
+  formatApplicationAmount,
+  getInvoiceRemainingBalance,
+  applyFullApplicationToInvoice,
+  updateInvoiceApplicationAmount,
+} = useInvoiceCollectionApplications({
+  facturas,
+  aplicacionesPendientes,
+  aplicaciones,
+  cliente,
+});
+
+async function handleApplyApplication() {
+  await applySelectedPendingDocument();
+}
+
+function handlePendingDocumentSelected() {
+  selectPendingApplicationDocument();
+}
+
+function handleRegisterApplication() {
+  const application = createApplicationToAdd();
+
+  if (!application) {
+    return;
+  }
+
+  emit("add-application", application);
+  resetApplicationPayload();
+}
 </script>
 
 <template>
@@ -41,92 +89,164 @@ const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
     <div class="application-section">
       <div class="section-heading">
         <div class="section-icon section-icon-bank">
-          <i class="fa fa-scale-balanced"></i>
+          <i class="fa fa-file-invoice-dollar"></i>
         </div>
         <div>
-          <h5>Aplicación de Saldos</h5>
-          <span> Documento</span>
+          <h5>Aplicacion de saldos</h5>
+          <span
+            >Seleccione el documento pendiente y revise el saldo
+            disponible</span
+          >
         </div>
       </div>
 
       <div class="application-form-shell">
         <div class="application-grid">
-          <!-- selector de documento -->
           <div class="application-field">
-            <small class="label-small"> Cobro</small>
-            <select class="form-select form-select-sm" :default="loadingDocs">
-              <option value="" disabled>Seleccione un Cobro</option>
+            <small class="label-small">Documento pendiente</small>
+            <select
+              class="form-select form-select-sm"
+              v-model="applicationPayload.documento"
+              :class="{ 'is-invalid': v$.documento.$errors.length }"
+              @blur="v$.documento.$touch()"
+              @change="handlePendingDocumentSelected"
+              :disabled="loadingDocs"
+            >
+              <option value="" disabled>Seleccione un documento</option>
+              <option
+                v-for="doc in pendingApplicationOptions"
+                :key="doc.documento"
+                :value="doc.documento"
+              >
+                {{ doc.documento }}
+              </option>
             </select>
-          </div>
-
-          <!-- visualizacion de datos del cobro -->
-          <!-- documento -->
-          <div class="application-field">
-            <small class="label-small"> documento</small>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text"
-                ><i class="fa fa-hashtag"></i
-              ></span>
-              <input
-                type="text"
-                class="form-control form-control-sm text-end"
-                disabled
-              />
+            <div v-if="v$.documento.$error" class="invalid-feedback d-block">
+              {{ validationMessage(v$.documento) }}
             </div>
           </div>
 
-          <!-- fecha -->
           <div class="application-field">
-            <small class="label-small"> fecha</small>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text">
-                <i class="far fa-calendar"></i
-              ></span>
-              <flat-pickr
-                class="form-control fs-sm"
-                placeholder="Y-m-d"
-                disabled
-              />
-            </div>
-          </div>
-
-          <!-- monto original -->
-          <div class="application-field">
-            <small class="label-small"> monto original </small>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text"><i class="fa fa-dollar"></i></span>
-              <input
-                type="text"
-                class="form-control form-control-sm text-end"
-                disabled
-              />
-            </div>
-          </div>
-
-          <!-- saldo pendiente -->
-          <div class="application-field">
-            <small class="label-small">Saldo Pendiente</small>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text"><i class="fa fa-dollar"></i></span>
-              <input
-                type="text"
-                class="form-control form-control-sm text-end"
-                disabled
-              />
-            </div>
+            <small class="label-small">Comentario</small>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              v-model.trim="applicationPayload.comentario"
+              placeholder="Ingrese comentario"
+            />
           </div>
 
           <div class="application-action">
             <button
               type="button"
               class="btn btn-outline-primary btn-sm application-apply-button"
+              @click="handleApplyApplication"
             >
               <i class="fa fa-check"></i>
               Aplicar
             </button>
           </div>
         </div>
+
+        <div class="application-document-grid">
+          <div class="application-document-card application-document-main">
+            <span>Documento</span>
+            <strong>{{
+              applicationPayload.documento || "Sin seleccionar"
+            }}</strong>
+          </div>
+
+          <div class="application-document-card">
+            <span>Tipo</span>
+            <strong>{{ applicationPayload.tipo || "-" }}</strong>
+          </div>
+
+          <div class="application-document-card">
+            <span>Fecha</span>
+            <strong>{{ applicationPayload.fechaEmision || "-" }}</strong>
+          </div>
+
+          <div class="application-document-card">
+            <span>Monto original</span>
+            <strong
+              >${{
+                formatPriceJm(applicationPayload.montoOriginal) || "0.00"
+              }}</strong
+            >
+          </div>
+
+          <div class="application-document-card">
+            <span>Saldo cliente</span>
+            <strong
+              >${{
+                formatPriceJm(applicationPayload.saldoCliente) || "0.00"
+              }}</strong
+            >
+          </div>
+
+          <div class="application-document-card application-document-available">
+            <span>Disponible a aplicar</span>
+            <strong
+              >${{
+                formatPriceJm(applicationPayload.montoDisponible) || "0.00"
+              }}</strong
+            >
+          </div>
+
+          <div
+            v-if="showTableInvoices"
+            class="application-document-card application-document-applied"
+          >
+            <span>Monto aplicado</span>
+            <strong
+              >${{
+                formatPriceJm(applicationPayload.montoAplicado) || "0.00"
+              }}</strong
+            >
+          </div>
+
+          <div
+            v-if="showTableInvoices"
+            class="application-document-card application-document-pending"
+          >
+            <span>Monto no aplicado</span>
+            <strong
+              >${{
+                formatPriceJm(applicationPayload.montoNoAplicado) || "0.00"
+              }}</strong
+            >
+          </div>
+        </div>
       </div>
+
+      <TablaFacturasDisponibles
+        v-if="showTableInvoices && !loadingDocs"
+        :invoices="applicationInvoices"
+        title="Aplicacion de Saldos"
+        document-label="factura(s)"
+        search-placeholder="Buscar factura..."
+        apply-all-key="aplicarTodoAplicacion"
+        amount-key="aplicarMontoAplicacion"
+        balance-key="saldoDisponibleAplicacion"
+        balance-label="Saldo Disponible"
+        observation-key="observacionAplicacion"
+        empty-text="Sin facturas disponibles para aplicar saldo"
+        :format-amount="formatApplicationAmount"
+        :remaining-balance-resolver="getInvoiceRemainingBalance"
+        @apply-all-change="applyFullApplicationToInvoice"
+        @amount-change="updateInvoiceApplicationAmount"
+      />
+    </div>
+
+    <div v-if="showTableInvoices" class="application-register-actions">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm application-register-button"
+        @click="handleRegisterApplication"
+      >
+        <i class="fa fa-building-columns"></i>
+        Registrar aplicacion
+      </button>
     </div>
   </section>
 </template>
@@ -226,9 +346,10 @@ const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
 
 .application-grid {
   display: grid;
-  grid-template-columns:
-    minmax(10rem, 1.2fr) minmax(8rem, 1.2fr) minmax(9rem, 1fr)
-    minmax(7rem, 0.8fr) minmax(7rem, 0.8fr) minmax(7.5rem, auto);
+  grid-template-columns: minmax(14rem, 1.1fr) minmax(12rem, 1fr) minmax(
+      7.5rem,
+      auto
+    );
   align-items: end;
   gap: 0.5rem;
 }
@@ -242,6 +363,81 @@ const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
+}
+
+.application-document-grid {
+  display: grid;
+  grid-template-columns: minmax(8.4rem, 1.35fr) repeat(7, minmax(5.25rem, 1fr));
+  gap: 0.28rem;
+  margin-top: 0.5rem;
+}
+
+.application-document-card {
+  min-width: 0;
+  padding: 0.28rem 0.34rem;
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
+  border-radius: var(--tuval-radius-md, 8px);
+  background: var(--tuval-surface-muted, var(--bs-light));
+}
+
+.application-document-card span {
+  display: block;
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
+  font-size: 0.5rem;
+  font-weight: 800;
+  line-height: 1.08;
+  text-transform: uppercase;
+}
+
+.application-document-card strong {
+  display: block;
+  margin-top: 0.06rem;
+  color: var(--tuval-text, var(--bs-body-color));
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.application-document-main strong {
+  text-align: left;
+}
+
+.application-document-available {
+  color: var(--bs-primary, var(--tuval-primary));
+  border-color: rgba(var(--bs-primary-rgb), 0.25);
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+}
+
+.application-document-available span,
+.application-document-available strong {
+  color: inherit;
+}
+
+.application-document-applied {
+  color: var(--bs-success-text-emphasis, var(--bs-success));
+  border-color: var(
+    --bs-success-border-subtle,
+    rgba(var(--bs-success-rgb), 0.3)
+  );
+  background: var(--bs-success-bg-subtle, rgba(var(--bs-success-rgb), 0.1));
+}
+
+.application-document-pending {
+  color: var(--bs-warning-text-emphasis, var(--bs-body-color));
+  border-color: var(
+    --bs-warning-border-subtle,
+    rgba(var(--bs-warning-rgb), 0.35)
+  );
+  background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
+}
+
+.application-document-applied span,
+.application-document-applied strong,
+.application-document-pending span,
+.application-document-pending strong {
+  color: inherit;
 }
 
 .application-apply-button,
@@ -351,6 +547,14 @@ const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
   .application-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .application-document-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .application-document-main {
+    grid-column: span 1;
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -368,8 +572,13 @@ const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
   }
 
   .application-grid,
+  .application-document-grid,
   .application-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .application-document-main {
+    grid-column: auto;
   }
 
   .application-action {

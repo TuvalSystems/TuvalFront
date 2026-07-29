@@ -165,12 +165,14 @@ function handleDepositDataChanged() {
           </div>
 
           <div class="deposit-field">
-            <small class="label-small">Comprobante</small>
+            <small class="label-small">Comprobante *</small>
             <input
               type="text"
               class="form-control form-control-sm"
               v-model.trim="depositPayload.comprobante"
               :class="{ 'is-invalid': v$.comprobante.$errors.length }"
+              required
+              aria-required="true"
               @change="handleDepositDataChanged"
               @blur="v$.comprobante.$touch"
             />

@@ -391,6 +391,19 @@ export function useInvoiceCollectionDeposits({
         });
     }
 
+    function validateRequiredDepositReceipt(message = "Ingrese el comprobante del deposito.") {
+        const receiptNumber = String(depositPayload.comprobante ?? "").trim();
+        depositPayload.comprobante = receiptNumber;
+        v$.value.comprobante.$touch();
+
+        if (!receiptNumber) {
+            swalWarning(message);
+            return false;
+        }
+
+        return true;
+    }
+
     function validateAppliedInvoicesAvailability() {
         const overAppliedInvoice = depositPayload.facturas.find((invoice) => {
             const appliedAmount = roundTo(toNumber(invoice?.aplicarMontoDeposito) ?? 0, 2);
@@ -454,6 +467,10 @@ export function useInvoiceCollectionDeposits({
     }
 
     async function applyDeposit() {
+        if (!validateRequiredDepositReceipt("Ingrese el comprobante antes de aplicar el deposito.")) {
+            return false;
+        }
+
         const result = await v$.value.$validate();
         if (!result) {
             return false;
@@ -486,6 +503,10 @@ export function useInvoiceCollectionDeposits({
     function createDepositToAdd() {
         if (!showTableInvoices.value) {
             swalWarning("Aplique el deposito antes de registrarlo.");
+            return null;
+        }
+
+        if (!validateRequiredDepositReceipt("Ingrese el comprobante antes de registrar el deposito.")) {
             return null;
         }
 
