@@ -185,6 +185,15 @@ export function useInvoiceCollectionActions() {
 
 
 
+    const loadingRegisterInvoiceCollection = ref(false);
+    async function registerInvoiceCollection(payload) {
+        return await run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.REGISTER_COLLECTION, payload), {
+            loadingRef: loadingRegisterInvoiceCollection
+        });
+    }
+
+
+
 
     return {
         //obtener estado de caja
@@ -234,7 +243,11 @@ export function useInvoiceCollectionActions() {
 
         //validacion de cheque
         loadingCheckReceiptValidation,
-        validateCheckReceiptNumber
+        validateCheckReceiptNumber,
+
+        //registrar cobro
+        loadingRegisterInvoiceCollection,
+        registerInvoiceCollection
 
     }
 }

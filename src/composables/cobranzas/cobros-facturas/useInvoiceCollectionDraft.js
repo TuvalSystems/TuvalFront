@@ -1,9 +1,10 @@
-import { computed, reactive, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useStore } from 'vuex'
 
 function createEmptyDraft() {
     return {
         cliente_id: null,
+        caja_id: null,
         retenciones: [],
         cheque: null,
         depositos: [],
@@ -15,16 +16,27 @@ function createEmptyDraft() {
         referencia: "",
     }
 }
+
+function resolveCashBoxId(cashBox) {
+    if (!cashBox || typeof cashBox !== "object") {
+        return cashBox ?? null;
+    }
+
+    return cashBox.id ?? cashBox.caja_id ?? cashBox.cajaId ?? cashBox.idCaja ?? null;
+}
+
 export function useInvoiceCollectionDraft() {
     const store = useStore();
     const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
     const selectedPointSaleCode = computed(() => store.state.puntodeventaselect);
+    const selectedCashBoxId = ref(null);
     const collectionDraft = reactive(createDraftWithPointSale());
 
     function getPointSaleDraftData() {
         return {
             pvId: selectedPointSaleId.value ?? null,
             pvCodigo: selectedPointSaleCode.value ?? null,
+            caja_id: selectedCashBoxId.value ?? null,
         };
     }
 
@@ -41,6 +53,11 @@ export function useInvoiceCollectionDraft() {
 
     function setCustomer(customer) {
         collectionDraft.cliente_id = customer?.id ?? null;
+        syncPointSaleDraftData();
+    }
+
+    function setCashBox(cashBox) {
+        selectedCashBoxId.value = resolveCashBoxId(cashBox);
         syncPointSaleDraftData();
     }
 
@@ -174,6 +191,7 @@ export function useInvoiceCollectionDraft() {
         resetDraftPreservingClient,
         //asignacion de clienteId
         setCustomer,
+        setCashBox,
         //retenciones
         addRetention,
         removeRetention,

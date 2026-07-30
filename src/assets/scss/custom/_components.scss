@@ -191,3 +191,56 @@ a.block.block-link-pop:hover {
 .sidebar-dark #sidebar .nav-main-submenu {
   background-color: rgba(255, 255, 255, 0.04);
 }
+
+.tuval-toast-stack {
+  z-index: $zindex-toast;
+}
+
+.tuval-notification-toast {
+  width: min(24rem, calc(100vw - 2rem));
+  color: var(--tuval-text);
+  background-color: var(--tuval-surface);
+  border: 1px solid var(--tuval-border);
+  border-radius: var(--tuval-radius-lg);
+  box-shadow: var(--tuval-shadow-md);
+}
+
+.tuval-notification-toast-header {
+  color: var(--tuval-text);
+  background-color: var(--tuval-surface-muted);
+  border-bottom-color: var(--tuval-border);
+}
+
+.tuval-notification-toast-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  color: var(--tuval-primary-strong);
+  background-color: var(--tuval-primary-soft);
+  border-radius: var(--tuval-radius-md);
+}
+
+.tuval-notification-toast-time,
+.tuval-notification-toast-message {
+  color: var(--tuval-text-muted);
+}
+
+.tuval-notification-toast-message {
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.dark-mode .tuval-notification-toast {
+  color: var(--tuval-text);
+  background-color: var(--tuval-surface);
+  border-color: var(--tuval-border);
+}
+
+.dark-mode .tuval-notification-toast-header {
+  color: var(--tuval-text);
+  background-color: var(--tuval-surface-muted);
+  border-bottom-color: var(--tuval-border);
+}

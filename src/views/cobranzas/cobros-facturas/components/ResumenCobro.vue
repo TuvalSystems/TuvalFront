@@ -1,8 +1,16 @@
 <script setup>
 import { computed, ref } from "vue";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
+import { swalError, swalWarning } from "@/functions/swal-alert.js";
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
+import { useCustomerPaymentApply } from "@/composables/cobranzas/cobros/useCustomerPaymentApply";
+import verModalValidacionAplicacionPagos from "@/views/cobranzas/modals/verModalValidacionAplicacionPagos.vue";
 
 const props = defineProps({
+  loadingRegister: {
+    type: Boolean,
+    default: false,
+  },
   collectionDraft: {
     type: Object,
     required: true,
@@ -24,6 +32,10 @@ const props = defineProps({
 const emit = defineEmits(["remove-payment", "register-collection"]);
 
 const summaryRoot = ref(null);
+const modalValidationPaymentRef = ref(null);
+const modalValidationPayment = useBootstrapModal(modalValidationPaymentRef);
+
+const { loadingPayment, fecthDataValidate } = useCustomerPaymentApply();
 
 const depositTypeLabels = {
   DP: "Deposito Bancario",
@@ -120,6 +132,31 @@ const collectionSummaryTotals = computed(() => ({
   ),
 }));
 
+const validationItems = computed(() =>
+  collectValidationItems(props.collectionDraft)
+);
+
+const collectionRegisterTotal = computed(() =>
+  roundTo(getCollectionRegisterTotal(props.collectionDraft), 2)
+);
+
+const loadingVerifyAndRegister = computed(
+  () => loadingPayment.value || props.loadingRegister
+);
+
+const canRegisterCollection = computed(
+  () =>
+    collectionRegisterTotal.value > 0 && !loadingVerifyAndRegister.value
+);
+
+const registerButtonText = computed(() =>
+  loadingPayment.value
+    ? "Validando..."
+    : props.loadingRegister
+    ? "Registrando..."
+    : "Registrar Cobro"
+);
+
 function scrollIntoView() {
   summaryRoot.value?.scrollIntoView({
     behavior: "smooth",
@@ -153,6 +190,221 @@ function normalizePaymentEntries(source) {
   }
 
   return [];
+}
+
+function cloneForValidation(value) {
+  return JSON.parse(JSON.stringify(value ?? null));
+}
+
+function buildPaymentValidationPayload() {
+  const draft = props.collectionDraft ?? {};
+
+  return {
+    cliente_id: draft.cliente_id ?? null,
+    caja_id: draft.caja_id ?? null,
+    pvCodigo: draft.pvCodigo ?? null,
+    pvId: draft.pvId ?? null,
+    referencia: draft.referencia ?? "",
+    retenciones: normalizeItems(draft.retenciones).map(cloneForValidation),
+    efectivo: draft.efectivo ? cloneForValidation(draft.efectivo) : null,
+    tarjeta: draft.tarjeta ? cloneForValidation(draft.tarjeta) : null,
+    cheque: draft.cheque ? cloneForValidation(draft.cheque) : null,
+    depositos: normalizeItems(draft.depositos).map(cloneForValidation),
+    aplicaciones: normalizeItems(draft.aplicaciones).map(cloneForValidation),
+  };
+}
+
+function resolveValidationData(responseData, fallbackPayload) {
+  if (responseData && typeof responseData === "object") {
+    return responseData;
+  }
+
+  return fallbackPayload;
+}
+
+function mergeValidationResponseIntoDraft(validationData) {
+  if (!validationData || typeof validationData !== "object") {
+    return;
+  }
+
+  props.collectionDraft.hasGlobalExcess = Boolean(
+    validationData.hasGlobalExcess
+  );
+
+  mergeRowsByIndex(
+    props.collectionDraft.retenciones,
+    normalizeItems(validationData.retenciones)
+  );
+  mergePaymentByInvoices(
+    props.collectionDraft.efectivo,
+    validationData.efectivo ?? validationData.ingreso_efectivo
+  );
+  mergePaymentByInvoices(
+    props.collectionDraft.tarjeta,
+    validationData.tarjeta ?? validationData.ingreso_tarjeta
+  );
+  mergePaymentByInvoices(
+    props.collectionDraft.cheque,
+    validationData.cheque ?? validationData.ingreso_cheques
+  );
+  mergePaymentsByIndex(
+    props.collectionDraft.depositos,
+    normalizeItems(validationData.depositos ?? validationData.ingreso_depositos)
+  );
+  mergePaymentsByIndex(
+    props.collectionDraft.aplicaciones,
+    normalizeItems(
+      validationData.aplicaciones ?? validationData.ingreso_aplicaciones
+    )
+  );
+}
+
+function mergeRowsByIndex(targetRows, sourceRows) {
+  if (!Array.isArray(targetRows) || !Array.isArray(sourceRows)) {
+    return;
+  }
+
+  sourceRows.forEach((sourceRow, index) => {
+    if (targetRows[index] && sourceRow && typeof sourceRow === "object") {
+      copyValidationFields(targetRows[index], sourceRow);
+    }
+  });
+}
+
+function copyValidationFields(target, source) {
+  [
+    "hasExcess",
+    "hasDoubleApply",
+    "saldoFactura",
+    "saldoBase",
+    "saldoDisponible",
+    "totalApply",
+    "excessValue",
+    "priceRecommend",
+    "validationType",
+    "validationMessage",
+    "doubleApplyDoc",
+    "devoluciones_info",
+    "saldoFinal",
+  ].forEach((field) => {
+    if (source?.[field] !== undefined) {
+      target[field] = source[field];
+    }
+  });
+}
+
+function mergePaymentByInvoices(targetPayment, sourcePayment) {
+  if (!targetPayment || !sourcePayment || typeof sourcePayment !== "object") {
+    return;
+  }
+
+  Object.assign(targetPayment, {
+    hasGlobalExcess: sourcePayment.hasGlobalExcess,
+  });
+  mergeRowsByIndex(
+    targetPayment.facturas,
+    normalizeItems(sourcePayment.facturas)
+  );
+}
+
+function mergePaymentsByIndex(targetPayments, sourcePayments) {
+  if (!Array.isArray(targetPayments) || !Array.isArray(sourcePayments)) {
+    return;
+  }
+
+  sourcePayments.forEach((sourcePayment, paymentIndex) => {
+    const targetPayment = targetPayments[paymentIndex];
+
+    if (!targetPayment || !sourcePayment || typeof sourcePayment !== "object") {
+      return;
+    }
+
+    Object.assign(targetPayment, {
+      hasGlobalExcess: sourcePayment.hasGlobalExcess,
+    });
+    mergeRowsByIndex(
+      targetPayment.facturas,
+      normalizeItems(sourcePayment.facturas)
+    );
+  });
+}
+
+function hasCollectionPaymentRecords(data) {
+  return getCollectionRegisterTotal(data) > 0;
+}
+
+function hasAppliedInvoiceApplications(data) {
+  return (
+    normalizeItems(data?.retenciones).some(
+      (row) => getRetentionRegisterAmount(row) > 0
+    ) ||
+    normalizePaymentEntries(data?.efectivo).some((payment) =>
+      hasAppliedPaymentInvoices(payment, "efectivo")
+    ) ||
+    normalizePaymentEntries(data?.tarjeta).some((payment) =>
+      hasAppliedPaymentInvoices(payment, "tarjetas")
+    ) ||
+    normalizePaymentEntries(data?.cheque).some((payment) =>
+      hasAppliedPaymentInvoices(payment, "cheques")
+    ) ||
+    normalizeItems(data?.depositos).some((payment) =>
+      hasAppliedPaymentInvoices(payment, "depositos")
+    ) ||
+    normalizeItems(data?.aplicaciones).some((payment) =>
+      hasAppliedPaymentInvoices(payment, "aplicaciones")
+    )
+  );
+}
+
+function hasAppliedPaymentInvoices(payment, methodKey) {
+  return normalizeItems(payment?.facturas).some((invoice) => {
+    return getPaymentInvoiceAppliedAmount(invoice, methodKey) > 0;
+  });
+}
+
+function getCollectionRegisterTotal(data) {
+  const draft = data ?? {};
+
+  return roundTo(
+    sumPaymentAmounts(draft.retenciones, getRetentionRegisterAmount) +
+      sumPaymentAmounts(
+        normalizePaymentEntries(draft.efectivo),
+        getCashRegisterAmount
+      ) +
+      sumPaymentAmounts(
+        normalizePaymentEntries(draft.tarjeta),
+        getReceivedRegisterAmount
+      ) +
+      sumPaymentAmounts(
+        normalizePaymentEntries(draft.cheque),
+        getReceivedRegisterAmount
+      ) +
+      sumPaymentAmounts(draft.depositos, getReceivedRegisterAmount) +
+      sumPaymentAmounts(draft.aplicaciones, getAppliedRegisterAmount),
+    2
+  );
+}
+
+function sumPaymentAmounts(payments, amountResolver) {
+  return normalizeItems(payments).reduce((total, payment) => {
+    return total + amountResolver(payment);
+  }, 0);
+}
+
+function getRetentionRegisterAmount(payment) {
+  return toPaymentNumber(payment?.total);
+}
+
+function getCashRegisterAmount(payment) {
+  return toPaymentNumber(payment?.montoACobrar ?? payment?.montoAplicado);
+}
+
+function getReceivedRegisterAmount(payment) {
+  return toPaymentNumber(payment?.montoRecibido ?? payment?.montoAplicado);
+}
+
+function getAppliedRegisterAmount(payment) {
+  return toPaymentNumber(payment?.montoAplicado ?? payment?.monto_aplicado);
 }
 
 function formatMoney(value) {
@@ -277,6 +529,153 @@ function createPaymentSummaryEntry(methodKey, payment, index) {
   };
 }
 
+function collectValidationItems(data) {
+  const items = [];
+
+  const addItem = ({
+    source,
+    label,
+    row,
+    field,
+    parent = null,
+    paymentIndex = null,
+    invoiceIndex = null,
+  }) => {
+    const hasExcess = Boolean(row?.hasExcess);
+    const hasDoubleApply = Boolean(row?.hasDoubleApply);
+
+    if (!hasExcess && !hasDoubleApply) {
+      return;
+    }
+
+    items.push({
+      source,
+      label,
+      row,
+      parent,
+      field,
+      paymentIndex,
+      invoiceIndex,
+      invoice: getInvoiceDocument(row) || row?.documento || "-",
+      enteredAmount: toNumber(row?.[field]) ?? 0,
+      saldoFactura: toNumber(row?.saldoFactura) ?? 0,
+      saldoBase: toNumber(row?.saldoBase ?? row?.saldoCliente) ?? 0,
+      saldoDisponible:
+        toNumber(
+          row?.saldoDisponible ?? row?.saldoFinal ?? row?.saldoCliente
+        ) ?? 0,
+      totalApply: toNumber(row?.totalApply) ?? 0,
+      excessValue: toNumber(row?.excessValue) ?? 0,
+      priceRecommend: toNumber(row?.priceRecommend) ?? 0,
+      hasExcess,
+      hasDoubleApply,
+      validationType: resolveValidationType(row),
+      validationLabel: resolveValidationLabel(row),
+      validationMessage: row?.validationMessage ?? null,
+      doubleApplyDoc: row?.doubleApplyDoc ?? null,
+    });
+  };
+
+  normalizeItems(data?.retenciones).forEach((row, index) => {
+    addItem({
+      source: "retenciones",
+      label: "Retencion",
+      row,
+      field: "total",
+      paymentIndex: index,
+    });
+  });
+
+  normalizeItems(data?.efectivo?.facturas).forEach((row, invoiceIndex) => {
+    addItem({
+      source: "efectivo",
+      label: "Efectivo",
+      row,
+      parent: data?.efectivo,
+      field: getPaymentInvoiceAppliedField(row, "efectivo"),
+      invoiceIndex,
+    });
+  });
+
+  normalizeItems(data?.tarjeta?.facturas).forEach((row, invoiceIndex) => {
+    addItem({
+      source: "tarjetas",
+      label: "Tarjeta",
+      row,
+      parent: data?.tarjeta,
+      field: getPaymentInvoiceAppliedField(row, "tarjetas"),
+      invoiceIndex,
+    });
+  });
+
+  normalizeItems(data?.cheque?.facturas).forEach((row, invoiceIndex) => {
+    addItem({
+      source: "cheques",
+      label: "Cheque",
+      row,
+      parent: data?.cheque,
+      field: getPaymentInvoiceAppliedField(row, "cheques"),
+      invoiceIndex,
+    });
+  });
+
+  normalizeItems(data?.depositos).forEach((deposit, paymentIndex) => {
+    normalizeItems(deposit?.facturas).forEach((row, invoiceIndex) => {
+      addItem({
+        source: "depositos",
+        label: `${getDepositTypeLabel(deposit?.tipo)} - ${
+          deposit?.comprobante ?? ""
+        }`.trim(),
+        row,
+        parent: deposit,
+        field: getPaymentInvoiceAppliedField(row, "depositos"),
+        paymentIndex,
+        invoiceIndex,
+      });
+    });
+  });
+
+  normalizeItems(data?.aplicaciones).forEach((application, paymentIndex) => {
+    normalizeItems(application?.facturas).forEach((row, invoiceIndex) => {
+      addItem({
+        source: "aplicaciones",
+        label: `Aplicacion - ${application?.documento ?? ""}`.trim(),
+        row,
+        parent: application,
+        field: getPaymentInvoiceAppliedField(row, "aplicaciones"),
+        paymentIndex,
+        invoiceIndex,
+      });
+    });
+  });
+
+  return items;
+}
+
+function resolveValidationType(row) {
+  if (row?.hasDoubleApply) {
+    return "double_apply";
+  }
+
+  if (row?.hasExcess) {
+    return "excess";
+  }
+
+  return row?.validationType ?? null;
+}
+
+function resolveValidationLabel(row) {
+  if (row?.hasDoubleApply) {
+    return "Doble aplicacion";
+  }
+
+  if (row?.hasExcess) {
+    return "Excedente";
+  }
+
+  return "Validacion";
+}
+
 function getPaymentSummaryDetails(methodKey, payment) {
   if (methodKey === "retenciones") {
     return compactDetails([
@@ -306,7 +705,10 @@ function getPaymentSummaryDetails(methodKey, payment) {
   if (methodKey === "depositos") {
     return compactDetails([
       createDetail("Tipo", getDepositTypeLabel(payment?.tipo)),
-      createDetail("Banco", getBankSummaryName(payment?.banco_id, props.banksTuval)),
+      createDetail(
+        "Banco",
+        getBankSummaryName(payment?.banco_id, props.banksTuval)
+      ),
       createDetail("Comprobante", payment?.comprobante),
       createDetail("Fecha", payment?.fechaDeposito),
       createDetail("Recibido", payment?.montoRecibido, "money"),
@@ -317,7 +719,10 @@ function getPaymentSummaryDetails(methodKey, payment) {
 
   if (methodKey === "cheques") {
     return compactDetails([
-      createDetail("Banco", getBankSummaryName(payment?.banco_id, props.bankClients)),
+      createDetail(
+        "Banco",
+        getBankSummaryName(payment?.banco_id, props.bankClients)
+      ),
       createDetail("Cuenta", payment?.cuenta),
       createDetail("Cheque", payment?.cheque),
       createDetail("Emision", payment?.fechaEmision),
@@ -380,6 +785,12 @@ function getInvoiceDueDate(invoice) {
 
 function getInvoiceOriginalAmount(invoice) {
   return toNumber(invoice?.montoOriginal) ?? 0;
+}
+
+function getPaymentInvoiceAppliedField(invoice, methodKey) {
+  const fields = paymentInvoiceAmountFields[methodKey] ?? [];
+
+  return fields.find((field) => invoice?.[field] !== undefined) ?? fields[0];
 }
 
 function getPaymentInvoiceAppliedAmount(invoice, methodKey) {
@@ -472,6 +883,239 @@ function buildRetentionSummaryInvoices(retention) {
 function removePayment(methodKey, index) {
   emit("remove-payment", { methodKey, index });
 }
+
+async function validatePaymentApplicationsBeforeRegister() {
+  if (loadingVerifyAndRegister.value) {
+    return;
+  }
+
+  if (!hasCollectionPaymentRecords(props.collectionDraft)) {
+    swalWarning("No existen valores de cobro para registrar.");
+    return;
+  }
+
+  const validationPayload = buildPaymentValidationPayload();
+
+  if (!hasAppliedInvoiceApplications(validationPayload)) {
+    emit("register-collection", validationPayload);
+    return;
+  }
+
+  const response = await fecthDataValidate(validationPayload);
+
+  if (!response?.ok) {
+    const message = response?.message || "No se pudo validar el cobro.";
+    (response?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
+    return;
+  }
+
+  const validationData = resolveValidationData(
+    response.data,
+    validationPayload
+  );
+  mergeValidationResponseIntoDraft(validationData);
+
+  if (hasPaymentValidationIssues()) {
+    modalValidationPayment.show();
+    return;
+  }
+
+  emit("register-collection", buildPaymentValidationPayload());
+}
+
+function hasPaymentValidationIssues() {
+  return (
+    Boolean(props.collectionDraft?.hasGlobalExcess) ||
+    validationItems.value.length > 0
+  );
+}
+
+async function applyRecommendationsAndRequestRegister() {
+  if (loadingVerifyAndRegister.value) {
+    return;
+  }
+
+  applyRecommendedAmounts();
+  modalValidationPayment.hide();
+  emit("register-collection", buildPaymentValidationPayload());
+}
+
+function applyRecommendedAmounts() {
+  [...validationItems.value].forEach((item) => {
+    const recommended = roundMoney(item.priceRecommend);
+
+    if (recommended <= 0) {
+      removePaymentApplicationRow(item);
+      return;
+    }
+
+    item.row[item.field] = recommended;
+    updateInvoiceBalanceAfterRecommendation(item, recommended);
+    clearRowValidationState(item.row);
+  });
+
+  removeZeroAmountApplications();
+  removeEmptyPaymentApplications();
+  recalculatePaymentHeaders();
+  props.collectionDraft.hasGlobalExcess = false;
+}
+
+function removeZeroAmountApplications() {
+  props.collectionDraft.retenciones =
+    props.collectionDraft.retenciones?.filter((retention) => {
+      return toPaymentNumber(retention?.total) > 0;
+    }) ?? [];
+
+  filterInvoiceApplications(props.collectionDraft.efectivo, "efectivo");
+  filterInvoiceApplications(props.collectionDraft.tarjeta, "tarjetas");
+  filterInvoiceApplications(props.collectionDraft.cheque, "cheques");
+
+  props.collectionDraft.depositos?.forEach((deposit) => {
+    filterInvoiceApplications(deposit, "depositos");
+  });
+
+  props.collectionDraft.aplicaciones?.forEach((application) => {
+    filterInvoiceApplications(application, "aplicaciones");
+  });
+}
+
+function filterInvoiceApplications(payment, methodKey) {
+  if (!payment || !Array.isArray(payment.facturas)) {
+    return;
+  }
+
+  payment.facturas = payment.facturas.filter((invoice) => {
+    return getPaymentInvoiceAppliedAmount(invoice, methodKey) > 0;
+  });
+}
+
+function removeEmptyPaymentApplications() {
+  if (props.collectionDraft.efectivo?.facturas?.length === 0) {
+    props.collectionDraft.efectivo = null;
+  }
+
+  if (props.collectionDraft.tarjeta?.facturas?.length === 0) {
+    props.collectionDraft.tarjeta = null;
+  }
+
+  if (props.collectionDraft.cheque?.facturas?.length === 0) {
+    props.collectionDraft.cheque = null;
+  }
+
+  props.collectionDraft.depositos =
+    props.collectionDraft.depositos?.filter((deposit) => {
+      return deposit?.facturas?.length > 0;
+    }) ?? [];
+
+  props.collectionDraft.aplicaciones =
+    props.collectionDraft.aplicaciones?.filter((application) => {
+      return application?.facturas?.length > 0;
+    }) ?? [];
+}
+
+function removePaymentApplicationRow(item) {
+  if (!item) {
+    return;
+  }
+
+  if (item.source === "retenciones") {
+    removeRowFromArray(props.collectionDraft.retenciones, item.row);
+    return;
+  }
+
+  removeRowFromArray(item.parent?.facturas, item.row);
+}
+
+function removeRowFromArray(array, row) {
+  if (!Array.isArray(array)) {
+    return;
+  }
+
+  const index = array.indexOf(row);
+
+  if (index >= 0) {
+    array.splice(index, 1);
+  }
+}
+
+function updateInvoiceBalanceAfterRecommendation(item, recommended) {
+  const saldoBase = toPaymentNumber(
+    item.row?.saldoBase ??
+      item.row?.saldoCliente ??
+      item.row?.saldoFactura ??
+      item.enteredAmount
+  );
+
+  item.row.saldoFinal = roundMoney(Math.max(saldoBase - recommended, 0));
+  item.row.saldoDisponible = item.row.saldoFinal;
+}
+
+function clearRowValidationState(row) {
+  if (!row) {
+    return;
+  }
+
+  row.hasExcess = false;
+  row.hasDoubleApply = false;
+  row.excessValue = 0;
+  row.validationType = null;
+  row.validationMessage = null;
+}
+
+function recalculatePaymentHeaders() {
+  recalculateHeaderAmount(
+    props.collectionDraft.efectivo,
+    "efectivo",
+    "montoACobrar"
+  );
+  recalculateHeaderAmount(
+    props.collectionDraft.tarjeta,
+    "tarjetas",
+    "montoRecibido"
+  );
+  recalculateHeaderAmount(
+    props.collectionDraft.cheque,
+    "cheques",
+    "montoRecibido"
+  );
+
+  props.collectionDraft.depositos?.forEach((deposit) => {
+    recalculateHeaderAmount(deposit, "depositos", "montoRecibido");
+  });
+
+  props.collectionDraft.aplicaciones?.forEach((application) => {
+    recalculateHeaderAmount(application, "aplicaciones", "montoDisponible");
+  });
+}
+
+function recalculateHeaderAmount(payment, methodKey, originalAmountKey) {
+  if (!payment) {
+    return;
+  }
+
+  const applied = roundMoney(
+    normalizeItems(payment.facturas).reduce((total, invoice) => {
+      return total + getPaymentInvoiceAppliedAmount(invoice, methodKey);
+    }, 0)
+  );
+  const original = toPaymentNumber(
+    payment?.[originalAmountKey] ??
+      payment?.montoRecibido ??
+      payment?.montoDisponible ??
+      payment?.montoAplicado
+  );
+
+  payment.montoAplicado = applied;
+  payment.montoNoAplicado = roundMoney(Math.max(original - applied, 0));
+}
+
+function toPaymentNumber(value) {
+  return toNumber(value) ?? 0;
+}
+
+function roundMoney(value, decimals = 2) {
+  return roundTo(toPaymentNumber(value), decimals);
+}
 </script>
 
 <template>
@@ -556,8 +1200,13 @@ function removePayment(methodKey, index) {
         </div>
 
         <div class="collection-summary-invoices">
-          <div v-if="entry.invoices.length" class="collection-summary-table-wrap">
-            <table class="table table-sm table-vcenter mb-0 collection-summary-table">
+          <div
+            v-if="entry.invoices.length"
+            class="collection-summary-table-wrap"
+          >
+            <table
+              class="table table-sm table-vcenter mb-0 collection-summary-table"
+            >
               <thead>
                 <tr>
                   <th>Factura</th>
@@ -578,11 +1227,15 @@ function removePayment(methodKey, index) {
                   <td class="text-end">
                     ${{ formatMoney(invoice.montoOriginal) }}
                   </td>
-                  <td class="text-end">${{ formatMoney(invoice.saldoBase) }}</td>
+                  <td class="text-end">
+                    ${{ formatMoney(invoice.saldoBase) }}
+                  </td>
                   <td class="text-end fw-semibold">
                     ${{ formatMoney(invoice.montoAplicado) }}
                   </td>
-                  <td class="text-end">${{ formatMoney(invoice.saldoFinal) }}</td>
+                  <td class="text-end">
+                    ${{ formatMoney(invoice.saldoFinal) }}
+                  </td>
                   <td>{{ invoice.observacion || "-" }}</td>
                 </tr>
               </tbody>
@@ -599,19 +1252,48 @@ function removePayment(methodKey, index) {
     <div class="collection-summary-submit-bar">
       <div class="collection-summary-submit-info">
         <span>Monto a registrar</span>
-        <strong>${{ formatMoney(collectionSummaryTotals.applied) }}</strong>
+        <strong>${{ formatMoney(collectionRegisterTotal) }}</strong>
       </div>
 
       <button
         type="button"
         class="btn btn-success collection-summary-submit"
-        :disabled="collectionSummaryTotals.applied <= 0"
+        :disabled="!canRegisterCollection"
         title="Registrar cobro"
-        @click="emit('register-collection')"
+        @click="validatePaymentApplicationsBeforeRegister"
       >
-        <i class="fa fa-circle-check"></i>
-        <span>Registrar Cobro</span>
+        <i
+          :class="[
+            'fa',
+            loadingVerifyAndRegister
+              ? 'fa-circle-notch fa-spin'
+              : 'fa-circle-check',
+          ]"
+        ></i>
+        <span>{{ registerButtonText }}</span>
       </button>
+    </div>
+  </div>
+
+  <div
+    ref="modalValidationPaymentRef"
+    class="modal"
+    id="modal-validacion-aplicacion-pagos"
+    tabindex="-1"
+    aria-labelledby="modal-validacion-aplicacion-pagos"
+    aria-hidden="true"
+  >
+    <div
+      class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-validacion-pagos"
+    >
+      <div class="modal-content">
+        <verModalValidacionAplicacionPagos
+          :items="validationItems"
+          :processing="loadingPayment"
+          @close-modal="modalValidationPayment.hide()"
+          @apply-recommendations="applyRecommendationsAndRequestRegister"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -913,6 +1595,10 @@ function removePayment(methodKey, index) {
 .collection-summary-submit:disabled {
   cursor: not-allowed;
   opacity: 0.58;
+}
+
+.modal-validacion-pagos {
+  max-width: min(1120px, calc(100vw - 1rem));
 }
 
 @media (max-width: 575.98px) {

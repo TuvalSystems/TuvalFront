@@ -77,6 +77,14 @@ const STATUS_MAPS = {
         si: "danger",
         no: "success",
     },
+    cobros: {
+        enviado: "success",
+        revisado: "secondary",
+        iniciado: "info",
+        rechazado: "danger",
+        no_enviado: "warning"
+
+    }
 
 };
 

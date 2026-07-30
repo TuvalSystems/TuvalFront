@@ -1,6 +1,6 @@
 <script setup>
 import { swalError, swalSuccess, swalWarning } from "@/functions/swal-alert.js";
-import { onMounted, ref, computed, markRaw, nextTick } from "vue";
+import { onMounted, ref, computed, markRaw, nextTick, watch } from "vue";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { roundTo, toNumber } from "@/functions";
 import BaseBlock from "@/components/BaseBlock.vue";
@@ -19,6 +19,7 @@ import PagoCheques from "./components/PagoCheques.vue";
 import PagoTarjetas from "./components/PagoTarjetas.vue";
 import PagoAplicaciones from "./components/PagoAplicaciones.vue";
 import ResumenCobro from "./components/ResumenCobro.vue";
+import TablaCobrosRegistrados from "./components/TablaCobrosRegistrados.vue";
 
 const {
   //obtener estado de caja
@@ -47,6 +48,10 @@ const {
   loadingCollectionBanks,
   fetchCollectionBanks,
   resetCustomerCollectionData,
+
+  //registrar cobro
+  loadingRegisterInvoiceCollection,
+  registerInvoiceCollection,
 } = useInvoiceCollectionActions();
 
 const {
@@ -88,7 +93,17 @@ const {
   //aplicaciones
   addApplications,
   removeApplications,
+  setCashBox,
 } = useInvoiceCollectionDraft();
+
+/** asignar el id de la caja al collection Draft */
+watch(
+  () => dataCashBoxStatus.value,
+  (cashBox) => {
+    setCashBox(cashBox);
+  },
+  { immediate: true }
+);
 
 /**
  * proceso de refresco de data del cliente
@@ -424,6 +439,7 @@ const totalPaymentRecords = computed(() => {
 });
 
 const collectionSummaryRef = ref(null);
+const registeredCollectionsRef = ref(null);
 const canShowCollectionSummary = computed(
   () => collectionDraft.cliente_id && totalPaymentRecords.value > 0
 );
@@ -455,7 +471,9 @@ function validateDepositReceiptsBeforeRegisteringCollection() {
   }
 
   swalWarning(
-    `El deposito #${missingReceiptIndex + 1} no tiene comprobante. Ingrese el comprobante antes de registrar el cobro.`
+    `El deposito #${
+      missingReceiptIndex + 1
+    } no tiene comprobante. Ingrese el comprobante antes de registrar el cobro.`
   );
   return false;
 }
@@ -520,7 +538,10 @@ function scrollToCollectionSummary() {
 }
 
 async function handlePaymentMethodAdded(methodKey, addPayment, payload) {
-  if (methodKey === "depositos" && !validateDepositReceiptBeforeAdding(payload)) {
+  if (
+    methodKey === "depositos" &&
+    !validateDepositReceiptBeforeAdding(payload)
+  ) {
     return;
   }
 
@@ -643,14 +664,20 @@ async function cleanSearchClients() {
   clients.value = [];
 }
 
-
-
-function registerCollection() {
+async function registerCollection(payload = collectionDraft) {
   if (!validateDepositReceiptsBeforeRegisteringCollection()) {
     return;
   }
 
-  console.log(collectionDraft);
+  const response = await registerInvoiceCollection(payload);
+  if (!response?.ok) {
+    const message = response?.message || "No se pudo registrar el cobro.";
+    (response?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
+    return;
+  }
+
+  swalSuccess(response?.message);
+  await registeredCollectionsRef.value?.refresh();
 }
 
 onMounted(() => {
@@ -806,6 +833,7 @@ onMounted(() => {
 
       <ResumenCobro
         v-if="canShowCollectionSummary"
+        :loading-register="loadingRegisterInvoiceCollection"
         ref="collectionSummaryRef"
         :collection-draft="collectionDraft"
         :banks-tuval="bankTuval"
@@ -814,6 +842,14 @@ onMounted(() => {
         @remove-payment="handleSummaryPaymentRemoved"
         @register-collection="registerCollection"
       />
+
+      <!-- lista de cobros ya registrados -->
+      <TablaCobrosRegistrados
+        v-if="selectedCustomer && !loadingCustomerCollectionData"
+        ref="registeredCollectionsRef"
+        :collection-draft="collectionDraft"
+      />
+
     </BaseBlock>
   </div>
 </template>

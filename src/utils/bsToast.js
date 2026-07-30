@@ -8,42 +8,44 @@ function scapeHtml(str = "") {
 }
 
 export function bsToast({
-  title = "Notificación",
+  title = "Notificacion",
   text = "",
   iconClass = "",
   delay = 4000,
   autohide = true,
-  //   placement = "topRight",
-  //   animation = "true",
 }) {
-  //Asegurar el contendor
   let container = document.getElementById("toast-stack");
   if (!container) {
     container = document.createElement("div");
     container.id = "toast-stack";
-    container.className = "toast-container position-fixed bottom-0 end-0 p-3";
-    container.style.zIndex = 9999;
+    container.className =
+      "toast-container tuval-toast-stack position-fixed bottom-0 end-0 p-3 space-y-3";
     document.body.appendChild(container);
   }
 
-  // 🔹 Limita a 5 toasts: elimina el más antiguo
-  while (container.childElementCount >= 5)
+  while (container.childElementCount >= 5) {
     container.firstElementChild?.remove();
+  }
 
-  //crea el toast
   const el = document.createElement("div");
-  el.className = "toast";
+  el.className = "toast tuval-notification-toast border-0 rounded overflow-hidden";
   el.setAttribute("role", "alert");
   el.setAttribute("aria-live", "assertive");
   el.setAttribute("aria-atomic", "true");
   el.innerHTML = `
-    <div class="toast-header">
-      ${iconClass ? `<i class="${iconClass} me-2"></i>` : ""}
-      <strong class="me-auto">${scapeHtml(title)}</strong>
-      <small class="text-muted">just now</small>
-      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    <div class="toast-header tuval-notification-toast-header border-bottom px-3 py-2">
+      <span class="tuval-notification-toast-icon me-2">
+        <i class="${iconClass || "fa fa-bell"}"></i>
+      </span>
+      <div class="min-w-0 flex-grow-1">
+        <strong class="d-block fs-sm fw-semibold text-truncate">${scapeHtml(title)}</strong>
+        <small class="tuval-notification-toast-time">Ahora</small>
+      </div>
+      <button type="button" class="btn-close ms-2" data-bs-dismiss="toast" aria-label="Cerrar"></button>
     </div>
-    <div class="toast-body">${scapeHtml(text)}</div>
+    <div class="toast-body px-3 py-3">
+      <p class="mb-0 fs-sm tuval-notification-toast-message">${scapeHtml(text)}</p>
+    </div>
   `;
 
   container.appendChild(el);
