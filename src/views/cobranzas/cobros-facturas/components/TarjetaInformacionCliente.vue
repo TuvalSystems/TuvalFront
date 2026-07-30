@@ -92,7 +92,21 @@ async function refreshCollection() {
                                 <span><i class="fa fa-id-card me-1"></i>{{ client.CLI_RUC }}</span>
                                 <span><i class="fa fa-location-dot me-1"></i>{{ client.CLI_CIUDAD }} / {{
                                     client.CLI_PROVINCIA }}</span>
-                                <span><i class="fa fa-file-signature me-1"></i>{{ client.CLI_CONDICION_PAGO }}</span>
+                                <span class="client-payment-meta">
+                                    <span class="payment-condition">
+                                        <i class="fa fa-file-signature me-1"></i>
+                                        {{ client.CLI_CONDICION_PAGO }}
+                                    </span>
+                                    <span
+                                        v-if="client.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0"
+                                        class="grace-days-pill"
+                                        title="Dias de gracia para cheque a fecha"
+                                    >
+                                        <i class="fa fa-calendar-plus"></i>
+                                        <strong>{{ client.CLI_DIA_GRACIA_CHEQUE_A_FECHA }}</strong>
+                                        <span>dias de gracia</span>
+                                    </span>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -183,9 +197,6 @@ async function refreshCollection() {
                         <div class="cobro-metric">
                             <span class="metric-label">Descuento comercial</span>
                             <strong class="metric-value">{{ client.CLI_DSTO_COMERCIAL }}%</strong>
-                            <span class="metric-note" v-if="client.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0">
-                                {{ client.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} dias de gracia
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -248,10 +259,42 @@ async function refreshCollection() {
     font-size: 0.72rem;
 }
 
-.client-meta span {
+.client-meta > span {
     display: inline-flex;
     align-items: center;
     min-width: 0;
+}
+
+.client-payment-meta {
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.payment-condition {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.grace-days-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.13rem 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--tuval-primary, var(--bs-primary)) 24%, transparent);
+    border-radius: 999px;
+    background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.1));
+    color: var(--tuval-primary-strong, var(--bs-primary));
+    font-size: 0.64rem;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.grace-days-pill strong {
+    color: inherit;
+    font-size: 0.72rem;
+    font-weight: 900;
 }
 
 .client-actions {
@@ -363,12 +406,6 @@ async function refreshCollection() {
     font-weight: 800;
     line-height: 1.25;
     overflow-wrap: anywhere;
-}
-
-.metric-note {
-    margin-top: 0.12rem;
-    color: var(--tuval-text-muted, var(--bs-secondary-color));
-    font-size: 0.65rem;
 }
 
 .client-metrics-row > [class*="col-"] {
