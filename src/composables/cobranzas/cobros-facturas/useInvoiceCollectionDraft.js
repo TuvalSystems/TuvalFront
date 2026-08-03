@@ -5,14 +5,14 @@ function createEmptyDraft() {
     return {
         cliente_id: null,
         caja_id: null,
+        pv_id : null,
+        pvCodigo: null,
         retenciones: [],
         cheque: null,
         depositos: [],
         efectivo: null,
         tarjeta: null,
         aplicaciones: [],
-        pvCodigo: null,
-        pvId : null,
         referencia: "",
     }
 }
@@ -34,9 +34,9 @@ export function useInvoiceCollectionDraft() {
 
     function getPointSaleDraftData() {
         return {
-            pvId: selectedPointSaleId.value ?? null,
-            pvCodigo: selectedPointSaleCode.value ?? null,
             caja_id: selectedCashBoxId.value ?? null,
+            pv_id: selectedPointSaleId.value ?? null,
+            pvCodigo: selectedPointSaleCode.value ?? null,
         };
     }
 

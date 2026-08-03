@@ -202,8 +202,8 @@ function buildPaymentValidationPayload() {
   return {
     cliente_id: draft.cliente_id ?? null,
     caja_id: draft.caja_id ?? null,
+    pv_id: draft.pv_id ?? null,
     pvCodigo: draft.pvCodigo ?? null,
-    pvId: draft.pvId ?? null,
     referencia: draft.referencia ?? "",
     retenciones: normalizeItems(draft.retenciones).map(cloneForValidation),
     efectivo: draft.efectivo ? cloneForValidation(draft.efectivo) : null,

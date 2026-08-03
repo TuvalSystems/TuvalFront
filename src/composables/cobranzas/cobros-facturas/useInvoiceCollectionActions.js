@@ -194,6 +194,26 @@ export function useInvoiceCollectionActions() {
 
 
 
+    const loadingPrintCollectionPdf = ref(false);
+    async function printPdfCollection(id) {
+        return run(async () => {
+            const fileName = await downloadFileFromApi({
+                url: INVOICE_COLLECTION_API_ROUTES.DOWNLOAD_COLLECTION_PDF,
+                method: "POST",
+                payload: { cobro_id: id },
+                filenameFallback: "cobro.pdf"
+            });
+            return { data: { success: true, data: fileName } };
+        }, {
+            loadingRef: loadingPrintCollectionPdf,
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+    }
+
+
+
 
     return {
         //obtener estado de caja
@@ -247,7 +267,11 @@ export function useInvoiceCollectionActions() {
 
         //registrar cobro
         loadingRegisterInvoiceCollection,
-        registerInvoiceCollection
+        registerInvoiceCollection,
+
+        //imprimir el pdf del cobro
+        loadingPrintCollectionPdf,
+        printPdfCollection
 
     }
 }

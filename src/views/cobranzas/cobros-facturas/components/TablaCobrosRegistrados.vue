@@ -1,7 +1,10 @@
 <script setup>
-import { computed, watch } from "vue";
+import { computed, watch, ref, nextTick } from "vue";
 import { useClientRegisteredCollectionsTable } from "@/composables/cobranzas/cobros-facturas/useClientRegisteredCollectionsTable";
+
 import BaseTable from "@/components/BaseTable.vue";
+import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
+import { swalError, swalSuccess, swalWarning } from "@/functions/swal-alert";
 
 const props = defineProps({
   collectionDraft: {
@@ -12,7 +15,11 @@ const props = defineProps({
 
 const { table, columns, listPerpage, statusClass, fetchList, onSort, refresh } =
   useClientRegisteredCollectionsTable();
-
+const {
+  //imprimir el pdf del cobro
+  loadingPrintCollectionPdf,
+  printPdfCollection,
+} = useInvoiceCollectionActions();
 const clientId = computed(() => props.collectionDraft?.cliente_id ?? null);
 const totalRows = computed(() => table.totalItems || table.items.length);
 
@@ -85,19 +92,42 @@ defineExpose({
   refresh: refreshList,
 });
 
-const handleClick = ({ row, col }) => {
-
-};
+const handleClick = ({ row, col }) => {};
 
 function isRowDisabled(row) {
-  return false;
-
+  return lockedIds.value.has(row.id);
 }
 
+const lockIdPdf = ref(new Map());
+function islockedPdf(row) {
+  const id = typeof row === "object" ? row?.id : row;
+  return lockIdPdf.value.get(String(id)) === true;
+}
+function lockPdf(id) {
+  const m = new Map(lockIdPdf.value);
+  m.set(String(id), true);
+  lockIdPdf.value = m;
+}
+function unLockedPdf(id) {
+  const m = new Map(lockIdPdf.value);
+  m.delete(String(id));
+  lockIdPdf.value = m;
+}
 
-async function printCollectionPdf(row){
- console.log(row,'ooooo');
- 
+async function printCollectionPdf(row) {
+  const id = row.id;
+  if (islockedPdf(id)) return;
+  lockPdf(id);
+  const resp = await printPdfCollection(row.id);
+  if (!resp?.ok) {
+    unLockedPdf(id);
+    const msg = resp?.message || "Opps! No se pudo generar el archivo Pdf";
+    (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    return;
+  }
+  unLockedPdf(id);
+  await nextTick();
+  swalSuccess(resp?.message || "Pdf Generado exitosamente");
 }
 </script>
 
@@ -207,7 +237,7 @@ async function printCollectionPdf(row){
       </template>
 
       <template #cell-estado="{ value }">
-        <span :class="statusClass(value)" style="font-size:11px">
+        <span :class="statusClass(value)" style="font-size: 11px">
           {{ getStatusLabel(value) }}
         </span>
       </template>
@@ -218,9 +248,16 @@ async function printCollectionPdf(row){
           type="button"
           class="btn btn-sm btn-outline-danger registered-pdf-btn"
           title="Descargar cobro PDF"
+          :disabled="islockedPdf(row)"
           @click="printCollectionPdf(row)"
         >
-          <i class="fa fa-file-pdf"></i>
+          <span class="client-action-icon">
+            <span
+              v-if="islockedPdf(row)"
+              class="spinner-border spinner-border-sm"
+            ></span>
+            <i v-else class="fa fa-file-pdf"></i>
+          </span>
         </button>
       </template>
 

@@ -14,5 +14,6 @@ export const INVOICE_COLLECTION_API_ROUTES = {
     VALIDATE_CHECK: 'cobranzas/cobros-facturas/verificar-cheque',
     VALIDATE_COLLECTION : 'cobranzas/cobros-facturas/validar-cobros',
     LIST_COLLECTION : 'cobranzas/cobros-facturas/lista-cobros-registrados',
+    DOWNLOAD_COLLECTION_PDF : 'cobranzas/cobros-facturas/imprimir-cobro',
     REGISTER_COLLECTION : 'cobranzas/cobros-facturas/registrar-cobro'
 }
