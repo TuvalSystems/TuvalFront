@@ -73,6 +73,7 @@ const {
   collectionDraft,
   //funciones de limpieza
   resetDraft,
+  resetDraftPreservingClient,
   //asignacion de clienteId
   setCustomer,
   //retenciones
@@ -678,6 +679,8 @@ async function registerCollection(payload = collectionDraft) {
 
   swalSuccess(response?.message);
   await registeredCollectionsRef.value?.refresh();
+  resetDraftPreservingClient();
+
 }
 
 onMounted(() => {

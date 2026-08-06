@@ -145,9 +145,17 @@ const loadingVerifyAndRegister = computed(
 );
 
 const canRegisterCollection = computed(
-  () =>
-    collectionRegisterTotal.value > 0 && !loadingVerifyAndRegister.value
+  () => collectionRegisterTotal.value > 0 && !loadingVerifyAndRegister.value
 );
+
+const collectionReference = computed({
+  get: () => props.collectionDraft?.referencia ?? "",
+  set: (value) => {
+    if (props.collectionDraft) {
+      props.collectionDraft.referencia = value ?? "";
+    }
+  },
+});
 
 const registerButtonText = computed(() =>
   loadingPayment.value
@@ -204,7 +212,7 @@ function buildPaymentValidationPayload() {
     caja_id: draft.caja_id ?? null,
     pv_id: draft.pv_id ?? null,
     pvCodigo: draft.pvCodigo ?? null,
-    referencia: draft.referencia ?? "",
+    referencia: String(draft.referencia ?? "").trim(),
     retenciones: normalizeItems(draft.retenciones).map(cloneForValidation),
     efectivo: draft.efectivo ? cloneForValidation(draft.efectivo) : null,
     tarjeta: draft.tarjeta ? cloneForValidation(draft.tarjeta) : null,
@@ -1135,6 +1143,31 @@ function roundMoney(value, decimals = 2) {
       </div>
     </div>
 
+    <div class="collection-summary-reference">
+      <label
+        class="collection-summary-reference-label"
+        for="collectionSummaryReference"
+      >
+        Referencia
+      </label>
+
+      <div
+        class="input-group input-group-sm collection-summary-reference-input"
+      >
+        <span class="input-group-text"><i class="fa fa-hashtag"></i></span>
+        <input
+          id="collectionSummaryReference"
+          v-model.trim="collectionReference"
+          type="text"
+          class="form-control"
+          maxlength="80"
+          placeholder="Referencia del cobro"
+          autocomplete="off"
+          :disabled="loadingVerifyAndRegister"
+        />
+      </div>
+    </div>
+
     <section
       v-for="section in collectionSummarySections"
       :key="section.key"
@@ -1545,6 +1578,37 @@ function roundMoney(value, decimals = 2) {
   font-weight: 800;
 }
 
+.collection-summary-reference {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.35fr) minmax(12rem, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
+  border-radius: var(--tuval-radius-md, 8px);
+  background: var(--bs-body-bg);
+}
+
+.collection-summary-reference-label {
+  margin: 0;
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.collection-summary-reference-input {
+  min-width: 0;
+}
+
+.collection-summary-reference :deep(.form-control),
+.collection-summary-reference :deep(.input-group-text) {
+  min-height: 1.95rem;
+  padding: 0.25rem 0.45rem;
+  font-size: 0.78rem;
+}
+
 .collection-summary-submit-bar {
   display: flex;
   align-items: center;
@@ -1623,6 +1687,10 @@ function roundMoney(value, decimals = 2) {
   }
 
   .collection-summary-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-summary-reference {
     grid-template-columns: 1fr;
   }
 
