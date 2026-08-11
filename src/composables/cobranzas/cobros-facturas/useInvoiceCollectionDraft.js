@@ -5,7 +5,7 @@ function createEmptyDraft() {
     return {
         cliente_id: null,
         caja_id: null,
-        pv_id : null,
+        pv_id: null,
         pvCodigo: null,
         retenciones: [],
         cheque: null,
@@ -61,14 +61,14 @@ export function useInvoiceCollectionDraft() {
         syncPointSaleDraftData();
     }
 
- 
+
     //limpia todo
     function resetDraft() {
         Object.assign(collectionDraft, createDraftWithPointSale());
     }
 
     //limpia pero sin tocar el cliente
-    function resetDraftPreservingClient() {
+    async function resetDraftPreservingClient() {
         const clientId = collectionDraft.cliente_id;
         Object.assign(collectionDraft, createDraftWithPointSale(), {
             cliente_id: clientId,

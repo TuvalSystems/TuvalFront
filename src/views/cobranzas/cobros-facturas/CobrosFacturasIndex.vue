@@ -117,7 +117,7 @@ const loadingCustomerCollectionData = computed(
     loadingCollectionBanks.value
 );
 
-async function refreshCustomerCollectionData(customer) {
+async function refreshCustomerCollectionData(customer, notify = true) {
   const clientId = customer?.id;
   if (!clientId) {
     swalWarning("Debe seleccionar un cliente.");
@@ -137,7 +137,9 @@ async function refreshCustomerCollectionData(customer) {
     (errorResponse?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
     return false;
   }
-  swalSuccess("Información Actualizada Exitosamente");
+  if (notify) {
+    swalSuccess("Información Actualizada Exitosamente");
+  }
   return true;
 }
 
@@ -657,7 +659,7 @@ async function handleCustomerSelected(selection) {
   }
 
   setCustomer(selectedCustomer.value);
-  await refreshCustomerCollectionData(selectedCustomer.value);
+  await refreshCustomerCollectionData(selectedCustomer.value, false);
 }
 
 async function cleanSearchClients() {
@@ -679,8 +681,8 @@ async function registerCollection(payload = collectionDraft) {
 
   swalSuccess(response?.message);
   await registeredCollectionsRef.value?.refresh();
-  resetDraftPreservingClient();
-
+  await resetDraftPreservingClient();
+ await refreshCustomerCollectionData(selectedCustomer.value, false);
 }
 
 onMounted(() => {
