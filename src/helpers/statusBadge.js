@@ -80,7 +80,7 @@ const STATUS_MAPS = {
     cobros: {
         enviado: "success",
         revisado: "secondary",
-        iniciado: "info",
+        iniciado: "danger",
         rechazado: "danger",
         no_enviado: "warning"
 

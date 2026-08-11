@@ -4,7 +4,7 @@ import { useClientRegisteredCollectionsTable } from "@/composables/cobranzas/cob
 
 import BaseTable from "@/components/BaseTable.vue";
 import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
-import { swalError, swalSuccess, swalWarning } from "@/functions/swal-alert";
+import { swalError, swalInfo, swalSuccess, swalWarning } from "@/functions/swal-alert";
 
 const props = defineProps({
   collectionDraft: {
@@ -129,6 +129,13 @@ async function printCollectionPdf(row) {
   await nextTick();
   swalSuccess(resp?.message || "Pdf Generado exitosamente");
 }
+
+async function showAlertPendingApproved(row){
+  if(row.deposito_pendiente){
+    swalInfo("Existen depósitos pendientes de aprobación");
+    return;
+  }
+}
 </script>
 
 <template>
@@ -236,8 +243,8 @@ async function printCollectionPdf(row) {
         </span>
       </template>
 
-      <template #cell-estado="{ value }">
-        <span :class="statusClass(value)" style="font-size: 11px">
+      <template #cell-estado="{ row, value }">
+        <span :class="statusClass(value)" style="font-size: 11px"   @click="showAlertPendingApproved(row)">
           {{ getStatusLabel(value) }}
         </span>
       </template>
