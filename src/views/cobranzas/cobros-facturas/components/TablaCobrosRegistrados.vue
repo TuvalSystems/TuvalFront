@@ -1,10 +1,11 @@
 <script setup>
-import { computed, watch, ref, nextTick } from "vue";
+import { computed, watch, ref, nextTick, onUnmounted } from "vue";
 import { useClientRegisteredCollectionsTable } from "@/composables/cobranzas/cobros-facturas/useClientRegisteredCollectionsTable";
 
 import BaseTable from "@/components/BaseTable.vue";
 import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
 import { swalError, swalInfo, swalSuccess, swalWarning } from "@/functions/swal-alert";
+import { useRefreshCollectionOnEvent } from "@/composables/cobranzas/cobros-facturas/useRefreshCollectionOnEvent";
 
 const props = defineProps({
   collectionDraft: {
@@ -53,6 +54,29 @@ async function refreshList() {
   table.filters.cliente_id = clientId.value;
   await refresh();
 }
+
+function getEventClientId(event) {
+  return event?.cliente_id ?? event?.clienteId ?? event?.cliente?.id ?? null;
+}
+
+function shouldRefreshCollectionList(event) {
+  const eventClientId = getEventClientId(event);
+
+  if (!eventClientId) {
+    return true;
+  }
+
+  return String(eventClientId) === String(clientId.value);
+}
+
+const stopRefreshCollectionOnEvent = useRefreshCollectionOnEvent({
+  refreshFn: refreshList,
+  shouldRefresh: shouldRefreshCollectionList,
+});
+
+onUnmounted(() => {
+  stopRefreshCollectionOnEvent?.();
+});
 
 function clearSearch() {
   table.filters.search = "";
