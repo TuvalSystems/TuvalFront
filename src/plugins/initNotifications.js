@@ -79,7 +79,7 @@ export function initNotifications() {
     bsToast({
       title,
       text: msg,
-      iconClass: "fa fa-bell text-info",
+      iconClass: "fa fa-bell",
       delay: 60000,
     });
   });

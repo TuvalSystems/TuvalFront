@@ -247,6 +247,14 @@ const routes = [
         },
       },
       {
+        path: "cobros-facturas",
+        name: "cobranzas-cobros-facturas",
+        component: () => import("@/views/cobranzas/cobros-facturas/CobrosFacturasIndex.vue"),
+        meta: {
+          title: "Cobros - Gestión Cobros",
+        },
+      },
+      {
         path: "cobropedido",
         name: "cobranzas-cobropedido",
         component: CobranzasPedido,

@@ -3,7 +3,7 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
 import { ref, computed, reactive } from "vue";
-import { downloadFileFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/fileDownload";
 
 export function useCashClosureLookup() {
     const { run } = useApiAction();

@@ -2,7 +2,7 @@ import { ref, reactive, computed } from "vue";
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { swalWarning } from "@/functions/swal-alert.js";
-import { downloadFileFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/fileDownload";
 
 
 import { useStore } from "vuex";

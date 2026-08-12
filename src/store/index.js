@@ -4,6 +4,23 @@ import axiosPrint from "../axiosPrint";
 
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 
+function getStoredPuntoVentaSelectId() {
+  const storedId = sessionStorage.getItem("PUNTOVENTASELECTID");
+  if (storedId) {
+    return storedId;
+  }
+
+  const selectedPtoVta = sessionStorage.getItem("PUNTODEVENTASELECT");
+  const puntosdeventa = JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA"));
+  const selected = Array.isArray(puntosdeventa)
+    ? puntosdeventa.find(
+        (punto) => String(punto.PTO_VTA_ID) === String(selectedPtoVta)
+      )
+    : null;
+
+  return selected?.id ?? null;
+}
+
 const store = createStore({
   state: {
     user: {
@@ -16,6 +33,7 @@ const store = createStore({
     puntosdeventa: JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA")),
     bodegas: JSON.parse(sessionStorage.getItem("BODEGAS")),
     puntodeventaselect: sessionStorage.getItem("PUNTODEVENTASELECT"),
+    puntoventaselectid: getStoredPuntoVentaSelectId(),
     currentCliente: JSON.parse(sessionStorage.getItem("CURRENTCLIENTE")),
     registro_copia: sessionStorage.getItem("REGISTROCOPIA"),
     currentClienteCobro: null,
@@ -1912,6 +1930,7 @@ const store = createStore({
       state.condiciondepago = userData.condiciondepago;
       state.proveedores = userData.proveedores;
       state.puntodeventaselect = userData.puntodeventaselect.PTO_VTA_ID;
+      state.puntoventaselectid = userData.puntodeventaselect.id ?? null;
       state.bodegas = userData.puntodeventaselect.bodegas;
       state.must_change_password = userData.must_change_password;
       sessionStorage.setItem(
@@ -1946,6 +1965,11 @@ const store = createStore({
         "PUNTODEVENTASELECT",
         userData.puntodeventaselect.PTO_VTA_ID
       );
+      if (state.puntoventaselectid) {
+        sessionStorage.setItem("PUNTOVENTASELECTID", state.puntoventaselectid);
+      } else {
+        sessionStorage.removeItem("PUNTOVENTASELECTID");
+      }
     },
     setUserAccess: (state, data) => {
       const menu = Array.isArray(data?.menu) ? data.menu : [];

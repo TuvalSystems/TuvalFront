@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { downloadFileFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/fileDownload";
 export function useReservationTransferReceipt() {
     const { run } = useApiAction();
     const data = ref([]);
