@@ -238,14 +238,14 @@ const routes = [
     component: LayoutBackend,
     meta: { requiresAuth: true },
     children: [
-      {
-        path: "cobrofacturas",
-        name: "cobranzas-cobrofacturas",
-        component: CobranzasFacturas,
-        meta: {
-          title: "Cobros - Cobros Generales",
-        },
-      },
+      // {
+      //   path: "cobrofacturas",
+      //   name: "cobranzas-cobrofacturas",
+      //   component: CobranzasFacturas,
+      //   meta: {
+      //     title: "Cobros - Cobros Generales",
+      //   },
+      // },
       {
         path: "cobros-facturas",
         name: "cobranzas-cobros-facturas",
@@ -254,14 +254,14 @@ const routes = [
           title: "Cobros - Gestión Cobros",
         },
       },
-      {
-        path: "cobropedido",
-        name: "cobranzas-cobropedido",
-        component: CobranzasPedido,
-        meta: {
-          title: "Cobros - Cobros Pedido",
-        },
-      },
+      // {
+      //   path: "cobropedido",
+      //   name: "cobranzas-cobropedido",
+      //   component: CobranzasPedido,
+      //   meta: {
+      //     title: "Cobros - Cobros Pedido",
+      //   },
+      // },
       {
         path: "aprobaciondepositos",
         name: "cobranzas-aprobaciondepositos",
