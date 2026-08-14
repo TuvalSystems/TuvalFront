@@ -165,6 +165,15 @@ async function resetAddressForm() {
     v$.value.$reset();
 }
 
+const sanitizeText = (event) => {
+  const sanitized = event.target.value.replace(
+    /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s_-]/g,
+    ""
+  );
+  event.target.value = sanitized;
+ form.direccion = sanitized;
+};
+
 watch(
     () => props.cliente,
     async (newValue) => {
@@ -224,7 +233,7 @@ onMounted(() => {
 
                                 <textarea id="input-direccion" v-model="form.direccion" class="form-control"
                                     :class="{ 'is-invalid': v$.direccion.$error }" rows="3" maxlength="122"
-                                    placeholder="Dirección completa..." @blur="v$.direccion.$touch()"></textarea>
+                                    placeholder="Dirección completa..." @blur="v$.direccion.$touch()" @input="sanitizeText"></textarea>
 
                                 <div v-if="v$.direccion.$error" class="invalid-feedback">
                                     {{ v$.direccion.$errors[0].$message }}
