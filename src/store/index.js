@@ -14,8 +14,8 @@ function getStoredPuntoVentaSelectId() {
   const puntosdeventa = JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA"));
   const selected = Array.isArray(puntosdeventa)
     ? puntosdeventa.find(
-        (punto) => String(punto.PTO_VTA_ID) === String(selectedPtoVta)
-      )
+      (punto) => String(punto.PTO_VTA_ID) === String(selectedPtoVta)
+    )
     : null;
 
   return selected?.id ?? null;
@@ -449,7 +449,7 @@ const store = createStore({
         return data;
       });
     },
-  
+
     sincronizaDataGP({ commit }, path) {
       return axiosClient.get(path).then((response) => {
         return response;
@@ -576,7 +576,7 @@ const store = createStore({
           return res;
         });
     },
-  
+
     eliminarArticulo({ commit }, articulo) {
       return axiosClient.post("/eliminararticulo", articulo).then((res) => {
         return res;
@@ -589,15 +589,15 @@ const store = createStore({
           return res;
         });
     },
-  
-  
- 
 
- 
- 
-  
 
-   
+
+
+
+
+
+
+
 
     /**
      *  nuevas funciones
@@ -735,12 +735,12 @@ const store = createStore({
     // },
 
     llenarpedidosporaprobarcrediticiosInterval({ commit, dispatch }) {
-       commit(
+      commit(
         "setIntervalPedidosporAprobarCrediticios",
-         setInterval(() => {
+        setInterval(() => {
           dispatch("llenarpedidosporaprobarcrediticios")
         }, 10000)
-       );
+      );
     },
     llenarpedidosporaprobarcrediticiosStop({ commit }) {
       commit("llenarpedidosporaprobarcrediticiosStop");
@@ -829,7 +829,7 @@ const store = createStore({
           return res;
         });
     },
-    despachoenproceso({}, id) {
+    despachoenproceso({ }, id) {
       return axiosClient.get("/pedidos/despachoenproceso/" + id).then((res) => {
         return res.data;
       });
@@ -847,6 +847,7 @@ const store = createStore({
         commit("setNivelPrecioClienteDetalle", res.data.nivelPrecio);
         commit("setImagenesOperaciones", res.data.imagenesOperaciones);
         commit("setDocumentosPdf", res.data.documentosPdf);
+        commit("setProyectoString", res.data.proyecto);
         return res;
       });
     },
@@ -908,6 +909,7 @@ const store = createStore({
           commit("setSegmentoClienteLoading", false);
           commit("setSegmentoCliente", res.data.data.segmento);
           commit("setNivelPrecioCotizacion", res.data.data.nivelPrecio);
+          commit("setProyectoString", res.data.data.proyecto);
           return res;
         });
     },
@@ -1172,9 +1174,9 @@ const store = createStore({
       return axiosClient
         .get(
           "/cobranzas/estadocaja/" +
-            this.state.puntodeventaselect +
-            "/" +
-            this.state.user.data.USERID
+          this.state.puntodeventaselect +
+          "/" +
+          this.state.user.data.USERID
         )
         .then((res) => {
           commit("setEstadoCaja", res.data);
@@ -1193,18 +1195,18 @@ const store = createStore({
     abrirCaja() {
       return axiosClient.get(
         "/cobranzas/abrircaja/" +
-          this.state.puntodeventaselect +
-          "/" +
-          this.state.user.data.USERID
+        this.state.puntodeventaselect +
+        "/" +
+        this.state.user.data.USERID
       );
     },
     cerrarCaja() {
       return axiosClient
         .get(
           "/cobranzas/cerrarcaja/" +
-            this.state.puntodeventaselect +
-            "/" +
-            this.state.user.data.USERID
+          this.state.puntodeventaselect +
+          "/" +
+          this.state.user.data.USERID
         )
         .then((res) => {
           return res.data;
@@ -1321,9 +1323,9 @@ const store = createStore({
       return axiosClient
         .get(
           "/cobranzas/getcajausuario/" +
-            this.state.puntodeventaselect +
-            "/" +
-            this.state.user.data.USERID
+          this.state.puntodeventaselect +
+          "/" +
+          this.state.user.data.USERID
         )
         .then((res) => {
           return res.data;
@@ -1431,7 +1433,7 @@ const store = createStore({
           return res.data;
         });
     },
-    checkdespachadoscompletos({}) {
+    checkdespachadoscompletos({ }) {
       return axiosClient
         .get("/despachos/checkdespachadoscompletos")
         .then(() => {
@@ -1443,9 +1445,9 @@ const store = createStore({
       return axiosClient
         .get(
           "/despachos/ordenesliberadas/" +
-            this.state.puntodeventaselect +
-            "/" +
-            estado
+          this.state.puntodeventaselect +
+          "/" +
+          estado
         )
         .then((res) => {
           commit("setOrdenesDespachoLoading", false);
@@ -1457,9 +1459,9 @@ const store = createStore({
       return axiosClient
         .get(
           "/despachos/ordenesliberadassindetalle/" +
-            this.state.puntodeventaselect +
-            "/" +
-            estado
+          this.state.puntodeventaselect +
+          "/" +
+          estado
         )
         .then((res) => {
           commit("setOrdenesDespachoLoading", false);
@@ -1527,7 +1529,7 @@ const store = createStore({
       return axiosClient
         .get(
           "/bodegas/transferencias/transferenciasventa/" +
-            this.state.puntodeventaselect
+          this.state.puntodeventaselect
         )
         .then((res) => {
           commit("setTransferenciasVentaLoading", false);
@@ -1540,11 +1542,11 @@ const store = createStore({
       return axiosClient
         .get(
           "/bodegas/transferencias/transferenciasventa/" +
-            this.state.puntodeventaselect +
-            "/" +
-            data.buscarpedido +
-            "/" +
-            data.buscarcompartimiento
+          this.state.puntodeventaselect +
+          "/" +
+          data.buscarpedido +
+          "/" +
+          data.buscarcompartimiento
         )
         .then((res) => {
           commit("setTransferenciasVentaLoading", false);
@@ -1573,7 +1575,7 @@ const store = createStore({
       return axiosClient
         .get(
           "/bodegas/reposicion/transferenciasreposicion/" +
-            this.state.puntodeventaselect
+          this.state.puntodeventaselect
         )
         .then((res) => {
           commit("setTransferenciasReposicion", res.data);
@@ -1583,9 +1585,9 @@ const store = createStore({
       return axiosClient
         .get(
           "/bodegas/reposicion/transferenciasreposicion/" +
-            this.state.puntodeventaselect +
-            "/" +
-            documento
+          this.state.puntodeventaselect +
+          "/" +
+          documento
         )
         .then((res) => {
           return res.data.traslados;
@@ -1596,7 +1598,7 @@ const store = createStore({
       return axiosClient
         .get(
           "/bodegas/transferencias/recibosventa/" +
-            this.state.puntodeventaselect
+          this.state.puntodeventaselect
         )
         .then((res) => {
           commit("setRecibosVentaLoading", false);
@@ -1608,7 +1610,7 @@ const store = createStore({
       return axiosClient
         .get(
           "/bodegas/reposicion/recibosreposicionindividual/" +
-            this.state.puntodeventaselect
+          this.state.puntodeventaselect
         )
         .then((res) => {
           commit("setRecibosReposicionLoading", false);
@@ -1677,7 +1679,7 @@ const store = createStore({
           return res.data;
         });
     },
-    procesardevoluciones({}) {
+    procesardevoluciones({ }) {
       return axiosClient.get("/devoluciones/procesardevoluciones");
     },
     pedidoscliente({ commit }, cliente_id) {
@@ -1686,9 +1688,9 @@ const store = createStore({
       return axiosClient
         .get(
           "/devoluciones/pedidoscliente/" +
-            cliente_id +
-            "/" +
-            this.state.puntodeventaselect
+          cliente_id +
+          "/" +
+          this.state.puntodeventaselect
         )
         .then((res) => {
           commit("setPedidosLoading", false);
@@ -1771,7 +1773,7 @@ const store = createStore({
           return res;
         });
     },
-  
+
     recibirDevolucion({ commit }, devolucion) {
       return axiosClient
         .post("/devoluciones/recibirdevolucion", devolucion)
@@ -2094,7 +2096,7 @@ const store = createStore({
       state.transferencias_venta_loading = loading;
     },
     getPedidos: (state, pedidos) => {
-     state.pedidos.data = Object.freeze(pedidos);
+      state.pedidos.data = Object.freeze(pedidos);
     },
     setDevoluciones: (state, devoluciones) => {
       state.devoluciones.data = devoluciones;
@@ -2212,22 +2214,25 @@ const store = createStore({
     setSegmentoCliente: (state, data) => {
       state.segmentocliente.data = data;
     },
-     setNivelPrecioClienteDetalle : (state, data) => {
+    setNivelPrecioClienteDetalle: (state, data) => {
       state.nivelPrecioClienteDetalle = data;
     },
     setSegmentoClienteLoading: (state, loading) => {
       state.segmentocliente.loading = loading;
     },
 
-    setNivelPrecioCotizacion : (state, data) => {
+    setNivelPrecioCotizacion: (state, data) => {
       state.nivelPrecioCotizacion = data;
     },
-    setImagenesOperaciones : (state, data) =>{
+    setImagenesOperaciones: (state, data) => {
       state.imagenesOperaciones = data;
     },
 
-    setDocumentosPdf : (state, data) => {
+    setDocumentosPdf: (state, data) => {
       state.documentosPdf = data;
+    },
+    setProyectoString: (state, data) => {
+      state.proyecto = data
     },
 
 
@@ -2765,7 +2770,7 @@ const store = createStore({
       state.recibos_venta = data.recibos;
     },
     setRecibosReposicion: (state, data) => {
-      
+
 
       state.recibos_reposicion = data.recibos;
     },
@@ -2892,7 +2897,7 @@ const store = createStore({
       state.filtrar_cliente = null;
     },
 
-     
+
   },
   modules: {},
 });

@@ -60,7 +60,7 @@
 
       <div class="block-content tab-content fs-sm">
         <div class="tab-pane fade" :class="{ 'active show': tabActual === 'detalle' }">
-          <CabeceraPedido :verpedido="verpedido" :segmento="segmentocliente"></CabeceraPedido>
+          <CabeceraPedido :verpedido="verpedido" :segmento="segmentocliente" :proyecto="proyecto"></CabeceraPedido>
           <div class="table-responsive">
             <div v-if="detallepedido.loading" class="text-center">
               <div class="spinner-border text-primary mt-2"><span class="visually-hidden">Loading...</span></div>
@@ -304,6 +304,8 @@ const segmentocliente = computed(() => store.state.segmentocliente);
 const has_guide_dispatched = computed(() => store.state.has_guide_dispatched);
 const imagenesOperaciones = computed(() => store.state.imagenesOperaciones);
 const documentosPdf = computed(() => store.state.documentosPdf);
+const proyecto = computed(() => store.state.proyecto);
+
 const max_length = ref(20);
 const emit = defineEmits(["consultarExistente", "cancelarPedido", "consultarDespachado"]);
 

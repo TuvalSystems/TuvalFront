@@ -1,6 +1,11 @@
 <script setup>
 import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
-import { swalError, toast, swalSuccess, swalWarning } from "@/functions/swal-alert.js";
+import {
+  swalError,
+  toast,
+  swalSuccess,
+  swalWarning,
+} from "@/functions/swal-alert.js";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
@@ -146,6 +151,11 @@ const {
   loadDataForReorder,
   copyRawQuoteOrOrder,
   reOrder,
+
+  //lista de proyectos
+  loadingProyectSellers,
+  dataProyectSellers,
+  fetchListProyectSellers,
 } = useProcessCreateQuote(currentDraftId.value);
 
 const {
@@ -1058,6 +1068,29 @@ const isWarehouseSelectionDisabled = computed(() => {
   return loadingWarehouseByUser.value || form.value.origen === "reserva";
 });
 
+/** logica para el check de aplicacion de proyecto */
+const isChecked = ref(false);
+
+const hasProjectSelected = (project) => Number.isInteger(project);
+
+watch(
+  () => form.value.proyecto,
+  (project) => {
+    if (hasProjectSelected(project)) {
+      isChecked.value = true;
+    }
+  },
+  { immediate: true }
+);
+
+function handleCheck(event) {
+  isChecked.value = event.target.checked;
+
+  if (!isChecked.value) {
+    form.value.proyecto = null;
+  }
+}
+
 onMounted(async () => {
   const mode = route.query.mode;
   const idDoc = route.query.id;
@@ -1099,7 +1132,7 @@ onMounted(async () => {
     }
     await fetchCurrentDraft();
   }
-
+  await fetchListProyectSellers();
   await Promise.all([fetchWarehouseByPtoVtaUser(), fetchConditionPayment()]);
   //logica para recuperar datos en memoria
   if (form.value.cliente && form.value.cliente.CLI_RUC) {
@@ -1180,7 +1213,7 @@ onMounted(async () => {
 <template>
   <div class="content">
     <div :key="currentDraftId">
-      <BaseBlock title="Cliente" content-full rounded class="mb-3">
+      <BaseBlock title="Cliente" content-full rounded class="mb-2">
         <div class="row g-2">
           <div class="col">
             <div class="input-group input-group-sm">
@@ -1260,7 +1293,7 @@ onMounted(async () => {
         <!-- table de clientes  -->
         <BaseBlock
           v-if="showResultClients && clients.length > 0 && !loadingSearch"
-          class="mb-2"
+          class="mb-2 mt-2"
         >
           <div class="table-responsive">
             <table class="table table-hover table-sm">
@@ -1323,7 +1356,7 @@ onMounted(async () => {
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
-        <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
+        <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0 mt-2">
           <div
             class="content-fluid"
             :class="{ 'opacity-50': loadingAvailableCredit }"
@@ -1331,7 +1364,7 @@ onMounted(async () => {
             <div class="row g-1 mb-2">
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Ruc</small>
+                  <small class="label-small">Ruc</small>
                   <div class="fw-semibold text-truncate">
                     {{ form.cliente.CLI_RUC }}
                   </div>
@@ -1339,7 +1372,7 @@ onMounted(async () => {
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Razón Social</small>
+                  <small class="label-small">Razón Social</small>
                   <div class="fw-semibold text-truncate">
                     {{ form.cliente.CLI_RAZON_SOCIAL }}
                   </div>
@@ -1347,7 +1380,7 @@ onMounted(async () => {
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Descuento Comercial</small>
+                  <small class="label-small">Descuento Comercial</small>
                   <div class="fw-semibold">
                     {{ form.cliente.CLI_DSTO_COMERCIAL }} %
                   </div>
@@ -1355,13 +1388,13 @@ onMounted(async () => {
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Ciudad</small>
+                  <small class="label-small">Ciudad</small>
                   <div class="fw-semibold">{{ form.cliente.CLI_CIUDAD }}</div>
                 </div>
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Provincia</small>
+                  <small class="label-small">Provincia</small>
                   <div class="fw-semibold">
                     {{ form.cliente.CLI_PROVINCIA }}
                   </div>
@@ -1369,7 +1402,7 @@ onMounted(async () => {
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Condición de Pago</small>
+                  <small class="label-small">Condición de Pago</small>
                   <div class="fw-semibold">
                     {{ form.cliente.CLI_CONDICION_PAGO }}
                   </div>
@@ -1383,7 +1416,7 @@ onMounted(async () => {
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Suspendido</small>
+                  <small class="label-small">Suspendido</small>
                   <span
                     class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
                     :class="getClientStatus(form.cliente.suspendido).class"
@@ -1394,7 +1427,7 @@ onMounted(async () => {
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Cupo Asignado</small>
+                  <small class="label-small">Cupo Asignado</small>
                   <div class="fw-semibold">
                     ${{ form.cliente.cupo_asignado }}
                   </div>
@@ -1402,7 +1435,7 @@ onMounted(async () => {
               </div>
               <div class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Cupo Disponible</small>
+                  <small class="label-small">Cupo Disponible</small>
                   <div
                     class="fw-semibold"
                     :class="
@@ -1417,19 +1450,19 @@ onMounted(async () => {
               </div>
               <div v-if="infoSegmento" class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Segmento</small>
+                  <small class="label-small">Segmento</small>
                   <div class="fw-semibold">{{ form.segmento.segmento }}</div>
                 </div>
               </div>
               <div v-if="infoSegmento" class="col-6 col-lg-4">
                 <div class="kv">
-                  <small class="text-muted">Sub segmento</small>
+                  <small class="label-small">Sub segmento</small>
                   <div class="fw-semibold">{{ form.segmento.subsegmento }}</div>
                 </div>
               </div>
               <div class="col-12 col-lg-4">
                 <div class="kv space-y-2">
-                  <small class="text-muted">Bodegas</small>
+                  <small class="label-small">Bodegas</small>
                   <select
                     class="form-select form-select-sm"
                     v-model="form.bodega_facturacion"
@@ -1448,7 +1481,7 @@ onMounted(async () => {
 
               <div class="col-12 col-lg-8">
                 <div class="kv space-y-2">
-                  <small class="text-muted">Dirección de Facturación</small>
+                  <small class="label-small">Dirección de Facturación</small>
                   <div class="input-group input-group-sm">
                     <select
                       class="form-select"
@@ -1504,7 +1537,7 @@ onMounted(async () => {
               </div>
               <div class="col-12 col-lg-4">
                 <div class="kv space-y-2">
-                  <small class="text-muted">Modalidad de Entrega</small>
+                  <small class="label-small">Modalidad de Entrega</small>
                   <div class="btn-group btn-group-sm" role="group">
                     <input
                       type="radio"
@@ -1546,7 +1579,7 @@ onMounted(async () => {
               >
                 <div class="col-12 col-lg-6">
                   <div class="kv space-y-2">
-                    <small class="text-muted">Dirección de Entrega</small>
+                    <small class="label-small">Dirección de Entrega</small>
                     <div class="input-group input-group-sm">
                       <select
                         class="form-select form-select-sm"
@@ -1591,13 +1624,57 @@ onMounted(async () => {
                 </div>
                 <div class="col-12 col-lg-6">
                   <div class="kv space-y-2">
-                    <small class="text-muted">Fecha de Entrega</small>
+                    <small class="label-small">Fecha de Entrega</small>
                     <flat-pickr
                       id="fecha_entrega"
                       class="form-control form-control-sm"
                       v-model="form.fecha_entrega"
                       :config="flatPickrState"
                     />
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-lg-8">
+                <div class="kv">
+                  <div class="project-field" :class="{ active: isChecked }">
+                    <div class="project-check">
+                      <label class="label-small" for="aplicar-proyecto">
+                        Aplicar Proyecto
+                      </label>
+                      <input
+                        id="aplicar-proyecto"
+                        class="form-check-input mt-0"
+                        type="checkbox"
+                        :checked="isChecked"
+                        aria-controls="lista-proyectos"
+                        :aria-expanded="isChecked"
+                        @change="handleCheck"
+                      />
+                    </div>
+
+                    <Transition name="project-select">
+                      <div v-if="isChecked" class="project-select-wrap">
+                        <label class="label-small" for="lista-proyectos">
+                          Lista de Proyectos
+                        </label>
+                        <select
+                          id="lista-proyectos"
+                          v-model="form.proyecto"
+                          class="form-select form-select-sm project-select"
+                        >
+                          <option value="" disabled>
+                            Seleccione un proyecto
+                          </option>
+                          <option
+                            v-for="proyect in dataProyectSellers"
+                            :key="proyect.coMotproven"
+                            :value="proyect.coMotproven"
+                          >
+                            {{ proyect.txDescor }}
+                          </option>
+                        </select>
+                      </div>
+                    </Transition>
                   </div>
                 </div>
               </div>
@@ -2713,9 +2790,105 @@ onMounted(async () => {
   }
 }
 
-.kv small {
+.label-small {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.kv > small:not(.label-small) {
   display: block;
   line-height: 1;
+}
+
+.project-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: calc(1.5em + 0.5rem + 2px);
+  flex: 0 0 auto;
+}
+
+.project-check .label-small {
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.project-check .form-check-input {
+  cursor: pointer;
+}
+
+.project-field {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-height: calc(1.5em + 0.5rem + 2px);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.project-field.active {
+  background-color: rgba(var(--bs-primary-rgb), 0.04);
+  border-color: rgba(var(--bs-primary-rgb), 0.18);
+}
+
+.project-select-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1 1 14rem;
+  gap: 0.5rem;
+  min-width: 14rem;
+}
+
+.project-select-wrap .label-small {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.project-select {
+  max-width: 18rem;
+}
+
+.project-select-enter-active,
+.project-select-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.project-select-enter-from,
+.project-select-leave-to {
+  opacity: 0;
+  transform: translateY(-0.25rem);
+}
+
+@media (max-width: 575.98px) {
+  .project-field {
+    align-items: stretch;
+  }
+
+  .project-check {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .project-select-wrap {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 100%;
+  }
+
+  .project-select {
+    max-width: none;
+    width: 100%;
+  }
 }
 
 .kv .badge2 {

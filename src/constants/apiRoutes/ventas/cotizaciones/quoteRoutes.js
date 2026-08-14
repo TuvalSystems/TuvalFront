@@ -22,5 +22,6 @@ export const QUOTE_API_ROUTES = {
         COPY_QUOTE_OR_ORDER: 'pedidos/copiar-cotizacion-o-pedido-v2',
         REORDER: 'pedidos/voler-a-pedir-pedido-v2',
         CREATE_ORDER: 'pedidos/crear-pedido-v2',
+        LIST_PROYECTS_SELLERS :'cotizaciones/obtener-lista-proyectos'
     }
 }

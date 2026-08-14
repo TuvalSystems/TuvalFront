@@ -78,6 +78,10 @@
                   Sin segmento para este cliente
                 </td>
               </tr>
+                <th class="fs-sm">Proyecto</th>
+                <td class="fs-sm">
+                  {{ proyecto }}
+                </td>
 
               <!-- <td>{{ segmentocliente }}</td> -->
             </tbody>
@@ -284,6 +288,7 @@ const { vercotizacion, indexCotizacion, tipo } = defineProps({
 const store = useStore();
 const detallecotizacion = computed(() => store.state.detallecotizacion);
 const segmentocliente = computed(() => store.state.segmentocliente);
+const proyecto = computed(() => store.state.proyecto);
 const max_length = ref(20);
 
 let errorMsg = ref("");
