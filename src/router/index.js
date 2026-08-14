@@ -29,10 +29,10 @@ const VentasCrearCliente = () =>
   import("@/views/ventas/cotizaciones/CrearClienteView.vue");
 
 // Cobranzas: cobroFacturas
-const CobranzasFacturas = () =>
-  import("@/views/cobranzas/CobranzasFacturasView.vue");
-const CobranzasPedido = () =>
-  import("@/views/cobranzas/CobranzasPedidoView.vue");
+// const CobranzasFacturas = () =>
+//   import("@/views/cobranzas/CobranzasFacturasView.vue");
+// const CobranzasPedido = () =>
+//   import("@/views/cobranzas/CobranzasPedidoView.vue");
 const CobranzasAprobacionDepositos = () =>
   import("@/views/cobranzas/AprobacionDepositosView.vue");
 const CobranzasCierredecaja = () =>
