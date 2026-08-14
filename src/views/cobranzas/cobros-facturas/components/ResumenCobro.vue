@@ -4,7 +4,7 @@ import { formatPriceJm, roundTo, toNumber } from "@/functions";
 import { swalError, swalWarning } from "@/functions/swal-alert.js";
 import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import { useCustomerPaymentApply } from "@/composables/cobranzas/cobros/useCustomerPaymentApply";
-import verModalValidacionAplicacionPagos from "@/views/cobranzas/modals/verModalValidacionAplicacionPagos.vue";
+import verModalValidacionAplicacionPagos from "../modals/verModalValidacionAplicacionPagos.vue";
 
 const props = defineProps({
   loadingRegister: {
