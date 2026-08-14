@@ -5,16 +5,12 @@ import {
   onMounted,
   watch,
   onBeforeUnmount,
-  nextTick
+  nextTick,
 } from "vue";
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { useStore } from "vuex";
-import {
-  swalInfo,
-  swalWarning,
-  swalError,
-} from "@/functions/swal-alert.js";
+import { swalInfo, swalWarning, swalError } from "@/functions/swal-alert.js";
 import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
 import useVuelidate from "@vuelidate/core";
 import { required, maxLength, email, helpers } from "@vuelidate/validators";
@@ -47,11 +43,12 @@ const loadingIdentify = computed(() => typeIdentifyStore.loading);
 
 store.dispatch("territorios");
 
-
 const selectedTypeIdentify = computed(() => {
-  return listTypeIdentify.value.find(
-    (tipo) => String(tipo.codigo) === String(nuevoCliente.value.CLI_TIPO_ID)
-  ) ?? null;
+  return (
+    listTypeIdentify.value.find(
+      (tipo) => String(tipo.codigo) === String(nuevoCliente.value.CLI_TIPO_ID)
+    ) ?? null
+  );
 });
 
 const identifyMinSize = computed(() => {
@@ -145,8 +142,6 @@ const validIdentifyFormat = helpers.withMessage(
   }
 );
 
-
-
 const noEmailSpaces = helpers.withMessage(
   "El correo no debe contener espacios en blanco. Revise que no tenga espacios antes, dentro o después del correo.",
   (value) => {
@@ -186,7 +181,6 @@ const shortNameCounterClass = computed(() => {
 
   return "bg-body-secondary text-muted";
 });
-
 
 const rules = computed(() => {
   return {
@@ -254,7 +248,6 @@ const rules = computed(() => {
   };
 });
 
-
 function validateIdentification(showMessage = true) {
   const value = String(nuevoCliente.value.CLI_RUC ?? "").trim();
   const tipo = selectedTypeIdentify.value;
@@ -310,7 +303,6 @@ function validateIdentification(showMessage = true) {
     return false;
   }
 
-
   return true;
 }
 
@@ -353,8 +345,8 @@ function checkRuc() {
 function confirmCliente(cliente) {
   swalInfo(
     "El cliente " +
-    cliente.CLI_RAZON_SOCIAL +
-    " ya existe, se ha cargado la ventana de pedido regular"
+      cliente.CLI_RAZON_SOCIAL +
+      " ya existe, se ha cargado la ventana de pedido regular"
   );
   cargarCliente(cliente);
 }
@@ -381,29 +373,30 @@ async function onSubmit() {
     provincias_ciudades.value[nuevoCliente.value.CLI_PROVINCIA].provincia;
   nuevoCliente.value.CLI_GRUPO_NOMBRE = "";
 
-
   if (nuevoCliente.value.CLI_GRUPO)
     nuevoCliente.value.CLI_GRUPO_NOMBRE =
       grupos_subgrupos.value[nuevoCliente.value.CLI_GRUPO].GRUPO_CODIGO;
 
   try {
     // 4. Guarda cliente
-    const res = await store.dispatch('guardarCliente', { ...nuevoCliente.value })
+    const res = await store.dispatch("guardarCliente", {
+      ...nuevoCliente.value,
+    });
 
     // 5. Actualiza sesión y estado
-    const cliente = res.data
+    const cliente = res.data;
 
-    sessionStorage.setItem('CURRENTCLIENTE', JSON.stringify(cliente))
-    store.commit('setCurrentcliente', cliente)
+    sessionStorage.setItem("CURRENTCLIENTE", JSON.stringify(cliente));
+    store.commit("setCurrentcliente", cliente);
     // 6. llena prospecto si aplica
     if (store.state.cotizacion_serial) {
-      noprospecto.value = false
+      noprospecto.value = false;
       // Usa un objeto plano; el action debe hacer commit antes de resolverse
       const payloadProspecto = {
         cliente_id: cliente.id,
         PTO_VTA_ID: store.state.puntodeventaselect,
         id: store.state.cotizacion_id,
-      }
+      };
       const respUpdate = await updateQuoteProspect(payloadProspecto);
       if (!respUpdate?.ok) {
         templateStore.pageLoader({ mode: "off" });
@@ -416,30 +409,28 @@ async function onSubmit() {
         name: "ventas-crearcotizacion",
         query: {
           id: respUpdate.data.id,
-          mode: 'restore_quote'
-        }
+          mode: "restore_quote",
+        },
       });
       return;
     }
     // 7. Apaga loader y redirige
-    templateStore.pageLoader({ mode: 'off' })
+    templateStore.pageLoader({ mode: "off" });
 
     // console.log('Navegando a crear cotización…')
-    await router.push({ name: 'ventas-crearcotizacion' })
+    await router.push({ name: "ventas-crearcotizacion" });
     // console.log('¡Redirección completada!')
-
   } catch (error) {
-    templateStore.pageLoader({ mode: 'off' })
+    templateStore.pageLoader({ mode: "off" });
 
-    if (error.name === 'NavigationDuplicated') {
-      console.log('Ya estabas en ventas-crearcotizacion, nada mal.')
+    if (error.name === "NavigationDuplicated") {
+      console.log("Ya estabas en ventas-crearcotizacion, nada mal.");
     } else {
       // console.error('Error en onSubmit:', error)
-      swalError(error.response?.data?.error || error.message)
+      swalError(error.response?.data?.error || error.message);
     }
   }
 }
-
 
 function onIdentificationInput(event) {
   let value = String(event.target.value ?? "");
@@ -478,15 +469,16 @@ const identifyCounterClass = computed(() => {
   return "bg-body-secondary text-muted";
 });
 
-
-
-
 let errorMsg = ref("");
 
-
-
-
-
+const sanitizeText = (event) => {
+  const sanitized = event.target.value.replace(
+    /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s_-]/g,
+    ""
+  );
+  event.target.value = sanitized;
+  nuevoCliente.CLI_DIRECCION = sanitized;
+};
 onMounted(() => {
   fetchSegmentos();
   typeIdentifyStore.fetchAll();
@@ -518,8 +510,11 @@ onBeforeUnmount(() => {
   <div class="content">
     <BaseBlock title="Crear cliente" content-full>
       <form @submit.prevent="onSubmit">
-        <div v-if="store.state.cotizacion_serial"
-          class="alert alert-warning d-flex align-items-center justify-content-between" role="alert">
+        <div
+          v-if="store.state.cotizacion_serial"
+          class="alert alert-warning d-flex align-items-center justify-content-between"
+          role="alert"
+        >
           <div class="flex-grow-1 me-3">
             <p class="mb-0">
               Nuevo cliente para cotización
@@ -536,11 +531,23 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TIPO_ID">Tipo identificacion</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_TIPO_ID"
+                  >Tipo identificacion</label
+                >
                 <div class="col-sm-9">
-                  <select class="form-select" id="select-CLI_TIPO_ID" name="select-CLI_TIPO_ID"
-                    v-model="nuevoCliente.CLI_TIPO_ID">
-                    <option v-for="(tipo, index) in listTypeIdentify" :key="index" :value="tipo.codigo">
+                  <select
+                    class="form-select"
+                    id="select-CLI_TIPO_ID"
+                    name="select-CLI_TIPO_ID"
+                    v-model="nuevoCliente.CLI_TIPO_ID"
+                  >
+                    <option
+                      v-for="(tipo, index) in listTypeIdentify"
+                      :key="index"
+                      :value="tipo.codigo"
+                    >
                       {{ tipo.nombre }}
                     </option>
                   </select>
@@ -551,25 +558,48 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC">Identificación</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_RUC"
+                  >Identificación</label
+                >
                 <div class="col-sm-9">
                   <div class="input-group">
-                    <input type="text" class="form-control" id="input-CLI_RUC" v-model.trim="nuevoCliente.CLI_RUC"
-                      :maxlength="identifyMaxAllowed" :placeholder="identifyName" :inputmode="identifyInputMode"
-                      autocomplete="off" :class="{ 'is-invalid': v$.CLI_RUC.$errors.length }"
-                      @input="onIdentificationInput" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="input-CLI_RUC"
+                      v-model.trim="nuevoCliente.CLI_RUC"
+                      :maxlength="identifyMaxAllowed"
+                      :placeholder="identifyName"
+                      :inputmode="identifyInputMode"
+                      autocomplete="off"
+                      :class="{ 'is-invalid': v$.CLI_RUC.$errors.length }"
+                      @input="onIdentificationInput"
+                      @blur="v$.CLI_RUC.$touch"
+                      @change="checkRuc"
+                    />
 
-                    <span class="input-group-text fw-semibold" :class="identifyCounterClass"
-                      style="min-width: 58px; justify-content: center;">
+                    <span
+                      class="input-group-text fw-semibold"
+                      :class="identifyCounterClass"
+                      style="min-width: 58px; justify-content: center"
+                    >
                       {{ identifyCurrentLength }}/{{ identifyMaxAllowed }}
                     </span>
 
-                    <div v-if="v$.CLI_RUC.$errors.length" class="invalid-feedback">
+                    <div
+                      v-if="v$.CLI_RUC.$errors.length"
+                      class="invalid-feedback"
+                    >
                       {{ v$.CLI_RUC.$errors[0].$message }}
                     </div>
                   </div>
 
-                  <div v-if="!v$.CLI_RUC.$errors.length && selectedTypeIdentify" class="form-text">
+                  <div
+                    v-if="!v$.CLI_RUC.$errors.length && selectedTypeIdentify"
+                    class="form-text"
+                  >
                     {{ identifyLengthMessage }}
                   </div>
                 </div>
@@ -577,12 +607,23 @@ onBeforeUnmount(() => {
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_RAZON_SOCIAL">Razón Social</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_RAZON_SOCIAL"
+                  >Razón Social</label
+                >
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_RAZON_SOCIAL"
-                    v-model="nuevoCliente.CLI_RAZON_SOCIAL" placeholder="Apellidos y Nombres" :class="{
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_RAZON_SOCIAL"
+                    v-model="nuevoCliente.CLI_RAZON_SOCIAL"
+                    placeholder="Apellidos y Nombres"
+                    :class="{
                       'is-invalid': v$.CLI_RAZON_SOCIAL.$errors.length,
-                    }" @blur="v$.CLI_RAZON_SOCIAL.$touch" />
+                    }"
+                    @blur="v$.CLI_RAZON_SOCIAL.$touch"
+                  />
                 </div>
               </div>
             </div>
@@ -590,29 +631,48 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_NOMBRE_CORTO">
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_NOMBRE_CORTO"
+                >
                   Nombre corto
                 </label>
 
                 <div class="col-sm-9">
                   <div class="input-group">
-                    <input type="text" class="form-control" id="input-CLI_NOMBRE_CORTO"
-                      v-model="nuevoCliente.CLI_NOMBRE_CORTO" placeholder="Nombre Corto"
-                      :maxlength="shortNameMaxAllowed" :class="{
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="input-CLI_NOMBRE_CORTO"
+                      v-model="nuevoCliente.CLI_NOMBRE_CORTO"
+                      placeholder="Nombre Corto"
+                      :maxlength="shortNameMaxAllowed"
+                      :class="{
                         'is-invalid': v$.CLI_NOMBRE_CORTO.$errors.length,
-                      }" @blur="v$.CLI_NOMBRE_CORTO.$touch" />
+                      }"
+                      @blur="v$.CLI_NOMBRE_CORTO.$touch"
+                    />
 
-                    <span class="input-group-text fw-semibold" :class="shortNameCounterClass"
-                      style="min-width: 58px; justify-content: center;">
+                    <span
+                      class="input-group-text fw-semibold"
+                      :class="shortNameCounterClass"
+                      style="min-width: 58px; justify-content: center"
+                    >
                       {{ shortNameCurrentLength }}/{{ shortNameMaxAllowed }}
                     </span>
 
-                    <div v-if="v$.CLI_NOMBRE_CORTO.$errors.length" class="invalid-feedback">
+                    <div
+                      v-if="v$.CLI_NOMBRE_CORTO.$errors.length"
+                      class="invalid-feedback"
+                    >
                       {{ v$.CLI_NOMBRE_CORTO.$errors[0].$message }}
                     </div>
                   </div>
 
-                  <div v-if="!v$.CLI_NOMBRE_CORTO.$errors.length" class="form-text">
+                  <div
+                    v-if="!v$.CLI_NOMBRE_CORTO.$errors.length"
+                    class="form-text"
+                  >
                     Nombre corto máximo 15 caracteres.
                   </div>
                 </div>
@@ -620,12 +680,23 @@ onBeforeUnmount(() => {
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_CONTACTO">Contacto</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_CONTACTO"
+                  >Contacto</label
+                >
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_CONTACTO" v-model="nuevoCliente.CLI_CONTACTO"
-                    placeholder="Contacto" :class="{
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_CONTACTO"
+                    v-model="nuevoCliente.CLI_CONTACTO"
+                    placeholder="Contacto"
+                    :class="{
                       'is-invalid': v$.CLI_CONTACTO.$errors.length,
-                    }" @blur="v$.CLI_CONTACTO.$touch" />
+                    }"
+                    @blur="v$.CLI_CONTACTO.$touch"
+                  />
                 </div>
               </div>
             </div>
@@ -633,29 +704,63 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_DIRECCION">Dirección</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_DIRECCION"
+                  >Dirección</label
+                >
                 <div class="col-sm-9">
-                  <textarea class="form-control" id="input-CLI_DIRECCION" v-model="nuevoCliente.CLI_DIRECCION"
-                    placeholder="Dirección completa..." :class="{
+                  <textarea
+                    class="form-control"
+                    id="input-CLI_DIRECCION"
+                    v-model="nuevoCliente.CLI_DIRECCION"
+                    placeholder="Dirección completa..."
+                    :class="{
                       'is-invalid': v$.CLI_DIRECCION.$errors.length,
-                    }" @blur="v$.CLI_DIRECCION.$touch" :maxlength="122"></textarea>
-                  <p v-if="122 - nuevoCliente.CLI_DIRECCION.length == 0"
-                    class="text-danger fs-sm bg-danger-light rounded p-2 mt-2 mb-0">
+                    }"
+                    @blur="v$.CLI_DIRECCION.$touch"
+                    @input="sanitizeText"
+                    :maxlength="122"
+                  ></textarea>
+                  <p
+                    v-if="122 - nuevoCliente.CLI_DIRECCION.length == 0"
+                    class="text-danger fs-sm bg-danger-light rounded p-2 mt-2 mb-0"
+                  >
                     máximo 122 caracteres
                   </p>
+                  <div
+                    v-if="!v$.CLI_DIRECCION.$errors.length"
+                    class="form-text"
+                  >
+                    Solo se permiten letras, números, espacios, guion (-) y
+                    guion bajo (_).
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TERRITORIO">Territorio</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_TERRITORIO"
+                  >Territorio</label
+                >
                 <div class="col-sm-9">
-                  <select class="form-select" id="select-CLI_TERRITORIO" name="select-CLI_TERRITORIO"
-                    v-model="nuevoCliente.CLI_TERRITORIO" :class="{
+                  <select
+                    class="form-select"
+                    id="select-CLI_TERRITORIO"
+                    name="select-CLI_TERRITORIO"
+                    v-model="nuevoCliente.CLI_TERRITORIO"
+                    :class="{
                       'is-invalid': v$.CLI_TERRITORIO.$errors.length,
-                    }" @blur="v$.CLI_TERRITORIO.$touch">
-                    <option v-for="(territorio, index) in territorios" :key="index"
-                      :value="territorio.TERRITORIO_CODIGO">
+                    }"
+                    @blur="v$.CLI_TERRITORIO.$touch"
+                  >
+                    <option
+                      v-for="(territorio, index) in territorios"
+                      :key="index"
+                      :value="territorio.TERRITORIO_CODIGO"
+                    >
                       {{ territorio.TERRITORIO_DESCRIPCION }}
                     </option>
                   </select>
@@ -666,13 +771,27 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_PROVINCIA">Provincia</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_PROVINCIA"
+                  >Provincia</label
+                >
                 <div class="col-sm-9" v-if="provincias_ciudades.length">
-                  <select class="form-select" id="select-CLI_PROVINCIA" name="select-CLI_PROVINCIA"
-                    v-model="nuevoCliente.CLI_PROVINCIA" :class="{
+                  <select
+                    class="form-select"
+                    id="select-CLI_PROVINCIA"
+                    name="select-CLI_PROVINCIA"
+                    v-model="nuevoCliente.CLI_PROVINCIA"
+                    :class="{
                       'is-invalid': v$.CLI_PROVINCIA.$errors.length,
-                    }" @blur="v$.CLI_PROVINCIA.$touch">
-                    <option v-for="(provincia, index) in provincias_ciudades" :key="index" :value="index">
+                    }"
+                    @blur="v$.CLI_PROVINCIA.$touch"
+                  >
+                    <option
+                      v-for="(provincia, index) in provincias_ciudades"
+                      :key="index"
+                      :value="index"
+                    >
                       {{ provincia.provincia }}
                     </option>
                   </select>
@@ -681,15 +800,30 @@ onBeforeUnmount(() => {
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_CIUDAD">Ciudad</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_CIUDAD"
+                  >Ciudad</label
+                >
                 <div class="col-sm-9">
-                  <select class="form-select" id="select-CLI_CIUDAD" name="select-CLI_CIUDAD"
-                    v-model="nuevoCliente.CLI_CIUDAD" v-if="nuevoCliente.CLI_PROVINCIA !== ''" :class="{
+                  <select
+                    class="form-select"
+                    id="select-CLI_CIUDAD"
+                    name="select-CLI_CIUDAD"
+                    v-model="nuevoCliente.CLI_CIUDAD"
+                    v-if="nuevoCliente.CLI_PROVINCIA !== ''"
+                    :class="{
                       'is-invalid': v$.CLI_CIUDAD.$errors.length,
-                    }" @blur="v$.CLI_CIUDAD.$touch">
-                    <option v-for="(ciudad, index) in provincias_ciudades[
-                      nuevoCliente.CLI_PROVINCIA
-                    ].ciudades" :key="index" :value="ciudad">
+                    }"
+                    @blur="v$.CLI_CIUDAD.$touch"
+                  >
+                    <option
+                      v-for="(ciudad, index) in provincias_ciudades[
+                        nuevoCliente.CLI_PROVINCIA
+                      ].ciudades"
+                      :key="index"
+                      :value="ciudad"
+                    >
                       {{ ciudad }}
                     </option>
                   </select>
@@ -700,23 +834,45 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TELEFONO_1">Teléfono 1</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_TELEFONO_1"
+                  >Teléfono 1</label
+                >
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_TELEFONO_1"
-                    v-model="nuevoCliente.CLI_TELEFONO_1" placeholder="Teléfono 1" :class="{
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_TELEFONO_1"
+                    v-model="nuevoCliente.CLI_TELEFONO_1"
+                    placeholder="Teléfono 1"
+                    :class="{
                       'is-invalid': v$.CLI_TELEFONO_1.$errors.length,
-                    }" @blur="v$.CLI_TELEFONO_1.$touch" />
+                    }"
+                    @blur="v$.CLI_TELEFONO_1.$touch"
+                  />
                 </div>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TELEFONO_2">Teléfono 2</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_TELEFONO_2"
+                  >Teléfono 2</label
+                >
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_TELEFONO_2"
-                    v-model="nuevoCliente.CLI_TELEFONO_2" placeholder="Teléfono 2" :class="{
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_TELEFONO_2"
+                    v-model="nuevoCliente.CLI_TELEFONO_2"
+                    placeholder="Teléfono 2"
+                    :class="{
                       'is-invalid': v$.CLI_TELEFONO_2.$errors.length,
-                    }" @blur="v$.CLI_TELEFONO_2.$touch" />
+                    }"
+                    @blur="v$.CLI_TELEFONO_2.$touch"
+                  />
                 </div>
               </div>
             </div>
@@ -724,23 +880,45 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TELEFONO_3">Teléfono 3</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_TELEFONO_3"
+                  >Teléfono 3</label
+                >
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_TELEFONO_3"
-                    v-model="nuevoCliente.CLI_TELEFONO_3" placeholder="Teléfono 3" :class="{
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_TELEFONO_3"
+                    v-model="nuevoCliente.CLI_TELEFONO_3"
+                    placeholder="Teléfono 3"
+                    :class="{
                       'is-invalid': v$.CLI_TELEFONO_3.$errors.length,
-                    }" @blur="v$.CLI_TELEFONO_3.$touch" />
+                    }"
+                    @blur="v$.CLI_TELEFONO_3.$touch"
+                  />
                 </div>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TELEFONO_4">Teléfono 4</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_TELEFONO_4"
+                  >Teléfono 4</label
+                >
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_TELEFONO_4"
-                    v-model="nuevoCliente.CLI_TELEFONO_4" placeholder="Teléfono 4" :class="{
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_TELEFONO_4"
+                    v-model="nuevoCliente.CLI_TELEFONO_4"
+                    placeholder="Teléfono 4"
+                    :class="{
                       'is-invalid': v$.CLI_TELEFONO_4.$errors.length,
-                    }" @blur="v$.CLI_TELEFONO_4.$touch" />
+                    }"
+                    @blur="v$.CLI_TELEFONO_4.$touch"
+                  />
                 </div>
               </div>
             </div>
@@ -748,15 +926,28 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-12">
               <div class="row">
-                <label class="col-sm-2 col-form-label text-end" for="input-CLI_CORREO_ELECT_SRI">Correo electrónico
-                  SRI</label>
+                <label
+                  class="col-sm-2 col-form-label text-end"
+                  for="input-CLI_CORREO_ELECT_SRI"
+                  >Correo electrónico SRI</label
+                >
                 <div class="col-sm-10">
-                  <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_SRI"
-                    placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_SRI" :class="{
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_CORREO_ELECT_SRI"
+                    placeholder="Correo electrónico..."
+                    v-model="nuevoCliente.CLI_CORREO_ELECT_SRI"
+                    :class="{
                       'is-invalid': v$.CLI_CORREO_ELECT_SRI.$errors.length,
-                    }" @blur="v$.CLI_CORREO_ELECT_SRI.$touch" />
+                    }"
+                    @blur="v$.CLI_CORREO_ELECT_SRI.$touch"
+                  />
 
-                  <div v-if="v$.CLI_CORREO_ELECT_SRI.$errors.length" class="invalid-feedback d-block">
+                  <div
+                    v-if="v$.CLI_CORREO_ELECT_SRI.$errors.length"
+                    class="invalid-feedback d-block"
+                  >
                     {{ v$.CLI_CORREO_ELECT_SRI.$errors[0].$message }}
                   </div>
                 </div>
@@ -766,16 +957,34 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-12">
               <div class="row">
-                <label class="col-sm-2 col-form-label text-end" for="input-CLI_CORREO_ELECT_NOTIFICACION_INTERNA">Correo
-                  electrónico contacto</label>
+                <label
+                  class="col-sm-2 col-form-label text-end"
+                  for="input-CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
+                  >Correo electrónico contacto</label
+                >
                 <div class="col-sm-10">
-                  <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
-                    placeholder="Correo electrónico..." v-model="nuevoCliente.CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="input-CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
+                    placeholder="Correo electrónico..."
+                    v-model="nuevoCliente.CLI_CORREO_ELECT_NOTIFICACION_INTERNA"
                     :class="{
-                      'is-invalid': v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
-                    }" @blur="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$touch" />
-                  <div v-if="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length" class="invalid-feedback d-block">
-                    {{ v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors[0].$message }}
+                      'is-invalid':
+                        v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length,
+                    }"
+                    @blur="v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$touch"
+                  />
+                  <div
+                    v-if="
+                      v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors.length
+                    "
+                    class="invalid-feedback d-block"
+                  >
+                    {{
+                      v$.CLI_CORREO_ELECT_NOTIFICACION_INTERNA.$errors[0]
+                        .$message
+                    }}
                   </div>
                 </div>
               </div>
@@ -785,11 +994,23 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_GRUPO">Grupo</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_GRUPO"
+                  >Grupo</label
+                >
                 <div class="col-sm-9" v-if="grupos_subgrupos.length">
-                  <select class="form-select" id="select-CLI_GRUPO" name="select-CLI_GRUPO"
-                    v-model="nuevoCliente.CLI_GRUPO">
-                    <option v-for="(grupo, index) in grupos_subgrupos" :key="index" :value="index">
+                  <select
+                    class="form-select"
+                    id="select-CLI_GRUPO"
+                    name="select-CLI_GRUPO"
+                    v-model="nuevoCliente.CLI_GRUPO"
+                  >
+                    <option
+                      v-for="(grupo, index) in grupos_subgrupos"
+                      :key="index"
+                      :value="index"
+                    >
                       {{ grupo.GRUPO_DESCRIPCION }}
                     </option>
                   </select>
@@ -798,13 +1019,26 @@ onBeforeUnmount(() => {
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_SUBGRUPO">Subgrupo</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_SUBGRUPO"
+                  >Subgrupo</label
+                >
                 <div class="col-sm-9">
-                  <select class="form-select" id="select-CLI_SUBGRUPO" name="select-CLI_SUBGRUPO"
-                    v-model="nuevoCliente.CLI_SUBGRUPO" v-if="nuevoCliente.CLI_GRUPO !== ''">
-                    <option v-for="(subgrupo, index) in grupos_subgrupos[
-                      nuevoCliente.CLI_GRUPO
-                    ].subgrupos" :key="index" :value="subgrupo.SUBGRUPO_CODIGO">
+                  <select
+                    class="form-select"
+                    id="select-CLI_SUBGRUPO"
+                    name="select-CLI_SUBGRUPO"
+                    v-model="nuevoCliente.CLI_SUBGRUPO"
+                    v-if="nuevoCliente.CLI_GRUPO !== ''"
+                  >
+                    <option
+                      v-for="(subgrupo, index) in grupos_subgrupos[
+                        nuevoCliente.CLI_GRUPO
+                      ].subgrupos"
+                      :key="index"
+                      :value="subgrupo.SUBGRUPO_CODIGO"
+                    >
                       {{ subgrupo.SUBGRUPO_DESCRIPCION }}
                     </option>
                   </select>
@@ -815,14 +1049,29 @@ onBeforeUnmount(() => {
           <div class="row mb-4">
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_SEGMENTO">Segmento</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_SEGMENTO"
+                  >Segmento</label
+                >
                 <div class="col-sm-9" v-if="segmentos.length">
-                  <select class="form-select" id="select-CLI_SEGMENTO" name="select-CLI_SEGMENTO"
-                    v-model="nuevoCliente.CLI_SEGMENTO_ID" @change="fetchSubSegmentos($event.target.value)"
-                    :disabled="loadingSegmentos" :class="{
+                  <select
+                    class="form-select"
+                    id="select-CLI_SEGMENTO"
+                    name="select-CLI_SEGMENTO"
+                    v-model="nuevoCliente.CLI_SEGMENTO_ID"
+                    @change="fetchSubSegmentos($event.target.value)"
+                    :disabled="loadingSegmentos"
+                    :class="{
                       'is-invalid': v$.CLI_SEGMENTO_ID.$errors.length,
-                    }" @blur="v$.CLI_SEGMENTO_ID.$touch">
-                    <option v-for="(seg, index) in segmentos" :key="index" :value="seg.coAtrPadre">
+                    }"
+                    @blur="v$.CLI_SEGMENTO_ID.$touch"
+                  >
+                    <option
+                      v-for="(seg, index) in segmentos"
+                      :key="index"
+                      :value="seg.coAtrPadre"
+                    >
                       {{ seg.segmento }}
                     </option>
                   </select>
@@ -831,13 +1080,28 @@ onBeforeUnmount(() => {
             </div>
             <div class="col-sm-6">
               <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_SUBSEGMENTO">SubSegmento</label>
+                <label
+                  class="col-sm-3 col-form-label text-end"
+                  for="input-CLI_SUBSEGMENTO"
+                  >SubSegmento</label
+                >
                 <div class="col-sm-9" v-if="subsegmentos.length">
-                  <select class="form-select" id="select-CLI_SUBSEGMENTO" name="select-CLI_SUBSEGMENTO"
-                    v-model="nuevoCliente.CLI_SUBSEGMENTO_ID" :disabled="loadingSubSegmentos" :class="{
+                  <select
+                    class="form-select"
+                    id="select-CLI_SUBSEGMENTO"
+                    name="select-CLI_SUBSEGMENTO"
+                    v-model="nuevoCliente.CLI_SUBSEGMENTO_ID"
+                    :disabled="loadingSubSegmentos"
+                    :class="{
                       'is-invalid': v$.CLI_SUBSEGMENTO_ID.$errors.length,
-                    }" @blur="v$.CLI_SUBSEGMENTO_ID.$touch">
-                    <option v-for="(seg, index) in subsegmentos" :key="index" :value="seg.coAtrHijo">
+                    }"
+                    @blur="v$.CLI_SUBSEGMENTO_ID.$touch"
+                  >
+                    <option
+                      v-for="(seg, index) in subsegmentos"
+                      :key="index"
+                      :value="seg.coAtrHijo"
+                    >
                       {{ seg.subsegmento }}
                     </option>
                   </select>
