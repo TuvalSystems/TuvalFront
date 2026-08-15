@@ -1090,28 +1090,26 @@ const isWarehouseSelectionDisabled = computed(() => {
   return loadingWarehouseByUser.value || form.value.origen === "reserva";
 });
 
-/** logica para el check de aplicacion de proyecto */
-const isChecked = ref(false);
+const DEFAULT_PROJECT_CODE = "1";
+const isEmptyProject = (project) => project === null || project === undefined || project === "";
 
-const hasProjectSelected = (project) => Number.isInteger(project);
+function setDefaultProject() {
+  if (!isEmptyProject(form.value.proyecto)) return;
+  if (dataProyectSellers.value.length === 0) return;
 
-watch(
-  () => form.value.proyecto,
-  (project) => {
-    if (hasProjectSelected(project)) {
-      isChecked.value = true;
-    }
-  },
-  { immediate: true }
-);
+  const defaultProject = dataProyectSellers.value.find(
+    (project) => String(project.coMotproven) === DEFAULT_PROJECT_CODE
+  );
 
-function handleCheck(event) {
-  isChecked.value = event.target.checked;
-
-  if (!isChecked.value) {
-    form.value.proyecto = null;
+  if (defaultProject) {
+    form.value.proyecto = defaultProject.coMotproven;
   }
 }
+
+watch(
+  () => [form.value.proyecto, dataProyectSellers.value.length],
+  () => setDefaultProject()
+);
 
 onMounted(async () => {
   const mode = route.query.mode;
@@ -1155,6 +1153,7 @@ onMounted(async () => {
     await fetchCurrentDraft();
   }
   await fetchListProyectSellers();
+  setDefaultProject();
   await Promise.all([fetchWarehouseByPtoVtaUser(), fetchConditionPayment()]);
   //logica para recuperar datos en memoria
   if (form.value.cliente && form.value.cliente.CLI_RUC) {
@@ -1657,47 +1656,27 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="col-12 col-lg-8">
-                <div class="kv">
-                  <div class="project-field" :class="{ active: isChecked }">
-                    <div class="project-check">
-                      <label class="label-small" for="aplicar-proyecto">
-                        Aplicar Proyecto
-                      </label>
-                      <input
-                        id="aplicar-proyecto"
-                        class="form-check-input mt-0"
-                        type="checkbox"
-                        :checked="isChecked"
-                        aria-controls="lista-proyectos"
-                        :aria-expanded="isChecked"
-                        @change="handleCheck"
-                      />
-                    </div>
-
-                    <Transition name="project-select">
-                      <div v-if="isChecked" class="project-select-wrap">
-                        <label class="label-small" for="lista-proyectos">
-                          Lista de Proyectos
-                        </label>
-                        <select
-                          id="lista-proyectos"
-                          v-model="form.proyecto"
-                          class="form-select form-select-sm project-select"
-                        >
-                          <option value="" disabled>
-                            Seleccione un proyecto
-                          </option>
-                          <option
-                            v-for="proyect in dataProyectSellers"
-                            :key="proyect.coMotproven"
-                            :value="proyect.coMotproven"
-                          >
-                            {{ proyect.txDescor }}
-                          </option>
-                        </select>
-                      </div>
-                    </Transition>
-                  </div>
+                <div class="kv space-y-2">
+                  <label class="label-small" for="lista-proyectos">
+                    Proyecto
+                  </label>
+                  <select
+                    id="lista-proyectos"
+                    v-model="form.proyecto"
+                    class="form-select form-select-sm project-select"
+                    :disabled="
+                      loadingProyectSellers ||
+                      dataProyectSellers.length === 0
+                    "
+                  >
+                    <option
+                      v-for="proyect in dataProyectSellers"
+                      :key="proyect.coMotproven"
+                      :value="proyect.coMotproven"
+                    >
+                      {{ proyect.txDeslar }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -2859,89 +2838,8 @@ onMounted(async () => {
   line-height: 1;
 }
 
-.project-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: calc(1.5em + 0.5rem + 2px);
-  flex: 0 0 auto;
-}
-
-.project-check .label-small {
-  margin-bottom: 0;
-  cursor: pointer;
-}
-
-.project-check .form-check-input {
-  cursor: pointer;
-}
-
-.project-field {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  min-height: calc(1.5em + 0.5rem + 2px);
-  padding: 0.25rem 0.5rem;
-  border: 1px solid transparent;
-  border-radius: 0.375rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.project-field.active {
-  background-color: rgba(var(--bs-primary-rgb), 0.04);
-  border-color: rgba(var(--bs-primary-rgb), 0.18);
-}
-
-.project-select-wrap {
-  display: flex;
-  align-items: center;
-  flex: 1 1 14rem;
-  gap: 0.5rem;
-  min-width: 14rem;
-}
-
-.project-select-wrap .label-small {
-  margin-bottom: 0;
-  white-space: nowrap;
-}
-
 .project-select {
-  max-width: 18rem;
-}
-
-.project-select-enter-active,
-.project-select-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.project-select-enter-from,
-.project-select-leave-to {
-  opacity: 0;
-  transform: translateY(-0.25rem);
-}
-
-@media (max-width: 575.98px) {
-  .project-field {
-    align-items: stretch;
-  }
-
-  .project-check {
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  .project-select-wrap {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 100%;
-  }
-
-  .project-select {
-    max-width: none;
-    width: 100%;
-  }
+  max-width: 22rem;
 }
 
 .kv .badge2 {
