@@ -1090,7 +1090,7 @@ const isWarehouseSelectionDisabled = computed(() => {
   return loadingWarehouseByUser.value || form.value.origen === "reserva";
 });
 
-const DEFAULT_PROJECT_CODE = "1";
+const DEFAULT_PROJECT_ID = 1;
 const isEmptyProject = (project) => project === null || project === undefined || project === "";
 
 function setDefaultProject() {
@@ -1098,7 +1098,7 @@ function setDefaultProject() {
   if (dataProyectSellers.value.length === 0) return;
 
   const defaultProject = dataProyectSellers.value.find(
-    (project) => String(project.coMotproven) === DEFAULT_PROJECT_CODE
+    (project) => Number(project.coMotproven) === DEFAULT_PROJECT_ID
   );
 
   if (defaultProject) {
