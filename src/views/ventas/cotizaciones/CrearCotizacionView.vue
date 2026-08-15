@@ -32,6 +32,7 @@ import verModalSeleccionStockBodegas from "@/views/ventas/modals/verModalSelecci
 import verModalModificacionPeso from "@/views/ventas/modals/verModalModificacionPeso.vue";
 import verModalProveedores from "@/views/ventas/modals/verModalProveedores.vue";
 import verModalListaBorradores from "@/views/ventas/modals/verModalListaBorradores.vue";
+import verModalHistoricoFacturas from "@/views/ventas/modals/verModalHistoricoFacturas.vue";
 import { useRouter, useRoute } from "vue-router";
 import ConfiguracionSegmentacionCard from "@/views/ventas/cotizaciones/crear-cotizacion/components/ConfiguracionSegmentacionCard.vue";
 
@@ -212,6 +213,7 @@ const verSeleccionStockBodegasRef = ref(null);
 const verModalPesoItemRef = ref(null);
 const verProveedoresRef = ref(null);
 const verModalBorradoresRef = ref(null);
+const verHistorialFacturasRef = ref(null);
 const verModalActualizarSegmentoObj = useBootstrapModal(
   verModalActualizarSegmento
 );
@@ -224,6 +226,12 @@ const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
   },
 });
 const verModalBorradoresObj = useBootstrapModal(verModalBorradoresRef);
+const showHistoryInvoicesModal = ref(false);
+const verHistorialFacturasObj = useBootstrapModal(verHistorialFacturasRef, {
+  onHidden: () => {
+    showHistoryInvoicesModal.value = false;
+  },
+});
 const verItemAltObj = useBootstrapModal(verItemAltRef, {
   onHidden: () => {
     clearSelectionItemalternative();
@@ -557,6 +565,8 @@ async function selectMethodPayment() {
 
 /** apertura de modal de consulta de items */
 const dataSearchItem = ref({});
+const historyInvoiceClientId = computed(() => form.value.cliente?.id ?? null);
+
 const openModalSearchItem = () => {
   dataSearchItem.value = {};
   dataSearchItem.value = form.value;
@@ -567,6 +577,18 @@ const closeModalSearchItem = () => {
   dataSearchItem.value = {};
   verSearchItemModalObj.hide();
 };
+
+async function openModalHistoryInvoices() {
+  if (!historyInvoiceClientId.value) return;
+
+  showHistoryInvoicesModal.value = true;
+  await nextTick();
+  verHistorialFacturasObj.show();
+}
+
+function closeModalHistoryInvoices() {
+  verHistorialFacturasObj.hide();
+}
 
 //proceso de seleccion de items para llenar el form-items
 const handleItemSelected = (row) => {
@@ -1713,7 +1735,9 @@ onMounted(async () => {
             </div>
           </div>
         </template>
-        <div class="d-flex align-items-center mb-4">
+        <div
+          class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4"
+        >
           <div class="btn-group btn-group-sm">
             <button
               type="button"
@@ -1731,6 +1755,14 @@ onMounted(async () => {
               <i class="fa fa-rotate me-1"></i>Stock
             </button>
           </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-info ms-auto"
+            :disabled="!historyInvoiceClientId"
+            @click="openModalHistoryInvoices"
+          >
+            <i class="fa fa-file-invoice me-1"></i>Historial Facturas
+          </button>
         </div>
         <div class="table-responsive mt-1 mb-2">
           <table
@@ -2688,6 +2720,27 @@ onMounted(async () => {
           @seleccionarAlternativa="onSelectItemAlternativo"
         >
         </verModalItemAlternativo>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal de historico de facturas por cliente -->
+  <div
+    class="modal fade"
+    id="modal-historico-facturas"
+    tabindex="-1"
+    ref="verHistorialFacturasRef"
+  >
+    <div
+      class="modal-dialog modal-xl modal-dialog-centered"
+      style="max-width: 95vw"
+    >
+      <div class="modal-content">
+        <verModalHistoricoFacturas
+          v-if="showHistoryInvoicesModal && historyInvoiceClientId"
+          :cliente-id="historyInvoiceClientId"
+          @closeModal="closeModalHistoryInvoices"
+        />
       </div>
     </div>
   </div>
