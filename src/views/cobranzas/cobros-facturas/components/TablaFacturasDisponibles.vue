@@ -108,7 +108,32 @@ const dueDateLabel = 'Fecha Vencimiento';
 const balanceDisplayLabel = 'Monto Pendiente';
 const amountDisplayLabel = 'Aplicar monto';
 
+const sortableColumnSettings = {
+  document: {
+    key: () => props.documentKey,
+    type: 'text'
+  },
+  issueDate: {
+    key: () => props.issueDateKey,
+    type: 'date'
+  },
+  dueDate: {
+    key: () => props.dueDateKey,
+    type: 'date'
+  },
+  originalAmount: {
+    key: () => props.originalAmountKey,
+    type: 'number'
+  },
+  balance: {
+    key: () => props.balanceKey,
+    type: 'number'
+  }
+};
+
 const searchTerm = ref('');
+const sortColumn = ref(null);
+const sortDirection = ref('asc');
 
 const normalizedInvoices = computed(() =>
   Array.isArray(props.invoices)
@@ -118,14 +143,13 @@ const normalizedInvoices = computed(() =>
 
 const filteredInvoices = computed(() => {
   const searchText = String(searchTerm.value ?? '').trim().toLowerCase();
+  const invoices = !searchText
+    ? normalizedInvoices.value
+    : normalizedInvoices.value.filter((invoice) =>
+      String(invoice?.[props.documentKey] ?? '').toLowerCase().includes(searchText)
+    );
 
-  if (!searchText) {
-    return normalizedInvoices.value;
-  }
-
-  return normalizedInvoices.value.filter((invoice) =>
-    String(invoice?.[props.documentKey] ?? '').toLowerCase().includes(searchText)
-  );
+  return sortInvoices(invoices);
 });
 
 function getRowKey(invoice, index) {
@@ -153,6 +177,153 @@ function getRemainingBalance(invoice) {
   const appliedAmount = toNumber(invoice?.[props.amountKey]) ?? 0;
 
   return roundTo(Math.max(balance - appliedAmount, 0), 2);
+}
+
+function setSortColumn(column) {
+  if (sortColumn.value === column) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+    return;
+  }
+
+  sortColumn.value = column;
+  sortDirection.value = 'asc';
+}
+
+function isSortedBy(column) {
+  return sortColumn.value === column;
+}
+
+function getAriaSort(column) {
+  if (!isSortedBy(column)) {
+    return 'none';
+  }
+
+  return sortDirection.value === 'asc' ? 'ascending' : 'descending';
+}
+
+function getSortIcon(column) {
+  if (!isSortedBy(column)) {
+    return 'fa-sort';
+  }
+
+  return sortDirection.value === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+}
+
+function getSortButtonLabel(column, label) {
+  if (!isSortedBy(column)) {
+    return `Ordenar por ${label}`;
+  }
+
+  const nextDirection = sortDirection.value === 'asc' ? 'descendente' : 'ascendente';
+
+  return `Ordenar por ${label} ${nextDirection}`;
+}
+
+function sortInvoices(invoices) {
+  const sortSetting = sortableColumnSettings[sortColumn.value];
+
+  if (!sortSetting) {
+    return invoices;
+  }
+
+  const direction = sortDirection.value === 'desc' ? -1 : 1;
+  const key = sortSetting.key();
+
+  return [...invoices]
+    .map((invoice, index) => ({ invoice, index }))
+    .sort((left, right) => {
+      const leftValue = getComparableValue(getValue(left.invoice, key), sortSetting.type);
+      const rightValue = getComparableValue(getValue(right.invoice, key), sortSetting.type);
+      const leftIsEmpty = leftValue === null || leftValue === '';
+      const rightIsEmpty = rightValue === null || rightValue === '';
+
+      if (leftIsEmpty && rightIsEmpty) {
+        return left.index - right.index;
+      }
+
+      if (leftIsEmpty) {
+        return 1;
+      }
+
+      if (rightIsEmpty) {
+        return -1;
+      }
+
+      const result = compareComparableValues(leftValue, rightValue, sortSetting.type);
+
+      return result === 0 ? left.index - right.index : result * direction;
+    })
+    .map(({ invoice }) => invoice);
+}
+
+function getComparableValue(value, type) {
+  if (type === 'number') {
+    const numericValue = toNumber(value);
+
+    return Number.isFinite(numericValue) ? numericValue : null;
+  }
+
+  if (type === 'date') {
+    return parseDateValue(value);
+  }
+
+  const textValue = String(value ?? '').trim();
+
+  return textValue || null;
+}
+
+function compareComparableValues(leftValue, rightValue, type) {
+  if (type === 'text') {
+    return leftValue.localeCompare(rightValue, undefined, {
+      numeric: true,
+      sensitivity: 'base'
+    });
+  }
+
+  return leftValue - rightValue;
+}
+
+function parseDateValue(value) {
+  if (value instanceof Date) {
+    const timestamp = value.getTime();
+
+    return Number.isNaN(timestamp) ? null : timestamp;
+  }
+
+  const textValue = String(value ?? '').trim();
+
+  if (!textValue) {
+    return null;
+  }
+
+  const numericDate = textValue.match(/^(\d{1,4})[/-](\d{1,2})[/-](\d{1,4})/);
+
+  if (numericDate) {
+    const firstPart = Number(numericDate[1]);
+    const secondPart = Number(numericDate[2]);
+    const thirdPart = Number(numericDate[3]);
+    const year = firstPart > 31 ? firstPart : normalizeYear(thirdPart);
+    const month = secondPart;
+    const day = firstPart > 31 ? thirdPart : firstPart;
+    const timestamp = Date.UTC(year, month - 1, day);
+    const date = new Date(timestamp);
+
+    if (
+      date.getUTCFullYear() === year
+      && date.getUTCMonth() === month - 1
+      && date.getUTCDate() === day
+    ) {
+      return timestamp;
+    }
+  }
+
+  const parsedDate = Date.parse(textValue);
+
+  return Number.isNaN(parsedDate) ? null : parsedDate;
+}
+
+function normalizeYear(year) {
+  return year < 100 ? 2000 + year : year;
 }
 
 function handleApplyAllChange(invoice) {
@@ -193,11 +364,66 @@ function handleObservationChange(invoice) {
       <table class="table table-sm table-vcenter mb-0 invoice-application-table">
         <thead>
           <tr>
-            <th class="invoice-col-doc">Factura</th>
-            <th class="invoice-col-date">{{ issueDateLabel }}</th>
-            <th class="invoice-col-date">{{ dueDateLabel }}</th>
-            <th class="text-end invoice-col-money">Monto original</th>
-            <th class="text-end invoice-col-money">{{ balanceDisplayLabel }}</th>
+            <th class="invoice-col-doc" :aria-sort="getAriaSort('document')">
+              <button
+                type="button"
+                class="invoice-sort-button"
+                :aria-label="getSortButtonLabel('document', 'Factura')"
+                :aria-pressed="isSortedBy('document')"
+                @click="setSortColumn('document')"
+              >
+                <span>Factura</span>
+                <i class="fa" :class="getSortIcon('document')" aria-hidden="true"></i>
+              </button>
+            </th>
+            <th class="invoice-col-date" :aria-sort="getAriaSort('issueDate')">
+              <button
+                type="button"
+                class="invoice-sort-button"
+                :aria-label="getSortButtonLabel('issueDate', issueDateLabel)"
+                :aria-pressed="isSortedBy('issueDate')"
+                @click="setSortColumn('issueDate')"
+              >
+                <span>{{ issueDateLabel }}</span>
+                <i class="fa" :class="getSortIcon('issueDate')" aria-hidden="true"></i>
+              </button>
+            </th>
+            <th class="invoice-col-date" :aria-sort="getAriaSort('dueDate')">
+              <button
+                type="button"
+                class="invoice-sort-button"
+                :aria-label="getSortButtonLabel('dueDate', dueDateLabel)"
+                :aria-pressed="isSortedBy('dueDate')"
+                @click="setSortColumn('dueDate')"
+              >
+                <span>{{ dueDateLabel }}</span>
+                <i class="fa" :class="getSortIcon('dueDate')" aria-hidden="true"></i>
+              </button>
+            </th>
+            <th class="text-end invoice-col-money" :aria-sort="getAriaSort('originalAmount')">
+              <button
+                type="button"
+                class="invoice-sort-button invoice-sort-button-end"
+                :aria-label="getSortButtonLabel('originalAmount', 'Monto original')"
+                :aria-pressed="isSortedBy('originalAmount')"
+                @click="setSortColumn('originalAmount')"
+              >
+                <span>Monto original</span>
+                <i class="fa" :class="getSortIcon('originalAmount')" aria-hidden="true"></i>
+              </button>
+            </th>
+            <th class="text-end invoice-col-money" :aria-sort="getAriaSort('balance')">
+              <button
+                type="button"
+                class="invoice-sort-button invoice-sort-button-end"
+                :aria-label="getSortButtonLabel('balance', balanceDisplayLabel)"
+                :aria-pressed="isSortedBy('balance')"
+                @click="setSortColumn('balance')"
+              >
+                <span>{{ balanceDisplayLabel }}</span>
+                <i class="fa" :class="getSortIcon('balance')" aria-hidden="true"></i>
+              </button>
+            </th>
             <th v-if="showApplyAll" class="text-center invoice-col-check">{{ applyAllLabel }}</th>
             <th class="text-end invoice-col-amount">{{ amountDisplayLabel }}</th>
             <th class="text-end invoice-col-money">{{ remainingLabel }}</th>
@@ -361,6 +587,48 @@ function handleObservationChange(invoice) {
   font-size: 0.62rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.invoice-sort-button {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.25rem;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: left;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.invoice-sort-button-end {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.invoice-sort-button span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.invoice-sort-button i {
+  flex: 0 0 auto;
+  font-size: 0.64rem;
+  opacity: 0.62;
+}
+
+.invoice-sort-button[aria-pressed='true'] i {
+  opacity: 1;
+}
+
+.invoice-sort-button:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
 }
 
 .invoice-col-doc {
