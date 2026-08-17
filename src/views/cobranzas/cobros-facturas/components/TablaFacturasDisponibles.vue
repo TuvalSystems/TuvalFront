@@ -103,6 +103,11 @@ const emit = defineEmits([
   'observation-change'
 ]);
 
+const issueDateLabel = 'Fecha Emisión';
+const dueDateLabel = 'Fecha Vencimiento';
+const balanceDisplayLabel = 'Monto Pendiente';
+const amountDisplayLabel = 'Aplicar monto';
+
 const searchTerm = ref('');
 
 const normalizedInvoices = computed(() =>
@@ -189,12 +194,12 @@ function handleObservationChange(invoice) {
         <thead>
           <tr>
             <th class="invoice-col-doc">Factura</th>
-            <th class="invoice-col-date">Emision</th>
-            <th class="invoice-col-date">Vencimiento</th>
+            <th class="invoice-col-date">{{ issueDateLabel }}</th>
+            <th class="invoice-col-date">{{ dueDateLabel }}</th>
             <th class="text-end invoice-col-money">Monto original</th>
-            <th class="text-end invoice-col-money">{{ balanceLabel }}</th>
+            <th class="text-end invoice-col-money">{{ balanceDisplayLabel }}</th>
             <th v-if="showApplyAll" class="text-center invoice-col-check">{{ applyAllLabel }}</th>
-            <th class="text-end invoice-col-amount">{{ amountLabel }}</th>
+            <th class="text-end invoice-col-amount">{{ amountDisplayLabel }}</th>
             <th class="text-end invoice-col-money">{{ remainingLabel }}</th>
             <th v-if="showObservation" class="invoice-col-observation">{{ observationLabel }}</th>
           </tr>
@@ -204,16 +209,16 @@ function handleObservationChange(invoice) {
             <td class="fw-semibold invoice-col-doc" data-label="Factura">
               {{ getValue(invoice, documentKey) }}
             </td>
-            <td class="invoice-col-date" data-label="Emision">
+            <td class="invoice-col-date" :data-label="issueDateLabel">
               {{ getValue(invoice, issueDateKey) }}
             </td>
-            <td class="invoice-col-date" data-label="Vencimiento">
+            <td class="invoice-col-date" :data-label="dueDateLabel">
               {{ getValue(invoice, dueDateKey) }}
             </td>
             <td class="text-end invoice-col-money" data-label="Monto original">
               ${{ formatInvoiceAmount(getValue(invoice, originalAmountKey)) }}
             </td>
-            <td class="text-end invoice-col-money" :data-label="balanceLabel">
+            <td class="text-end invoice-col-money" :data-label="balanceDisplayLabel">
               ${{ formatInvoiceAmount(getValue(invoice, balanceKey)) }}
             </td>
             <td v-if="showApplyAll" class="text-center invoice-col-check" :data-label="applyAllLabel">
@@ -224,7 +229,7 @@ function handleObservationChange(invoice) {
                 @change="handleApplyAllChange(invoice)"
               >
             </td>
-            <td class="invoice-col-amount" :data-label="amountLabel">
+            <td class="invoice-col-amount" :data-label="amountDisplayLabel">
               <div class="input-group input-group-sm invoice-application-amount">
                 <span class="input-group-text">$</span>
                 <input

@@ -36,6 +36,8 @@ const props = defineProps({
 const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
   toRefs(props);
 
+const APPLICATION_COMMENT_MAX_LENGTH = 100;
+
 const {
   //data
   applicationPayload,
@@ -81,6 +83,16 @@ function handleRegisterApplication() {
 
   emit("add-application", application);
   resetApplicationPayload();
+}
+
+function handleApplicationCommentInput(event) {
+  const comment = event.target.value.slice(0, APPLICATION_COMMENT_MAX_LENGTH);
+
+  applicationPayload.comentario = comment;
+
+  if (event.target.value !== comment) {
+    event.target.value = comment;
+  }
 }
 </script>
 
@@ -131,9 +143,16 @@ function handleRegisterApplication() {
             <input
               type="text"
               class="form-control form-control-sm"
-              v-model.trim="applicationPayload.comentario"
+              :value="applicationPayload.comentario"
+              :class="{ 'is-invalid': v$.comentario.$errors.length }"
+              :maxlength="APPLICATION_COMMENT_MAX_LENGTH"
               placeholder="Ingrese comentario"
+              @input="handleApplicationCommentInput"
+              @blur="v$.comentario.$touch"
             />
+            <div v-if="v$.comentario.$error" class="invalid-feedback d-block">
+              {{ validationMessage(v$.comentario) }}
+            </div>
           </div>
 
           <div class="application-action">

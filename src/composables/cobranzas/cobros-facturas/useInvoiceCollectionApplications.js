@@ -2,6 +2,7 @@ import { computed, reactive, ref } from "vue";
 import useVuelidate from "@vuelidate/core";
 import {
     helpers,
+    maxLength,
     required,
 } from "@vuelidate/validators";
 import { swalWarning } from "@/functions/swal-alert";
@@ -23,6 +24,10 @@ function createEmptyApplicationPayload() {
 }
 
 const requiredField = (message) => helpers.withMessage(message, required);
+const applicationCommentMaxLength = helpers.withMessage(
+    "El comentario no puede exceder 100 caracteres.",
+    maxLength(100)
+);
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -56,6 +61,9 @@ function createApplicationRules() {
     return computed(() => ({
         documento: {
             required: requiredField("Seleccione el documento a aplicar."),
+        },
+        comentario: {
+            maxLength: applicationCommentMaxLength,
         },
     }));
 }

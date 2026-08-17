@@ -33,6 +33,9 @@ const props = defineProps({
 
 const { facturas, bancoTarjetas, tarjeta, cliente } = toRefs(props);
 
+const CARD_APPROVAL_MAX_LENGTH = 30;
+const CARD_COMMENT_MAX_LENGTH = 100;
+
 const {
   cardPayload,
   bankCardsOptions,
@@ -80,6 +83,16 @@ function handleRegisterCard() {
 
 function handleCardDataChanged() {
   resetCardApplicationState();
+}
+
+function handleCardNumericInput(field, event, maxLength) {
+  const numericValue = event.target.value.replace(/\D/g, "").slice(0, maxLength);
+
+  cardPayload[field] = numericValue;
+
+  if (event.target.value !== numericValue) {
+    event.target.value = numericValue;
+  }
 }
 
 function hasRegisteredCard() {
@@ -164,8 +177,13 @@ function hasRegisteredCard() {
               <input
                 type="text"
                 class="form-control form-control-sm"
-                v-model.trim="cardPayload.comprobante"
+                :value="cardPayload.comprobante"
                 :class="{ 'is-invalid': v$.comprobante.$errors.length }"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                :maxlength="CARD_APPROVAL_MAX_LENGTH"
+                autocomplete="off"
+                @input="handleCardNumericInput('comprobante', $event, CARD_APPROVAL_MAX_LENGTH)"
                 @change="handleCardDataChanged"
                 @blur="v$.comprobante.$touch"
               />
@@ -180,8 +198,13 @@ function hasRegisteredCard() {
             <input
               type="text"
               class="form-control form-control-sm"
-              v-model.trim="cardPayload.comentario"
+              :value="cardPayload.comentario"
               :class="{ 'is-invalid': v$.comentario.$errors.length }"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              :maxlength="CARD_COMMENT_MAX_LENGTH"
+              autocomplete="off"
+              @input="handleCardNumericInput('comentario', $event, CARD_COMMENT_MAX_LENGTH)"
               @change="handleCardDataChanged"
               @blur="v$.comentario.$touch"
             />

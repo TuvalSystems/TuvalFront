@@ -4,6 +4,7 @@ import useVuelidate from "@vuelidate/core";
 import {
     decimal,
     helpers,
+    maxLength,
     minLength,
     required
 } from "@vuelidate/validators";
@@ -52,6 +53,14 @@ const numericRetentionFields = [
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
+const numericAuthorizationField = helpers.withMessage(
+    "Ingrese solo numeros en la autorizacion.",
+    helpers.regex(/^\d+$/)
+);
+const authorizationMaxLength = helpers.withMessage(
+    "La autorizacion no puede exceder 50 caracteres.",
+    maxLength(50)
+);
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -120,6 +129,8 @@ function createRetentionRules() {
         autorizacion: {
             required: requiredField("Ingrese el numero de autorizacion."),
             minLength: helpers.withMessage("La autorizacion debe tener al menos 10 caracteres.", minLength(10)),
+            numeric: numericAuthorizationField,
+            maxLength: authorizationMaxLength,
         },
         porcentajeIva: {
             required: requiredField("Ingrese el porcentaje de IVA."),

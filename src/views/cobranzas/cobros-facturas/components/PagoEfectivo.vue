@@ -75,6 +75,11 @@ function registerCash() {
   resetCashPayload();
 }
 
+function handleCashAmountInput(field, event) {
+  cashPayload[field] = event.target.value;
+  updateCashChangeAmount();
+}
+
 onMounted(() => { });
 </script>
 
@@ -103,8 +108,8 @@ onMounted(() => { });
           <small class="label-small">Monto a recibir</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" v-model="cashPayload.montoRecibido"
-              @change="updateCashChangeAmount()" :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
+            <input type="text" class="form-control text-end" :value="cashPayload.montoRecibido"
+              @input="handleCashAmountInput('montoRecibido', $event)" :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
               @blur="v$.montoRecibido.$touch">
             <div v-if="v$.montoRecibido.$error" class="invalid-feedback d-block">
               {{ validationMessage(v$.montoRecibido) }}
@@ -116,8 +121,8 @@ onMounted(() => { });
           <small class="label-small">Monto a cobrar</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" v-model="cashPayload.montoACobrar"
-              @change="updateCashChangeAmount()" :class="{ 'is-invalid': v$.montoACobrar.$errors.length }"
+            <input type="text" class="form-control text-end" :value="cashPayload.montoACobrar"
+              @input="handleCashAmountInput('montoACobrar', $event)" :class="{ 'is-invalid': v$.montoACobrar.$errors.length }"
               @blur="v$.montoACobrar.$touch" />
             <div v-if="v$.montoACobrar.$error" class="invalid-feedback d-block">
               {{ validationMessage(v$.montoACobrar) }}

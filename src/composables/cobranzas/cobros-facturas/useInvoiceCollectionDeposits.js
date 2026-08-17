@@ -4,6 +4,7 @@ import useVuelidate from "@vuelidate/core";
 import {
     decimal,
     helpers,
+    maxLength,
     required
 } from "@vuelidate/validators";
 import { swalError, swalWarning } from "@/functions/swal-alert";
@@ -18,6 +19,14 @@ const typeDeposits = [
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
+const numericReceiptField = helpers.withMessage(
+    "Ingrese solo numeros en el comprobante.",
+    helpers.regex(/^\d+$/)
+);
+const depositReceiptMaxLength = helpers.withMessage(
+    "El comprobante no puede exceder 30 caracteres.",
+    maxLength(30)
+);
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -74,6 +83,8 @@ function createDepositRule() {
         },
         comprobante: {
             required: requiredField("Ingrese el comprobante."),
+            numeric: numericReceiptField,
+            maxLength: depositReceiptMaxLength,
         },
         fechaDeposito: {
             required: requiredField("Seleccione la fecha del deposito.")

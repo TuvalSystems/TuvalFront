@@ -10,6 +10,8 @@ const {
   validateRetentionReceiptNumber
 } = useInvoiceCollectionActions();
 
+const RETENTION_AUTHORIZATION_MAX_LENGTH = 50;
+
 const emit = defineEmits(["add-retention", "remove-retention"]);
 const props = defineProps({
   facturasRetenciones: {
@@ -61,6 +63,18 @@ async function addRetention() {
 
 function removeRetention(index) {
   emit("remove-retention", index);
+}
+
+function handleAuthorizationInput(event) {
+  const authorization = event.target.value
+    .replace(/\D/g, "")
+    .slice(0, RETENTION_AUTHORIZATION_MAX_LENGTH);
+
+  payloadRetention.autorizacion = authorization;
+
+  if (event.target.value !== authorization) {
+    event.target.value = authorization;
+  }
 }
 </script>
 
@@ -335,8 +349,10 @@ function removeRetention(index) {
         <!-- numero de autorizacion -->
         <div class="col-lg-8">
           <small class="label-small">Numero de Autorización</small>
-          <input type="text" v-model="payloadRetention.autorizacion" class="form-control fs-sm"
-            :class="{ 'is-invalid': v$.autorizacion.$errors.length }" @blur="v$.autorizacion.$touch" />
+          <input type="text" :value="payloadRetention.autorizacion" class="form-control fs-sm"
+            :class="{ 'is-invalid': v$.autorizacion.$errors.length }" inputmode="numeric" pattern="[0-9]*"
+            :maxlength="RETENTION_AUTHORIZATION_MAX_LENGTH" autocomplete="off" @input="handleAuthorizationInput"
+            @blur="v$.autorizacion.$touch" />
           <div v-if="v$.autorizacion.$error" class="invalid-feedback d-block">
             {{ validationMessage(v$.autorizacion) }}
           </div>

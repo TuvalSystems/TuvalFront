@@ -4,6 +4,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 import {
     decimal,
     helpers,
+    maxLength,
     required
 } from "@vuelidate/validators";
 import { formatDateForInput } from "@/utils/cobros/validateDate";
@@ -15,6 +16,13 @@ import { swalError, swalWarning } from "@/functions/swal-alert";
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
+const numericReciptField = helpers.withMessage(
+    "Ingrese solo numeros.", helpers.regex(/^\d+$/)
+);
+const checkNumericFieldMaxLength = helpers.withMessage(
+    "El campo no puede exceder 30 caracteres.",
+    maxLength(30)
+);
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -56,9 +64,13 @@ function createCheckRule() {
         },
         cheque: {
             required: requiredField("Ingrese el cheque."),
+            numeric: numericReciptField,
+            maxLength: checkNumericFieldMaxLength,
         },
         cuenta: {
             required: requiredField("Ingrese la cuenta."),
+            numeric: numericReciptField,
+            maxLength: checkNumericFieldMaxLength,
         },
 
         montoRecibido: {

@@ -37,6 +37,8 @@ const props = defineProps({
 
 const { facturas, cheque, cliente, bancoClientes } = toRefs(props);
 
+const CHECK_NUMERIC_FIELD_MAX_LENGTH = 30;
+
 const { loadingCheckReceiptValidation, validateCheckReceiptNumber } =
   useInvoiceCollectionActions();
 
@@ -94,6 +96,19 @@ function handleRegisterCheck() {
 function handleCheckDataChanged() {
   resetCheckApplicationState();
 }
+
+function handleCheckNumericInput(field, event) {
+  const numericValue = event.target.value
+    .replace(/\D/g, "")
+    .slice(0, CHECK_NUMERIC_FIELD_MAX_LENGTH);
+
+  checkPayload[field] = numericValue;
+
+  if (event.target.value !== numericValue) {
+    event.target.value = numericValue;
+  }
+}
+
 </script>
 
 <template>
@@ -195,9 +210,14 @@ function handleCheckDataChanged() {
               <input
                 type="text"
                 class="form-control form-control-sm"
-                v-model="checkPayload.cuenta"
+                :value="checkPayload.cuenta"
                 placeholder="Ingrese el número de cuenta"
                 :class="{ 'is-invalid': v$.cuenta.$errors.length }"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                :maxlength="CHECK_NUMERIC_FIELD_MAX_LENGTH"
+                autocomplete="off"
+                @input="handleCheckNumericInput('cuenta', $event)"
                 @change="handleCheckDataChanged"
                 @blur="v$.cuenta.$touch()"
               />
@@ -217,9 +237,14 @@ function handleCheckDataChanged() {
               <input
                 type="text"
                 class="form-control form-control-sm"
-                v-model="checkPayload.cheque"
+                :value="checkPayload.cheque"
                 placeholder="Ingrese el Cheque"
                 :class="{ 'is-invalid': v$.cheque.$errors.length }"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                :maxlength="CHECK_NUMERIC_FIELD_MAX_LENGTH"
+                autocomplete="off"
+                @input="handleCheckNumericInput('cheque', $event)"
                 @change="handleCheckDataChanged"
                 @blur="v$.cheque.$touch()"
               />

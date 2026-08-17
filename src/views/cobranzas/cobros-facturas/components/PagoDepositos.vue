@@ -1,47 +1,41 @@
 <script setup>
-import { toRefs } from 'vue';
-import flatPickr from 'vue-flatpickr-component';
-import TablaFacturasDisponibles from './TablaFacturasDisponibles.vue';
-import { useInvoiceCollectionDeposits } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionDeposits';
-import { useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
-const emit = defineEmits(['add-deposit', 'remove-deposit']);
+import { toRefs } from "vue";
+import flatPickr from "vue-flatpickr-component";
+import TablaFacturasDisponibles from "./TablaFacturasDisponibles.vue";
+import { useInvoiceCollectionDeposits } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionDeposits";
+import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
+const emit = defineEmits(["add-deposit", "remove-deposit"]);
 const props = defineProps({
   facturas: {
     type: Array,
     required: true,
-    default: () => []
+    default: () => [],
   },
   bancosTuval: {
     type: Array,
     required: true,
-    default: () => []
+    default: () => [],
   },
   depositos: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   cliente: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
-  loadingDocs : {
-    type : Boolean,
-    default : () => false
-  }
+  loadingDocs: {
+    type: Boolean,
+    default: () => false,
+  },
 });
 
-const {
-  loadingDepositReceiptValidation,
-  validateDepositReceiptNumber
-} = useInvoiceCollectionActions();
+const { loadingDepositReceiptValidation, validateDepositReceiptNumber } =
+  useInvoiceCollectionActions();
 
+const DEPOSIT_RECEIPT_MAX_LENGTH = 30;
 
-const {
-  facturas,
-  bancosTuval,
-  depositos,
-  cliente
-} = toRefs(props);
+const { facturas, bancosTuval, depositos, cliente } = toRefs(props);
 
 const {
   typeDeposits,
@@ -63,14 +57,14 @@ const {
   getInvoiceRemainingBalance,
   createDepositToAdd,
   getBankId,
-  getBankName
+  getBankName,
 } = useInvoiceCollectionDeposits({
   facturas,
   bancosTuval,
   depositos,
-  cliente, 
-  //function 
-  validateDepositReceiptNumber
+  cliente,
+  //function
+  validateDepositReceiptNumber,
 });
 
 async function handleApplyDeposit() {
@@ -84,12 +78,24 @@ function handleRegisterDeposit() {
     return;
   }
 
-  emit('add-deposit', deposit);
+  emit("add-deposit", deposit);
   resetDepositPayload();
 }
 
 function handleDepositDataChanged() {
   resetDepositApplicationState();
+}
+
+function handleDepositReceiptInput(event) {
+  const receiptNumber = event.target.value
+    .replace(/\D/g, "")
+    .slice(0, DEPOSIT_RECEIPT_MAX_LENGTH);
+
+  depositPayload.comprobante = receiptNumber;
+
+  if (event.target.value !== receiptNumber) {
+    event.target.value = receiptNumber;
+  }
 }
 </script>
 
@@ -149,7 +155,11 @@ function handleDepositDataChanged() {
               :disabled="loadingDocs"
             >
               <option value="" disabled>
-                {{ bankTuvalOptions.length ? 'Seleccione un banco' : 'Sin bancos disponibles' }}
+                {{
+                  bankTuvalOptions.length
+                    ? "Seleccione un banco"
+                    : "Sin bancos disponibles"
+                }}
               </option>
               <option
                 v-for="(bank, index) in bankTuvalOptions"
@@ -166,16 +176,27 @@ function handleDepositDataChanged() {
 
           <div class="deposit-field">
             <small class="label-small">Comprobante *</small>
-            <input
-              type="text"
-              class="form-control form-control-sm"
-              v-model.trim="depositPayload.comprobante"
-              :class="{ 'is-invalid': v$.comprobante.$errors.length }"
-              required
-              aria-required="true"
-              @change="handleDepositDataChanged"
-              @blur="v$.comprobante.$touch"
-            />
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"
+                ><i class="far fa-hashtag"></i
+              ></span>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                :value="depositPayload.comprobante"
+                :class="{ 'is-invalid': v$.comprobante.$errors.length }"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                :maxlength="DEPOSIT_RECEIPT_MAX_LENGTH"
+                autocomplete="off"
+                required
+                aria-required="true"
+                @input="handleDepositReceiptInput"
+                @change="handleDepositDataChanged"
+                @blur="v$.comprobante.$touch"
+              />
+            </div>
+
             <div v-if="v$.comprobante.$error" class="invalid-feedback d-block">
               {{ validationMessage(v$.comprobante) }}
             </div>
@@ -184,7 +205,9 @@ function handleDepositDataChanged() {
           <div class="deposit-field">
             <small class="label-small">Fecha</small>
             <div class="input-group input-group-sm">
-              <span class="input-group-text"><i class="far fa-calendar"></i></span>
+              <span class="input-group-text"
+                ><i class="far fa-calendar"></i
+              ></span>
               <flat-pickr
                 class="form-control"
                 placeholder="Y-m-d"
@@ -195,7 +218,10 @@ function handleDepositDataChanged() {
                 @blur="v$.fechaDeposito.$touch"
               />
             </div>
-            <div v-if="v$.fechaDeposito.$error" class="invalid-feedback d-block">
+            <div
+              v-if="v$.fechaDeposito.$error"
+              class="invalid-feedback d-block"
+            >
               {{ validationMessage(v$.fechaDeposito) }}
             </div>
           </div>
@@ -211,9 +237,12 @@ function handleDepositDataChanged() {
                 :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
                 @change="handleDepositDataChanged"
                 @blur="v$.montoRecibido.$touch"
-              >
+              />
             </div>
-            <div v-if="v$.montoRecibido.$error" class="invalid-feedback d-block">
+            <div
+              v-if="v$.montoRecibido.$error"
+              class="invalid-feedback d-block"
+            >
               {{ validationMessage(v$.montoRecibido) }}
             </div>
           </div>
@@ -230,7 +259,6 @@ function handleDepositDataChanged() {
             </button>
           </div>
         </div>
-
       </div>
 
       <div v-if="showTableInvoices" class="deposit-detail">
@@ -257,17 +285,25 @@ function handleDepositDataChanged() {
 
           <div class="deposit-summary-item">
             <span>Monto deposito</span>
-            <strong>${{ formatDepositAmount(depositPayload.montoRecibido) }}</strong>
+            <strong
+              >${{ formatDepositAmount(depositPayload.montoRecibido) }}</strong
+            >
           </div>
 
           <div class="deposit-summary-item">
             <span>Aplicado</span>
-            <strong>${{ formatDepositAmount(depositPayload.montoAplicado) }}</strong>
+            <strong
+              >${{ formatDepositAmount(depositPayload.montoAplicado) }}</strong
+            >
           </div>
 
           <div class="deposit-summary-item deposit-summary-warning">
             <span>No aplicado</span>
-            <strong>${{ formatDepositAmount(depositPayload.montoNoAplicado) }}</strong>
+            <strong
+              >${{
+                formatDepositAmount(depositPayload.montoNoAplicado)
+              }}</strong
+            >
           </div>
 
           <div class="deposit-summary-item">
@@ -404,7 +440,9 @@ function handleDepositDataChanged() {
 
 .deposit-grid {
   display: grid;
-  grid-template-columns: minmax(7rem, 0.8fr) minmax(11rem, 1.3fr) minmax(9rem, 1fr) minmax(8rem, 0.9fr) minmax(7rem, 0.8fr) minmax(7.5rem, auto);
+  grid-template-columns:
+    minmax(7rem, 0.8fr) minmax(11rem, 1.3fr) minmax(9rem, 1fr)
+    minmax(8rem, 0.9fr) minmax(7rem, 0.8fr) minmax(7.5rem, auto);
   align-items: end;
   gap: 0.5rem;
 }
@@ -480,7 +518,10 @@ function handleDepositDataChanged() {
 
 .deposit-summary-warning {
   color: var(--bs-warning-text-emphasis, var(--bs-body-color));
-  border-color: var(--bs-warning-border-subtle, rgba(var(--bs-warning-rgb), 0.35));
+  border-color: var(
+    --bs-warning-border-subtle,
+    rgba(var(--bs-warning-rgb), 0.35)
+  );
   background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
 }
 

@@ -4,6 +4,7 @@ import useVuelidate from "@vuelidate/core";
 import {
     decimal,
     helpers,
+    maxLength,
     required
 } from "@vuelidate/validators";
 import { swalWarning } from "@/functions/swal-alert";
@@ -12,6 +13,18 @@ import { formatDateForInput } from "@/utils/cobros/validateDate";
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
+const numericCardField = helpers.withMessage(
+    "Ingrese solo numeros.",
+    helpers.regex(/^\d+$/)
+);
+const cardApprovalMaxLength = helpers.withMessage(
+    "El comprobante no puede exceder 30 caracteres.",
+    maxLength(30)
+);
+const cardCommentMaxLength = helpers.withMessage(
+    "El comentario no puede exceder 100 caracteres.",
+    maxLength(100)
+);
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -61,6 +74,8 @@ function createCardRules() {
         },
         comprobante: {
             required: requiredField("Ingrese el numero de aprobacion."),
+            numeric: numericCardField,
+            maxLength: cardApprovalMaxLength,
         },
         montoRecibido: {
             required: requiredField("Ingrese el monto de la tarjeta."),
@@ -68,6 +83,8 @@ function createCardRules() {
         },
         comentario: {
             required: requiredField("Ingrese el lote o referencia."),
+            numeric: numericCardField,
+            maxLength: cardCommentMaxLength,
         },
     }));
 }
