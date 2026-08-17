@@ -745,7 +745,7 @@ onMounted(() => {
         type="button"
         class="btn btn-alt-warning btn-sm cash-box-empty-action"
         :disabled="loadingCashBoxStatus"
-        @click="getUserCashBoxStatus"
+        @click="getUserCashBoxStatus()"
       >
         <i class="fa fa-rotate-right me-1"></i>
         Reintentar
