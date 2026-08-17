@@ -23,6 +23,7 @@ const {
 } = useInvoiceCollectionActions();
 const clientId = computed(() => props.collectionDraft?.cliente_id ?? null);
 const totalRows = computed(() => table.totalItems || table.items.length);
+const depositPendingApprovalMessage = "Existen depósitos pendientes de aprobación";
 
 watch(
   clientId,
@@ -94,6 +95,10 @@ function getCollectionDate(row) {
 function getStatusLabel(status) {
   const normalized = String(status ?? "").toLowerCase();
 
+  if (normalized === "pendiente") {
+    return "Pendiente";
+  }
+
   if (normalized === "enviado") {
     return "Procesado";
   }
@@ -110,6 +115,34 @@ function getStatusLabel(status) {
   }
 
   return status || "N/A";
+}
+
+function isPendingRegistrationStatus(status) {
+  const normalized = String(status ?? "").trim().toLowerCase();
+
+  return normalized === "pendiente" || normalized === "iniciado";
+}
+
+function getPendingRegistrationAlert(row) {
+  if (!isPendingRegistrationStatus(row?.estado)) {
+    return "";
+  }
+
+  return String(row?.alerta ?? "").trim();
+}
+
+function getCollectionStatusAlert(row) {
+  const pendingRegistrationAlert = getPendingRegistrationAlert(row);
+
+  if (pendingRegistrationAlert) {
+    return pendingRegistrationAlert;
+  }
+
+  return row?.deposito_pendiente ? depositPendingApprovalMessage : "";
+}
+
+function hasCollectionStatusAlert(row) {
+  return Boolean(getCollectionStatusAlert(row));
 }
 
 defineExpose({
@@ -154,9 +187,16 @@ async function printCollectionPdf(row) {
   swalSuccess(resp?.message || "Pdf Generado exitosamente");
 }
 
-async function showAlertPendingApproved(row){
-  if(row.deposito_pendiente){
-    swalInfo("Existen depósitos pendientes de aprobación");
+async function showAlertPendingApproved(row) {
+  const pendingRegistrationAlert = getPendingRegistrationAlert(row);
+
+  if (pendingRegistrationAlert) {
+    swalWarning(pendingRegistrationAlert);
+    return;
+  }
+
+  if (row.deposito_pendiente) {
+    swalInfo(depositPendingApprovalMessage);
     return;
   }
 }
@@ -268,8 +308,21 @@ async function showAlertPendingApproved(row){
       </template>
 
       <template #cell-estado="{ row, value }">
-        <span :class="statusClass(value)" style="font-size: 11px"   @click="showAlertPendingApproved(row)">
+        <span
+          :class="[
+            statusClass(value),
+            { 'registered-status-clickable': hasCollectionStatusAlert(row) }
+          ]"
+          style="font-size: 11px"
+          :title="getCollectionStatusAlert(row) || getStatusLabel(value)"
+          @click="showAlertPendingApproved(row)"
+        >
           {{ getStatusLabel(value) }}
+          <i
+            v-if="hasCollectionStatusAlert(row)"
+            class="fa fa-triangle-exclamation ms-1 registered-status-alert-icon"
+            aria-hidden="true"
+          ></i>
         </span>
       </template>
 
@@ -410,6 +463,14 @@ async function showAlertPendingApproved(row){
 
 .registered-date {
   color: var(--tuval-text-muted, var(--bs-secondary-color));
+}
+
+.registered-status-clickable {
+  cursor: pointer;
+}
+
+.registered-status-alert-icon {
+  font-size: 0.68rem;
 }
 
 .registered-pdf-btn {
