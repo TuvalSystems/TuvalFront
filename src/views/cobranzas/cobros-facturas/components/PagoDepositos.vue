@@ -4,6 +4,10 @@ import flatPickr from "vue-flatpickr-component";
 import TablaFacturasDisponibles from "./TablaFacturasDisponibles.vue";
 import { useInvoiceCollectionDeposits } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionDeposits";
 import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
+import {
+  PAYMENT_AMOUNT_MAX_LENGTH,
+  handlePaymentAmountInput,
+} from "@/utils/cobros/paymentAmountInput";
 const emit = defineEmits(["add-deposit", "remove-deposit"]);
 const props = defineProps({
   facturas: {
@@ -96,6 +100,10 @@ function handleDepositReceiptInput(event) {
   if (event.target.value !== receiptNumber) {
     event.target.value = receiptNumber;
   }
+}
+
+function handleDepositAmountInput(field, event) {
+  handlePaymentAmountInput(depositPayload, field, event);
 }
 </script>
 
@@ -233,8 +241,12 @@ function handleDepositReceiptInput(event) {
               <input
                 type="text"
                 class="form-control text-end"
-                v-model="depositPayload.montoRecibido"
+                :value="depositPayload.montoRecibido"
+                :maxlength="PAYMENT_AMOUNT_MAX_LENGTH"
+                inputmode="decimal"
+                autocomplete="off"
                 :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
+                @input="handleDepositAmountInput('montoRecibido', $event)"
                 @change="handleDepositDataChanged"
                 @blur="v$.montoRecibido.$touch"
               />

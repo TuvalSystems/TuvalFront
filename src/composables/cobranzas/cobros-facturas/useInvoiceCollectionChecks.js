@@ -10,6 +10,10 @@ import {
 import { formatDateForInput } from "@/utils/cobros/validateDate";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
 import { swalError, swalWarning } from "@/functions/swal-alert";
+import {
+    PAYMENT_AMOUNT_MAX_LENGTH,
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
+} from "@/utils/cobros/paymentAmountInput";
 
 
 
@@ -22,6 +26,10 @@ const numericReciptField = helpers.withMessage(
 const checkNumericFieldMaxLength = helpers.withMessage(
     "El campo no puede exceder 30 caracteres.",
     maxLength(30)
+);
+const paymentAmountMaxLength = helpers.withMessage(
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
+    maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
 );
 
 function resolveSource(source) {
@@ -74,8 +82,9 @@ function createCheckRule() {
         },
 
         montoRecibido: {
-            required: requiredField("Ingrese el monto del deposito."),
-            decimal: decimalField
+            required: requiredField("Ingrese el monto del cheque."),
+            decimal: decimalField,
+            maxLength: paymentAmountMaxLength,
         },
         fechaVencimiento: {
             required: requiredField("Seleccione la fecha de vencimiento")

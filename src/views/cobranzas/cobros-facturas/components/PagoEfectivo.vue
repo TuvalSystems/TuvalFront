@@ -4,6 +4,10 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useInvoiceCollectionCash } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionCash';
 import { onMounted, toRefs } from 'vue';
 import TablaFacturasDisponibles from './TablaFacturasDisponibles.vue';
+import {
+  PAYMENT_AMOUNT_MAX_LENGTH,
+  handlePaymentAmountInput,
+} from '@/utils/cobros/paymentAmountInput';
 
 
 const emits = defineEmits(["add-cash", "remove-cash"]);
@@ -76,7 +80,7 @@ function registerCash() {
 }
 
 function handleCashAmountInput(field, event) {
-  cashPayload[field] = event.target.value;
+  handlePaymentAmountInput(cashPayload, field, event);
   updateCashChangeAmount();
 }
 
@@ -109,6 +113,7 @@ onMounted(() => { });
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
             <input type="text" class="form-control text-end" :value="cashPayload.montoRecibido"
+              :maxlength="PAYMENT_AMOUNT_MAX_LENGTH" inputmode="decimal" autocomplete="off"
               @input="handleCashAmountInput('montoRecibido', $event)" :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
               @blur="v$.montoRecibido.$touch">
             <div v-if="v$.montoRecibido.$error" class="invalid-feedback d-block">
@@ -122,6 +127,7 @@ onMounted(() => { });
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
             <input type="text" class="form-control text-end" :value="cashPayload.montoACobrar"
+              :maxlength="PAYMENT_AMOUNT_MAX_LENGTH" inputmode="decimal" autocomplete="off"
               @input="handleCashAmountInput('montoACobrar', $event)" :class="{ 'is-invalid': v$.montoACobrar.$errors.length }"
               @blur="v$.montoACobrar.$touch" />
             <div v-if="v$.montoACobrar.$error" class="invalid-feedback d-block">

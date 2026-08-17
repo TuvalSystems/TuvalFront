@@ -10,6 +10,10 @@ import {
 import { swalError, swalWarning } from "@/functions/swal-alert";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
 import { formatDateForInput } from "@/utils/cobros/validateDate";
+import {
+    PAYMENT_AMOUNT_MAX_LENGTH,
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
+} from "@/utils/cobros/paymentAmountInput";
 
 const typeDeposits = [
     { label: "Deposito Bancario", value: "DP" },
@@ -26,6 +30,10 @@ const numericReceiptField = helpers.withMessage(
 const depositReceiptMaxLength = helpers.withMessage(
     "El comprobante no puede exceder 30 caracteres.",
     maxLength(30)
+);
+const paymentAmountMaxLength = helpers.withMessage(
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
+    maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
 );
 
 function resolveSource(source) {
@@ -91,7 +99,8 @@ function createDepositRule() {
         },
         montoRecibido: {
             required: requiredField("Ingrese el monto del deposito."),
-            decimal: decimalField
+            decimal: decimalField,
+            maxLength: paymentAmountMaxLength,
         },
     }));
 }

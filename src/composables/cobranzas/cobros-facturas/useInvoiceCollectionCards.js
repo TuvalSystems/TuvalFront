@@ -10,6 +10,10 @@ import {
 import { swalWarning } from "@/functions/swal-alert";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
 import { formatDateForInput } from "@/utils/cobros/validateDate";
+import {
+    PAYMENT_AMOUNT_MAX_LENGTH,
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
+} from "@/utils/cobros/paymentAmountInput";
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
@@ -24,6 +28,11 @@ const cardApprovalMaxLength = helpers.withMessage(
 const cardCommentMaxLength = helpers.withMessage(
     "El comentario no puede exceder 100 caracteres.",
     maxLength(100)
+);
+
+const cardAmountMaxLength = helpers.withMessage(
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
+    maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
 );
 
 function resolveSource(source) {
@@ -80,6 +89,7 @@ function createCardRules() {
         montoRecibido: {
             required: requiredField("Ingrese el monto de la tarjeta."),
             decimal: decimalField,
+            maxLength: cardAmountMaxLength
         },
         comentario: {
             required: requiredField("Ingrese el lote o referencia."),

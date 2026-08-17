@@ -1,14 +1,15 @@
 <script setup>
-import flatPickr from 'vue-flatpickr-component';
+import flatPickr from "vue-flatpickr-component";
 import VueSelect from "vue-select";
-import { useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
-import { useInvoiceCollectionRetentions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionRetentions';
-import { formatPriceJm } from '@/functions';
-
-const {
-  loadingRetentionReceiptValidation,
-  validateRetentionReceiptNumber
-} = useInvoiceCollectionActions();
+import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
+import { useInvoiceCollectionRetentions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionRetentions";
+import { formatPriceJm } from "@/functions";
+import {
+  PAYMENT_AMOUNT_MAX_LENGTH,
+  handlePaymentAmountInput,
+} from "@/utils/cobros/paymentAmountInput";
+const { loadingRetentionReceiptValidation, validateRetentionReceiptNumber } =
+  useInvoiceCollectionActions();
 
 const RETENTION_AUTHORIZATION_MAX_LENGTH = 50;
 
@@ -17,20 +18,20 @@ const props = defineProps({
   facturasRetenciones: {
     type: Array,
     required: true,
-    default: () => []
+    default: () => [],
   },
   retenciones: {
     type: [Array, Object],
-    default: () => []
+    default: () => [],
   },
   cliente: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   loadingDocs: {
-    type : Boolean,
-    default : () => false
-  }
+    type: Boolean,
+    default: () => false,
+  },
 });
 
 const {
@@ -80,7 +81,6 @@ function handleAuthorizationInput(event) {
 
 <template>
   <section class="retention-entry">
-
     <div class="retention-toolbar">
       <!-- <div class="min-w-0">
         <span class="retention-kicker">Comprobante SRI</span>
@@ -88,9 +88,12 @@ function handleAuthorizationInput(event) {
       </div> -->
 
       <!-- boton de agregar -->
-      <button type="button" class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-2"
-       :disabled="loadingRetentionReceiptValidation"
-        @click="addRetention()">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-2"
+        :disabled="loadingRetentionReceiptValidation"
+        @click="addRetention()"
+      >
         <i class="fa fa-circle-plus"></i> INGRESAR
       </button>
     </div>
@@ -110,11 +113,22 @@ function handleAuthorizationInput(event) {
         <div class="col-lg-7">
           <small class="label-small">Facturas</small>
           <div class="invoice-selector">
-            <VueSelect class="retention-select" v-model="payloadRetention.documento" :options="retentionOptions"
-              :reduce="(option) => option.documento" placeholder="Buscar..." label="documento"
-              :class="{ 'is-invalid': v$.documento.$errors.length }" :disabled="loadingDocs"></VueSelect>
-            <button type="button" class="btn btn-alt-primary retention-icon-button" title="Cargar Factura"
-              @click="selectedInvoice(payloadRetention.documento)">
+            <VueSelect
+              class="retention-select"
+              v-model="payloadRetention.documento"
+              :options="retentionOptions"
+              :reduce="(option) => option.documento"
+              placeholder="Buscar..."
+              label="documento"
+              :class="{ 'is-invalid': v$.documento.$errors.length }"
+              :disabled="loadingDocs"
+            ></VueSelect>
+            <button
+              type="button"
+              class="btn btn-alt-primary retention-icon-button"
+              title="Cargar Factura"
+              @click="selectedInvoice(payloadRetention.documento)"
+            >
               <i class="fa fa-upload"></i>
             </button>
           </div>
@@ -127,16 +141,30 @@ function handleAuthorizationInput(event) {
         <div class="col-sm-6 col-lg-2">
           <small class="label-small">Emisión</small>
           <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="far fa-calendar"></i></span>
-            <input type="text" class="form-control text-end fs-sm" v-model="payloadRetention.fechaEmision" readonly>
+            <span class="input-group-text"
+              ><i class="far fa-calendar"></i
+            ></span>
+            <input
+              type="text"
+              class="form-control text-end fs-sm"
+              v-model="payloadRetention.fechaEmision"
+              readonly
+            />
           </div>
         </div>
         <!-- fecha vencimiento -->
         <div class="col-sm-6 col-lg-2">
           <small class="label-small">Vencimiento</small>
           <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="far fa-calendar"></i></span>
-            <input type="text" class="form-control text-end fs-sm" v-model="payloadRetention.fechaVencimiento" readonly>
+            <span class="input-group-text"
+              ><i class="far fa-calendar"></i
+            ></span>
+            <input
+              type="text"
+              class="form-control text-end fs-sm"
+              v-model="payloadRetention.fechaVencimiento"
+              readonly
+            />
           </div>
         </div>
       </div>
@@ -147,7 +175,12 @@ function handleAuthorizationInput(event) {
           <small class="label-small">Subtotal</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" v-model="payloadRetention.subtotal" readonly>
+            <input
+              type="text"
+              class="form-control text-end"
+              v-model="payloadRetention.subtotal"
+              readonly
+            />
           </div>
         </div>
 
@@ -156,7 +189,12 @@ function handleAuthorizationInput(event) {
           <small class="label-small">Iva</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" v-model="payloadRetention.ivaFactura" readonly>
+            <input
+              type="text"
+              class="form-control text-end"
+              v-model="payloadRetention.ivaFactura"
+              readonly
+            />
           </div>
         </div>
 
@@ -165,7 +203,12 @@ function handleAuthorizationInput(event) {
           <small class="label-small">total</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" v-model="payloadRetention.montoOriginal" readonly>
+            <input
+              type="text"
+              class="form-control text-end"
+              v-model="payloadRetention.montoOriginal"
+              readonly
+            />
           </div>
         </div>
 
@@ -174,7 +217,12 @@ function handleAuthorizationInput(event) {
           <small class="label-small">Saldo</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" v-model="payloadRetention.saldoFactura" readonly>
+            <input
+              type="text"
+              class="form-control text-end"
+              v-model="payloadRetention.saldoFactura"
+              readonly
+            />
           </div>
         </div>
       </div>
@@ -197,10 +245,17 @@ function handleAuthorizationInput(event) {
         <div class="col-lg-3">
           <small class="label-small">F. Emision</small>
           <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="far fa-calendar"></i></span>
-            <flat-pickr class="form-control fs-sm" placeholder="Y-m-d" v-model="payloadRetention.retEmision"
-              :config="flatPickrState.emision" :class="{ 'is-invalid': v$.retEmision.$errors.length }"
-              @blur="v$.retEmision.$touch" />
+            <span class="input-group-text"
+              ><i class="far fa-calendar"></i
+            ></span>
+            <flat-pickr
+              class="form-control fs-sm"
+              placeholder="Y-m-d"
+              v-model="payloadRetention.retEmision"
+              :config="flatPickrState.emision"
+              :class="{ 'is-invalid': v$.retEmision.$errors.length }"
+              @blur="v$.retEmision.$touch"
+            />
           </div>
           <div v-if="v$.retEmision.$error" class="invalid-feedback d-block">
             {{ validationMessage(v$.retEmision) }}
@@ -215,26 +270,38 @@ function handleAuthorizationInput(event) {
               <div class="tax-row-controls">
                 <div class="tax-control">
                   <div class="input-group input-group-sm">
-                    <input type="text" class="form-control text-end" v-model="payloadRetention.porcentajeIva"
-                      :class="{ 'is-invalid': v$.porcentajeIva.$errors.length }" @blur="v$.porcentajeIva.$touch"
-                      @change="changePorcentilIva" />
+                    <input
+                      type="text"
+                      class="form-control text-end"
+                      v-model="payloadRetention.porcentajeIva"
+                      :class="{ 'is-invalid': v$.porcentajeIva.$errors.length }"
+                      @blur="v$.porcentajeIva.$touch"
+                      @change="changePorcentilIva"
+                    />
                     <span class="input-group-text">%</span>
                   </div>
-                  <div v-if="v$.porcentajeIva.$error" class="invalid-feedback d-block">
+                  <div
+                    v-if="v$.porcentajeIva.$error"
+                    class="invalid-feedback d-block"
+                  >
                     {{ validationMessage(v$.porcentajeIva) }}
                   </div>
                 </div>
                 <div class="tax-control">
                   <div class="input-group input-group-sm">
                     <span class="input-group-text">$</span>
-                    <input type="text" class="form-control text-end" v-model="payloadRetention.iva"
-                      :class="{ 'is-invalid': v$.iva.$errors.length }" @blur="v$.iva.$touch" />
+                    <input
+                      type="text"
+                      class="form-control text-end"
+                      v-model="payloadRetention.iva"
+                      :class="{ 'is-invalid': v$.iva.$errors.length }"
+                      @blur="v$.iva.$touch"
+                    />
                   </div>
                   <div v-if="v$.iva.$error" class="invalid-feedback d-block">
                     {{ validationMessage(v$.iva) }}
                   </div>
                 </div>
-
               </div>
             </div>
             <div class="tax-row">
@@ -242,27 +309,41 @@ function handleAuthorizationInput(event) {
               <div class="tax-row-controls">
                 <div class="tax-control">
                   <div class="input-group input-group-sm">
-                    <input type="text" class="form-control text-end" v-model="payloadRetention.porcentajeRenta"
-                      :class="{ 'is-invalid': v$.porcentajeRenta.$errors.length }" @blur="v$.porcentajeRenta.$touch"
-                      @change="changePorcentilRenta" />
+                    <input
+                      type="text"
+                      class="form-control text-end"
+                      v-model="payloadRetention.porcentajeRenta"
+                      :class="{
+                        'is-invalid': v$.porcentajeRenta.$errors.length,
+                      }"
+                      @blur="v$.porcentajeRenta.$touch"
+                      @change="changePorcentilRenta"
+                    />
                     <span class="input-group-text">%</span>
                   </div>
-                  <div v-if="v$.porcentajeRenta.$error" class="invalid-feedback d-block">
+                  <div
+                    v-if="v$.porcentajeRenta.$error"
+                    class="invalid-feedback d-block"
+                  >
                     {{ validationMessage(v$.porcentajeRenta) }}
                   </div>
                 </div>
                 <div class="tax-control">
                   <div class="input-group input-group-sm">
                     <span class="input-group-text">$</span>
-                    <input type="text" class="form-control text-end" v-model="payloadRetention.renta"
-                      :class="{ 'is-invalid': v$.renta.$errors.length }" @blur="v$.renta.$touch">
+                    <input
+                      type="text"
+                      class="form-control text-end"
+                      v-model="payloadRetention.renta"
+                      :class="{ 'is-invalid': v$.renta.$errors.length }"
+                      @blur="v$.renta.$touch"
+                    />
                   </div>
                   <div v-if="v$.renta.$error" class="invalid-feedback d-block">
                     {{ validationMessage(v$.renta) }}
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -271,15 +352,21 @@ function handleAuthorizationInput(event) {
         <div class="col-lg-3">
           <small class="label-small">F. caducidad</small>
           <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="far fa-calendar"></i></span>
-            <flat-pickr class="form-control fs-sm" placeholder="Y-m-d" v-model="payloadRetention.retCaducidad"
-              :config="flatPickrState.caducidad" :class="{ 'is-invalid': v$.retCaducidad.$errors.length }"
-              @blur="v$.retCaducidad.$touch" />
+            <span class="input-group-text"
+              ><i class="far fa-calendar"></i
+            ></span>
+            <flat-pickr
+              class="form-control fs-sm"
+              placeholder="Y-m-d"
+              v-model="payloadRetention.retCaducidad"
+              :config="flatPickrState.caducidad"
+              :class="{ 'is-invalid': v$.retCaducidad.$errors.length }"
+              @blur="v$.retCaducidad.$touch"
+            />
           </div>
           <div v-if="v$.retCaducidad.$error" class="invalid-feedback d-block">
             {{ validationMessage(v$.retCaducidad) }}
           </div>
-
         </div>
 
         <div class="col-lg-9">
@@ -289,14 +376,36 @@ function handleAuthorizationInput(event) {
               <small class="label-small">Ret. IVA SRV</small>
               <div class="tax-row-controls">
                 <div class="input-group input-group-sm">
-                  <input type="text" class="form-control text-end" v-model="payloadRetention.porcentajeIvaSrv"
-                    :class="{ 'is-invalid': v$.porcentajeIvaSrv.$errors.length }" @blur="v$.porcentajeIvaSrv.$touch">
+                  <input
+                    type="text"
+                    class="form-control text-end"
+                    v-model="payloadRetention.porcentajeIvaSrv"
+                    :class="{
+                      'is-invalid': v$.porcentajeIvaSrv.$errors.length,
+                    }"
+                    @blur="v$.porcentajeIvaSrv.$touch"
+                  />
                   <span class="input-group-text">%</span>
                 </div>
                 <div class="input-group input-group-sm">
                   <span class="input-group-text">$</span>
-                  <input type="text" class="form-control text-end" v-model="payloadRetention.ivaSrv"
-                    :class="{ 'is-invalid': v$.ivaSrv.$errors.length }" @blur="v$.ivaSrv.$touch">
+                  <input
+                    type="text"
+                    class="form-control text-end"
+                    :value="payloadRetention.ivaSrv"
+                    :maxlength="PAYMENT_AMOUNT_MAX_LENGTH"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    @input="
+                      handlePaymentAmountInput(
+                        payloadRetention,
+                        'ivaSrv',
+                        $event
+                      )
+                    "
+                    :class="{ 'is-invalid': v$.ivaSrv.$errors.length }"
+                    @blur="v$.ivaSrv.$touch"
+                  />
                 </div>
               </div>
             </div>
@@ -306,22 +415,42 @@ function handleAuthorizationInput(event) {
               <small class="label-small">Ret. Renta SRV</small>
               <div class="tax-row-controls">
                 <div class="input-group input-group-sm">
-                  <input type="text" class="form-control text-end" v-model="payloadRetention.porcentajeRentaSrv"
-                    :class="{ 'is-invalid': v$.porcentajeRentaSrv.$errors.length }"
-                    @blur="v$.porcentajeRentaSrv.$touch" />
+                  <input
+                    type="text"
+                    class="form-control text-end"
+                    v-model="payloadRetention.porcentajeRentaSrv"
+                    :class="{
+                      'is-invalid': v$.porcentajeRentaSrv.$errors.length,
+                    }"
+                    @blur="v$.porcentajeRentaSrv.$touch"
+                  />
                   <span class="input-group-text">%</span>
                 </div>
                 <div class="input-group input-group-sm">
                   <span class="input-group-text">$</span>
-                  <input type="text" class="form-control text-end required" v-model="payloadRetention.rentaSrv"
-                    :class="{ 'is-invalid': v$.rentaSrv.$errors.length }" @blur="v$.rentaSrv.$touch">
+                  <input
+                    type="text"
+                    class="form-control text-end required"
+                    :value="payloadRetention.rentaSrv"
+                    :maxlength="PAYMENT_AMOUNT_MAX_LENGTH"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    @input="
+                      handlePaymentAmountInput(
+                        payloadRetention,
+                        'rentaSrv',
+                        $event
+                      )
+                    "
+                    :class="{ 'is-invalid': v$.rentaSrv.$errors.length }"
+                    @blur="v$.rentaSrv.$touch"
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
 
     <!-- seccion de comprobante -->
@@ -339,9 +468,15 @@ function handleAuthorizationInput(event) {
         <!-- numero de comprobante -->
         <div class="col-lg-4">
           <small class="label-small">Numero de Comprobante</small>
-          <input type="text" v-model="payloadRetention.comprobante" @change="validateReceiptNumber()"
-            class="form-control fs-sm" v-maska="'###-###-#########'"
-            :class="{ 'is-invalid': v$.comprobante.$errors.length }" @blur="v$.comprobante.$touch" />
+          <input
+            type="text"
+            v-model="payloadRetention.comprobante"
+            @change="validateReceiptNumber()"
+            class="form-control fs-sm"
+            v-maska="'###-###-#########'"
+            :class="{ 'is-invalid': v$.comprobante.$errors.length }"
+            @blur="v$.comprobante.$touch"
+          />
           <div v-if="v$.comprobante.$error" class="invalid-feedback d-block">
             {{ validationMessage(v$.comprobante) }}
           </div>
@@ -349,10 +484,18 @@ function handleAuthorizationInput(event) {
         <!-- numero de autorizacion -->
         <div class="col-lg-8">
           <small class="label-small">Numero de Autorización</small>
-          <input type="text" :value="payloadRetention.autorizacion" class="form-control fs-sm"
-            :class="{ 'is-invalid': v$.autorizacion.$errors.length }" inputmode="numeric" pattern="[0-9]*"
-            :maxlength="RETENTION_AUTHORIZATION_MAX_LENGTH" autocomplete="off" @input="handleAuthorizationInput"
-            @blur="v$.autorizacion.$touch" />
+          <input
+            type="text"
+            :value="payloadRetention.autorizacion"
+            class="form-control fs-sm"
+            :class="{ 'is-invalid': v$.autorizacion.$errors.length }"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            :maxlength="RETENTION_AUTHORIZATION_MAX_LENGTH"
+            autocomplete="off"
+            @input="handleAuthorizationInput"
+            @blur="v$.autorizacion.$touch"
+          />
           <div v-if="v$.autorizacion.$error" class="invalid-feedback d-block">
             {{ validationMessage(v$.autorizacion) }}
           </div>
@@ -363,7 +506,9 @@ function handleAuthorizationInput(event) {
       <div class="retention-list-header">
         <div class="min-w-0">
           <span class="retention-kicker">Retenciones agregadas</span>
-          <h4 class="retention-title mb-0">{{ retentions.length }} comprobante(s)</h4>
+          <h4 class="retention-title mb-0">
+            {{ retentions.length }} comprobante(s)
+          </h4>
         </div>
 
         <span class="retention-total">
@@ -371,10 +516,16 @@ function handleAuthorizationInput(event) {
         </span>
       </div>
 
-      <div v-if="retentions.length" class="retention-cards"
-        :class="{ 'retention-cards-scroll': retentions.length > 2 }">
-        <article v-for="(retencion, index) in retentions"
-          :key="`${retencion.documento}-${retencion.comprobante}-${index}`" class="retention-card">
+      <div
+        v-if="retentions.length"
+        class="retention-cards"
+        :class="{ 'retention-cards-scroll': retentions.length > 2 }"
+      >
+        <article
+          v-for="(retencion, index) in retentions"
+          :key="`${retencion.documento}-${retencion.comprobante}-${index}`"
+          class="retention-card"
+        >
           <header class="retention-card-header">
             <div class="d-flex align-items-start gap-3 min-w-0">
               <div class="retention-card-icon">
@@ -390,8 +541,12 @@ function handleAuthorizationInput(event) {
               </div>
             </div>
 
-            <button class="btn btn-sm btn-alt-danger retention-icon-button" type="button" title="Eliminar retencion"
-              @click="removeRetention(index)">
+            <button
+              class="btn btn-sm btn-alt-danger retention-icon-button"
+              type="button"
+              title="Eliminar retencion"
+              @click="removeRetention(index)"
+            >
               <i class="fa fa-trash"></i>
             </button>
           </header>
@@ -412,7 +567,9 @@ function handleAuthorizationInput(event) {
           </div>
 
           <div class="retention-detail">
-            <table class="table table-sm table-vcenter mb-0 retention-detail-table">
+            <table
+              class="table table-sm table-vcenter mb-0 retention-detail-table"
+            >
               <thead>
                 <tr>
                   <th>Impuesto</th>
@@ -430,7 +587,9 @@ function handleAuthorizationInput(event) {
               <tfoot>
                 <tr>
                   <th colspan="2" class="text-end">Total retenido</th>
-                  <th class="text-end">${{ formatPriceJm(retencion.total) }}</th>
+                  <th class="text-end">
+                    ${{ formatPriceJm(retencion.total) }}
+                  </th>
                 </tr>
               </tfoot>
             </table>
@@ -454,7 +613,6 @@ function handleAuthorizationInput(event) {
   text-transform: uppercase;
   color: var(--tuval-text-muted, var(--bs-secondary-color));
   margin-bottom: 0.18rem;
-
 }
 
 .min-w-0 {
@@ -799,7 +957,6 @@ function handleAuthorizationInput(event) {
 }
 
 @media (max-width: 767.98px) {
-
   .retention-toolbar,
   .retention-list-header {
     align-items: flex-start;
@@ -821,7 +978,6 @@ function handleAuthorizationInput(event) {
 }
 
 @media (max-width: 575.98px) {
-
   .retention-section,
   .retention-card-header,
   .retention-card-meta {

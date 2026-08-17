@@ -6,6 +6,10 @@ import TablaFacturasDisponibles from "./TablaFacturasDisponibles.vue";
 // componentes
 import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
 import { useInvoiceCollectionChecks } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionChecks";
+import {
+  PAYMENT_AMOUNT_MAX_LENGTH,
+  handlePaymentAmountInput,
+} from "@/utils/cobros/paymentAmountInput";
 
 const emit = defineEmits(["add-check", "remove-check"]);
 
@@ -107,6 +111,10 @@ function handleCheckNumericInput(field, event) {
   if (event.target.value !== numericValue) {
     event.target.value = numericValue;
   }
+}
+
+function handleCheckAmountInput(field, event) {
+  handlePaymentAmountInput(checkPayload, field, event);
 }
 
 </script>
@@ -264,9 +272,13 @@ function handleCheckNumericInput(field, event) {
               <input
                 type="text"
                 class="form-control form-control-sm text-end"
-                v-model="checkPayload.montoRecibido"
+                :value="checkPayload.montoRecibido"
                 placeholder="Monto del Cheque"
+                :maxlength="PAYMENT_AMOUNT_MAX_LENGTH"
+                inputmode="decimal"
+                autocomplete="off"
                 :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
+                @input="handleCheckAmountInput('montoRecibido', $event)"
                 @change="handleCheckDataChanged"
                 @blur="v$.montoRecibido.$touch()"
               />

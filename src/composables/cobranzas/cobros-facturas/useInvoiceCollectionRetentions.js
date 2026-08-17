@@ -11,6 +11,17 @@ import {
 import { swalError, swalWarning } from "@/functions/swal-alert";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
 import { formatDateForInput, parseLocalDate } from "@/utils/cobros/validateDate";
+import {
+    PAYMENT_AMOUNT_MAX_LENGTH,
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
+} from "@/utils/cobros/paymentAmountInput";
+
+
+
+const retentionAmountMaxLength = helpers.withMessage(
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
+    maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
+);
 
 const retentionTaxRows = [
     {
@@ -61,6 +72,8 @@ const authorizationMaxLength = helpers.withMessage(
     "La autorizacion no puede exceder 50 caracteres.",
     maxLength(50)
 );
+
+
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -142,9 +155,11 @@ function createRetentionRules() {
         },
         ivaSrv: {
             decimal: decimalField,
+            maxLength: retentionAmountMaxLength,
         },
         rentaSrv: {
-            decimal: decimalField
+            decimal: decimalField,
+            maxLength: retentionAmountMaxLength,
         },
         porcentajeIvaSrv: {
             decimal: decimalField

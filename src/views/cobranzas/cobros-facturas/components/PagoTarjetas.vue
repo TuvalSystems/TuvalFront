@@ -3,6 +3,10 @@ import { toRefs } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import TablaFacturasDisponibles from "./TablaFacturasDisponibles.vue";
 import { useInvoiceCollectionCards } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionCards.js";
+import {
+  PAYMENT_AMOUNT_MAX_LENGTH,
+  handlePaymentAmountInput,
+} from "@/utils/cobros/paymentAmountInput";
 
 const emit = defineEmits(["add-card", "remove-card"]);
 
@@ -86,7 +90,9 @@ function handleCardDataChanged() {
 }
 
 function handleCardNumericInput(field, event, maxLength) {
-  const numericValue = event.target.value.replace(/\D/g, "").slice(0, maxLength);
+  const numericValue = event.target.value
+    .replace(/\D/g, "")
+    .slice(0, maxLength);
 
   cardPayload[field] = numericValue;
 
@@ -183,7 +189,13 @@ function hasRegisteredCard() {
                 pattern="[0-9]*"
                 :maxlength="CARD_APPROVAL_MAX_LENGTH"
                 autocomplete="off"
-                @input="handleCardNumericInput('comprobante', $event, CARD_APPROVAL_MAX_LENGTH)"
+                @input="
+                  handleCardNumericInput(
+                    'comprobante',
+                    $event,
+                    CARD_APPROVAL_MAX_LENGTH
+                  )
+                "
                 @change="handleCardDataChanged"
                 @blur="v$.comprobante.$touch"
               />
@@ -204,7 +216,13 @@ function hasRegisteredCard() {
               pattern="[0-9]*"
               :maxlength="CARD_COMMENT_MAX_LENGTH"
               autocomplete="off"
-              @input="handleCardNumericInput('comentario', $event, CARD_COMMENT_MAX_LENGTH)"
+              @input="
+                handleCardNumericInput(
+                  'comentario',
+                  $event,
+                  CARD_COMMENT_MAX_LENGTH
+                )
+              "
               @change="handleCardDataChanged"
               @blur="v$.comentario.$touch"
             />
@@ -220,8 +238,18 @@ function hasRegisteredCard() {
               <input
                 type="text"
                 class="form-control text-end"
-                v-model="cardPayload.montoRecibido"
+                :maxlength="PAYMENT_AMOUNT_MAX_LENGTH"
+                :value="cardPayload.montoRecibido"
+                inputmode="decimal"
+                autocomplete="off"
                 :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
+                @input="
+                  handlePaymentAmountInput(
+                    cardPayload,
+                    'montoRecibido',
+                    $event
+                  )
+                "
                 @change="handleCardDataChanged"
                 @blur="v$.montoRecibido.$touch"
               />
@@ -247,7 +275,7 @@ function hasRegisteredCard() {
         </div>
       </div>
 
-      <div v-if="showTableInvoices " class="cards-detail">
+      <div v-if="showTableInvoices" class="cards-detail">
         <div class="cards-summary-grid">
           <div class="cards-summary-item cards-summary-bank">
             <span>Emisor</span>
@@ -420,10 +448,9 @@ function hasRegisteredCard() {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: minmax(11rem, 1.3fr) minmax(8rem, 0.9fr) minmax(
-      8rem,
-      0.9fr
-    ) minmax(8rem, 0.9fr) minmax(7rem, 0.8fr) minmax(7.5rem, auto);
+  grid-template-columns:
+    minmax(11rem, 1.3fr) minmax(8rem, 0.9fr) minmax(8rem, 0.9fr)
+    minmax(8rem, 0.9fr) minmax(7rem, 0.8fr) minmax(7.5rem, auto);
   align-items: end;
   gap: 0.5rem;
 }

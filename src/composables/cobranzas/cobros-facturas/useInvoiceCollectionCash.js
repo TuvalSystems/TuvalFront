@@ -3,11 +3,16 @@ import useVuelidate from "@vuelidate/core";
 import {
     decimal,
     helpers,
+    maxLength,
     required
 } from "@vuelidate/validators";
 import { swalWarning } from "@/functions/swal-alert";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
 import { formatDateForInput } from "@/utils/cobros/validateDate";
+import {
+    PAYMENT_AMOUNT_MAX_LENGTH,
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
+} from "@/utils/cobros/paymentAmountInput";
 
 
 
@@ -25,16 +30,22 @@ function createEmptyCash() {
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido", decimal);
+const paymentAmountMaxLength = helpers.withMessage(
+    PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
+    maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
+);
 
 function createCashRules() {
     return computed(() => ({
         montoRecibido: {
             required: requiredField("Ingrese el monto a recibir."),
-            decimalField
+            decimal: decimalField,
+            maxLength: paymentAmountMaxLength,
         },
         montoACobrar: {
             required: requiredField("Ingrese el monto a cobrar."),
-            decimalField
+            decimal: decimalField,
+            maxLength: paymentAmountMaxLength,
         }
     }));
 }
