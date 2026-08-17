@@ -4,7 +4,12 @@ import { useClientRegisteredCollectionsTable } from "@/composables/cobranzas/cob
 
 import BaseTable from "@/components/BaseTable.vue";
 import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
-import { swalError, swalInfo, swalSuccess, swalWarning } from "@/functions/swal-alert";
+import {
+  swalError,
+  swalInfo,
+  swalSuccess,
+  swalWarning,
+} from "@/functions/swal-alert";
 import { useRefreshCollectionOnEvent } from "@/composables/cobranzas/cobros-facturas/useRefreshCollectionOnEvent";
 
 const props = defineProps({
@@ -23,7 +28,8 @@ const {
 } = useInvoiceCollectionActions();
 const clientId = computed(() => props.collectionDraft?.cliente_id ?? null);
 const totalRows = computed(() => table.totalItems || table.items.length);
-const depositPendingApprovalMessage = "Existen depósitos pendientes de aprobación";
+const depositPendingApprovalMessage =
+  "Existen depósitos pendientes de aprobación";
 
 watch(
   clientId,
@@ -118,7 +124,9 @@ function getStatusLabel(status) {
 }
 
 function isPendingRegistrationStatus(status) {
-  const normalized = String(status ?? "").trim().toLowerCase();
+  const normalized = String(status ?? "")
+    .trim()
+    .toLowerCase();
 
   return normalized === "pendiente" || normalized === "iniciado";
 }
@@ -200,6 +208,10 @@ async function showAlertPendingApproved(row) {
     return;
   }
 }
+const SHOW_STATUS = ["enviado"];
+const isShowPrintReport = (row) => {
+  return SHOW_STATUS.includes(row.estado);
+};
 </script>
 
 <template>
@@ -311,7 +323,7 @@ async function showAlertPendingApproved(row) {
         <span
           :class="[
             statusClass(value),
-            { 'registered-status-clickable': hasCollectionStatusAlert(row) }
+            { 'registered-status-clickable': hasCollectionStatusAlert(row) },
           ]"
           style="font-size: 11px"
           :title="getCollectionStatusAlert(row) || getStatusLabel(value)"
@@ -329,6 +341,7 @@ async function showAlertPendingApproved(row) {
       <!-- slot de acciones -->
       <template #actions="{ row }">
         <button
+          v-show="isShowPrintReport(row)"
           type="button"
           class="btn btn-sm btn-outline-danger registered-pdf-btn"
           title="Descargar cobro PDF"
