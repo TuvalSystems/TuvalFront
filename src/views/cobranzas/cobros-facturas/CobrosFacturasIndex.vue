@@ -722,9 +722,34 @@ onMounted(() => {
       @open-cash-box="confirmOpenCashBox"
     />
 
-    <div v-else class="alert alert-warning">
-      <i class="fa fa-triangle-exclamation me-1"></i>
-      No se pudo obtener la información de la caja.
+    <div v-else class="cash-box-empty-state" role="alert">
+      <div class="cash-box-empty-icon">
+        <i class="fa fa-triangle-exclamation"></i>
+      </div>
+
+      <div class="cash-box-empty-content">
+        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+          <h2 class="cash-box-empty-title mb-0">Caja no asignada</h2>
+          <span class="fs-xs fw-semibold bg-warning-light text-warning px-2 py-1 rounded-pill">
+            Acción requerida
+          </span>
+        </div>
+        <p class="cash-box-empty-message mb-0">
+          No hay una caja asociada a su usuario para el punto de venta
+          seleccionado. Verifique el punto de venta o solicite la asignación
+          antes de registrar cobros.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-alt-warning btn-sm cash-box-empty-action"
+        :disabled="loadingCashBoxStatus"
+        @click="getUserCashBoxStatus"
+      >
+        <i class="fa fa-rotate-right me-1"></i>
+        Reintentar
+      </button>
     </div>
     <!-- end cabecera de estado de caja-->
 
@@ -982,6 +1007,69 @@ td input.form-control {
   background: var(--bs-body-bg);
 }
 
+.cash-box-empty-state {
+  --cash-box-empty-accent: var(--bs-warning);
+  --cash-box-empty-bg: var(
+    --bs-warning-bg-subtle,
+    rgba(var(--bs-warning-rgb), 0.1)
+  );
+  --cash-box-empty-border: var(
+    --bs-warning-border-subtle,
+    rgba(var(--bs-warning-rgb), 0.35)
+  );
+  --cash-box-empty-icon-bg: rgba(var(--bs-warning-rgb), 0.14);
+  --cash-box-empty-text: var(
+    --bs-warning-text-emphasis,
+    var(--tuval-text, var(--bs-body-color))
+  );
+
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--cash-box-empty-border);
+  border-left: 4px solid var(--cash-box-empty-accent);
+  border-radius: var(--tuval-radius-md, var(--bs-border-radius));
+  background: var(--cash-box-empty-bg);
+  color: var(--cash-box-empty-text);
+}
+
+.cash-box-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 2.3rem;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: var(--tuval-radius-md, var(--bs-border-radius));
+  background: var(--cash-box-empty-icon-bg);
+  color: var(--cash-box-empty-accent);
+  font-size: 1rem;
+}
+
+.cash-box-empty-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cash-box-empty-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--cash-box-empty-text);
+}
+
+.cash-box-empty-message {
+  max-width: 58rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.cash-box-empty-action {
+  flex: 0 0 auto;
+}
+
 @media (max-width: 575.98px) {
   .payment-methods-header {
     align-items: flex-start;
@@ -994,6 +1082,15 @@ td input.form-control {
 
   .payment-method-badge {
     margin-top: 0.35rem;
+  }
+
+  .cash-box-empty-state {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .cash-box-empty-action {
+    width: 100%;
   }
 }
 </style>
