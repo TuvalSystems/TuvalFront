@@ -78,8 +78,8 @@
                   Sin segmento para este cliente
                 </td>
               </tr>
-                <th class="fs-sm">Proyecto</th>
-                <td class="fs-sm">
+                <th v-if="proyecto" class="fs-sm">Tipo Venta</th>
+                <td v-if="proyecto" class="fs-sm">
                   {{ proyecto }}
                 </td>
 
