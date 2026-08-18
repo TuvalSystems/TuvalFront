@@ -91,7 +91,7 @@ function createDepositRule() {
         },
         comprobante: {
             required: requiredField("Ingrese el comprobante."),
-            numeric: numericReceiptField,
+            // numeric: numericReceiptField,
             maxLength: depositReceiptMaxLength,
         },
         fechaDeposito: {

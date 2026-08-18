@@ -92,7 +92,6 @@ function handleDepositDataChanged() {
 
 function handleDepositReceiptInput(event) {
   const receiptNumber = event.target.value
-    .replace(/\D/g, "")
     .slice(0, DEPOSIT_RECEIPT_MAX_LENGTH);
 
   depositPayload.comprobante = receiptNumber;
