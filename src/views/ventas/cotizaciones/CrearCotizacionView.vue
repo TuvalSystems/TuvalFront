@@ -1658,7 +1658,7 @@ onMounted(async () => {
               <div class="col-12 col-lg-8">
                 <div class="kv space-y-2">
                   <label class="label-small" for="lista-proyectos">
-                    Proyecto
+                    Tipo de Venta
                   </label>
                   <select
                     id="lista-proyectos"

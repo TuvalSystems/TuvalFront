@@ -65,7 +65,7 @@ export function useHistoryInvoicesTable() {
             width: "80px"
         },
         {
-            label: "item3l",
+            label: "3L",
             key: "item3l",
             sortable: false,
             align: "text-start",
