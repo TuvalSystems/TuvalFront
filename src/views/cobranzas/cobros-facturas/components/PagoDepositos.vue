@@ -149,6 +149,29 @@ function handleDepositAmountInput(field, event) {
               {{ validationMessage(v$.tipo) }}
             </div>
           </div>
+          <div class="deposit-field">
+            <small class="label-small">Fecha</small>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"
+                ><i class="far fa-calendar"></i
+              ></span>
+              <flat-pickr
+                class="form-control"
+                placeholder="Y-m-d"
+                v-model="depositPayload.fechaDeposito"
+                :config="depositDateConfig"
+                :class="{ 'is-invalid': v$.fechaDeposito.$errors.length }"
+                @change="handleDepositDataChanged"
+                @blur="v$.fechaDeposito.$touch"
+              />
+            </div>
+            <div
+              v-if="v$.fechaDeposito.$error"
+              class="invalid-feedback d-block"
+            >
+              {{ validationMessage(v$.fechaDeposito) }}
+            </div>
+          </div>
 
           <div class="deposit-field deposit-field-wide">
             <small class="label-small">Banco</small>
@@ -204,30 +227,6 @@ function handleDepositAmountInput(field, event) {
 
             <div v-if="v$.comprobante.$error" class="invalid-feedback d-block">
               {{ validationMessage(v$.comprobante) }}
-            </div>
-          </div>
-
-          <div class="deposit-field">
-            <small class="label-small">Fecha</small>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text"
-                ><i class="far fa-calendar"></i
-              ></span>
-              <flat-pickr
-                class="form-control"
-                placeholder="Y-m-d"
-                v-model="depositPayload.fechaDeposito"
-                :config="depositDateConfig"
-                :class="{ 'is-invalid': v$.fechaDeposito.$errors.length }"
-                @change="handleDepositDataChanged"
-                @blur="v$.fechaDeposito.$touch"
-              />
-            </div>
-            <div
-              v-if="v$.fechaDeposito.$error"
-              class="invalid-feedback d-block"
-            >
-              {{ validationMessage(v$.fechaDeposito) }}
             </div>
           </div>
 
