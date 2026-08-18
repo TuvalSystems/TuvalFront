@@ -1,6 +1,6 @@
 
 <script setup>
-import { ref, toRefs } from "vue";
+import { toRefs } from "vue";
 
 // componentes
 import TablaFacturasDisponibles from "./TablaFacturasDisponibles.vue";
@@ -37,7 +37,6 @@ const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
   toRefs(props);
 
 const APPLICATION_COMMENT_MAX_LENGTH = 100;
-const applicationTableKey = ref(0);
 
 const {
   //data
@@ -83,12 +82,7 @@ function handleRegisterApplication() {
   }
 
   emit("add-application", application);
-  resetRegisteredApplicationSelection();
-}
-
-function resetRegisteredApplicationSelection() {
   resetApplicationPayload();
-  applicationTableKey.value += 1;
 }
 
 function handleApplicationCommentInput(event) {
@@ -246,7 +240,6 @@ function handleApplicationCommentInput(event) {
 
       <TablaFacturasDisponibles
         v-if="showTableInvoices && !loadingDocs"
-        :key="applicationTableKey"
         :invoices="applicationInvoices"
         title="Aplicacion de Saldos"
         document-label="factura(s)"
