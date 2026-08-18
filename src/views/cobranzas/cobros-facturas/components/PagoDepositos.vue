@@ -91,8 +91,7 @@ function handleDepositDataChanged() {
 }
 
 function handleDepositReceiptInput(event) {
-  const receiptNumber = event.target.value
-    .slice(0, DEPOSIT_RECEIPT_MAX_LENGTH);
+  const receiptNumber = event.target.value.slice(0, DEPOSIT_RECEIPT_MAX_LENGTH);
 
   depositPayload.comprobante = receiptNumber;
 
@@ -192,8 +191,7 @@ function handleDepositAmountInput(field, event) {
                 class="form-control form-control-sm"
                 :value="depositPayload.comprobante"
                 :class="{ 'is-invalid': v$.comprobante.$errors.length }"
-                inputmode="numeric"
-                pattern="[0-9]*"
+                inputmode="text"
                 :maxlength="DEPOSIT_RECEIPT_MAX_LENGTH"
                 autocomplete="off"
                 required
