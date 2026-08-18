@@ -215,6 +215,7 @@ export function useInvoiceCollectionActions() {
 
 
 
+
     return {
         //obtener estado de caja
         loadingCashBoxStatus,
@@ -271,7 +272,6 @@ export function useInvoiceCollectionActions() {
 
         //imprimir el pdf del cobro
         loadingPrintCollectionPdf,
-        printPdfCollection
-
+        printPdfCollection,
     }
 }

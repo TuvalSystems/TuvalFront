@@ -238,14 +238,7 @@ const routes = [
     component: LayoutBackend,
     meta: { requiresAuth: true },
     children: [
-      // {
-      //   path: "cobrofacturas",
-      //   name: "cobranzas-cobrofacturas",
-      //   component: CobranzasFacturas,
-      //   meta: {
-      //     title: "Cobros - Cobros Generales",
-      //   },
-      // },
+     
       {
         path: "cobros-facturas",
         name: "cobranzas-cobros-facturas",
@@ -254,14 +247,17 @@ const routes = [
           title: "Cobros - Gestión Cobros",
         },
       },
-      // {
-      //   path: "cobropedido",
-      //   name: "cobranzas-cobropedido",
-      //   component: CobranzasPedido,
-      //   meta: {
-      //     title: "Cobros - Cobros Pedido",
-      //   },
-      // },
+
+       {
+        path: "cierre-caja",
+        name: "cobranzas-cierre-caja",
+        component: () => import("@/views/cobranzas/cierre-caja/CierreCajaIndex.vue"),
+        meta: {
+          title: "Cobros - Gestión de cierre de caja",
+        },
+      },
+      
+      
       {
         path: "aprobaciondepositos",
         name: "cobranzas-aprobaciondepositos",

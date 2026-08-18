@@ -15,5 +15,10 @@ export const INVOICE_COLLECTION_API_ROUTES = {
     VALIDATE_COLLECTION : 'cobranzas/cobros-facturas/validar-cobros',
     LIST_COLLECTION : 'cobranzas/cobros-facturas/lista-cobros-registrados',
     DOWNLOAD_COLLECTION_PDF : 'cobranzas/cobros-facturas/imprimir-cobro',
-    REGISTER_COLLECTION : 'cobranzas/cobros-facturas/registrar-cobro'
+    REGISTER_COLLECTION : 'cobranzas/cobros-facturas/registrar-cobro',
+
+    // apis para cierre de caja
+    BOX : {
+        CLOSE_BOX : 'cobranzas/cierre-caja/cerrar',
+    }
 }
