@@ -10,7 +10,7 @@ import { formatPriceJm, roundTo, toNumber } from "@/functions";
 
 function createEmptyApplicationPayload() {
     return {
-        documento: null,
+        documento: "",
         tipo: null,
         fechaEmision: null,
         montoOriginal: 0,
@@ -18,7 +18,7 @@ function createEmptyApplicationPayload() {
         montoDisponible: 0,
         montoAplicado: 0,
         montoNoAplicado: 0,
-        comentario: null,
+        comentario: "",
         facturas: [],
     };
 }
