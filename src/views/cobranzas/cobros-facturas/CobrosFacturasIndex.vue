@@ -116,6 +116,7 @@ const loadingCustomerCollectionData = computed(
     loadingPendingApplicationDocuments.value ||
     loadingCollectionBanks.value
 );
+const customerCollectionDataVersion = ref(0);
 
 async function refreshCustomerCollectionData(customer, notify = true) {
   const clientId = customer?.id;
@@ -140,7 +141,21 @@ async function refreshCustomerCollectionData(customer, notify = true) {
   if (notify) {
     swalSuccess("Información Actualizada Exitosamente");
   }
+  customerCollectionDataVersion.value += 1;
   return true;
+}
+
+async function refreshPaymentDataBeforeApply() {
+  const refreshed = await refreshCustomerCollectionData(
+    selectedCustomer.value,
+    false
+  );
+
+  if (refreshed) {
+    await nextTick();
+  }
+
+  return refreshed;
 }
 
 function paymentCountLabel(count) {
@@ -326,6 +341,8 @@ const paymentMethodSections = computed(() => {
         efectivo: collectionDraft.efectivo,
         cliente: selectedCustomer.value,
         loadingDocs: loadingCustomerCollectionData.value,
+        invoiceDataVersion: customerCollectionDataVersion.value,
+        refreshBeforeApply: refreshPaymentDataBeforeApply,
       },
       events: {
         "add-cash": (cash) =>
@@ -348,6 +365,8 @@ const paymentMethodSections = computed(() => {
         depositos: collectionDraft.depositos,
         cliente: selectedCustomer.value,
         loadingDocs: loadingCustomerCollectionData.value,
+        invoiceDataVersion: customerCollectionDataVersion.value,
+        refreshBeforeApply: refreshPaymentDataBeforeApply,
       },
       events: {
         "add-deposit": (deposit) =>
@@ -370,6 +389,8 @@ const paymentMethodSections = computed(() => {
         cliente: selectedCustomer.value,
         bancoClientes: bankClient.value,
         loadingDocs: loadingCustomerCollectionData.value,
+        invoiceDataVersion: customerCollectionDataVersion.value,
+        refreshBeforeApply: refreshPaymentDataBeforeApply,
       },
       events: {
         "add-check": (check) =>
@@ -392,6 +413,8 @@ const paymentMethodSections = computed(() => {
         tarjeta: collectionDraft.tarjeta,
         cliente: selectedCustomer.value,
         loadingDocs: loadingCustomerCollectionData.value,
+        invoiceDataVersion: customerCollectionDataVersion.value,
+        refreshBeforeApply: refreshPaymentDataBeforeApply,
       },
       events: {
         "add-card": (card) =>
@@ -414,6 +437,8 @@ const paymentMethodSections = computed(() => {
         aplicacionesPendientes: pendingApplicationDocuments.value,
         aplicaciones: collectionDraft.aplicaciones,
         loadingDocs: loadingCustomerCollectionData.value,
+        invoiceDataVersion: customerCollectionDataVersion.value,
+        refreshBeforeApply: refreshPaymentDataBeforeApply,
       },
       events: {
         "add-application": (apply) =>

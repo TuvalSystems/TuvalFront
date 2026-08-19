@@ -14,6 +14,7 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
+import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
 
 const typeDeposits = [
     { label: "Deposito Bancario", value: "DP" },
@@ -146,6 +147,7 @@ export function useInvoiceCollectionDeposits({
     bancosTuval,
     depositos,
     cliente,
+    invoiceDataVersion,
     validateDepositReceiptNumber,
 
 } = {}) {
@@ -153,6 +155,7 @@ export function useInvoiceCollectionDeposits({
     const bankTuvalOptions = computed(() => normalizeCollectionItems(bancosTuval));
     const registeredDeposits = computed(() => normalizeCollectionItems(depositos));
     const client = computed(() => resolveSource(cliente) ?? {});
+    const invoiceRefreshVersion = computed(() => resolveSource(invoiceDataVersion) ?? 0);
     const depositPayload = reactive(createEmptyDeposit());
     const v$ = useVuelidate(createDepositRule(), depositPayload);
     const showTableInvoices = ref(false);
@@ -279,6 +282,23 @@ export function useInvoiceCollectionDeposits({
         return invoiceOptions.value
             .map(createDepositInvoiceRow)
             .filter((invoice) => getInvoiceDepositBalance(invoice) > 0);
+    }
+
+    function refreshDepositInvoiceRows() {
+        if (!showTableInvoices.value) {
+            return;
+        }
+
+        depositInvoiceRows.value = rebuildInvoiceRowsPreservingSelection({
+            currentRows: depositInvoiceRows.value,
+            nextRows: buildDepositInvoiceRows(),
+            amountKey: "aplicarMontoDeposito",
+            applyAllKey: "aplicarTodoDeposito",
+            observationKey: "observacionDeposito",
+            getInvoiceBalance: getInvoiceDepositBalance,
+            getAvailablePaymentAmount: () => depositPayload.montoRecibido,
+        });
+        updateDepositApplicationSummary();
     }
 
     function createDepositInvoiceToAdd(invoice) {
@@ -554,6 +574,12 @@ export function useInvoiceCollectionDeposits({
             updateDepositDateRange();
             resetDepositApplicationState();
         }
+    );
+
+    watch(
+        [invoiceOptions, registeredDeposits, invoiceRefreshVersion],
+        refreshDepositInvoiceRows,
+        { deep: true }
     );
 
     return {

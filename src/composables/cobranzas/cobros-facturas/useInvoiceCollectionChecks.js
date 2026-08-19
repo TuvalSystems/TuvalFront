@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import {
@@ -14,6 +14,7 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
+import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
 
 
 
@@ -109,6 +110,7 @@ export function useInvoiceCollectionChecks({
     facturas,
     cliente,
     bancoClientes,
+    invoiceDataVersion,
     validateCheckReceiptNumber
 }) {
 
@@ -128,6 +130,7 @@ export function useInvoiceCollectionChecks({
     const invoiceOptions = computed(() => normalizeCollectionItems(facturas));
     const bankClientsOptions = computed(() => normalizeCollectionItems(bancoClientes));
     const client = computed(() => resolveSource(cliente) ?? {});
+    const invoiceRefreshVersion = computed(() => resolveSource(invoiceDataVersion) ?? 0);
     const checkPayload = reactive(createEmptyCheck());
 
     //vaidation 
@@ -246,6 +249,23 @@ export function useInvoiceCollectionChecks({
         return invoiceOptions.value
             .map(createCheckInvoiceRow)
             .filter((invoice) => getInvoiceCheckBalance(invoice) > 0);
+    }
+
+    function refreshCheckInvoiceRows() {
+        if (!showTableInvoices.value) {
+            return;
+        }
+
+        checkInvoicesRows.value = rebuildInvoiceRowsPreservingSelection({
+            currentRows: checkInvoicesRows.value,
+            nextRows: buildCheckInvoiceRows(),
+            amountKey: "aplicarMontoCheque",
+            applyAllKey: "aplicarTodoCheque",
+            observationKey: "observacionCheque",
+            getInvoiceBalance: getInvoiceCheckBalance,
+            getAvailablePaymentAmount: () => checkPayload.montoRecibido,
+        });
+        updateCheckApplicationSummary();
     }
 
     function createCheckInvoiceRow(invoice) {
@@ -428,6 +448,12 @@ export function useInvoiceCollectionChecks({
     }
 
 
+
+    watch(
+        [invoiceOptions, invoiceRefreshVersion],
+        refreshCheckInvoiceRows,
+        { deep: true }
+    );
 
 
     return {

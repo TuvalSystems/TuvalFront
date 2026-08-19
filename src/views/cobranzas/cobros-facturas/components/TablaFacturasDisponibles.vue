@@ -153,7 +153,10 @@ const filteredInvoices = computed(() => {
 });
 
 function getRowKey(invoice, index) {
-  return invoice?.id ?? invoice?.[props.documentKey] ?? index;
+  const id = invoice?.id ?? invoice?.factura_id ?? '';
+  const documentNumber = invoice?.[props.documentKey] ?? '';
+
+  return `${id}-${documentNumber}-${index}`;
 }
 
 function getValue(invoice, key) {

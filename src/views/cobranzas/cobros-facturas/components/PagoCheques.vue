@@ -37,9 +37,18 @@ const props = defineProps({
     required: true,
     default: () => false,
   },
+  invoiceDataVersion: {
+    type: Number,
+    default: 0,
+  },
+  refreshBeforeApply: {
+    type: Function,
+    default: null,
+  },
 });
 
-const { facturas, cheque, cliente, bancoClientes } = toRefs(props);
+const { facturas, cheque, cliente, bancoClientes, invoiceDataVersion } =
+  toRefs(props);
 
 const CHECK_NUMERIC_FIELD_MAX_LENGTH = 30;
 
@@ -70,6 +79,7 @@ const {
   cheque,
   cliente,
   bancoClientes,
+  invoiceDataVersion,
   validateCheckReceiptNumber,
 });
 
@@ -78,12 +88,24 @@ function hasRegisteredCheck() {
 }
 
 async function handleApplyCheck() {
+  if (!(await refreshInvoicesBeforeApply())) {
+    return;
+  }
+
   const shouldRemovePreviousCheck = hasRegisteredCheck();
   const applied = await applyCheck();
 
   if (applied && shouldRemovePreviousCheck) {
     emit("remove-check");
   }
+}
+
+async function refreshInvoicesBeforeApply() {
+  if (typeof props.refreshBeforeApply !== "function") {
+    return true;
+  }
+
+  return (await props.refreshBeforeApply()) !== false;
 }
 
 function handleRegisterCheck() {

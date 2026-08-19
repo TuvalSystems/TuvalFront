@@ -28,6 +28,14 @@ const props = defineProps({
   loadingDocs : {
     type : Boolean,
     default : () => false
+  },
+  invoiceDataVersion: {
+    type: Number,
+    default: 0
+  },
+  refreshBeforeApply: {
+    type: Function,
+    default: null
   }
 });
 
@@ -35,6 +43,7 @@ const {
   facturas,
   efectivo,
   cliente,
+  invoiceDataVersion,
 } = toRefs(props);
 
 const {
@@ -55,6 +64,7 @@ const {
   facturas,
   efectivo,
   cliente,
+  invoiceDataVersion,
 });
 
 const cashDateConfig = {
@@ -66,12 +76,24 @@ function hasRegisteredCash() {
 }
 
 async function handleApplyCash() {
+  if (!(await refreshInvoicesBeforeApply())) {
+    return;
+  }
+
   const shouldRemovePreviousCash = hasRegisteredCash();
   const applied = await applyCash();
 
   if (applied && shouldRemovePreviousCash) {
     emits("remove-cash");
   }
+}
+
+async function refreshInvoicesBeforeApply() {
+  if (typeof props.refreshBeforeApply !== "function") {
+    return true;
+  }
+
+  return (await props.refreshBeforeApply()) !== false;
 }
 
 function registerCash() {

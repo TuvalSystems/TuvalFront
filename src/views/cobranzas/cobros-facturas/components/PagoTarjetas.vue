@@ -33,9 +33,18 @@ const props = defineProps({
     type: Boolean,
     default: () => false,
   },
+  invoiceDataVersion: {
+    type: Number,
+    default: 0,
+  },
+  refreshBeforeApply: {
+    type: Function,
+    default: null,
+  },
 });
 
-const { facturas, bancoTarjetas, tarjeta, cliente } = toRefs(props);
+const { facturas, bancoTarjetas, tarjeta, cliente, invoiceDataVersion } =
+  toRefs(props);
 
 const CARD_APPROVAL_MAX_LENGTH = 30;
 const CARD_COMMENT_MAX_LENGTH = 100;
@@ -63,15 +72,28 @@ const {
   facturas,
   bancoTarjetas,
   cliente,
+  invoiceDataVersion,
 });
 
 async function handleApplyCard() {
+  if (!(await refreshInvoicesBeforeApply())) {
+    return;
+  }
+
   const shouldRemovePreviousCard = hasRegisteredCard();
   const applied = await applyCard();
 
   if (applied && shouldRemovePreviousCard) {
     emit("remove-card");
   }
+}
+
+async function refreshInvoicesBeforeApply() {
+  if (typeof props.refreshBeforeApply !== "function") {
+    return true;
+  }
+
+  return (await props.refreshBeforeApply()) !== false;
 }
 
 function handleRegisterCard() {

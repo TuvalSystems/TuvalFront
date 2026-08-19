@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from "vue"
+import { computed, reactive, ref, watch } from "vue"
 import useVuelidate from "@vuelidate/core";
 import {
     decimal,
@@ -13,6 +13,7 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
+import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
 
 
 
@@ -54,7 +55,8 @@ function createCashRules() {
 export function useInvoiceCollectionCash({
     facturas,
     efectivo,
-    cliente
+    cliente,
+    invoiceDataVersion,
 } = {}) {
     const invoicesOptions = computed(() => {
         const items = facturas?.value ?? facturas ?? [];
@@ -63,6 +65,9 @@ export function useInvoiceCollectionCash({
             ? items
             : Object.values(items ?? {});
     });
+    const invoiceRefreshVersion = computed(
+        () => invoiceDataVersion?.value ?? invoiceDataVersion ?? 0
+    );
     const cashPayload = reactive(createEmptyCash());
 
     const v$ = useVuelidate(createCashRules(), cashPayload);
@@ -135,6 +140,23 @@ export function useInvoiceCollectionCash({
 
     function buildCashInvoiceRows() {
         return invoicesOptions.value.map(createCashInvoiceRow);
+    }
+
+    function refreshCashInvoiceRows() {
+        if (!showTableInvoices.value) {
+            return;
+        }
+
+        cashInvoiceRows.value = rebuildInvoiceRowsPreservingSelection({
+            currentRows: cashInvoiceRows.value,
+            nextRows: buildCashInvoiceRows(),
+            amountKey: "aplicarMontoEfectivo",
+            applyAllKey: "aplicarTodoEfectivo",
+            observationKey: "observacionEfectivo",
+            getInvoiceBalance: (invoice) => toNumber(invoice?.saldoCliente) ?? 0,
+            getAvailablePaymentAmount: () => cashPayload.montoACobrar,
+        });
+        updateCashApplicationSummary();
     }
 
     function syncAppliedCashInvoices() {
@@ -260,6 +282,11 @@ export function useInvoiceCollectionCash({
         return true;
     }
 
+    watch(
+        [invoicesOptions, invoiceRefreshVersion],
+        refreshCashInvoiceRows,
+        { deep: true }
+    );
 
     return {
         cashPayload,

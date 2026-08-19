@@ -32,6 +32,14 @@ const props = defineProps({
     type: Boolean,
     default: () => false,
   },
+  invoiceDataVersion: {
+    type: Number,
+    default: 0,
+  },
+  refreshBeforeApply: {
+    type: Function,
+    default: null,
+  },
 });
 
 const { loadingDepositReceiptValidation, validateDepositReceiptNumber } =
@@ -39,7 +47,8 @@ const { loadingDepositReceiptValidation, validateDepositReceiptNumber } =
 
 const DEPOSIT_RECEIPT_MAX_LENGTH = 30;
 
-const { facturas, bancosTuval, depositos, cliente } = toRefs(props);
+const { facturas, bancosTuval, depositos, cliente, invoiceDataVersion } =
+  toRefs(props);
 
 const {
   typeDeposits,
@@ -67,12 +76,25 @@ const {
   bancosTuval,
   depositos,
   cliente,
+  invoiceDataVersion,
   //function
   validateDepositReceiptNumber,
 });
 
 async function handleApplyDeposit() {
+  if (!(await refreshInvoicesBeforeApply())) {
+    return;
+  }
+
   await applyDeposit();
+}
+
+async function refreshInvoicesBeforeApply() {
+  if (typeof props.refreshBeforeApply !== "function") {
+    return true;
+  }
+
+  return (await props.refreshBeforeApply()) !== false;
 }
 
 function handleRegisterDeposit() {

@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import useVuelidate from "@vuelidate/core";
 import {
     helpers,
@@ -7,6 +7,7 @@ import {
 } from "@vuelidate/validators";
 import { swalWarning } from "@/functions/swal-alert";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
+import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
 
 function createEmptyApplicationPayload() {
     return {
@@ -72,10 +73,12 @@ export function useInvoiceCollectionApplications({
     facturas,
     aplicacionesPendientes,
     aplicaciones,
+    invoiceDataVersion,
 } = {}) {
     const invoiceOptions = computed(() => normalizeCollectionItems(facturas));
     const pendingApplicationOptions = computed(() => normalizeCollectionItems(aplicacionesPendientes));
     const registeredApplications = computed(() => normalizeCollectionItems(aplicaciones));
+    const invoiceRefreshVersion = computed(() => resolveSource(invoiceDataVersion) ?? 0);
     const applicationPayload = reactive(createEmptyApplicationPayload());
     const v$ = useVuelidate(createApplicationRules(), applicationPayload);
     const showTableInvoices = ref(false);
@@ -257,6 +260,23 @@ export function useInvoiceCollectionApplications({
                 getInvoiceApplicationBalance(invoice) > 0 &&
                 !hasCurrentDocumentAlreadyAppliedToInvoice(invoice)
             );
+    }
+
+    function refreshApplicationInvoiceRows() {
+        if (!showTableInvoices.value) {
+            return;
+        }
+
+        applicationInvoiceRows.value = rebuildInvoiceRowsPreservingSelection({
+            currentRows: applicationInvoiceRows.value,
+            nextRows: buildApplicationInvoiceRows(),
+            amountKey: "aplicarMontoAplicacion",
+            applyAllKey: "aplicarTodoAplicacion",
+            observationKey: "observacionAplicacion",
+            getInvoiceBalance: getInvoiceApplicationBalance,
+            getAvailablePaymentAmount: () => applicationPayload.montoDisponible,
+        });
+        updateApplicationSummary();
     }
 
     function createApplicationInvoiceRow(invoice) {
@@ -469,6 +489,12 @@ export function useInvoiceCollectionApplications({
             facturas: applicationPayload.facturas.map((invoice) => ({ ...invoice })),
         };
     }
+
+    watch(
+        [invoiceOptions, registeredApplications, invoiceRefreshVersion],
+        refreshApplicationInvoiceRows,
+        { deep: true }
+    );
 
     return {
         invoiceOptions,

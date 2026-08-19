@@ -31,9 +31,17 @@ const props = defineProps({
     type: Boolean,
     default: () => false,
   },
+  invoiceDataVersion: {
+    type: Number,
+    default: 0,
+  },
+  refreshBeforeApply: {
+    type: Function,
+    default: null,
+  },
 });
 
-const { facturas, aplicacionesPendientes, aplicaciones, cliente } =
+const { facturas, aplicacionesPendientes, aplicaciones, cliente, invoiceDataVersion } =
   toRefs(props);
 
 const APPLICATION_COMMENT_MAX_LENGTH = 100;
@@ -64,10 +72,23 @@ const {
   aplicacionesPendientes,
   aplicaciones,
   cliente,
+  invoiceDataVersion,
 });
 
 async function handleApplyApplication() {
+  if (!(await refreshInvoicesBeforeApply())) {
+    return;
+  }
+
   await applySelectedPendingDocument();
+}
+
+async function refreshInvoicesBeforeApply() {
+  if (typeof props.refreshBeforeApply !== "function") {
+    return true;
+  }
+
+  return (await props.refreshBeforeApply()) !== false;
 }
 
 function handlePendingDocumentSelected() {

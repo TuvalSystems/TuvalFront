@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import useVuelidate from "@vuelidate/core";
 import {
@@ -14,6 +14,7 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
+import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
@@ -103,10 +104,12 @@ export function useInvoiceCollectionCards({
     facturas,
     bancoTarjetas,
     cliente,
+    invoiceDataVersion,
 } = {}) {
     const invoiceOptions = computed(() => normalizeCollectionItems(facturas));
     const bankCardsOptions = computed(() => normalizeCollectionItems(bancoTarjetas));
     const client = computed(() => resolveSource(cliente) ?? {});
+    const invoiceRefreshVersion = computed(() => resolveSource(invoiceDataVersion) ?? 0);
     const cardPayload = reactive(createEmptyCard());
     const v$ = useVuelidate(createCardRules(), cardPayload);
     const showTableInvoices = ref(false);
@@ -176,6 +179,23 @@ export function useInvoiceCollectionCards({
         return invoiceOptions.value
             .map(createCardInvoiceRow)
             .filter((invoice) => getInvoiceCardBalance(invoice) > 0);
+    }
+
+    function refreshCardInvoiceRows() {
+        if (!showTableInvoices.value) {
+            return;
+        }
+
+        cardInvoiceRows.value = rebuildInvoiceRowsPreservingSelection({
+            currentRows: cardInvoiceRows.value,
+            nextRows: buildCardInvoiceRows(),
+            amountKey: "aplicarMontoTarjeta",
+            applyAllKey: "aplicarTodoTarjeta",
+            observationKey: "observacionTarjeta",
+            getInvoiceBalance: getInvoiceCardBalance,
+            getAvailablePaymentAmount: () => cardPayload.montoRecibido,
+        });
+        updateCardApplicationSummary();
     }
 
     function createCardInvoiceToAdd(invoice) {
@@ -361,6 +381,12 @@ export function useInvoiceCollectionCards({
             facturas: cardPayload.facturas.map((invoice) => ({ ...invoice })),
         };
     }
+
+    watch(
+        [invoiceOptions, invoiceRefreshVersion],
+        refreshCardInvoiceRows,
+        { deep: true }
+    );
 
     return {
         cardPayload,
