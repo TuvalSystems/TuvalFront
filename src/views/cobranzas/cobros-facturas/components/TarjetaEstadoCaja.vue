@@ -92,7 +92,7 @@ async function requestOpenCashBox() {
                         La caja no se cerró en la última fecha registrada.
                     </div>
 
-                    <router-link :to="{ name: 'cobranzas-cierredecaja' }" class="btn btn-warning btn-sm py-1">
+                    <router-link :to="{ name: 'cobranzas-cierre-caja' }" class="btn btn-warning btn-sm py-1">
                         Cerrar caja
                     </router-link>
                 </div>
