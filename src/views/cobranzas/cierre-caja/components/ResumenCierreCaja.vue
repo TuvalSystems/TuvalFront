@@ -3,6 +3,7 @@
 import { reactive, computed } from "vue";
 import FlatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
+import { formatPriceJm } from "@/functions";
 
 const props = defineProps({
   cashBox: {
@@ -35,17 +36,96 @@ const cashBoxDateConfig = reactive({
   locale: Spanish,
 });
 
-const hasSummaryData = computed(() => {
-  if (Array.isArray(props.summary)) {
-    return props.summary.length > 0;
-  }
-
+const summaryData = computed(() => {
   if (props.summary && typeof props.summary === "object") {
-    return Object.keys(props.summary).length > 0;
+    return Array.isArray(props.summary) ? props.summary[0] ?? null : props.summary;
   }
 
-  return false;
+  return null;
 });
+
+const hasSummaryData = computed(() => {
+  return Boolean(
+    summaryData.value &&
+      typeof summaryData.value === "object" &&
+      Object.keys(summaryData.value).length > 0
+  );
+});
+
+const summaryRows = computed(() => [
+  {
+    key: "retencion-iva",
+    label: "Retencion IVA",
+    icon: "fa-receipt",
+    value:
+      summaryData.value?.retencionIva ??
+      summaryData.value?.retenciones?.ret_iva ??
+      0,
+  },
+  {
+    key: "retencion-renta",
+    label: "Retencion Renta",
+    icon: "fa-file-invoice",
+    value:
+      summaryData.value?.retencionRenta ??
+      summaryData.value?.retenciones?.ret_renta ??
+      0,
+  },
+  {
+    key: "efectivo",
+    label: "Efectivo",
+    icon: "fa-money-bill-wave",
+    value: summaryData.value?.efectivo ?? 0,
+  },
+  {
+    key: "cheques",
+    label: "Cheques al dia",
+    icon: "fa-money-check",
+    value: summaryData.value?.cheques ?? 0,
+  },
+  {
+    key: "cheques-p",
+    label: "Cheques posfechados",
+    icon: "fa-money-check-dollar",
+    value: summaryData.value?.cheques_p ?? 0,
+  },
+  {
+    key: "depositos",
+    label: "Depositos / transferencias",
+    icon: "fa-building-columns",
+    value: summaryData.value?.depositos ?? 0,
+  },
+  {
+    key: "tarjetas",
+    label: "Tarjetas",
+    icon: "fa-credit-card",
+    value: summaryData.value?.tarjetas ?? 0,
+  },
+]);
+
+const summaryTotal = computed(() => {
+  if (summaryData.value?.total != null) {
+    return summaryData.value.total;
+  }
+
+  return summaryRows.value.reduce(
+    (total, row) => total + normalizeAmount(row.value),
+    0
+  );
+});
+
+function normalizeAmount(value) {
+  const number =
+    typeof value === "string"
+      ? Number(value.replace(/[^\d.-]/g, ""))
+      : Number(value);
+
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatAmount(value) {
+  return formatPriceJm(value ?? 0) ?? "0.00";
+}
 
 function handleDateChange(value) {
   emit("update:fecha", value);
@@ -125,14 +205,34 @@ function requestSummaryPdfDownload() {
         <span>Consultando resumen de caja...</span>
       </div>
 
-      <div v-else-if="hasSummaryData" class="cash-summary-ready">
-        <div class="cash-summary-ready-icon">
-          <i class="fa fa-chart-simple"></i>
+      <div v-else-if="hasSummaryData" class="cash-summary-details">
+        <div class="cash-summary-total">
+          <div>
+            <small class="label-small">Total cobrado</small>
+            <div class="cash-summary-total-value">
+              ${{ formatAmount(summaryTotal) }}
+            </div>
+          </div>
+          <div class="cash-summary-total-icon">
+            <i class="fa fa-sack-dollar"></i>
+          </div>
         </div>
-        <div>
-          <div class="cash-summary-ready-title">Resumen consultado</div>
-          <div class="cash-summary-ready-copy">
-            Los datos de la fecha seleccionada estan listos para visualizarse.
+
+        <div class="cash-summary-grid" aria-label="Resumen de cierre de caja">
+          <div
+            v-for="row in summaryRows"
+            :key="row.key"
+            class="cash-summary-metric"
+          >
+            <div class="cash-summary-metric-icon">
+              <i :class="['fa', row.icon]"></i>
+            </div>
+            <div class="cash-summary-metric-copy">
+              <span class="cash-summary-metric-label">{{ row.label }}</span>
+              <strong class="cash-summary-metric-value">
+                ${{ formatAmount(row.value) }}
+              </strong>
+            </div>
           </div>
         </div>
       </div>
@@ -275,8 +375,7 @@ function requestSummaryPdfDownload() {
   border-top: 1px solid var(--tuval-border, var(--bs-border-color));
 }
 
-.cash-summary-state,
-.cash-summary-ready {
+.cash-summary-state {
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -285,9 +384,6 @@ function requestSummaryPdfDownload() {
   border-radius: var(--tuval-radius-md, var(--bs-border-radius));
   font-size: 0.78rem;
   font-weight: 600;
-}
-
-.cash-summary-state {
   color: var(--tuval-text-muted, var(--bs-secondary-color));
   background: var(--tuval-surface-muted, var(--bs-light));
 }
@@ -296,35 +392,101 @@ function requestSummaryPdfDownload() {
   border: 1px dashed var(--tuval-border, var(--bs-border-color));
 }
 
-.cash-summary-ready {
-  border: 1px solid rgba(var(--bs-success-rgb), 0.24);
-  background: rgba(var(--bs-success-rgb), 0.08);
+.cash-summary-details {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
 }
 
-.cash-summary-ready-icon {
+.cash-summary-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
+  border-left: 4px solid var(--tuval-primary, var(--bs-primary));
+  border-radius: var(--tuval-radius-md, var(--bs-border-radius));
+  background: rgba(var(--bs-primary-rgb), 0.06);
+}
+
+.cash-summary-total-value {
+  color: var(--tuval-text, var(--bs-body-color));
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.cash-summary-total-icon,
+.cash-summary-metric-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 2rem;
-  width: 2rem;
-  height: 2rem;
-  color: var(--bs-success);
-  background: rgba(var(--bs-success-rgb), 0.12);
+  flex: 0 0 auto;
   border-radius: var(--tuval-radius-md, var(--bs-border-radius));
 }
 
-.cash-summary-ready-title {
-  color: var(--tuval-text, var(--bs-body-color));
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1.25;
+.cash-summary-total-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  color: var(--tuval-primary-strong, var(--bs-primary));
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  font-size: 1rem;
 }
 
-.cash-summary-ready-copy {
+.cash-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.cash-summary-metric {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  min-height: 4rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
+  border-radius: var(--tuval-radius-md, var(--bs-border-radius));
+  background: var(--bs-body-bg);
+}
+
+.cash-summary-metric-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--tuval-primary-strong, var(--bs-primary));
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.1));
+  font-size: 0.8rem;
+}
+
+.cash-summary-metric-copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.cash-summary-metric-label {
   color: var(--tuval-text-muted, var(--bs-secondary-color));
   font-size: 0.72rem;
-  font-weight: 500;
-  line-height: 1.35;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cash-summary-metric-value {
+  color: var(--tuval-text, var(--bs-body-color));
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+  .cash-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -340,6 +502,10 @@ function requestSummaryPdfDownload() {
   .cash-apply-button {
     width: 100%;
   }
+
+  .cash-summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 420px) {
@@ -349,6 +515,14 @@ function requestSummaryPdfDownload() {
 
   .cash-summary-name {
     white-space: normal;
+  }
+
+  .cash-summary-total {
+    align-items: flex-start;
+  }
+
+  .cash-summary-total-value {
+    font-size: 1.15rem;
   }
 }
 </style>

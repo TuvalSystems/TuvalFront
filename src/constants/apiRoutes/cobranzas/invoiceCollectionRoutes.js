@@ -19,6 +19,8 @@ export const INVOICE_COLLECTION_API_ROUTES = {
 
     // apis para cierre de caja
     BOX : {
-        CLOSE_BOX : 'cobranzas/cierre-caja/cerrar',
+        CLOSE_BOX : 'cobranzas/cierre-cajas/cerrar',
+        PRINT_PDF : 'cobranzas/pdf/cierre-caja',
+        RESUMEN   : 'cobranzas/cierre-cajas/resumen'
     }
 }

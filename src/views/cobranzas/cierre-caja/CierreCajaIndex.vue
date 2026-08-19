@@ -4,7 +4,12 @@ import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-fact
 import { useCloseCashBox } from "@/composables/cobranzas/cierre-caja/useCloseCashBox.js";
 import { onMounted, watch } from "vue";
 import TarjetaCierreCaja from "./components/TarjetaCierreCaja.vue";
-import { swalError, swalSuccess, swalWarning, toast } from "@/functions/swal-alert.js";
+import {
+  swalError,
+  swalSuccess,
+  swalWarning,
+  toast,
+} from "@/functions/swal-alert.js";
 import ResumenCierreCaja from "./components/ResumenCierreCaja.vue";
 
 const {
@@ -56,8 +61,19 @@ async function confirmCloseCashBox() {
   });
 
   if (result.isConfirmed) {
-    await closeCashBox();
+    await responseCloseCashBox();
   }
+}
+
+async function responseCloseCashBox() {
+  const resp = await closeCashBox();
+  if (resp?.ok) {
+    swalSuccess(resp?.message);
+    await getUserCashBoxStatus();
+    return;
+  }
+  const msg = resp?.message || "No se pudo generar el documento";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
 
 // watch para la consulta automatica del resumen

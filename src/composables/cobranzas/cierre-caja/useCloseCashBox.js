@@ -1,9 +1,13 @@
+import { INVOICE_COLLECTION_API_ROUTES } from "@/constants/apiRoutes/cobranzas/invoiceCollectionRoutes";
 import { formatDateForInput } from "@/utils/cobros/validateDate";
 import { computed, reactive, ref } from "vue";
 import { useStore } from "vuex";
-
+import { useApiAction } from "@/composables/core/useApiAction";
+import { downloadFileFromApi } from "@/utils/fileDownload";
+import axiosClient from "@/axios";
 export function useCloseCashBox() {
   const store = useStore();
+  const { run } = useApiAction();
 
   const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
   const selectedPointSaleCode = computed(() => store.state.puntodeventaselect);
@@ -35,7 +39,14 @@ export function useCloseCashBox() {
   const loadingCloseCashBox = ref(false);
   async function closeCashBox() {
     const payload = buildCashClosurePayload();
-    console.log(payload, "proceso de cierre de caja pruebas");
+    return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.BOX.CLOSE_BOX, {
+      pvId: payload.pvId,
+      pvCodigo: payload.pvCodigo,
+      caja_id: payload.caja_id
+    }),
+      {
+        loadingRef: loadingCloseCashBox,
+      });
   }
 
   const loadingCashClosureSummary = ref(false);
@@ -45,9 +56,24 @@ export function useCloseCashBox() {
       cashClosureSummary.value = null;
       return { ok: false, status: 400, message: "Seleccione caja y fecha." };
     }
-
     const payload = buildCashClosurePayload();
-    console.log(payload, "proceso de resumen de cierre de caja");
+    return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.BOX.RESUMEN, {
+      pvId: payload.pvId,
+      pvCodigo: payload.pvCodigo,
+      caja_id: payload.caja_id,
+      fecha : payload.fecha
+    }),
+      {
+        loadingRef: loadingCashClosureSummary,
+        onSuccess: (info) => {
+          cashClosureSummary.value = info ?? null;
+        },
+        onError: () => {
+          cashClosureSummary.value = null;
+        },
+      });
+
+
   }
 
   const loadingSummaryPdfDownload = ref(false);
@@ -55,9 +81,26 @@ export function useCloseCashBox() {
     if (!hasRequiredCashClosurePayload()) {
       return { ok: false, status: 400, message: "Seleccione caja y fecha." };
     }
-
     const payload = buildCashClosurePayload();
-    console.log(payload, "proceso de generar pdf");
+    return await run(async () => {
+      const filename = await downloadFileFromApi({
+        url: INVOICE_COLLECTION_API_ROUTES.BOX.PRINT_PDF,
+        method: "POST",
+        payload: {
+          caja_id: payload.caja_id,
+          fecha: payload.fecha,
+          pv_id: payload.pvId
+        },
+        filenameFallback: "consulta-cierre-caja.pdf",
+      });
+      return { data: { success: true, data: filename } };
+    }, {
+      loadingRef: loadingSummaryPdfDownload,
+      successMessage: "Documento generado exitosamente.",
+      onError: (error) => {
+        console.log(error);
+      }
+    });
   }
 
   return {
