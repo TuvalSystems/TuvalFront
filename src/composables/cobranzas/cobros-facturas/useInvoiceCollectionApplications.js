@@ -128,10 +128,24 @@ export function useInvoiceCollectionApplications({
             return;
         }
 
-        assignPendingDocumentToPayload(pendingDocument);
+        assignPendingDocumentToPayload(pendingDocument, {
+            resetApplicationRows: true,
+        });
     }
 
-    function assignPendingDocumentToPayload(pendingDocument) {
+    function getCurrentPendingDocument() {
+        const selectedDocument = getDocumentNumber(applicationPayload);
+
+        if (!selectedDocument) {
+            return null;
+        }
+
+        return pendingApplicationOptions.value.find(
+            (item) => getDocumentNumber(item) === selectedDocument
+        ) ?? null;
+    }
+
+    function getPendingDocumentApplicationAmounts(pendingDocument) {
         const documentNumber = getDocumentNumber(pendingDocument);
         const registeredAmount = calculateRegisteredAmountForDocument(documentNumber);
         const customerBalance = toNumber(pendingDocument?.saldoCliente) ?? 0;
@@ -140,6 +154,23 @@ export function useInvoiceCollectionApplications({
             2
         );
 
+        return {
+            documentNumber,
+            customerBalance,
+            availableAmount,
+        };
+    }
+
+    function assignPendingDocumentToPayload(
+        pendingDocument,
+        { resetApplicationRows = false } = {}
+    ) {
+        const {
+            documentNumber,
+            customerBalance,
+            availableAmount,
+        } = getPendingDocumentApplicationAmounts(pendingDocument);
+
         Object.assign(applicationPayload, {
             documento: documentNumber,
             tipo: pendingDocument?.tipo ?? null,
@@ -147,10 +178,38 @@ export function useInvoiceCollectionApplications({
             montoOriginal: roundTo(toNumber(pendingDocument?.montoOriginal) ?? 0, 2),
             saldoCliente: roundTo(customerBalance, 2),
             montoDisponible: availableAmount,
-            montoAplicado: 0,
-            montoNoAplicado: availableAmount,
-            facturas: [],
         });
+
+        if (resetApplicationRows || !showTableInvoices.value) {
+            applicationPayload.montoAplicado = 0;
+            applicationPayload.montoNoAplicado = availableAmount;
+            applicationPayload.facturas = [];
+        }
+    }
+
+    function syncSelectedPendingDocumentPayload({ warnIfMissing = false } = {}) {
+        const selectedDocument = getDocumentNumber(applicationPayload);
+
+        if (!selectedDocument) {
+            return true;
+        }
+
+        const pendingDocument = getCurrentPendingDocument();
+
+        if (!pendingDocument) {
+            resetApplicationPayload();
+
+            if (warnIfMissing) {
+                swalWarning("No se encontro el documento seleccionado.");
+            }
+
+            return false;
+        }
+
+        assignPendingDocumentToPayload(pendingDocument);
+        refreshApplicationInvoiceRows();
+
+        return true;
     }
 
     function calculateRegisteredAmountForDocument(documentNumber) {
@@ -227,6 +286,10 @@ export function useInvoiceCollectionApplications({
     async function applySelectedPendingDocument() {
         const result = await v$.value.$validate();
         if (!result) {
+            return false;
+        }
+
+        if (!syncSelectedPendingDocumentPayload({ warnIfMissing: true })) {
             return false;
         }
 
@@ -491,8 +554,13 @@ export function useInvoiceCollectionApplications({
     }
 
     watch(
-        [invoiceOptions, registeredApplications, invoiceRefreshVersion],
-        refreshApplicationInvoiceRows,
+        [
+            invoiceOptions,
+            pendingApplicationOptions,
+            registeredApplications,
+            invoiceRefreshVersion,
+        ],
+        syncSelectedPendingDocumentPayload,
         { deep: true }
     );
 
