@@ -12,7 +12,6 @@ import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crea
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import { useImageUpload } from "@/composables/core/useImageUpload";
 import { usePdfUpload } from "@/composables/core/usePdfUpload";
-import actualizarSegmentoClienteComponent from "@/views/ventas/modals/actualizarSegmentoClienteModal.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
@@ -25,14 +24,16 @@ import {
 } from "@/functions";
 import VueEasyLightbox from "vue-easy-lightbox";
 // imports modales
-import verModalCrearNuevaDireccion from "@/views/ventas/modals/verModalCrearNuevaDireccion.vue";
-import verModalBuscarArticulos from "@/views/ventas/modals/verModalBuscarArticulos.vue";
-import verModalItemAlternativo from "@/views/ventas/modals/verModalItemAlternativo.vue";
-import verModalSeleccionStockBodegas from "@/views/ventas/modals/verModalSeleccionStockBodegas.vue";
-import verModalModificacionPeso from "@/views/ventas/modals/verModalModificacionPeso.vue";
-import verModalProveedores from "@/views/ventas/modals/verModalProveedores.vue";
-import verModalListaBorradores from "@/views/ventas/modals/verModalListaBorradores.vue";
-import verModalHistoricoFacturas from "@/views/ventas/modals/verModalHistoricoFacturas.vue";
+
+import actualizarSegmentoClienteModal from "./modals/actualizarSegmentoClienteModal.vue";
+import verModalCrearNuevaDireccion from "./modals/verModalCrearNuevaDireccion.vue";
+import verModalBuscarArticulos from "./modals/verModalBuscarArticulos.vue";
+import verModalItemAlternativo from "./modals/verModalItemAlternativo.vue";
+import verModalSeleccionStockBodegas from "./modals/verModalSeleccionStockBodegas.vue";
+import verModalModificacionPeso from "./modals/verModalModificacionPeso.vue";
+import verModalProveedores from "./modals/verModalProveedores.vue";
+import verModalListaBorradores from "./modals/verModalListaBorradores.vue";
+import verModalHistoricoFacturas from "./modals/verModalHistoricoFacturas.vue";
 import { useRouter, useRoute } from "vue-router";
 import ConfiguracionSegmentacionCard from "@/views/ventas/cotizaciones/crear-cotizacion/components/ConfiguracionSegmentacionCard.vue";
 
@@ -625,7 +626,7 @@ async function openModalProviders(item, i) {
 const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   const item = form.value.items[index];
   item.proveedores = providers;
-  if (nuevoPrecio && Number(nuevoPrecio) !== Number(item.valor_original_l)) {
+  if (nuevoPrecio !== null && nuevoPrecio !== undefined && nuevoPrecio !== '' && Number(nuevoPrecio) !== Number(item.valor_original_l)) {
     item.ART_VALOR = nuevoPrecio;
     item.ART_VALOR_ORIGINAL = nuevoPrecio;
     item.valor_original_l = nuevoPrecio;
@@ -2625,12 +2626,12 @@ onMounted(async () => {
   >
     <div class="modal-dialog modal-md modal-dialog-centered">
       <div class="modal-content">
-        <actualizarSegmentoClienteComponent
+        <actualizarSegmentoClienteModal
           v-if="datosCliente"
           :cliente="datosCliente"
           @updated="processSelectClient"
         >
-        </actualizarSegmentoClienteComponent>
+        </actualizarSegmentoClienteModal>
       </div>
     </div>
   </div>

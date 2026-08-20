@@ -39,6 +39,7 @@ const flatPickrState = reactive({
     monthSelectorType: "static",
     locale: Spanish,
 });
+const precioSugeridoProveedor = ref(props.item.ART_VALOR);
 
 
 watch(() => props.providers, (newVal) => {
@@ -55,6 +56,11 @@ watch(() => props.item.ART_CODIGO, (newVal) => {
         getMargenFotItemL(newVal);
     }
 }, { immediate: true, deep: true });
+
+watch(() => props.item.ART_VALOR, (newVal) => {
+    precioSugeridoProveedor.value = newVal;
+}, { immediate: true });
+
 const addProvider = async () => {
     const newProveedor = {
         'ID_PROVEEDOR': null,
@@ -103,7 +109,7 @@ function calculaTotalProveedor(index) {
     if (denominadorMargen > 0 && denominadorDescuento > 0 && costo > 0) {
         const precioSugerido = (costo / denominadorMargen) / denominadorDescuento;
 
-        props.item.ART_VALOR = precioSugerido.toFixed(4);
+        precioSugeridoProveedor.value = precioSugerido.toFixed(4);
     }
 }
 
@@ -114,7 +120,7 @@ function guardarProveedor() {
     emit('update:providers', {
         index: props.index,
         providers: itemsProvider.value,
-        nuevoPrecio: props.item.ART_VALOR
+        nuevoPrecio: precioSugeridoProveedor.value
     });
 }
 
@@ -141,7 +147,7 @@ onMounted(async () => {
                     <div class="fs-xs text-muted">
                         Item: <span class="fw-semibold text-dark">{{ props.item.ART_DESCRIPCION }}</span>
                         <span class="mx-1">|</span>
-                        Ref: <span class="text-success">$ {{ props.item.ART_VALOR }}</span>
+                        Ref: <span class="text-success">$ {{ precioSugeridoProveedor }}</span>
                     </div>
                 </div>
             </div>

@@ -3,7 +3,7 @@ import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizaci
 import { onMounted, watch } from 'vue';
 import { swalError } from "@/functions/swal-alert";
 import VueEasyLightbox from "vue-easy-lightbox";
-import { formatPrice, formatPrice4, formatPrice3, formatPriceClean, format, format4 } from "@/functions";
+import { formatPrice } from "@/functions";
 
 const props = defineProps({
     'form': Object

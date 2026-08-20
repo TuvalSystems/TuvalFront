@@ -15,7 +15,7 @@ const BackendSecciones = () => import("@/views/backend/SeccionesView.vue");
 
 // Ventas: Cotizaciones
 const VentasCrearCotizacion = () =>
-  import("@/views/ventas/cotizaciones/CrearCotizacionView.vue");
+  import("@/views/ventas/cotizaciones/crear-cotizacion/CrearCotizacionView.vue");
 const VentasCotizacionProspecto = () =>
   import("@/views/ventas/cotizaciones/CotizacionProspectoView.vue");
 const VentasCotizaciones = () =>
@@ -49,8 +49,6 @@ const AprobacionesComerciales = () =>
 
 const AprobacionesComercialesConsulta = () =>
   import("@/views/aprobaciones/ComercialesConsultaView.vue");
-const AprobacionesCrediticias = () =>
-  import("@/views/aprobaciones/CrediticiasView.vue");
 
 const AprobacionesDevoluciones = () =>
   import("@/views/aprobaciones/DevolucionesView.vue");
@@ -68,10 +66,7 @@ const DespachoPedidos = () => import("@/views/bodegas/DespachoPedidos.vue");
 const RecibosDeCompraL = () => import("@/views/bodegas/RecibosDeCompraL.vue");
 const Transportistasyvehiculos = () =>
   import("@/views/bodegas/Transportistasyvehiculos.vue");
-const TransferenciasVenta = () =>
-  import("@/views/bodegas/TransferenciasVenta.vue");
-const TransferenciasVentaBodega = () =>
-  import("@/views/bodegas/TransferenciasVentaBodega.vue");
+
 
 const RecibosVenta = () => import("@/views/bodegas/RecibosVenta.vue");
 const RecibosReposicion = () => import("@/views/bodegas/RecibosReposicion.vue");

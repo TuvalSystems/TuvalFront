@@ -5,7 +5,8 @@ export function useAuthorizedReservationsRefresh({
   debounceMs = 350,
   onSubscribed,
   onEvent,
-}) {
+  onError,
+} = {}) {
   let timer;
 
   const chan = echo.private("refresh-authorized-reservations");
@@ -15,7 +16,7 @@ export function useAuthorizedReservationsRefresh({
     chan.subscribed(onSubscribed);
   }
 
-    // Manejo de errores del canal (opcional)
+  // Manejo de errores del canal (opcional)
   if (typeof onError === "function") {
     chan.error(onError);
   }
@@ -33,6 +34,8 @@ export function useAuthorizedReservationsRefresh({
     clearTimeout(timer);
     try {
       echo.leave("refresh-authorized-reservations");
-    } catch {}
+    } catch (error) {
+      if (typeof onError === "function") onError(error);
+    }
   };
 }

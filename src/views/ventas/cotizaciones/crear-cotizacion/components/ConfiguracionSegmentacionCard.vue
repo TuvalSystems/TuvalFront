@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, watch, computed } from 'vue';
 import { useArticleSegmentClassification } from "@/composables/venta/cotizaciones/crearCotizacion/useArticleSegmentClassification";
+import { swalError, swalWarning } from '@/functions/swal-alert';
 const props = defineProps({
   'form': {
     type: Object,
@@ -32,7 +33,7 @@ watch(
     if (!codigoSegmento) {
       clearSegmentFilters();
       return
-    };
+    }
 
     clearSegmentFilters();
     segmentFilters.codigoSegmento = codigoSegmento;

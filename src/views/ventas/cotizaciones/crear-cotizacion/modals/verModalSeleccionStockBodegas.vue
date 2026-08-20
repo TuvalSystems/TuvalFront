@@ -1,7 +1,6 @@
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue';
+import { watch, } from 'vue';
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError } from "@/functions/swal-alert.js";
 
 const emit = defineEmits(['closeModal', 'update']);
 const {
@@ -9,7 +8,6 @@ const {
     totalAsignado,
     getStockClass,
     validateInput,
-    updateStockRowItem
 } = useProcessCreateQuote();
 const props = defineProps({
     stocks: {
@@ -49,13 +47,13 @@ const saveChangesLocal = () => {
     });
 }
 
-const saveChanges = async (item) => {
-    const resp = await updateStockRowItem(item.id, item.seleccionado);
-    if (!resp?.ok) {
-        swalError(resp?.message);
-        return;
-    }
-}
+// const saveChanges = async (item) => {
+//     const resp = await updateStockRowItem(item.id, item.seleccionado);
+//     if (!resp?.ok) {
+//         swalError(resp?.message);
+//         return;
+//     }
+// }
 watch(() => props.stocks, (newStocks) => {
     if (newStocks) {
         const copia = JSON.parse(JSON.stringify(newStocks));
