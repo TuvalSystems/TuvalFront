@@ -55,7 +55,7 @@ const hasSummaryData = computed(() => {
 const summaryRows = computed(() => [
   {
     key: "retencion-iva",
-    label: "Retencion IVA",
+    label: "Retenciones IVA",
     icon: "fa-receipt",
     value:
       summaryData.value?.retencionIva ??
@@ -64,7 +64,7 @@ const summaryRows = computed(() => [
   },
   {
     key: "retencion-renta",
-    label: "Retencion Renta",
+    label: "Retenciones Renta",
     icon: "fa-file-invoice",
     value:
       summaryData.value?.retencionRenta ??
@@ -91,7 +91,7 @@ const summaryRows = computed(() => [
   },
   {
     key: "depositos",
-    label: "Depositos / transferencias",
+    label: "Depósitos/Transferencias",
     icon: "fa-building-columns",
     value: summaryData.value?.depositos ?? 0,
   },
@@ -206,33 +206,30 @@ function requestSummaryPdfDownload() {
       </div>
 
       <div v-else-if="hasSummaryData" class="cash-summary-details">
-        <div class="cash-summary-total">
-          <div>
-            <small class="label-small">Total cobrado</small>
-            <div class="cash-summary-total-value">
-              ${{ formatAmount(summaryTotal) }}
-            </div>
-          </div>
-          <div class="cash-summary-total-icon">
-            <i class="fa fa-sack-dollar"></i>
-          </div>
-        </div>
-
-        <div class="cash-summary-grid" aria-label="Resumen de cierre de caja">
-          <div
-            v-for="row in summaryRows"
-            :key="row.key"
-            class="cash-summary-metric"
-          >
-            <div class="cash-summary-metric-icon">
-              <i :class="['fa', row.icon]"></i>
-            </div>
-            <div class="cash-summary-metric-copy">
-              <span class="cash-summary-metric-label">{{ row.label }}</span>
-              <strong class="cash-summary-metric-value">
-                ${{ formatAmount(row.value) }}
-              </strong>
-            </div>
+        <div class="cash-summary-list">
+          <h4 class="cash-summary-list-title">Resumen</h4>
+          <div class="table-responsive">
+            <table
+              class="table table-striped table-sm cash-summary-table mb-0"
+              aria-label="Resumen de cierre de caja"
+            >
+              <thead>
+                <tr>
+                  <th>Forma de pago</th>
+                  <th class="text-end">Valor cobrado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in summaryRows" :key="row.key">
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">${{ formatAmount(row.value) }}</td>
+                </tr>
+                <tr class="cash-summary-total-row">
+                  <th>Total</th>
+                  <th class="text-end">${{ formatAmount(summaryTotal) }}</th>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -393,100 +390,38 @@ function requestSummaryPdfDownload() {
 }
 
 .cash-summary-details {
-  display: grid;
-  gap: 0.85rem;
   min-width: 0;
 }
 
-.cash-summary-total {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  min-width: 0;
-  padding: 0.85rem 1rem;
-  border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
-  border-left: 4px solid var(--tuval-primary, var(--bs-primary));
-  border-radius: var(--tuval-radius-md, var(--bs-border-radius));
-  background: rgba(var(--bs-primary-rgb), 0.06);
+.cash-summary-list {
+  max-width: 34rem;
+  margin: 0 auto;
 }
 
-.cash-summary-total-value {
+.cash-summary-list-title {
+  margin: 0 0 0.75rem;
   color: var(--tuval-text, var(--bs-body-color));
-  font-size: 1.35rem;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.cash-summary-total-icon,
-.cash-summary-metric-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  border-radius: var(--tuval-radius-md, var(--bs-border-radius));
-}
-
-.cash-summary-total-icon {
-  width: 2.4rem;
-  height: 2.4rem;
-  color: var(--tuval-primary-strong, var(--bs-primary));
-  background: rgba(var(--bs-primary-rgb), 0.1);
-  font-size: 1rem;
-}
-
-.cash-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.65rem;
-  min-width: 0;
-}
-
-.cash-summary-metric {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-  min-height: 4rem;
-  padding: 0.7rem 0.75rem;
-  border: 1px solid var(--tuval-border, var(--bs-border-color));
-  border-radius: var(--tuval-radius-md, var(--bs-border-radius));
-  background: var(--bs-body-bg);
-}
-
-.cash-summary-metric-icon {
-  width: 2rem;
-  height: 2rem;
-  color: var(--tuval-primary-strong, var(--bs-primary));
-  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.1));
-  font-size: 0.8rem;
-}
-
-.cash-summary-metric-copy {
-  display: grid;
-  gap: 0.12rem;
-  min-width: 0;
-}
-
-.cash-summary-metric-label {
-  color: var(--tuval-text-muted, var(--bs-secondary-color));
-  font-size: 0.72rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  line-height: 1.2;
 }
 
-.cash-summary-metric-value {
+.cash-summary-table {
   color: var(--tuval-text, var(--bs-body-color));
-  font-size: 0.92rem;
-  font-weight: 800;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
 }
 
-@media (max-width: 991.98px) {
-  .cash-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.cash-summary-table th,
+.cash-summary-table td {
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.cash-summary-table tbody td:first-child,
+.cash-summary-table tbody th:first-child {
+  white-space: normal;
+}
+
+.cash-summary-total-row th {
+  border-top-width: 2px;
 }
 
 @media (max-width: 767.98px) {
@@ -502,10 +437,6 @@ function requestSummaryPdfDownload() {
   .cash-apply-button {
     width: 100%;
   }
-
-  .cash-summary-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 420px) {
@@ -516,13 +447,8 @@ function requestSummaryPdfDownload() {
   .cash-summary-name {
     white-space: normal;
   }
-
-  .cash-summary-total {
-    align-items: flex-start;
-  }
-
-  .cash-summary-total-value {
-    font-size: 1.15rem;
+  .cash-summary-table {
+    font-size: 0.78rem;
   }
 }
 </style>
