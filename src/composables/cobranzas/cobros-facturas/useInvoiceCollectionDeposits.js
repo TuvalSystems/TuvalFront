@@ -75,7 +75,7 @@ function createEmptyDeposit() {
         banco_id: "",
         comprobante: "",
         fechaDeposito: formatDateForInput(new Date()),
-        montoRecibido: 0,
+        montoRecibido: null,
         montoNoAplicado: 0,
         montoAplicado: 0,
         facturas: []

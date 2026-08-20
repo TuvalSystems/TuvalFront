@@ -19,8 +19,8 @@ import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInv
 
 function createEmptyCash() {
     return {
-        montoRecibido: 0,
-        montoACobrar: 0,
+        montoRecibido: null,
+        montoACobrar: null,
         montoDevuelto: 0, //en este caso seria la resta de monto recibido menos monto a cobrar , es lo que se devuelve al cliente  
         fechaEfectivo: formatDateForInput(new Date()),
         montoNoAplicado: 0,
@@ -91,7 +91,7 @@ export function useInvoiceCollectionCash({
             toNumber(cashPayload.montoACobrar) ?? 0;
 
         if (amountToCollect > receivedAmount) {
-            cashPayload.montoACobrar = 0;
+            cashPayload.montoACobrar = null;
             cashPayload.montoDevuelto = receivedAmount;
 
             swalWarning("El monto a cobrar no puede exceder el monto recibido.");

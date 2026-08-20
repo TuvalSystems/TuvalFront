@@ -68,7 +68,7 @@ function createEmptyCard() {
     return {
         banco_id: "",
         comprobante: "",
-        montoRecibido: 0,
+        montoRecibido: null,
         montoAplicado: 0,
         montoNoAplicado: 0,
         fechaTarjeta: formatDateForInput(new Date()),

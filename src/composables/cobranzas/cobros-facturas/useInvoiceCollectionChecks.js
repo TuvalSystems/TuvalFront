@@ -58,7 +58,7 @@ function createEmptyCheck() {
         fechaVencimiento: "",
         cuenta: "",
         cheque: "",
-        montoRecibido: 0,
+        montoRecibido: null,
         montoNoAplicado: 0,
         montoAplicado: 0,
         comentario: "",
