@@ -75,7 +75,6 @@ const {
   ptoVtaSelect,
   //limitadores
   maxOrder,
-  maxLength,
   maxLengthNote,
   //proceso de descripcion de item
   getDescriptionClass,
@@ -91,7 +90,6 @@ const {
   updateCheckAlternative,
 
   //proceso para manejo de cantidades
-  validateQtyBeforeUpdate,
   formatQty,
   changeQuantityItem,
   //proceso de proveedores
@@ -112,8 +110,6 @@ const {
   enableEditPrice,
   applyModifyPrice,
   exitEditPrice,
-  calculateRowModifier,
-  updateModifyPriceRowItem,
 
   //proceso de modificacion de descuento
   isEditDiscount,
@@ -128,7 +124,6 @@ const {
   updateGlobalDiscount,
 
   //update stock por lote
-  updateStockByBatch,
   loadingStockMasivo,
   updateStockByBatchV2,
   //gloabl
@@ -160,7 +155,6 @@ const {
 } = useProcessCreateQuote(currentDraftId.value);
 
 const {
-  loadingConditionPayment,
   fetchConditionPayment,
   conditionPayment,
   loadingMethodPayment,
@@ -176,7 +170,6 @@ const {
   handleDrop,
   handleInputFiles,
   removeFile,
-  clearFiles,
 } = useImageUpload();
 
 const {
@@ -186,7 +179,6 @@ const {
   handleDropPdf,
   handleInputPdf,
   removePdf,
-  clearPdfs,
   restorePersistedPdfs,
 } = usePdfUpload();
 
@@ -756,7 +748,7 @@ const saveModifyPrice = async (element) => {
  *  proceso de modificacion de descuento
  */
 
-const saveModifyDiscount = async (element, index) => {
+const saveModifyDiscount = async (element) => {
   if (element.descuento === element.descuento_temporal) {
     element.cambiar_descuento = false;
     return;
@@ -1005,7 +997,7 @@ const deleteDraftItem = (draftId) => {
         if (resp.ok) {
           listaBorradores.value = resp.data;
         }
-        if (draftId === currentDraftId) {
+        if (draftId === currentDraftId.value) {
           window.location.href = window.location.pathname;
         }
       }

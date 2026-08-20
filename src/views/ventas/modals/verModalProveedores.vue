@@ -5,7 +5,8 @@ import VueSelect from "vue-select";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
-import { formatPrice, formatPrice4, format } from "@/functions";
+import {  formatPrice4, format } from "@/functions";
+import { swalWarning } from '@/functions/swal-alert';
 
 const {
     //proceso de proveedores - modal
@@ -316,4 +317,4 @@ input[type=number] {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     /* Sombra sutil al hacer scroll */
 }
-</style
+</style>
