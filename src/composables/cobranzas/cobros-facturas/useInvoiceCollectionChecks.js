@@ -101,8 +101,6 @@ function getInvoiceDocument(invoice) {
 
 function getInvoiceDueDate(invoice) {
     return invoice?.fechaVencimiento ??
-        invoice?.fecha_vencimiento ??
-        invoice?.vencimiento ??
         "";
 }
 
@@ -274,10 +272,9 @@ export function useInvoiceCollectionChecks({
             return {
                 valid: false,
                 message:
-                    `No puede aplicar el cheque a la factura ${documentNumber}. ` +
-                    `El vencimiento del cheque (${formatDateForInput(checkDueDate)}) ` +
-                    `excede el vencimiento de la factura (${formatDateForInput(invoiceDueDate)}) ` +
-                    `mas ${CHECK_DUE_DATE_GRACE_DAYS} dia de holgura.`,
+                    `No se puede aplicar el cheque a la factura ${documentNumber}. ` +
+                    `La fecha de vencimiento del cheque (${formatDateForInput(checkDueDate)}) ` +
+                    `es mayor a la fecha de vencimiento de la factura (${formatDateForInput(invoiceDueDate)}).`,
             };
         }
 

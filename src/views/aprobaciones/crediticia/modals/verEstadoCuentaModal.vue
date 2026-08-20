@@ -123,32 +123,32 @@ onMounted(() => { });
     </template>
     <template #content>
       <div class="block-content fs-sm m-0 mb-2">
-        <div class="row g-2 mb-3">
-          <div class="col-6 col-lg-4">
+        <div class="order-header-grid">
+          <div class="order-header-item">
             <div class="kv">
               <small class="label-small">pedido</small>
               <div class="fw-semibold">{{ orderHeader.pedido }}</div>
             </div>
           </div>
-          <div class="col-6 col-lg-4">
+          <div class="order-header-item">
             <div class="kv">
               <small class="label-small">ruc</small>
               <div class="fw-semibold">{{ orderHeader.CLI_RUC }}</div>
             </div>
           </div>
-          <div class="col-6 col-lg-4">
+          <div class="order-header-item">
             <div class="kv">
               <small class="label-small">razón social</small>
               <div class="fw-semibold">{{ orderHeader.CLI_RAZON_SOCIAL }}</div>
             </div>
           </div>
-          <div class="col-6 col-lg-4">
+          <div class="order-header-item">
             <div class="kv">
               <small class="label-small">P. venta</small>
               <div class="fw-semibold">{{ orderHeader.PTO_VTA_DESCRIPCION }}</div>
             </div>
           </div>
-          <div class="col-6 col-lg-4">
+          <div class="order-header-item">
             <div class="kv">
               <small class="label-small">cond. pago</small>
               <div class="fw-semibold">
@@ -158,18 +158,18 @@ onMounted(() => { });
               </div>
             </div>
           </div>
-          <div class="col-6 col-lg-4">
+          <div class="order-header-item">
             <div class="kv">
               <small class="label-small">usuario</small>
               <div class="fw-semibold">{{ orderHeader.USERID }}</div>
             </div>
           </div>
-          <div class="col-6 col-lg-4">
+          <div class="order-header-item">
             <div class="kv">
               <small class="label-small">Origen</small>
               <div class="fw-semibold">
                 <span :class="[
-                  'badge rounded-pill fw-semibold d-inline-block py-2 px-4 fs-xs ',
+                  'badge rounded-pill fw-semibold d-inline-block py-1 px-2 fs-xs ',
                   {
                     'bg-info-light text-info': orderHeader.origen === 'cotizacion',
                     'bg-warning-light text-warning': orderHeader.origen === 'reserva',
@@ -190,7 +190,7 @@ onMounted(() => { });
               </div>
             </div>
           </div>
-          <div v-if="orderHeader.nota_interna" class="col-12">
+          <div v-if="orderHeader.nota_interna" class="order-header-note">
             <div class="alert alert-danger py-2 mb-0">
               <div class="fw-bold text-uppercase small mb-1">
                 Nota interna
@@ -200,7 +200,7 @@ onMounted(() => { });
           </div>
         </div>
         <!-- resumen -->
-        <div class="order-summary-inline mb-3">
+        <div class="order-summary-inline mb-2">
           <div class="summary-inline-item">
             <span class="summary-inline-label">Subtotal</span>
             <strong class="summary-inline-value nums">
@@ -231,7 +231,7 @@ onMounted(() => { });
 
 
         <!-- Cupo disponible -->
-        <div v-if="hasAvailableCredit" class="credit-section-card mb-3">
+        <div v-if="hasAvailableCredit" class="credit-section-card mb-2">
           <div class="credit-section-header">
             <div>
               <div class="credit-section-title">
@@ -285,7 +285,7 @@ onMounted(() => { });
 
 
         <!-- Documentos vencidos -->
-        <div class="credit-section-card mb-3">
+        <div class="credit-section-card mb-2">
           <div class="credit-section-header">
             <div>
               <div class="credit-section-title">
@@ -350,7 +350,7 @@ onMounted(() => { });
         </div>
 
         <!-- Documentos sin soporte -->
-        <div class="credit-section-card mb-3">
+        <div class="credit-section-card mb-2">
           <div class="credit-section-header">
             <div>
               <div class="credit-section-title">
@@ -465,14 +465,42 @@ onMounted(() => { });
 .kv .badge {
   white-space: normal;
   text-align: left;
-  display: block;
-  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
   font-size: 12px;
   font-weight: 500;
 }
 
 .kv .fw-semibold {
   line-height: 1.2;
+}
+
+.order-header-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(76px, 0.8fr)
+    minmax(105px, 0.95fr)
+    minmax(180px, 1.7fr)
+    minmax(145px, 1.25fr)
+    minmax(78px, 0.75fr)
+    minmax(86px, 0.8fr)
+    minmax(108px, max-content);
+  gap: 0.45rem 0.65rem;
+  margin-bottom: 0.55rem;
+}
+
+.order-header-item,
+.order-header-note {
+  min-width: 0;
+}
+
+.order-header-item .fw-semibold {
+  overflow-wrap: anywhere;
+}
+
+.order-header-note {
+  grid-column: 1 / -1;
 }
 
 .text-monospace {
@@ -500,8 +528,7 @@ onMounted(() => { });
   font-weight: 700;
   text-transform: uppercase;
   color: #6c757d;
-  margin-bottom: 0.35rem;
-
+  margin-bottom: 0.2rem;
 }
 
 
@@ -510,7 +537,7 @@ onMounted(() => { });
 
 /* estado de cuenta */
 .credit-section-card {
-  padding: 0.85rem;
+  padding: 0.65rem;
   background: var(--tuval-surface, #fff);
   border: 1px solid var(--tuval-border, #e2e8f0);
   border-radius: var(--tuval-radius-lg, 0.5rem);
@@ -521,22 +548,22 @@ onMounted(() => { });
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding-bottom: 0.65rem;
-  margin-bottom: 0.65rem;
+  gap: 0.55rem;
+  padding-bottom: 0.45rem;
+  margin-bottom: 0.45rem;
   border-bottom: 1px solid var(--tuval-border, #e2e8f0);
 }
 
 .credit-section-title {
   color: var(--tuval-text, #1e293b);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
 
 .credit-section-subtitle {
-  margin-top: 0.15rem;
+  margin-top: 0.08rem;
   color: var(--tuval-text-muted, #64748b);
   font-size: 0.72rem;
 }
@@ -544,15 +571,15 @@ onMounted(() => { });
 .credit-metrics-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
 .credit-metric {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  min-height: 74px;
-  padding: 0.75rem;
+  gap: 0.18rem;
+  min-height: 60px;
+  padding: 0.55rem 0.6rem;
   background: var(--tuval-surface-muted, #f8fafc);
   border: 1px solid var(--tuval-border, #e2e8f0);
   border-radius: var(--tuval-radius-md, 0.5rem);
@@ -572,7 +599,7 @@ onMounted(() => { });
 
 .credit-metric-value {
   color: var(--tuval-text, #1e293b);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   text-decoration: none;
 }
@@ -591,11 +618,15 @@ onMounted(() => { });
   border-spacing: 0;
 }
 
+.credit-table> :not(caption)>*>* {
+  padding: 0.35rem 0.5rem;
+}
+
 .credit-table thead th {
   color: var(--tuval-text-muted, #64748b);
   background: var(--tuval-surface-muted, #f8fafc);
   border-bottom: 1px solid var(--tuval-border, #e2e8f0);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   white-space: nowrap;
@@ -603,6 +634,10 @@ onMounted(() => { });
 
 .credit-table tbody td {
   border-bottom: 1px solid var(--tuval-border, #e2e8f0);
+}
+
+.credit-table .badge {
+  padding: 0.2rem 0.45rem;
 }
 
 .credit-table tbody tr:last-child td {
@@ -614,7 +649,7 @@ onMounted(() => { });
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  padding: 1rem;
+  padding: 0.65rem;
   color: var(--tuval-text-muted, #64748b);
   background: var(--tuval-surface-muted, #f8fafc);
   border: 1px dashed var(--tuval-border, #e2e8f0);
@@ -626,7 +661,17 @@ onMounted(() => { });
   color: #16a34a;
 }
 
+@media (max-width: 1199.98px) {
+  .order-header-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 767.98px) {
+  .order-header-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .credit-metrics-grid {
     grid-template-columns: 1fr;
   }
@@ -653,8 +698,8 @@ onMounted(() => { });
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.7rem 0.85rem;
+  gap: 0.55rem;
+  padding: 0.48rem 0.65rem;
 }
 
 .summary-inline-item+.summary-inline-item {
@@ -663,14 +708,14 @@ onMounted(() => { });
 
 .summary-inline-label {
   color: var(--tuval-text-muted, #64748b);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .summary-inline-value {
   color: var(--tuval-text, #1e293b);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 800;
   text-decoration: none;
 }
@@ -695,6 +740,12 @@ onMounted(() => { });
   .summary-inline-item+.summary-inline-item {
     border-left: 0;
     border-top: 1px solid var(--tuval-border, #e2e8f0);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .order-header-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
