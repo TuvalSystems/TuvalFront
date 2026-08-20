@@ -7,7 +7,7 @@ import {
     maxLength,
     required
 } from "@vuelidate/validators";
-import { formatDateForInput } from "@/utils/cobros/validateDate";
+import { formatDateForInput, parseLocalDate } from "@/utils/cobros/validateDate";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
 import { swalError, swalWarning } from "@/functions/swal-alert";
 import {
@@ -32,6 +32,7 @@ const paymentAmountMaxLength = helpers.withMessage(
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
     maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
 );
+const CHECK_DUE_DATE_GRACE_DAYS = 1;
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -98,12 +99,77 @@ function getInvoiceDocument(invoice) {
     return String(invoice?.documento ?? "").trim();
 }
 
+function getInvoiceDueDate(invoice) {
+    return invoice?.fechaVencimiento ??
+        invoice?.fecha_vencimiento ??
+        invoice?.vencimiento ??
+        "";
+}
+
 function getBankId(bank) {
     return bank?.id ?? bank?.CB_ID ?? "";
 }
 
 function getBankName(bank) {
     return bank?.CB_DESCRIPCION ?? bank?.nombre ?? "Banco no definido";
+}
+
+function normalizeDateAtStartOfDay(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDaysToDate(date, days) {
+    const normalizedDate = normalizeDateAtStartOfDay(date);
+
+    if (!normalizedDate) {
+        return null;
+    }
+
+    normalizedDate.setDate(normalizedDate.getDate() + days);
+    return normalizedDate;
+}
+
+function parseComparableDate(dateValue) {
+    if (dateValue instanceof Date) {
+        return normalizeDateAtStartOfDay(dateValue);
+    }
+
+    const textValue = String(dateValue ?? "").trim();
+    const parsedLocalDate = /^\d{4}-\d{1,2}-\d{1,2}/.test(textValue)
+        ? parseLocalDate(textValue)
+        : null;
+
+    if (parsedLocalDate) {
+        return normalizeDateAtStartOfDay(parsedLocalDate);
+    }
+
+    const numericDate = textValue.match(/^(\d{1,4})[/-](\d{1,2})[/-](\d{1,4})/);
+
+    if (!numericDate) {
+        return null;
+    }
+
+    const firstPart = Number(numericDate[1]);
+    const secondPart = Number(numericDate[2]);
+    const thirdPart = Number(numericDate[3]);
+    const year = firstPart > 31 ? firstPart : thirdPart;
+    const month = secondPart;
+    const day = firstPart > 31 ? thirdPart : firstPart;
+    const date = new Date(year, month - 1, day);
+
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return null;
+    }
+
+    return normalizeDateAtStartOfDay(date);
 }
 
 export function useInvoiceCollectionChecks({
@@ -170,6 +236,67 @@ export function useInvoiceCollectionChecks({
 
     function formatCheckAmount(value) {
         return formatPriceJm(value) ?? "0.00";
+    }
+
+    function getCheckDueDateValidation(invoice) {
+        const documentNumber = getInvoiceDocument(invoice) || "seleccionada";
+        const checkDueDate = parseComparableDate(checkPayload.fechaVencimiento);
+        const invoiceDueDateValue = getInvoiceDueDate(invoice);
+        const invoiceDueDate = parseComparableDate(invoiceDueDateValue);
+
+        if (!checkDueDate) {
+            return {
+                valid: false,
+                message: "Seleccione la fecha de vencimiento del cheque.",
+            };
+        }
+
+        if (!invoiceDueDate) {
+            return {
+                valid: false,
+                message: `La factura ${documentNumber} no tiene fecha de vencimiento valida.`,
+            };
+        }
+
+        const allowedCheckDueDate = addDaysToDate(
+            invoiceDueDate,
+            CHECK_DUE_DATE_GRACE_DAYS
+        );
+
+        if (!allowedCheckDueDate) {
+            return {
+                valid: false,
+                message: `No se pudo validar la fecha de vencimiento de la factura ${documentNumber}.`,
+            };
+        }
+
+        if (checkDueDate.getTime() > allowedCheckDueDate.getTime()) {
+            return {
+                valid: false,
+                message:
+                    `No puede aplicar el cheque a la factura ${documentNumber}. ` +
+                    `El vencimiento del cheque (${formatDateForInput(checkDueDate)}) ` +
+                    `excede el vencimiento de la factura (${formatDateForInput(invoiceDueDate)}) ` +
+                    `mas ${CHECK_DUE_DATE_GRACE_DAYS} dia de holgura.`,
+            };
+        }
+
+        return { valid: true, message: "" };
+    }
+
+    function canApplyCheckToInvoice(invoice, showWarning = false) {
+        const validation = getCheckDueDateValidation(invoice);
+
+        if (!validation.valid && showWarning) {
+            swalWarning(validation.message);
+        }
+
+        return validation.valid;
+    }
+
+    function clearCheckInvoiceApplication(invoice) {
+        invoice.aplicarTodoCheque = false;
+        invoice.aplicarMontoCheque = 0;
     }
 
 
@@ -361,6 +488,12 @@ export function useInvoiceCollectionChecks({
             amountToApply = 0;
         }
 
+        if (amountToApply > 0 && !canApplyCheckToInvoice(invoice, true)) {
+            clearCheckInvoiceApplication(invoice);
+            updateCheckApplicationSummary();
+            return;
+        }
+
         if (amountToApply > invoiceBalance) {
             swalWarning("El monto aplicado no puede exceder el saldo disponible de la factura.");
             amountToApply = invoiceBalance;
@@ -381,6 +514,12 @@ export function useInvoiceCollectionChecks({
     function applyFullCheckToInvoice(invoice) {
         if (!invoice.aplicarTodoCheque) {
             invoice.aplicarMontoCheque = 0;
+            updateCheckApplicationSummary();
+            return;
+        }
+
+        if (!canApplyCheckToInvoice(invoice, true)) {
+            clearCheckInvoiceApplication(invoice);
             updateCheckApplicationSummary();
             return;
         }
@@ -421,6 +560,21 @@ export function useInvoiceCollectionChecks({
         return false;
     }
 
+    function validateAppliedCheckDueDates() {
+        const invalidInvoice = checkPayload.facturas.find((invoice) => {
+            const appliedAmount = roundTo(toNumber(invoice?.aplicarMontoCheque) ?? 0, 2);
+
+            return appliedAmount > 0 && !canApplyCheckToInvoice(invoice);
+        });
+
+        if (!invalidInvoice) {
+            return true;
+        }
+
+        swalWarning(getCheckDueDateValidation(invalidInvoice).message);
+        return false;
+    }
+
     function createCheckToAdd() {
         if (!showTableInvoices.value) {
             swalWarning("Aplique el cheque antes de registrarlo.");
@@ -428,6 +582,10 @@ export function useInvoiceCollectionChecks({
         }
 
         updateCheckApplicationSummary();
+
+        if (!validateAppliedCheckDueDates()) {
+            return null;
+        }
 
         if (!validateAppliedInvoicesAvailability()) {
             return null;
