@@ -94,7 +94,7 @@ export function useInvoiceCollectionDraft() {
     function addCheck(check) {
         collectionDraft.cheque = check;
     }
-    function removeCheck(check) {
+    function removeCheck() {
         collectionDraft.cheque = null;
     }
 
@@ -121,7 +121,7 @@ export function useInvoiceCollectionDraft() {
         collectionDraft.efectivo = cloneCash(cash);
     }
 
-    function removeCash(index) {
+    function removeCash() {
         collectionDraft.efectivo = null;
     }
 
@@ -151,35 +151,6 @@ export function useInvoiceCollectionDraft() {
     function removeApplications(index) {
         collectionDraft.aplicaciones.splice(index, 1);
     }
-
-
-    const paymentEntries = computed(() => [
-        ...collectionDraft.retenciones.map((item, index) => ({
-            tipo: 'retenciones',
-            index,
-            item,
-        })),
-        ...(collectionDraft.efectivo
-            ? [{ tipo: 'efectivo', index: 0, item: collectionDraft.efectivo }]
-            : []),
-        ...(collectionDraft.tarjeta
-            ? [{ tipo: 'tarjeta', index: 0, item: collectionDraft.tarjeta }]
-            : []),
-        ...(collectionDraft.cheque
-            ? [{ tipo: 'cheque', index: 0, item: collectionDraft.cheque }]
-            : []),
-        ...collectionDraft.depositos.map((item, index) => ({
-            tipo: 'depositos',
-            index,
-            item,
-        })),
-        ...collectionDraft.aplicaciones.map((item, index) => ({
-            tipo: 'aplicaciones',
-            index,
-            item,
-        })),
-    ]);
-
 
 
 

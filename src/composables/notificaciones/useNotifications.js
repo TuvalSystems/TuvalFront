@@ -12,7 +12,6 @@ export function useNotifications() {
 
     const center = useNotificationCenter();
     const itemsCenter = center.items;
-    const loadingCenter = center.loading;
     const { run } = useApiAction();
     const store = useStore();
     const user = store.state.user.data;
@@ -120,7 +119,7 @@ export function useNotifications() {
     // 1) search + perPage
     watch(
         [() => table.searchTerm, () => table.perPage],
-        ([newSearch, newPerPage], [oldSearch, oldPerPage]) => {
+        ([newSearch, newPerPage], [ oldPerPage]) => {
             const s = (newSearch ?? '').trim();
 
             // si cambió perPage, recarga SIEMPRE (sin esperar a 4 chars)

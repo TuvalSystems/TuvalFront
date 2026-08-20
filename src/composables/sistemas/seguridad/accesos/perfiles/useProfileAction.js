@@ -1,5 +1,5 @@
 import axiosClient from "@/axios";
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 
 
@@ -45,15 +45,7 @@ export function useProfileAction() {
             loadingRef: deleting,
         });
     }
-
-    function resetForm() {
-        form.value = defaultForm();
-    }
-
-    function createProfile() {
-        form.value = defaultForm();
-    }
-
+    
     return {
         saving,
         deleting,

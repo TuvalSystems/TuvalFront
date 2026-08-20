@@ -24,10 +24,7 @@ const typeDeposits = [
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
-const numericReceiptField = helpers.withMessage(
-    "Ingrese solo numeros en el comprobante.",
-    helpers.regex(/^\d+$/)
-);
+
 const depositReceiptMaxLength = helpers.withMessage(
     "El comprobante no puede exceder 30 caracteres.",
     maxLength(30)

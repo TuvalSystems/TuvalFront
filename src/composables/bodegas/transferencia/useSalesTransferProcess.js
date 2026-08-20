@@ -135,7 +135,7 @@ export function useSalesTransfersProcess() {
     const dataTransferHeader = ref(null);
     const loadingTransferHeader = ref(false);
     const apiDataTransferHeader = 'bodegas/transferencia-venta/cabecera';
-    async function fetchDataTransferHeader(id) {
+    async function fetchDataTransferHeader() {
         return await run(() => axiosClient.post(apiDataTransferHeader, payload), {
             loadingRef: loadingTransferHeader,
             successMessage: "Proceso realizado exitosamente.",
@@ -152,7 +152,7 @@ export function useSalesTransfersProcess() {
     const dataListTransfer = ref([]);
     const loadingListTransfer = ref(false);
     const apiListTransfer = 'bodegas/transferencia-venta/lista';
-    async function fetchListTransfer(id) {
+    async function fetchListTransfer() {
         return await run(() => axiosClient.post(apiListTransfer, payload), {
             loadingRef: loadingListTransfer,
             successMessage: "Proceso realizado exitosamente.",

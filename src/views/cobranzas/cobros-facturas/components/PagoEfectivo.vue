@@ -42,13 +42,11 @@ const props = defineProps({
 const {
   facturas,
   efectivo,
-  cliente,
   invoiceDataVersion,
 } = toRefs(props);
 
 const {
   cashPayload,
-  invoicesOptions,
   resetCashPayload,
   v$,
   validationMessage,
@@ -62,8 +60,6 @@ const {
   getInvoiceRemainingBalance
 } = useInvoiceCollectionCash({
   facturas,
-  efectivo,
-  cliente,
   invoiceDataVersion,
 });
 
@@ -111,13 +107,6 @@ onMounted(() => { });
 
 <template>
   <section class="cash-entry">
-    <!-- <div class="cash-toolbar">
-      <div class="min-w-0">
-        <span class="cash-kicker">Pago directo</span>
-        <h4 class="cash-title">Ingreso de efectivo</h4>
-      </div>
-    </div> -->
-
     <div class="cash-section">
       <div class="section-heading">
         <div class="section-icon section-icon-success">

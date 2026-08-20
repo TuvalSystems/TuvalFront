@@ -54,8 +54,6 @@ function createCashRules() {
 
 export function useInvoiceCollectionCash({
     facturas,
-    efectivo,
-    cliente,
     invoiceDataVersion,
 } = {}) {
     const invoicesOptions = computed(() => {

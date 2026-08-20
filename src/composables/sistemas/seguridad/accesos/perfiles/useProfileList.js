@@ -1,5 +1,5 @@
 import axiosClient from "@/axios";
-import { ref, reactive, computed } from "vue";
+import { ref, reactive } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 
 export function useProfileList() {

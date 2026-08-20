@@ -35,6 +35,8 @@ export function useRefreshCollectionOnEvent({
         clearTimeout(timer);
         try {
             echo.leave("refresh-list-collection");
-        } catch { }
+        } catch (error) {
+            if (typeof onError === "function") onError(error);
+        }
     };
 }
