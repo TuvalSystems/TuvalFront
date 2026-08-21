@@ -107,9 +107,9 @@
     <BaseBlock v-if="currentCliente" title="Cobros cliente"
       :subtitle="currentCliente.CLI_RAZON_SOCIAL + ' - ' + currentCliente.CLI_RUC" class="pb-4">
       <div class="text-end mb-2">
-        <button class="btn btn-sm btn-primary mx-1" @click="imprimirEstadodeCuentaExcel()"><i
+        <button class="btn btn-sm btn-primary mx-1"  :disabled="loadingDownloadExcel" @click="printAccountStatementExcel()"><i
             class="fa fa-file-excel"></i> Estado de cuenta EXCEL</button>
-        <button class="btn btn-sm btn-success mx-1" @click="imprimirEstadodeCuenta()"><i class="fa fa-print"></i> Estado
+        <button class="btn btn-sm btn-success mx-1" :disabled="loadingDownloadPdf" @click="printAccountStatementPdf()"><i class="fa fa-print"></i> Estado
           de cuenta PDF</button>
       </div>
       <div class="table-responsive fs-sm">
@@ -430,7 +430,7 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import {  swalSuccess, swalWarning, swalError } from "@/functions/swal-alert.js";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 const flatPickrState = reactive({
@@ -442,7 +442,18 @@ const flatPickrState = reactive({
   },
 });
 import { formatPriceJm } from "@/functions";
+import { useInvoiceCollectionActions } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions';
 
+const {
+    //download pdf 
+    loadingDownloadPdf,
+    printPdfStatusAccountClient,
+
+    //download excel
+    loadingDownloadExcel,
+    printExcelStatusAccountClient
+
+} = useInvoiceCollectionActions();
 
 const store = useStore();
 const clientes = computed(() => store.state.clientes);
@@ -531,31 +542,26 @@ function selectcliente(cliente) {
     });
 }
 
-function imprimirEstadodeCuenta() {
-  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuval/' + currentCliente.value.CLI_RUC)
-    .then((response) => {
-      if (response.status == 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'estadodecuenta-' + currentCliente.value.CLI_RUC + '.pdf');
-        document.body.appendChild(link);
-        link.click();
-      }
-    });
+
+async function printAccountStatementExcel() {
+    const resp = await printExcelStatusAccountClient(currentCliente.value.id);
+    if (!resp?.ok) {
+        const msg = resp?.message || "Opps! No se pudo generar el archivo Excel";
+        (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+        return;
+    }
+    swalSuccess(resp?.message || 'Excel Generado exitosamente');
 }
 
-function imprimirEstadodeCuentaExcel() {
-  store.dispatch('imprimir', '/cobranzas/estadodecuentaclientetuvalexcel/' + currentCliente.value.CLI_RUC)
-    .then((response) => {
-      if (response.status == 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'estadodecuenta-' + currentCliente.value.CLI_RUC + '.xlsx');
-        document.body.appendChild(link);
-        link.click();
-      }
-    });
+async function printAccountStatementPdf() {
+    const resp = await printPdfStatusAccountClient(currentCliente.value.id);
+    if (!resp?.ok) {
+        const msg = resp?.message || "Opps! No se pudo generar el archivo Pdf";
+        (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+        return;
+    }
+    swalSuccess(resp?.message || 'Pdf Generado exitosamente');
+
 }
+
 </script>
