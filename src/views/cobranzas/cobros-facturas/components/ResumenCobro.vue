@@ -760,11 +760,11 @@ function getPaymentSummaryDetails(methodKey, payment) {
 
   if (methodKey === "aplicaciones") {
     return compactDetails([
-      createDetail("Documento saldo", payment?.documento),
-      createDetail("Tipo", payment?.tipo),
+      createDetail("Documento", payment?.documento),
+      // createDetail("Tipo", payment?.tipo),
       createDetail("Fecha", payment?.fechaEmision),
       createDetail("Monto original", payment?.montoOriginal, "money"),
-      createDetail("Saldo cliente", payment?.saldoCliente, "money"),
+      createDetail("Saldo", payment?.saldoCliente, "money"),
       createDetail("Disponible", payment?.montoDisponible, "money"),
       createDetail("Aplicado", payment?.montoAplicado, "money"),
       createDetail("No aplicado", payment?.montoNoAplicado, "money"),
@@ -1161,7 +1161,6 @@ function roundMoney(value, decimals = 2) {
           type="text"
           class="form-control"
           maxlength="80"
-          placeholder="Referencia del cobro"
           autocomplete="off"
           :disabled="loadingVerifyAndRegister"
         />
@@ -1201,7 +1200,7 @@ function roundMoney(value, decimals = 2) {
         <div class="collection-summary-entry-header">
           <div class="min-w-0">
             <h5 class="collection-summary-entry-title mb-0">
-              {{ entry.title }}
+              {{ entry.title }} 
             </h5>
             <span class="collection-summary-entry-subtitle">
               {{ entry.subtitle }}
@@ -1467,7 +1466,7 @@ function roundMoney(value, decimals = 2) {
 
 .collection-summary-entry-title {
   color: var(--tuval-text, var(--bs-body-color));
-  font-size: 0.82rem;
+  font-size: 0.70rem;
   font-weight: 850;
   line-height: 1.15;
   overflow-wrap: anywhere;
@@ -1475,7 +1474,7 @@ function roundMoney(value, decimals = 2) {
 
 .collection-summary-entry-subtitle {
   margin-top: 0.08rem;
-  font-size: 0.66rem;
+  font-size: 0.56rem;
 }
 
 .collection-summary-entry-actions {
@@ -1579,9 +1578,9 @@ function roundMoney(value, decimals = 2) {
 }
 
 .collection-summary-reference {
-  display: grid;
-  grid-template-columns: minmax(7.5rem, 0.35fr) minmax(12rem, 1fr);
+  display: flex;
   align-items: center;
+  flex-direction: column;
   gap: 0.65rem;
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--tuval-border, var(--bs-border-color));
@@ -1595,11 +1594,13 @@ function roundMoney(value, decimals = 2) {
   font-size: 0.62rem;
   font-weight: 900;
   line-height: 1.1;
+  text-align: center;
   text-transform: uppercase;
 }
 
 .collection-summary-reference-input {
   min-width: 0;
+  width: min(100%, 40rem);
 }
 
 .collection-summary-reference :deep(.form-control),
@@ -1607,6 +1608,10 @@ function roundMoney(value, decimals = 2) {
   min-height: 1.95rem;
   padding: 0.25rem 0.45rem;
   font-size: 0.78rem;
+}
+
+.collection-summary-reference :deep(.form-control) {
+  text-align: center;
 }
 
 .collection-summary-submit-bar {
@@ -1687,10 +1692,6 @@ function roundMoney(value, decimals = 2) {
   }
 
   .collection-summary-detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .collection-summary-reference {
     grid-template-columns: 1fr;
   }
 
