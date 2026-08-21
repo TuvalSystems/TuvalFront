@@ -13,7 +13,10 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
-import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
+import {
+    isBlankPaymentAmount,
+    rebuildInvoiceRowsPreservingSelection
+} from "@/utils/cobros/paymentInvoiceRows";
 
 
 
@@ -197,13 +200,26 @@ export function useInvoiceCollectionCash({
     }
 
     function updateInvoiceCashAmount(invoice) {
+        if (isBlankPaymentAmount(invoice?.aplicarMontoEfectivo)) {
+            invoice.aplicarMontoEfectivo = null;
+            invoice.aplicarTodoEfectivo = false;
+            updateCashApplicationSummary();
+            return;
+        }
+
         let amountToApply = toNumber(invoice.aplicarMontoEfectivo) ?? 0;
         const invoiceBalance = toNumber(invoice.saldoCliente) ?? 0;
         const availableAmount = availableCashForInvoice(invoice);
 
-        if (amountToApply < 0) {
-            swalWarning("No puede ingresar valores negativos.");
-            amountToApply = 0;
+        if (amountToApply <= 0) {
+            if (amountToApply < 0) {
+                swalWarning("No puede ingresar valores negativos.");
+            }
+
+            invoice.aplicarMontoEfectivo = null;
+            invoice.aplicarTodoEfectivo = false;
+            updateCashApplicationSummary();
+            return;
         }
 
         if (amountToApply > invoiceBalance) {
@@ -225,7 +241,7 @@ export function useInvoiceCollectionCash({
 
     function applyFullCashToInvoice(invoice) {
         if (!invoice.aplicarTodoEfectivo) {
-            invoice.aplicarMontoEfectivo = 0;
+            invoice.aplicarMontoEfectivo = null;
             updateCashApplicationSummary();
             return;
         }
@@ -236,7 +252,7 @@ export function useInvoiceCollectionCash({
         if (availableAmount <= 0) {
             swalWarning("Ya no queda monto por aplicar.");
             invoice.aplicarTodoEfectivo = false;
-            invoice.aplicarMontoEfectivo = 0;
+            invoice.aplicarMontoEfectivo = null;
             updateCashApplicationSummary();
             return;
         }

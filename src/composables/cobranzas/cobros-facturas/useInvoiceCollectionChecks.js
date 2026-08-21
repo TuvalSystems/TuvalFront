@@ -14,7 +14,10 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
-import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
+import {
+    isBlankPaymentAmount,
+    rebuildInvoiceRowsPreservingSelection
+} from "@/utils/cobros/paymentInvoiceRows";
 
 
 
@@ -293,7 +296,7 @@ export function useInvoiceCollectionChecks({
 
     function clearCheckInvoiceApplication(invoice) {
         invoice.aplicarTodoCheque = false;
-        invoice.aplicarMontoCheque = 0;
+        invoice.aplicarMontoCheque = null;
     }
 
 
@@ -476,13 +479,24 @@ export function useInvoiceCollectionChecks({
     }
 
     function updateInvoiceCheckAmount(invoice) {
+        if (isBlankPaymentAmount(invoice?.aplicarMontoCheque)) {
+            clearCheckInvoiceApplication(invoice);
+            updateCheckApplicationSummary();
+            return;
+        }
+
         let amountToApply = toNumber(invoice?.aplicarMontoCheque) ?? 0;
         const invoiceBalance = getInvoiceCheckBalance(invoice);
         const availableAmount = availableCheckForInvoice(invoice);
 
-        if (amountToApply < 0) {
-            swalWarning("No puede ingresar valores negativos.");
-            amountToApply = 0;
+        if (amountToApply <= 0) {
+            if (amountToApply < 0) {
+                swalWarning("No puede ingresar valores negativos.");
+            }
+
+            clearCheckInvoiceApplication(invoice);
+            updateCheckApplicationSummary();
+            return;
         }
 
         if (amountToApply > 0 && !canApplyCheckToInvoice(invoice, true)) {
@@ -510,7 +524,7 @@ export function useInvoiceCollectionChecks({
 
     function applyFullCheckToInvoice(invoice) {
         if (!invoice.aplicarTodoCheque) {
-            invoice.aplicarMontoCheque = 0;
+            invoice.aplicarMontoCheque = null;
             updateCheckApplicationSummary();
             return;
         }
@@ -527,7 +541,7 @@ export function useInvoiceCollectionChecks({
         if (availableAmount <= 0) {
             swalWarning("Ya no queda monto por aplicar.");
             invoice.aplicarTodoCheque = false;
-            invoice.aplicarMontoCheque = 0;
+            invoice.aplicarMontoCheque = null;
             updateCheckApplicationSummary();
             return;
         }

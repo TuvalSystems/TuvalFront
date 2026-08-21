@@ -8,6 +8,10 @@ function getInvoiceDocument(invoice) {
     return String(invoice?.documento ?? "").trim();
 }
 
+export function isBlankPaymentAmount(value) {
+    return value === null || value === undefined || String(value).trim() === "";
+}
+
 export function rebuildInvoiceRowsPreservingSelection({
     currentRows,
     nextRows,
@@ -50,21 +54,19 @@ export function rebuildInvoiceRowsPreservingSelection({
             Math.max(availablePaymentAmount - appliedTotal, 0),
             2
         );
-        const currentAmount = Math.max(
-            toNumber(currentInvoice?.[amountKey]) ?? 0,
-            0
-        );
+        const currentAmount = Math.max(toNumber(currentInvoice?.[amountKey]) ?? 0, 0);
         const appliedAmount = roundTo(
             Math.min(currentAmount, invoiceBalance, remainingPaymentAmount),
             2
         );
+        const displayAmount = appliedAmount > 0 ? appliedAmount : null;
 
         appliedTotal = roundTo(appliedTotal + appliedAmount, 2);
 
         return {
             ...invoice,
-            [amountKey]: appliedAmount,
-            [applyAllKey]: appliedAmount > 0 && appliedAmount >= invoiceBalance,
+            [amountKey]: displayAmount,
+            [applyAllKey]: displayAmount > 0 && displayAmount >= invoiceBalance,
             [observationKey]:
                 currentInvoice?.[observationKey] ??
                 invoice?.[observationKey] ??

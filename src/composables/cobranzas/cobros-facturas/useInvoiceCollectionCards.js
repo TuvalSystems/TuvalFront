@@ -14,7 +14,10 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
-import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
+import {
+    isBlankPaymentAmount,
+    rebuildInvoiceRowsPreservingSelection
+} from "@/utils/cobros/paymentInvoiceRows";
 
 const requiredField = (message) => helpers.withMessage(message, required);
 const decimalField = helpers.withMessage("Ingrese un valor numerico valido.", decimal);
@@ -260,13 +263,26 @@ export function useInvoiceCollectionCards({
     }
 
     function updateInvoiceCardAmount(invoice) {
+        if (isBlankPaymentAmount(invoice?.aplicarMontoTarjeta)) {
+            invoice.aplicarMontoTarjeta = null;
+            invoice.aplicarTodoTarjeta = false;
+            updateCardApplicationSummary();
+            return;
+        }
+
         let amountToApply = toNumber(invoice?.aplicarMontoTarjeta) ?? 0;
         const invoiceBalance = getInvoiceCardBalance(invoice);
         const availableAmount = availableCardForInvoice(invoice);
 
-        if (amountToApply < 0) {
-            swalWarning("No puede ingresar valores negativos.");
-            amountToApply = 0;
+        if (amountToApply <= 0) {
+            if (amountToApply < 0) {
+                swalWarning("No puede ingresar valores negativos.");
+            }
+
+            invoice.aplicarMontoTarjeta = null;
+            invoice.aplicarTodoTarjeta = false;
+            updateCardApplicationSummary();
+            return;
         }
 
         if (amountToApply > invoiceBalance) {
@@ -288,7 +304,7 @@ export function useInvoiceCollectionCards({
 
     function applyFullCardToInvoice(invoice) {
         if (!invoice.aplicarTodoTarjeta) {
-            invoice.aplicarMontoTarjeta = 0;
+            invoice.aplicarMontoTarjeta = null;
             updateCardApplicationSummary();
             return;
         }
@@ -299,7 +315,7 @@ export function useInvoiceCollectionCards({
         if (availableAmount <= 0) {
             swalWarning("Ya no queda monto por aplicar.");
             invoice.aplicarTodoTarjeta = false;
-            invoice.aplicarMontoTarjeta = 0;
+            invoice.aplicarMontoTarjeta = null;
             updateCardApplicationSummary();
             return;
         }

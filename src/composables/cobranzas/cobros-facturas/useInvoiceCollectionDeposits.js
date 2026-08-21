@@ -14,7 +14,10 @@ import {
     PAYMENT_AMOUNT_MAX_LENGTH,
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE
 } from "@/utils/cobros/paymentAmountInput";
-import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
+import {
+    isBlankPaymentAmount,
+    rebuildInvoiceRowsPreservingSelection
+} from "@/utils/cobros/paymentInvoiceRows";
 
 const typeDeposits = [
     { label: "Deposito Bancario", value: "DP" },
@@ -361,13 +364,26 @@ export function useInvoiceCollectionDeposits({
     }
 
     function updateInvoiceDepositAmount(invoice) {
+        if (isBlankPaymentAmount(invoice?.aplicarMontoDeposito)) {
+            invoice.aplicarMontoDeposito = null;
+            invoice.aplicarTodoDeposito = false;
+            updateDepositApplicationSummary();
+            return;
+        }
+
         let amountToApply = toNumber(invoice?.aplicarMontoDeposito) ?? 0;
         const invoiceBalance = getInvoiceDepositBalance(invoice);
         const availableAmount = availableDepositForInvoice(invoice);
 
-        if (amountToApply < 0) {
-            swalWarning("No puede ingresar valores negativos.");
-            amountToApply = 0;
+        if (amountToApply <= 0) {
+            if (amountToApply < 0) {
+                swalWarning("No puede ingresar valores negativos.");
+            }
+
+            invoice.aplicarMontoDeposito = null;
+            invoice.aplicarTodoDeposito = false;
+            updateDepositApplicationSummary();
+            return;
         }
 
         if (amountToApply > invoiceBalance) {
@@ -389,7 +405,7 @@ export function useInvoiceCollectionDeposits({
 
     function applyFullDepositToInvoice(invoice) {
         if (!invoice.aplicarTodoDeposito) {
-            invoice.aplicarMontoDeposito = 0;
+            invoice.aplicarMontoDeposito = null;
             updateDepositApplicationSummary();
             return;
         }
@@ -400,7 +416,7 @@ export function useInvoiceCollectionDeposits({
         if (availableAmount <= 0) {
             swalWarning("Ya no queda monto por aplicar.");
             invoice.aplicarTodoDeposito = false;
-            invoice.aplicarMontoDeposito = 0;
+            invoice.aplicarMontoDeposito = null;
             updateDepositApplicationSummary();
             return;
         }

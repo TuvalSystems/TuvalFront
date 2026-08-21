@@ -7,7 +7,10 @@ import {
 } from "@vuelidate/validators";
 import { swalWarning } from "@/functions/swal-alert";
 import { formatPriceJm, roundTo, toNumber } from "@/functions";
-import { rebuildInvoiceRowsPreservingSelection } from "@/utils/cobros/paymentInvoiceRows";
+import {
+    isBlankPaymentAmount,
+    rebuildInvoiceRowsPreservingSelection
+} from "@/utils/cobros/paymentInvoiceRows";
 
 function createEmptyApplicationPayload() {
     return {
@@ -378,7 +381,7 @@ export function useInvoiceCollectionApplications({
 
     function applyFullApplicationToInvoice(invoice) {
         if (!invoice?.aplicarTodoAplicacion) {
-            invoice.aplicarMontoAplicacion = 0;
+            invoice.aplicarMontoAplicacion = null;
             updateApplicationSummary();
             return;
         }
@@ -389,7 +392,7 @@ export function useInvoiceCollectionApplications({
         if (availableAmount <= 0) {
             swalWarning("Ya no queda monto por aplicar.");
             invoice.aplicarTodoAplicacion = false;
-            invoice.aplicarMontoAplicacion = 0;
+            invoice.aplicarMontoAplicacion = null;
             updateApplicationSummary();
             return;
         }
@@ -402,13 +405,26 @@ export function useInvoiceCollectionApplications({
     }
 
     function updateInvoiceApplicationAmount(invoice) {
+        if (isBlankPaymentAmount(invoice?.aplicarMontoAplicacion)) {
+            invoice.aplicarMontoAplicacion = null;
+            invoice.aplicarTodoAplicacion = false;
+            updateApplicationSummary();
+            return;
+        }
+
         let amountToApply = toNumber(invoice?.aplicarMontoAplicacion) ?? 0;
         const invoiceBalance = getInvoiceApplicationBalance(invoice);
         const availableAmount = getAvailableApplicationAmountForInvoice(invoice);
 
-        if (amountToApply < 0) {
-            swalWarning("No puede ingresar valores negativos.");
-            amountToApply = 0;
+        if (amountToApply <= 0) {
+            if (amountToApply < 0) {
+                swalWarning("No puede ingresar valores negativos.");
+            }
+
+            invoice.aplicarMontoAplicacion = null;
+            invoice.aplicarTodoAplicacion = false;
+            updateApplicationSummary();
+            return;
         }
 
         if (amountToApply > invoiceBalance) {
