@@ -113,7 +113,7 @@ onMounted(() => { });
           <i class="fa fa-money-bill-wave"></i>
         </div>
         <div>
-          <h5>Valores de efectivo</h5>
+          <h5>Valores en efectivo</h5>
           <span>Monto recibido y cambio</span>
         </div>
       </div>
@@ -148,7 +148,7 @@ onMounted(() => { });
         </div>
 
         <div class="cash-field">
-          <small class="label-small">Monto devuelto</small>
+          <small class="label-small">vuelto</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
             <input type="text" class="form-control text-end" v-model="cashPayload.montoDevuelto" readonly>
