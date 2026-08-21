@@ -537,7 +537,7 @@ function handleObservationChange(invoice) {
 .invoice-application-title {
   margin: 0.1rem 0 0;
   color: var(--tuval-text, var(--bs-body-color));
-  font-size: 0.92rem;
+  font-size: 0.60rem;
   font-weight: 800;
   line-height: 1.25;
 }
