@@ -170,7 +170,7 @@ export function useInvoiceCollectionCards({
             ...invoice,
             saldoDisponibleTarjeta: availableBalance,
             aplicarTodoTarjeta: false,
-            aplicarMontoTarjeta: 0,
+            aplicarMontoTarjeta: null,
             observacionTarjeta: "",
         };
     }

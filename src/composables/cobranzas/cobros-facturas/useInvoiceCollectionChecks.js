@@ -399,7 +399,7 @@ export function useInvoiceCollectionChecks({
             saldoDisponibleCheque: availableBalance,
             chequeAplicadoPrevio: 0,
             aplicarTodoCheque: false,
-            aplicarMontoCheque: 0,
+            aplicarMontoCheque: null,
             observacionCheque: ""
         }
     }

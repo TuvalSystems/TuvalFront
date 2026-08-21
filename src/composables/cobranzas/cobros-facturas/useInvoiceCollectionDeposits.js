@@ -270,7 +270,7 @@ export function useInvoiceCollectionDeposits({
             saldoDisponibleDeposito: availableBalance,
             depositoAplicadoPrevio: getRegisteredDepositAmountForInvoice(invoice),
             aplicarTodoDeposito: false,
-            aplicarMontoDeposito: 0,
+            aplicarMontoDeposito: null,
             observacionDeposito: "",
         };
     }

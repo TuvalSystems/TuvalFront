@@ -131,7 +131,7 @@ export function useInvoiceCollectionCash({
             montoOriginal: roundTo(toNumber(invoice?.montoOriginal) ?? 0, 2),
             saldoCliente: roundTo(toNumber(invoice?.saldoCliente) ?? 0, 2),
             aplicarTodoEfectivo: false,
-            aplicarMontoEfectivo: 0,
+            aplicarMontoEfectivo: null,
             observacionEfectivo: "",
         };
     }

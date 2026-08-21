@@ -349,7 +349,7 @@ export function useInvoiceCollectionApplications({
             ...invoice,
             saldoDisponibleAplicacion: availableBalance,
             aplicarTodoAplicacion: false,
-            aplicarMontoAplicacion: 0,
+            aplicarMontoAplicacion: null,
             observacionAplicacion: "",
         };
     }

@@ -69,7 +69,7 @@ const props = defineProps({
   },
   observationLabel: {
     type: String,
-    default: 'Observacion'
+    default: 'Observación'
   },
   showApplyAll: {
     type: Boolean,

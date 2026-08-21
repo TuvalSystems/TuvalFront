@@ -136,7 +136,7 @@ function handleApplicationCommentInput(event) {
       <div class="application-form-shell">
         <div class="application-grid">
           <div class="application-field">
-            <small class="label-small">Documento pendiente</small>
+            <small class="label-small">cobro</small>
             <select
               class="form-select form-select-sm"
               v-model="applicationPayload.documento"
@@ -196,10 +196,10 @@ function handleApplicationCommentInput(event) {
             }}</strong>
           </div>
 
-          <div class="application-document-card">
+          <!-- <div class="application-document-card">
             <span>Tipo</span>
             <strong>{{ applicationPayload.tipo || "-" }}</strong>
-          </div>
+          </div> -->
 
           <div class="application-document-card">
             <span>Fecha</span>
