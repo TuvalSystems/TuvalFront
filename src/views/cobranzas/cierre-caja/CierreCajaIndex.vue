@@ -88,7 +88,7 @@ watch(
 );
 
 async function handleSummaryPdfDownload() {
-  const res = await downloadCashClosureSummaryPdf();
+  const res = await downloadCashClosureSummaryPdf(); 
   if (!res?.ok) {
     const msg = res?.message || "No se pudo generar el documento";
     (res?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);

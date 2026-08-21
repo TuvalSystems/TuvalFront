@@ -37,8 +37,8 @@ export function useApiAction() {
             if (isAbortError(error)) {
                 return { ok: false, canceled: true, raw: error, message: "Cancelado" };
             }
-            const status = error.response?.status || 500;
-            const backend = error?.response?.data ?? {};
+            const status = error.response?.status || error.status || 500;
+            const backend = error?.response?.data ?? error?.data ?? {};
             let msg = backend.error || backend.message || error?.message || "Ocurrió un error al procesar la solicitud.";
 
             if (backend.errors && typeof backend.errors === 'object') {

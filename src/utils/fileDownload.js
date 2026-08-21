@@ -22,28 +22,73 @@ export function getFilenameFromDisposition(
 }
 
 async function extractBlobError(blob, fallbackMessage) {
+  const fallback = {
+    message: fallbackMessage,
+    data: {},
+  };
+
   try {
     const text = await blob?.text?.();
 
     if (!text) {
-      return fallbackMessage;
+      return fallback;
     }
 
     try {
       const json = JSON.parse(text);
+      const data =
+        json && typeof json === "object"
+          ? json
+          : { message: String(json) };
 
-      return (
-        json?.error ||
-        json?.message ||
-        json?.errors?.[0] ||
-        fallbackMessage
-      );
+      return {
+        message:
+          json?.error ||
+          json?.message ||
+          getFirstErrorMessage(json?.errors) ||
+          fallbackMessage,
+        data,
+      };
     } catch {
-      return text;
+      return {
+        message: text,
+        data: { message: text },
+      };
     }
   } catch {
-    return fallbackMessage;
+    return fallback;
   }
+}
+
+function getFirstErrorMessage(errors) {
+  if (!errors) return null;
+
+  if (Array.isArray(errors)) {
+    return errors.find(Boolean) || null;
+  }
+
+  if (typeof errors === "object") {
+    return Object.values(errors).flat().find(Boolean) || null;
+  }
+
+  return String(errors);
+}
+
+function createDownloadError(message, response, data = {}) {
+  const error = new Error(message);
+  const status = response?.status ?? 0;
+
+  error.name = "FileDownloadError";
+  error.status = status;
+  error.data = data;
+  error.response = {
+    status,
+    data,
+    headers: response?.headers ?? {},
+    statusText: response?.statusText ?? "",
+  };
+
+  return error;
 }
 
 async function assertSuccessBlob(response) {
@@ -62,12 +107,16 @@ async function assertSuccessBlob(response) {
   const isAttachment = contentDisposition.includes("attachment");
 
   if (!isSuccessful) {
-    const message = await extractBlobError(
+    const errorInfo = await extractBlobError(
       blob,
       `No se pudo descargar el archivo. Código HTTP: ${status}.`
     );
 
-    throw new Error(message);
+    throw createDownloadError(
+      errorInfo.message,
+      response,
+      errorInfo.data
+    );
   }
 
   /*
@@ -93,17 +142,21 @@ async function assertSuccessBlob(response) {
       json?.error ||
       json?.message
     ) {
-      throw new Error(
+      throw createDownloadError(
         json?.error ||
-        json?.message ||
-        "El servidor devolvió una respuesta de error."
+          json?.message ||
+          getFirstErrorMessage(json?.errors) ||
+          "El servidor devolvió una respuesta de error.",
+        response,
+        json ?? {}
       );
     }
   }
 
   if (!(blob instanceof Blob)) {
-    throw new Error(
-      "El servidor no devolvió un archivo válido."
+    throw createDownloadError(
+      "El servidor no devolvió un archivo válido.",
+      response
     );
   }
 
