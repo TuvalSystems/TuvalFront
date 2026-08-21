@@ -49,13 +49,13 @@ async function confirmCloseCashBox() {
     text: `Se cerrará la caja ${dataCashBoxStatus.value.cajaCodigo}. Esta acción finalizará las operaciones de la caja actual.`,
     icon: "warning",
     showCancelButton: true,
-    confirmButtonText: "Sí, cerrar caja",
     cancelButtonText: "Cancelar",
-    reverseButtons: true,
+    confirmButtonText: "Sí, cerrar caja",
+    reverseButtons: false,
     focusCancel: true,
     customClass: {
-      confirmButton: "btn btn-danger m-1",
       cancelButton: "btn btn-secondary m-1",
+      confirmButton: "btn btn-danger m-1",
     },
     buttonsStyling: false,
   });

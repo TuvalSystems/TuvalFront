@@ -15,7 +15,6 @@ const emit = defineEmits(["close-cash-box"]);
 const cashBoxStatus = computed(() => props.cashBox?.estado ?? null);
 
 const isOpen = computed(() => cashBoxStatus.value === "abierto");
-const isClosed = computed(() => cashBoxStatus.value === "cerrado");
 const hasMissingClosure = computed(() => cashBoxStatus.value === "sin_cierre");
 
 const statusLabel = computed(() => {
