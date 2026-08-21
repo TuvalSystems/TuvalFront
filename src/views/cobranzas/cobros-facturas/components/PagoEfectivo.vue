@@ -120,7 +120,7 @@ onMounted(() => { });
       <!-- ingreso de valores de efectivo -->
       <div class="cash-grid">
         <div class="cash-field">
-          <small class="label-small">Monto a recibir</small>
+          <small class="label-small">Efectivo recibido</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
             <input type="text" class="form-control text-end" :value="cashPayload.montoRecibido"
