@@ -130,13 +130,6 @@ function hasRegisteredCard() {
 
 <template>
   <section class="cards-entry">
-    <!-- <div class="cards-toolbar">
-      <div class="min-w-0">
-        <span class="cards-kicker">Tarjetas de credito</span>
-        <h4 class="cards-title">Ingreso de tarjeta</h4>
-      </div>
-    </div> -->
-
     <div class="cards-section">
       <div class="section-heading">
         <div class="section-icon section-icon-card">
@@ -144,7 +137,7 @@ function hasRegisteredCard() {
         </div>
         <div>
           <h5>Datos de la tarjeta</h5>
-          <span>Emisor, aprobacion, fecha y monto</span>
+          <span>Emisor, aprobación, fecha y monto</span>
         </div>
       </div>
 
@@ -197,7 +190,7 @@ function hasRegisteredCard() {
           </div>
 
           <div class="cards-field">
-            <small class="label-small"># Aprobacion</small>
+            <small class="label-small"># Aprobación</small>
             <div class="input-group input-group-sm">
               <span class="input-group-text"
                 ><i class="fa fa-hashtag"></i

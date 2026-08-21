@@ -83,7 +83,7 @@ function createCardRules() {
             required: requiredField("Seleccione un emisor."),
         },
         comprobante: {
-            required: requiredField("Ingrese el numero de aprobacion."),
+            required: requiredField("Ingrese el numero de aprobación."),
             numeric: numericCardField,
             maxLength: cardApprovalMaxLength,
         },

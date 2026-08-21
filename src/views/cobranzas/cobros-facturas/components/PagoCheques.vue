@@ -143,14 +143,6 @@ function handleCheckAmountInput(field, event) {
 
 <template>
   <section class="check-entry">
-    <!-- titulo -->
-    <!-- <div class="check-toolbar">
-      <div class="min-w-0">
-        <span class="check-kicker"> Cheques</span>
-        <h4 class="check-title">Ingreso de Cheques</h4>
-      </div>
-    </div> -->
-
     <div class="check-section">
       <!-- cabecera -->
       <div class="section-heading">
@@ -191,7 +183,7 @@ function handleCheckAmountInput(field, event) {
           </div>
           <!-- fecha emision -->
           <div class="check-field">
-            <small class="label-small">F. Emision</small>
+            <small class="label-small">F. Emisión</small>
             <div class="input-group input-group-sm">
               <span class="input-group-text"
                 ><i class="far fa-calendar"></i
