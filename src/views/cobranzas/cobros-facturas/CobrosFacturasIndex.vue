@@ -453,7 +453,7 @@ const paymentMethodSections = computed(() => {
     badgeClass:
       section.count > 0
         ? "bg-success-light text-success"
-        : "bg-body text-muted",
+        : "payment-method-badge-empty",
     badgeText:
       section.count > 0 ? paymentCountLabel(section.count) : "Sin registros",
   }));
@@ -933,6 +933,7 @@ td input.form-control {
 .payment-methods {
   border: 1px solid var(--tuval-border, var(--bs-border-color));
   border-radius: var(--tuval-radius-md, 8px);
+  background: var(--tuval-surface, var(--bs-body-bg));
   overflow: hidden;
 }
 
@@ -943,7 +944,7 @@ td input.form-control {
   gap: 0.5rem;
   padding: 0.6rem 0.75rem;
   border-bottom: 1px solid var(--tuval-border, var(--bs-border-color));
-  background: var(--tuval-surface-muted, var(--bs-light));
+  background: var(--tuval-surface, var(--bs-body-bg));
 }
 
 .payment-methods-header h3 {
@@ -968,6 +969,7 @@ td input.form-control {
 .payment-accordion .accordion-item {
   border: 0;
   border-bottom: 1px solid var(--tuval-border, var(--bs-border-color));
+  background: var(--tuval-surface, var(--bs-body-bg));
 }
 
 .payment-accordion .accordion-item:last-child {
@@ -980,13 +982,13 @@ td input.form-control {
   align-items: center;
   padding: 0.52rem 0.75rem;
   color: var(--tuval-text, var(--bs-body-color));
-  background: var(--bs-body-bg);
+  background: var(--tuval-surface, var(--bs-body-bg));
   box-shadow: none;
 }
 
 .payment-accordion-button:not(.collapsed) {
   color: var(--tuval-primary, var(--bs-primary));
-  background: rgba(var(--bs-primary-rgb), 0.06);
+  background: var(--tuval-surface, var(--bs-body-bg));
   box-shadow: inset 0 -1px 0 var(--tuval-border, var(--bs-border-color));
 }
 
@@ -1024,6 +1026,12 @@ td input.form-control {
   margin-right: 0.45rem;
   padding: 0.24rem 0.48rem;
   font-size: 0.62rem;
+}
+
+.payment-method-badge-empty {
+  color: var(--tuval-text-muted, var(--bs-secondary-color)) !important;
+  background: var(--tuval-surface, var(--bs-body-bg)) !important;
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
 }
 
 .payment-accordion-body {
