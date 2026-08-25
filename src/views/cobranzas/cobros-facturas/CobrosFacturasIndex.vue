@@ -354,7 +354,7 @@ const paymentMethodSections = computed(() => {
       key: "depositos",
       headingId: "payment-deposits-heading",
       collapseId: "payment-deposits-collapse",
-      title: "Ingresp de Depósitos o Transferencias",
+      title: "Ingreso de Depósitos o Transferencias",
       subtitle: "Pagos bancarios",
       icon: "fa-building-columns",
       count: collectionDraft.depositos.length,
