@@ -375,10 +375,9 @@ const calcularTotalLinea = (articulo) => {
 
   return totalRaw; // El 'format' del template se encargará de redondearlo visualmente
 };
-function cancelarPedido(pedido) {
-  store.dispatch("cancelarPedido", pedido).then((res) => {
-    emit('cancelarPedido');
-  })
+function cancelarPedido(order) {
+  emit("cancelarPedido", order);
+ 
 }
 
 const gallery = reactive({
