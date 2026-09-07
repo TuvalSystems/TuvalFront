@@ -213,7 +213,7 @@ function consultarDespachado(verpedido) {
 }
 
 async function cancelarPedido(order) {
-  const resp = await cancelOrder(order.id);
+  const resp = await cancelOrder(order?.id);
   if (!resp?.ok) {
     const message = resp?.message || "No se pudo cancelar el pedido.";
     (resp?.status ?? 0) >= 500
