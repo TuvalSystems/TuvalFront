@@ -450,21 +450,8 @@ const store = createStore({
       });
     },
 
-    sincronizaDataGP({ commit }, path) {
+    sincronizaDataGP(_, path) {
       return axiosClient.get(path).then((response) => {
-        return response;
-      });
-    },
-    getSecciones({ commit }) {
-      commit("setSeccionesLoading", true);
-      return axiosClient.get("/listadesecciones").then((res) => {
-        commit("setSeccionesLoading", false);
-        commit("setSections", res.data.sections);
-        return res;
-      });
-    },
-    updateseccion({ commit }, data) {
-      return axiosClient.post("/updateseccion", data).then((response) => {
         return response;
       });
     },
@@ -503,7 +490,6 @@ const store = createStore({
       });
     },
 
-
     buscararticulo({ commit }, data) {
       commit("setArticuloLoading", true);
       return axiosClient.post("/consultas/buscararticulo", data).then((res) => {
@@ -537,19 +523,19 @@ const store = createStore({
           return res;
         });
     },
-    consultarStock({ commit }, data) {
+    consultarStock(_, data) {
       return axiosClient.post("/consultas/consultarstock", data).then((res) => {
         return res.data;
       });
     },
-    consultaStockOthers({ commit }, data) {
+    consultaStockOthers(_, data) {
       return axiosClient
         .post("/consultas/consultastockothers", data)
         .then((res) => {
           return res.data;
         });
     },
-    consultaStockTransito({ commit }, data) {
+    consultaStockTransito(_, data) {
       return axiosClient
         .post("/consultas/consulta-stock-transito", data)
         .then((res) => {
@@ -566,38 +552,14 @@ const store = createStore({
           return res;
         });
     },
-    llenarcotizacion({ commit }, data) {
-      commit("setCotizacionLoading", true);
-      return axiosClient
-        .post("/cotizaciones/llenarcotizacion", data)
-        .then((res) => {
-          commit("setCotizacionLoading", false);
-          commit("getCotizacion", res.data.data);
-          return res;
-        });
-    },
 
-    eliminarArticulo({ commit }, articulo) {
-      return axiosClient.post("/eliminararticulo", articulo).then((res) => {
-        return res;
-      });
-    },
-    updateCantidad({ commit }, updatecantidad) {
+    updateCantidad(_, updatecantidad) {
       return axiosClient
         .post("/cotizaciones/updatecantidad", updatecantidad)
         .then((res) => {
           return res;
         });
     },
-
-
-
-
-
-
-
-
-
 
     /**
      *  nuevas funciones
@@ -610,38 +572,10 @@ const store = createStore({
           return res;
         });
     },
-    limpiarcotizacion({ commit }, info) {
-      return axiosClient
-        .post("/cotizaciones/limpiarcotizacion", info)
-        .then((res) => {
-          commit("resetCotizacion");
-          return res;
-        });
-    },
-    consultaStockCotizacion({ commit }, info) {
-      return axiosClient
-        .post("/consultas/consultastockcotizacion", info)
-        .then((res) => {
-          return res;
-        });
-    },
-    guardarPedido({ commit }, info) {
-      return axiosClient.post("/pedidos/guardarpedido", info).then((res) => {
-        commit("resetCotizacion");
-        return res;
-      });
-    },
-    facturarPedido({ commit }, pedido) {
+    facturarPedido(_, pedido) {
       return axiosClient.post("/pedidos/facturarpedido", pedido).then((res) => {
         return res;
       });
-    },
-    facturarCotizacion({ commit }, pedido) {
-      return axiosClient
-        .post("/pedidos/facturarcotizacion", pedido)
-        .then((res) => {
-          return res;
-        });
     },
     llenarcotizaciones({ commit }, data) {
       commit("setVercotizacionesLoading", true);
@@ -653,33 +587,33 @@ const store = createStore({
           return res;
         });
     },
-    imprimir({ commit }, url) {
+    imprimir(_, url) {
       return axiosPrint.get(url).then((res) => {
         return res;
       });
     },
-    imprimirpost({ commit }, data) {
+    imprimirpost(_, data) {
       return axiosPrint
         .post("/bodegas/transferencias/imprimirpicking", data)
         .then((res) => {
           return res;
         });
     },
-    imprimirorden({ commit }, data) {
+    imprimirorden(_, data) {
       return axiosPrint
         .post("/bodegas/guiasderemision/imprimirordenalmacenamiento", data)
         .then((res) => {
           return res;
         });
     },
-    imprimirrecibol({ commit }, data) {
+    imprimirrecibol(_, data) {
       return axiosPrint
         .post("/bodegas/recibosdecompra/imprimirrecibol", data)
         .then((res) => {
           return res;
         });
     },
-    imprimirordendevolucion({ commit }, data) {
+    imprimirordendevolucion(_, data) {
       return axiosPrint
         .post(
           "/bodegas/guiasderemision/imprimirordenalmacenamientodevolucion",
@@ -704,44 +638,7 @@ const store = createStore({
         return res;
       });
     },
-    sendfacturasgp({ commit }) {
-      commit("setPedidosLoading", true);
-      return axiosClient.get("/pedidos/sendfacturasgp").then((res) => {
-        return res;
-      });
-    },
-    llenarpedidosporaprobarInterval({ commit, dispatch }) {
-      commit(
-        "setIntervalPedidosporAprobar",
-        setInterval(() => {
-          dispatch("llenarpedidosporaprobar");
-        }, 10000)
-      );
-    },
-    llenarpedidosporaprobarStop({ commit }) {
-      commit("llenarpedidosporaprobarStop");
-    },
-    // llenarpedidosporaprobar({ commit }) {
-    //   const consulta = {
-    //     puntodeventa_id: this.state.puntodeventaselect,
-    //   };
-    //   return axiosClient
-    //     .post("/verpedidosycotizacionesporaprobar", consulta)
-    //     .then((res) => {
-    //       commit("getPedidos", res.data.data.pedidos);
-    //       commit("getVercotizaciones", res.data.data.cotizaciones);
-    //       return res;
-    //     });
-    // },
 
-    llenarpedidosporaprobarcrediticiosInterval({ commit, dispatch }) {
-      commit(
-        "setIntervalPedidosporAprobarCrediticios",
-        setInterval(() => {
-          dispatch("llenarpedidosporaprobarcrediticios")
-        }, 10000)
-      );
-    },
     llenarpedidosporaprobarcrediticiosStop({ commit }) {
       commit("llenarpedidosporaprobarcrediticiosStop");
     },
@@ -757,55 +654,28 @@ const store = createStore({
         });
     },
 
-    aprobarPedido({ commit, dispatch }, pedido) {
-      return axiosClient
-        .post("/aprobaciones/aprobarpedido", pedido)
-        .then((res) => {
-          // dispatch("llenarpedidosporaprobar");
-          return res;
-        });
-    },
-
-    aprobarCotizacion({ commit, dispatch }, cotizacion) {
+    aprobarCotizacion(_, cotizacion) {
       return axiosClient
         .post("/aprobaciones/aprobarcotizacion", cotizacion)
         .then((res) => {
-          // dispatch("llenarpedidosporaprobar");
           return res;
         });
     },
-    rechazarCotizacion({ commit, dispatch }, cotizacion) {
+    rechazarCotizacion(_, cotizacion) {
       return axiosClient
         .post("/aprobaciones/rechazarcotizacion", cotizacion)
         .then((res) => {
-          // dispatch("llenarpedidosporaprobar");
           return res;
         });
     },
-    rechazarPedido({ commit, dispatch }, cotizacion) {
-      return axiosClient
-        .post("/aprobaciones/rechazarpedido", cotizacion)
-        .then((res) => {
-          // dispatch("llenarpedidosporaprobar");
-          return res;
-        });
-    },
-    rechazarPedidoPorStock({ commit, dispatch }, pedido) {
-      return axiosClient
-        .post("/aprobaciones/rechazarpedidoporstock", pedido)
-        .then((res) => {
-          // dispatch("llenarpedidosporaprobar");
-          return res;
-        });
-    },
-    consultaParaAprobarPedido({ commit, dispatch }, pedido) {
+    consultaParaAprobarPedido(_, pedido) {
       return axiosClient
         .post("/aprobaciones/consultaparaaprobarpedido", pedido)
         .then((res) => {
           return res.data;
         });
     },
-    aprobarPedidoCrediticio({ commit, dispatch }, pedido) {
+    aprobarPedidoCrediticio({ dispatch }, pedido) {
       return axiosClient
         .post("/aprobaciones/aprobarpedidocrediticio", pedido)
         .then((res) => {
@@ -813,7 +683,7 @@ const store = createStore({
           return res;
         });
     },
-    rechazarPedidoCrediticioPorStock({ commit, dispatch }, pedido) {
+    rechazarPedidoCrediticioPorStock({ dispatch }, pedido) {
       return axiosClient
         .post("/aprobaciones/rechazarpedidocrediticioporstock", pedido)
         .then((res) => {
@@ -821,7 +691,7 @@ const store = createStore({
           return res;
         });
     },
-    rechazarPedidoCrediticio({ commit, dispatch }, pedido) {
+    rechazarPedidoCrediticio({ dispatch }, pedido) {
       return axiosClient
         .post("/aprobaciones/rechazarpedidocrediticio", pedido)
         .then((res) => {
@@ -829,7 +699,7 @@ const store = createStore({
           return res;
         });
     },
-    despachoenproceso({ }, id) {
+    despachoenproceso(_, id) {
       return axiosClient.get("/pedidos/despachoenproceso/" + id).then((res) => {
         return res.data;
       });
@@ -871,14 +741,14 @@ const store = createStore({
           return res;
         });
     },
-    facturarExistente({ commit }, pedido) {
+    facturarExistente(_, pedido) {
       return axiosClient
         .post("/pedidos/facturarexistente", pedido)
         .then((res) => {
           return res.data;
         });
     },
-    facturarDespachado({ commit }, pedido) {
+    facturarDespachado(_, pedido) {
       return axiosClient
         .post("/pedidos/facturardespachado", pedido)
         .then((res) => {
@@ -921,7 +791,7 @@ const store = createStore({
         return res;
       });
     },
-    guardarDireccion({ commit }, direccion) {
+    guardarDireccion(_, direccion) {
       direccion.CLI_DIR_PUNTO_VENTA = this.state.puntodeventaselect;
       return axiosClient
         .post("/cotizaciones/guardardireccion", direccion)
@@ -938,71 +808,7 @@ const store = createStore({
           return res.data;
         });
     },
-    recuperarCotizacion({ commit }, cotizacion) {
-      return axiosClient
-        .post("/cotizaciones/recuperarcotizacion", cotizacion)
-        .then((res) => {
-          this.state.cotizacion_id = res.data.cotizacion_id;
-          this.state.cotizacion_serial = cotizacion.cotizacion;
-          this.state.sucursal_facturacion_id =
-            cotizacion.sucursal_facturacion_id;
-          this.state.nota_interna = cotizacion.nota_interna;
-          this.state.orden_de_compra = cotizacion.orden_de_compra;
-          this.state.bodegaFacturacion = cotizacion.BOD_BODEGA;
-          this.state.despacho = cotizacion.despacho;
-          this.state.fecha_entrega = cotizacion.fecha_entrega; //.substr(0, 10)
-          this.state.nota_cliente = cotizacion.nota_cliente;
-          this.state.factura_siguiente_mes = 0;
-          this.state.factura_a_demanda = 0;
-          this.state.pregunta_facturar = 0;
-          this.state.factura_posterior_despacho = 0;
-          this.state.alerta_facturar = null;
-
-          if (res.data.cliente.CLI_FACTURA_POSTERIOR_AL_DESPACHO === "SI") {
-            if (res.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION === 1) {
-              this.state.factura_posterior_despacho = 1;
-              this.state.factura_a_demanda = 1;
-              this.state.alerta_facturar =
-                "Factura a demanda posterior al despacho";
-            } else if (
-              this.state.today.getDate() <=
-              res.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION
-            ) {
-              this.state.factura_posterior_despacho = 1;
-            } else {
-              this.state.factura_posterior_despacho = 1;
-              this.state.pregunta_facturar = 1;
-              this.state.factura_siguiente_mes = 1;
-            }
-          }
-
-          sessionStorage.setItem(
-            "factura_posterior_despacho",
-            this.state.factura_posterior_despacho
-          );
-          sessionStorage.setItem(
-            "factura_a_demanda",
-            this.state.factura_a_demanda
-          );
-          sessionStorage.setItem(
-            "factura_siguiente_mes",
-            this.state.factura_siguiente_mes
-          );
-          sessionStorage.setItem("alerta_facturar", this.state.alerta_facturar);
-          sessionStorage.setItem(
-            "pregunta_facturar",
-            this.state.pregunta_facturar
-          );
-
-          commit("setCurrentcliente", res.data.cliente);
-          commit("setCurrentSucursal", res.data.currentSucursal);
-          commit("resetRegistroCopia");
-          commit("setCondicionPago", cotizacion);
-          commit("setCurrentTest", res.data.test);
-          commit("setSegmentoCliente", res.data.segmento);
-        });
-    },
-    recuperarCotizacionProspecto({ commit }, cotizacion) {
+    recuperarCotizacionProspecto(_, cotizacion) {
       return axiosClient
         .post("/cotizaciones/recuperarcotizacionprospecto", cotizacion)
         .then((res) => {
@@ -1038,138 +844,7 @@ const store = createStore({
           this.state.formadepago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
         });
     },
-    volverapedirCotizacion({ commit }, cotizacion) {
-      return axiosClient
-        .post("/cotizaciones/volverapedircotizacion", cotizacion)
-        .then((res) => {
-          this.state.cotizacion_id = null;
-          this.state.cotizacion_serial = null;
-          this.state.nota_interna = cotizacion.nota_interna;
-          this.state.orden_de_compra = cotizacion.orden_de_compra;
-          this.state.bodegaFacturacion = cotizacion.BOD_BODEGA;
-          this.state.despacho = cotizacion.despacho;
-          this.state.nota_cliente = cotizacion.nota_cliente;
 
-          this.state.factura_siguiente_mes = 0;
-          this.state.factura_a_demanda = 0;
-          this.state.pregunta_facturar = 0;
-          this.state.factura_posterior_despacho = 0;
-          this.state.alerta_facturar = null;
-
-          if (res.data.data.cliente.CLI_FACTURA_POSTERIOR_AL_DESPACHO === "SI") {
-            if (res.data.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION === 1) {
-              this.state.factura_posterior_despacho = 1;
-              this.state.factura_a_demanda = 1;
-              this.state.alerta_facturar =
-                "Factura a demanda posterior al despacho";
-            } else if (
-              this.state.today.getDate() <=
-              res.data.data.cliente.CLI_DIA_MAXIMO_MES_FACTURACION
-            ) {
-              this.state.factura_posterior_despacho = 1;
-            } else {
-              this.state.factura_posterior_despacho = 1;
-              this.state.pregunta_facturar = 1;
-              this.state.factura_siguiente_mes = 1;
-            }
-          }
-
-          sessionStorage.setItem(
-            "factura_posterior_despacho",
-            this.state.factura_posterior_despacho
-          );
-          sessionStorage.setItem(
-            "factura_a_demanda",
-            this.state.factura_a_demanda
-          );
-          sessionStorage.setItem(
-            "factura_siguiente_mes",
-            this.state.factura_siguiente_mes
-          );
-          sessionStorage.setItem("alerta_facturar", this.state.alerta_facturar);
-          sessionStorage.setItem(
-            "pregunta_facturar",
-            this.state.pregunta_facturar
-          );
-
-          commit("setCurrentcliente", res.data.data.cliente);
-          commit("setCurrentSucursal", res.data.data.currentSucursal);
-          commit("setRegistroCopia", res.data.data.registro_copia);
-          commit("setCondicionPago", cotizacion);
-          commit("setCurrentTest", res.data.data.test);
-          commit("setSegmentoCliente", res.data.data.segmento);
-        });
-    },
-    llenarcotizacionProspecto({ commit }, cotizacion) {
-      commit("setCotizacionLoading", true);
-      return axiosClient
-        .post("/cotizaciones/llenarcotizacionprospecto", cotizacion)
-        .then((res) => {
-          this.state.cotizacion_id = res.data.cotizacion.id;
-          this.state.cotizacion_serial = res.data.cotizacion.cotizacion;
-          this.state.nota_interna = res.data.cotizacion.nota_interna;
-          this.state.orden_de_compra = res.data.cotizacion.orden_de_compra;
-          this.state.bodegaFacturacion = res.data.cotizacion.BOD_BODEGA;
-          this.state.despacho = res.data.cotizacion.despacho;
-          this.state.nota_cliente = res.data.cotizacion.nota_cliente;
-          this.state.condiciondepago_id = res.data.cotizacion.COND_ID;
-          this.state.condiciondepago_print = res.data.cotizacion.COND_ID;
-          sessionStorage.setItem(
-            "CONDICIONDEPAGOPRINT",
-            res.data.cotizacion.COND_ID
-          );
-          this.state.formadepago_id =
-            res.data.cotizacion.DESC_FORMA_PAGO_CODIGO;
-          commit("setCurrentcliente", res.data.cliente);
-          commit("setCurrentSucursal", res.data.currentSucursal);
-          commit("setCotizacionLoading", false);
-        });
-    },
-    recuperarPedido({ commit }, pedido) {
-      return axiosClient
-        .post("/pedidos/recuperarpedido", pedido)
-        .then((res) => {
-          commit("resetCotizacion");
-          commit("setCurrentcliente", res.data.cliente);
-          commit("setRegistroCopia", res.data.registro_copia);
-          commit("setCurrentSucursal", res.data.currentSucursal);
-          commit("setCondicionPagoSinPrint", pedido);
-          commit("setCurrentTest", res.data.test);
-          commit("setSegmentoCliente", res.data.segmento);
-        });
-    },
-    copiarPedido({ commit }, data) {
-      return axiosClient.post("/pedidos/copiarpedido", data).then((res) => {
-        commit("resetCotizacion");
-        commit("setCurrentcliente", res.data.cliente);
-        commit("setRegistroCopia", res.data.registro_copia);
-        commit("setCurrentSucursal", res.data.currentSucursal);
-        commit("setCurrentTest", res.data.test);
-        commit("setSegmentoCliente", res.data.segmento);
-      });
-    },
-    cancelarPedido({ commit }, pedido) {
-      return axiosClient.post("/pedidos/cancelarpedido", pedido).then((res) => {
-        return res.data;
-      });
-    },
-    estadodecuenta({ commit }, cliente) {
-      commit("setFacturasLoading", true);
-      return axiosClient
-        .post("/cobranzas/estadodecuentacliente", cliente)
-        .then((res) => {
-          commit("setFacturasLoading", false);
-          commit("setFacturas", res.data);
-        });
-    },
-    registrarcobro({ commit }, cobranza) {
-      commit("setFacturasLoading", true);
-      return axiosClient
-        .post("/cobranzas/registrarcobro", cobranza)
-        .then((res) => {
-          return res;
-        });
-    },
     estadoCaja({ commit }) {
       return axiosClient
         .get(
@@ -1183,7 +858,7 @@ const store = createStore({
           return res.data;
         });
     },
-    estadoCajafecha({ commit }, fecha) {
+    estadoCajafecha(_, fecha) {
       return axiosClient
         .get(
           "/cobranzas/estadocaja/" + fecha + "/" + this.state.user.data.USERID
@@ -1191,14 +866,6 @@ const store = createStore({
         .then((res) => {
           return res.data;
         });
-    },
-    abrirCaja() {
-      return axiosClient.get(
-        "/cobranzas/abrircaja/" +
-        this.state.puntodeventaselect +
-        "/" +
-        this.state.user.data.USERID
-      );
     },
     cerrarCaja() {
       return axiosClient
@@ -1212,28 +879,19 @@ const store = createStore({
           return res.data;
         });
     },
-    cobrosRegistrados({ commit }, cliente) {
-      commit("setCobrosRegistradosLoading", true);
-      return axiosClient
-        .post("/cobranzas/cobrosregistrados", cliente)
-        .then((res) => {
-          commit("setCobrosRegistrados", res.data);
-          commit("setCobrosRegistradosLoading", false);
-          return res.data;
-        });
-    },
+
     depositosPorAprobar({ commit }) {
       return axiosClient.post("/cobranzas/depositosporaprobar").then((res) => {
         commit("setDepositosPorAprobar", res.data);
       });
     },
 
-    aprobarDepositos({ commit }, id) {
+    aprobarDepositos(_, id) {
       return axiosClient.post("/cobranzas/aprobardeposito", id).then((res) => {
         return res.data;
       });
     },
-    rechazarDepositos({ commit }, id) {
+    rechazarDepositos(_, id) {
       return axiosClient.post("/cobranzas/rechazardeposito", id).then((res) => {
         return res.data;
       });
@@ -1279,40 +937,40 @@ const store = createStore({
           return res;
         });
     },
-    recibirOrdendecompraL({ commit }, ordendecompral) {
+    recibirOrdendecompraL(_, ordendecompral) {
       return axiosClient
         .post("/bodegas/recibosdecompra/recibir", ordendecompral)
         .then((res) => {
           return res;
         });
     },
-    eliminarOrdendecompraL({ commit }, ordendecompral) {
+    eliminarOrdendecompraL(_, ordendecompral) {
       return axiosClient
         .post("/bodegas/recibosdecompra/eliminar", ordendecompral)
         .then((res) => {
           return res;
         });
     },
-    guardarOrdenDeCompra({ commit }, cotizacion) {
+    guardarOrdenDeCompra(_, cotizacion) {
       return axiosClient
         .post("/cotizaciones/guardarordendecompra", cotizacion)
         .then((res) => {
           return res;
         });
     },
-    guardarOrdenDeCompraPedido({ commit }, pedido) {
+    guardarOrdenDeCompraPedido(_, pedido) {
       return axiosClient
         .post("/pedidos/guardarordendecompra", pedido)
         .then((res) => {
           return res;
         });
     },
-    guardarMensajePedido({ commit }, pedido) {
+    guardarMensajePedido(_, pedido) {
       return axiosClient.post("/pedidos/guardarmensaje", pedido).then((res) => {
         return res;
       });
     },
-    guardarMensajeCotizacion({ commit }, cotizacion) {
+    guardarMensajeCotizacion(_, cotizacion) {
       return axiosClient
         .post("/cotizaciones/guardarmensaje", cotizacion)
         .then((res) => {
@@ -1331,44 +989,23 @@ const store = createStore({
           return res.data;
         });
     },
-    consultacierrecajausuario({ commit }, consulta) {
+    consultacierrecajausuario(_, consulta) {
       return axiosClient
         .post("/cobranzas/consultacierrecajausuario", consulta)
         .then((res) => {
           return res.data;
         });
     },
-    consultacobroscliente({ commit }, consulta) {
+    consultacobroscliente(_, consulta) {
       return axiosClient
         .post("/cobranzas/consultacobroscliente", consulta)
         .then((res) => {
           return res.data;
         });
     },
-    checkRucProspecto({ commit }, prospecto) {
+    checkRucProspecto(_, prospecto) {
       return axiosClient
         .post("/cotizaciones/checkrucprospecto", prospecto)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    consultaretencion({ commit }, prospecto) {
-      return axiosClient
-        .post("/cobranzas/consultaretencion", prospecto)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    consultacheque({ commit }, cheque) {
-      return axiosClient
-        .post("/cobranzas/consultacheque", cheque)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    consultadeposito({ commit }, cheque) {
-      return axiosClient
-        .post("/cobranzas/consultadeposito", cheque)
         .then((res) => {
           return res.data;
         });
@@ -1426,32 +1063,11 @@ const store = createStore({
           commit("setOrdenesDespachoPendientes", res.data);
         });
     },
-    liberarOrdenDespacho({ dispatch }, data) {
+    liberarOrdenDespacho(_, data) {
       return axiosClient
         .post("/despachos/liberarordendespacho", data)
         .then((res) => {
           return res.data;
-        });
-    },
-    checkdespachadoscompletos({ }) {
-      return axiosClient
-        .get("/despachos/checkdespachadoscompletos")
-        .then(() => {
-          return;
-        });
-    },
-    ordenesDespacho({ commit }, estado = "liberada") {
-      commit("setOrdenesDespachoLoading", true);
-      return axiosClient
-        .get(
-          "/despachos/ordenesliberadas/" +
-          this.state.puntodeventaselect +
-          "/" +
-          estado
-        )
-        .then((res) => {
-          commit("setOrdenesDespachoLoading", false);
-          commit("setOrdenesDespacho", res.data);
         });
     },
     ordenesDespachoSinDetalle({ commit }, estado = "liberada") {
@@ -1468,7 +1084,7 @@ const store = createStore({
           commit("setOrdenesDespacho", res.data);
         });
     },
-    getUltimaGuia({ commit }, estado = "liberada") {
+    getUltimaGuia({ commit }) {
       //commit("setOrdenesDespachoLoading", true);
       return axiosClient
         .get("/despachos/getultimaguia/" + this.state.puntodeventaselect)
@@ -1477,7 +1093,7 @@ const store = createStore({
           commit("setUltimaGuia", res.data);
         });
     },
-    descripcionOrdenDespacho({ commit }, id) {
+    descripcionOrdenDespacho(_, id) {
       return axiosClient
         .get("/despachos/detalleordenliberada/" + id)
         .then((res) => {
@@ -1513,14 +1129,6 @@ const store = createStore({
       commit("setDetallePickingLoading", true);
       return axiosClient.get("/despachos/cancelarprocesodespacho/" + pedido_id);
     },
-    transferenciasVentaInterval({ commit, dispatch }) {
-      commit(
-        "setIntervalTransferenciasVenta",
-        setInterval(() => {
-          dispatch("transferenciasVenta");
-        }, 20000)
-      );
-    },
     transferenciasVentaStop({ commit }) {
       commit("transferenciasVentaStop");
     },
@@ -1553,24 +1161,6 @@ const store = createStore({
           return res.data.data;
         });
     },
-    cancelarPicking({ commit }, picking) {
-      return axiosClient
-        .post("/bodegas/transferencias/cancelarpicking", picking)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    transferenciasReposicionInterval({ commit, dispatch }) {
-      commit(
-        "setIntervalTransferenciasReposicion",
-        setInterval(() => {
-          dispatch("transferenciasReposicion");
-        }, 10000)
-      );
-    },
-    transferenciasReposicionStop({ commit }) {
-      commit("transferenciasReposicionStop");
-    },
     transferenciasReposicion({ commit }) {
       return axiosClient
         .get(
@@ -1581,7 +1171,7 @@ const store = createStore({
           commit("setTransferenciasReposicion", res.data);
         });
     },
-    transferenciasReposicionDocumento({ commit }, documento) {
+    transferenciasReposicionDocumento(_, documento) {
       return axiosClient
         .get(
           "/bodegas/reposicion/transferenciasreposicion/" +
@@ -1637,50 +1227,12 @@ const store = createStore({
           commit("setDetallePicking", res.data);
         });
     },
-    consultarGuiaTraslado({ commit }, data) {
-      return axiosClient
-        .post("/bodegas/guiasderemision/consultarguiagenerada", data)
-        .then((res) => {
-          return res;
-        });
-    },
-    generarGuiaTraslado({ commit }, data) {
-      return axiosClient
-        .post("/bodegas/guiasderemision/generarguiatraslado", data)
-        .then((res) => {
-          return res;
-        });
-    },
-    generarGuiaVenta({ commit }, data) {
-      return axiosClient
-        .post("/bodegas/guiasderemision/generarguiaventa", data)
-        .then((res) => {
-          return res;
-        });
-    },
-    eliminarGuiaRemision({ commit }, data) {
+    eliminarGuiaRemision(_, data) {
       return axiosClient
         .delete("/bodegas/guiasderemision/eliminarguia/" + data.id)
         .then((res) => {
           return res.data;
         });
-    },
-    despacharGuiaRemision({ commit }, data) {
-      return axiosClient
-        .get("/bodegas/guiasderemision/despacharguia/" + data.id)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    recibirGuiaRemision({ commit }, data) {
-      return axiosClient
-        .post("/bodegas/guiasderemision/recibirguia", data)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    procesardevoluciones({ }) {
-      return axiosClient.get("/devoluciones/procesardevoluciones");
     },
     pedidoscliente({ commit }, cliente_id) {
       commit("setPedidosLoading", true);
@@ -1700,14 +1252,14 @@ const store = createStore({
           return res;
         });
     },
-    rechazarOrdenDespacho({ commit }, id) {
+    rechazarOrdenDespacho(_, id) {
       return axiosClient
         .get("/despachos/rechazarordendespacho/" + id)
         .then((res) => {
           return res.data;
         });
     },
-    getReposicion({ commit }, params) {
+    getReposicion(_, params) {
       return axiosClient
         .post("/bodegas/getreposicion", {
           fecha: params.fecha,
@@ -1727,7 +1279,7 @@ const store = createStore({
           return res.data;
         });
     },
-    enviarDevolucion({ commit }, devolucion) {
+    enviarDevolucion(_, devolucion) {
       return axiosClient
         .post("/devoluciones/enviardevolucion", devolucion)
         .then((res) => {
@@ -1747,7 +1299,7 @@ const store = createStore({
           return res;
         });
     },
-    aprobarDevolucion({ commit, dispatch }, devolucion) {
+    aprobarDevolucion({ dispatch }, devolucion) {
       return axiosClient
         .post("/aprobaciones/aprobardevolucion", devolucion)
         .then((res) => {
@@ -1755,7 +1307,7 @@ const store = createStore({
           return res;
         });
     },
-    rechazarDevolucion({ commit, dispatch }, devolucion) {
+    rechazarDevolucion({ dispatch }, devolucion) {
       return axiosClient
         .post("/aprobaciones/rechazardevolucion", devolucion)
         .then((res) => {
@@ -1774,44 +1326,17 @@ const store = createStore({
         });
     },
 
-    recibirDevolucion({ commit }, devolucion) {
+    recibirDevolucion(_, devolucion) {
       return axiosClient
         .post("/devoluciones/recibirdevolucion", devolucion)
         .then((res) => {
           return res.data;
         });
     },
-    getNotificaciones({ commit }, devolucion) {
-      commit("setNotificacionesLoading", true);
-      return axiosClient
-        .post("/consultas/notificaciones", devolucion)
-        .then((res) => {
-          commit("setNotificacionesLoading", false);
-          commit("setNotificaciones", res.data.notificaciones);
-        });
-    },
-    guiasProcesadas({ commit }) {
-      commit("setGuiasProcesadasLoading", true);
-      return axiosClient
-        .get("/despachos/guiasprocesadas/" + this.state.puntodeventaselect)
-        .then((res) => {
-          commit("setGuiasProcesadasLoading", false);
-          commit("setGuiasProcesadas", res.data);
-        });
-    },
-  },
+      },
   mutations: {
     /* FUNCIONES EN INTERVALOS */
-    setIntervalPedidosporAprobar(state, newInterval) {
-      state.llenarpedidosporaprobar = newInterval;
-    },
-    llenarpedidosporaprobarStop(state) {
-      clearInterval(state.llenarpedidosporaprobar);
-    },
 
-    setIntervalPedidosporAprobarCrediticios(state, newInterval) {
-      state.llenarpedidosporaprobar_crediticios = newInterval;
-    },
     llenarpedidosporaprobarcrediticiosStop(state) {
       clearInterval(state.llenarpedidosporaprobar_crediticios);
     },
@@ -1822,19 +1347,10 @@ const store = createStore({
     bodegasDashboardStop(state) {
       clearInterval(state.bodegasdashboard);
     },
-    setIntervalTransferenciasVenta(state, newInterval) {
-      state.transferenciasdashboard = newInterval;
-    },
     transferenciasVentaStop(state) {
       clearInterval(state.transferenciasdashboard);
     },
-    setIntervalTransferenciasReposicion(state, newInterval) {
-      state.reposiciondashboard = newInterval;
-    },
-    transferenciasReposicionStop(state) {
-      clearInterval(state.reposiciondashboard);
-    },
-    /* FIN DE INTERVALOS */
+            /* FIN DE INTERVALOS */
     logout: (state) => {
       state.user.data = {};
       state.user.token = null;
@@ -1859,26 +1375,7 @@ const store = createStore({
         cliente.CLI_CONDICION_PAGO
       );
     },
-    setCondicionPago: (state, cotizacion) => {
-      state.condiciondepago_id = cotizacion.COND_ID;
-      state.condiciondepago_print = cotizacion.COND_ID;
-      sessionStorage.setItem("CONDICIONDEPAGOPRINT", cotizacion.COND_ID);
-      state.formadepago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
-    },
-    setCondicionPagoSinPrint: (state, cotizacion) => {
-      state.condiciondepago_id = cotizacion.COND_ID;
-      sessionStorage.setItem("CONDICIONDEPAGOPRINT", cotizacion.COND_ID);
-      state.formadepago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
-    },
-    setRegistroCopia: (state, registro_copia) => {
-      state.registro_copia = registro_copia;
-      sessionStorage.setItem("REGISTROCOPIA", registro_copia);
-    },
-    resetRegistroCopia: (state) => {
-      state.registro_copia = null;
-      sessionStorage.setItem("REGISTROCOPIA", null);
-    },
-    resetCurrentcliente: (state, cliente) => {
+    resetCurrentcliente: (state) => {
       state.currentCliente = null;
       sessionStorage.setItem(
         "CURRENTCLIENTE",
@@ -1889,38 +1386,12 @@ const store = createStore({
       sessionStorage.setItem("CURRENTSUCURSAL", currentSucursal);
       state.currentSucursal = currentSucursal;
     },
-    setCurrentTest: (state, currentTest) => {
-      sessionStorage.setItem("CURRENTTEST", currentTest);
-      state.currentTest = currentTest;
-    },
 
-    setCurrentclienteCobro: (state, cliente) => {
-      state.currentClienteCobro = cliente;
-      state.cobranza.cliente_id = cliente.id;
-    },
     setCurrentclienteDevolucion: (state, cliente) => {
       state.currentClienteDevolucion = cliente;
     },
     nullCurrentcliente: (state) => {
       state.currentCliente = null;
-    },
-    setNuevadireccion: (state) => {
-      state.nuevadireccion = {
-        CLI_SUC_RUC: state.currentCliente.CLI_RUC,
-        CLI_SUC_DESCRIPCION: state.currentCliente.CLI_RAZON_SOCIAL,
-        CLI_SUC_ID_DIRECCION: null,
-        CLI_SUC_DIRECCION: "",
-        CLI_SUC_CONTACTO: state.currentCliente.CLI_CONTACTO,
-        CLI_SUC_REFERENCIA: "",
-        CLI_SUC_VENDEDOR: state.currentCliente.CLI_VENDEDOR,
-        CLI_SUC_TERRITORIO: "COSTA",
-        CLI_SUC_CIUDAD: "",
-        CLI_SUC_PROVINCIA: "",
-        CLI_SUC_PAIS: "Ecuador",
-        CLI_SUC_TELEFONO: "",
-        CLI_SUC_CORREO_ELECTRONICO_SRI:
-          state.currentCliente.CLI_CORREO_ELECT_SRI,
-      };
     },
     setUser: (state, userData) => {
       state.user.token = userData.token;
@@ -1985,9 +1456,6 @@ const store = createStore({
         sessionStorage.setItem("HOME", home);
       }
     },
-    setSeccionesLoading: (state, loading) => {
-      state.sections.loading = loading;
-    },
     setPerfilesLoading: (state, loading) => {
       state.perfiles.loading = loading;
     },
@@ -2012,14 +1480,6 @@ const store = createStore({
     resetClientes: (state) => {
       state.clientes.data = [];
     },
-    setCupoCliente: (state, cliente) => {
-      state.clientes.data.suspendido = cliente.suspendido;
-      state.clientes.data.cupo_disponible = cliente.cupo_disponible;
-      state.clientes.data.cupo_asignado = cliente.cupo_asignado;
-
-      state.currentCliente = cliente;
-      sessionStorage.setItem("CURRENTCLIENTE", JSON.stringify(cliente));
-    },
     setSections: (state, sections) => {
       state.sections.data = sections;
     },
@@ -2031,9 +1491,6 @@ const store = createStore({
     },
     addCotizacion: (state, articulo) => {
       state.cotizacion.data.push(articulo);
-    },
-    getCotizacion: (state, articulos) => {
-      state.cotizacion.data = articulos;
     },
     resetCotizacion: (state) => {
       state.currentCliente = null;
@@ -2072,14 +1529,6 @@ const store = createStore({
         text_nombre: "",
       };
     },
-    encerapedidosycotizaciones: (state) => {
-      state.pedidos.data = [];
-      state.cotizaciones.data = [];
-    },
-    setVerActiculos: (state, value) => {
-      console.log(value);
-      state.verarticulos = value;
-    },
     setVercotizacionesLoading: (state, loading) => {
       state.cotizaciones.loading = loading;
     },
@@ -2101,9 +1550,6 @@ const store = createStore({
     setDevoluciones: (state, devoluciones) => {
       state.devoluciones.data = devoluciones;
     },
-    setPedidosCrediticiosLoading: (state, value) => {
-      state.pedidos_crediticios.loading = value;
-    },
     setPedidosCrediticios: (state, pedidos) => {
       state.pedidos_crediticios.data = pedidos;
     },
@@ -2112,12 +1558,6 @@ const store = createStore({
     },
     setDevolucionesPorAprobar: (state, devoluciones) => {
       state.devoluciones_por_aprobar.data = devoluciones;
-    },
-    setDevolucionesPorRecibirLoading: (state, estado) => {
-      state.devoluciones_por_recibir.loading = estado;
-    },
-    setDevolucionesPorRecibir: (state, devoluciones) => {
-      state.devoluciones_por_recibir.data = devoluciones;
     },
 
     llenaformadepago: (state, condiciondepago_id) => {
@@ -2134,25 +1574,8 @@ const store = createStore({
     setDescuentoArticulo: (state, value) => {
       state.descuentoarticulo = value;
     },
-    setDescuentoArticuloInicial: (state, formadepago_id) => {
-      const restardescuento = state.formadepago.find(
-        (item) => item.DESC_FORMA_PAGO_CODIGO === formadepago_id
-      ).DESC_FORMA_PAGO_PORCENTAJE_REBAJAR;
-      state.descuentooriginal =
-        parseFloat(state.currentCliente.CLI_DSTO_COMERCIAL) +
-        parseFloat(restardescuento);
-      state.descuentoarticulo =
-        parseFloat(state.currentCliente.CLI_DSTO_COMERCIAL) +
-        parseFloat(restardescuento);
-    },
     setDescuentoOriginal: (state, value) => {
       state.descuentooriginal = value;
-    },
-    setVerProveedor: (state, value) => {
-      state.verproveedor = value;
-    },
-    setIndexProveedor: (state, value) => {
-      state.indexproveedor = value;
     },
     setDetallePedido: (state, data) => {
       state.detallepedido.data = data.detalle;
@@ -2235,25 +1658,6 @@ const store = createStore({
       state.proyecto = data
     },
 
-
-    setFacturasLoading: (state, loading) => {
-      state.facturas.loading = loading;
-    },
-    setFacturas: (state, data) => {
-      state.facturas.data = data.facturas;
-      state.facturas_retenciones.data = data.facturas_retenciones;
-      state.bancos_tuval = data.bancos_tuval;
-      state.bancos_cliente = data.bancos_cliente;
-      state.bancos_tarjetas = data.bancos_tarjetas;
-      state.cobros_sin_aplicar = data.cobros_sin_aplicar;
-      state.pedidos_por_cobrar = data.pedidos_por_cobrar;
-    },
-    setCobrosRegistrados: (state, data) => {
-      state.cobros_registrados = data.cobros_registrados;
-    },
-    setCobrosRegistradosLoading: (state, data) => {
-      state.cobros_registrados_loading = data;
-    },
     setTerritorios: (state, territorios) => {
       state.territorios = territorios;
     },
@@ -2287,9 +1691,6 @@ const store = createStore({
     setOrdenesDespacho: (state, data) => {
       state.ordenes_despacho = data.ordenes;
       state.ultimaguia = data.ultimaguia;
-    },
-    setOrdenDespachoLoading: (state, data) => {
-      state.ordenes_despacho[data.index].loading = data.value;
     },
     eliminaDespacho: (state, index) => {
       state.ordenes_despacho.splice(index, 1);
@@ -2354,328 +1755,6 @@ const store = createStore({
         CLI_CONDICION_PAGO: "CONTADO",
         CLI_TELEFONO_1: "",
       };
-    },
-    enceraRetencion: (state) => {
-      state.ret_selected = null;
-      state.nuevaRetencion = {
-        ret_factura_index: "",
-        ret_factura: "",
-        ret_fecha_emision: "",
-        ret_fecha_vencimiento: "",
-        ret_original_factura: "",
-        ret_subtotal_factura: "",
-        ret_saldo_factura: "",
-        ret_iva: "",
-        ret_porcentaje_iva: "",
-        ret_renta: "",
-        ret_porcentaje_renta: "",
-
-        ret_iva_srv: "",
-        ret_porcentaje_iva_srv: "",
-        ret_renta_srv: "",
-        ret_porcentaje_renta_srv: "",
-
-        ret_emision: "",
-        ret_caducidad: "",
-        ret_comprobante: "",
-        ret_autorizacion: "",
-        total: "",
-      };
-    },
-    asignaRetencion: (state, retencion) => {
-      state.nuevaRetencion = {
-        ret_factura_index: retencion.index,
-        ret_factura: retencion.ECD_DET_NUM_DOC,
-        ret_fecha_emision: retencion.ECD_DET_FECHA_EMISION,
-        ret_fecha_vencimiento: retencion.ECD_DET_FECHA_VENCIMIENTO,
-        ret_original_factura: retencion.ECD_DET_MONTO_ORIGINAL,
-        ret_subtotal_factura: retencion.ECD_DET_SUBTOTAL,
-        ret_saldo_factura: retencion.ECD_DET_SALDO_CLIENTE,
-        ret_iva_factura: retencion.ECD_DET_IVA,
-        ret_iva: "",
-        ret_porcentaje_iva: "",
-        ret_renta: "",
-        ret_porcentaje_renta: "",
-        ret_iva_srv: "",
-        ret_porcentaje_iva_srv: "",
-        ret_renta_srv: "",
-        ret_porcentaje_renta_srv: "",
-        ret_emision: "",
-        ret_caducidad: "",
-        ret_comprobante: "",
-        ret_autorizacion: "",
-        total: "",
-      };
-      state.ret_selected = null;
-    },
-    enceraCobranzas: (state) => {
-      state.cobranza = {
-        retenciones: [],
-        ingreso_efectivo: {},
-        ingreso_tarjeta: {},
-        ingreso_depositos: [],
-        ingreso_aplicaciones: [],
-        ingreso_cheques: {},
-        referencia: "",
-      };
-      state.ingreso_efectivo = {
-        monto: "",
-        monto_original: "",
-        efectivo_recibido: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        facturas: [],
-      };
-      state.ingreso_tarjeta = {
-        monto: "",
-        monto_original: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        facturas: [],
-      };
-      state.ingreso_deposito = {
-        tipo: "",
-        banco: "",
-        banco_nombre: "",
-        dep_comprobante: "",
-        dep_fecha: "",
-        monto: "",
-        monto_original: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        facturas: [],
-      };
-      state.ingreso_aplicacion = {
-        cobro: "",
-        detalle: {},
-        comentario: "",
-        monto: "",
-        monto_original: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        facturas: [],
-      };
-      state.ingreso_cheque = {
-        banco: "",
-        cuenta: "",
-        cheque: "",
-        monto: "",
-        comentario: "",
-        fecha_emision:
-          state.today.getFullYear() +
-          "-" +
-          (state.today.getMonth() + 1) +
-          "-" +
-          state.today.getDate(),
-        fecha_vencimiento: "",
-        monto_original: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        cheques: [],
-        facturas: [],
-      };
-    },
-    enceraEfectivo: (state) => {
-      state.cobranza.ingreso_efectivo = {};
-    },
-    enceraTarjeta: (state) => {
-      state.cobranza.ingreso_tarjeta = {};
-    },
-    eliminarDeposito: (state, index) => {
-      state.cobranza.ingreso_depositos.splice(index, 1);
-    },
-    eliminarAplicacion: (state, index) => {
-      state.cobranza.ingreso_aplicaciones.splice(index, 1);
-    },
-    eliminarcobroCheques: (state) => {
-      state.cobranza.ingreso_cheques = {};
-    },
-    eliminarCheque: (state, index) => {
-      state.ingreso_cheque.cheques.splice(index, 1);
-    },
-    enceraDeposito: (state) => {
-      state.ingreso_deposito = {
-        tipo: "",
-        banco: "",
-        banco_nombre: "",
-        dep_comprobante: "",
-        dep_fecha: "",
-        monto: "",
-        monto_original: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        facturas: [],
-      };
-    },
-    enceraAplicacion: (state) => {
-      state.ingreso_aplicacion = {
-        cobro: "",
-        detalle: {},
-        comentario: "",
-        monto: "",
-        monto_original: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        facturas: [],
-      };
-    },
-    enceraCheque: (state) => {
-      state.ingreso_cheque = {
-        banco: "",
-        cuenta: "",
-        cheque: "",
-        monto: "",
-        comentario: "",
-        fecha_emision:
-          state.today.getFullYear() +
-          "-" +
-          (state.today.getMonth() + 1) +
-          "-" +
-          state.today.getDate(),
-        fecha_vencimiento: "",
-        monto_original: "",
-        monto_no_aplicado: 0.0,
-        monto_aplicado: 0.0,
-        cheques: [],
-        facturas: [],
-      };
-    },
-    calculaSaldoFacturas: (state) => {
-      state.ingreso_efectivo.monto_aplicado = 0;
-      state.ingreso_efectivo.monto_no_aplicado = parseFloat(
-        state.ingreso_efectivo.monto
-      );
-
-      state.ingreso_tarjeta.monto_aplicado = 0;
-      state.ingreso_tarjeta.monto_no_aplicado = parseFloat(
-        state.ingreso_tarjeta.monto
-      );
-
-      state.ingreso_deposito.monto_aplicado = 0;
-      state.ingreso_deposito.monto_no_aplicado = parseFloat(
-        state.ingreso_deposito.monto
-      );
-
-      state.ingreso_aplicacion.monto_aplicado = 0;
-      state.ingreso_aplicacion.monto_no_aplicado = parseFloat(
-        state.ingreso_aplicacion.monto
-      );
-
-      state.ingreso_cheque.monto_aplicado = 0;
-      state.ingreso_cheque.monto_original = parseFloat(0);
-      state.ingreso_cheque.monto_no_aplicado = parseFloat(0);
-
-      state.ingreso_cheque.cheques.map((cheque) => {
-        state.ingreso_cheque.monto_no_aplicado += parseFloat(cheque.monto);
-        state.ingreso_cheque.monto_original += parseFloat(cheque.monto);
-      });
-
-      state.facturas.data.map((factura) => {
-        factura.ECD_DET_SALDO_CLIENTE = factura.ECD_DET_SALDO;
-
-        state.cobranza.retenciones.map((retencion) => {
-          if (factura.ECD_DET_NUM_DOC === retencion.ret_factura) {
-            factura.ECD_DET_SALDO_CLIENTE = parseFloat(
-              factura.ECD_DET_SALDO - retencion.total
-            ).toFixed(2);
-          }
-        });
-
-        if (
-          factura.aplicar_monto_efectivo &&
-          factura.aplicar_monto_efectivo > 0
-        ) {
-          factura.ECD_DET_SALDO_CLIENTE = (
-            parseFloat(factura.ECD_DET_SALDO_CLIENTE) -
-            parseFloat(factura.aplicar_monto_efectivo)
-          ).toFixed(2);
-          state.ingreso_efectivo.monto_aplicado += parseFloat(
-            factura.aplicar_monto_efectivo
-          );
-          state.ingreso_efectivo.monto_no_aplicado -= parseFloat(
-            factura.aplicar_monto_efectivo
-          ).toFixed(2);
-        }
-
-        if (
-          factura.aplicar_monto_tarjeta &&
-          factura.aplicar_monto_tarjeta > 0
-        ) {
-          factura.ECD_DET_SALDO_CLIENTE = (
-            parseFloat(factura.ECD_DET_SALDO_CLIENTE) -
-            parseFloat(factura.aplicar_monto_tarjeta)
-          ).toFixed(2);
-          state.ingreso_tarjeta.monto_aplicado += parseFloat(
-            factura.aplicar_monto_tarjeta
-          );
-          state.ingreso_tarjeta.monto_no_aplicado -= parseFloat(
-            factura.aplicar_monto_tarjeta
-          ).toFixed(2);
-        }
-
-        if (
-          factura.aplicar_monto_deposito &&
-          factura.aplicar_monto_deposito > 0
-        ) {
-          state.ingreso_deposito.monto_aplicado += parseFloat(
-            factura.aplicar_monto_deposito
-          );
-          state.ingreso_deposito.monto_no_aplicado -= parseFloat(
-            factura.aplicar_monto_deposito
-          ).toFixed(2);
-        }
-
-        factura.ECD_DET_SALDO_CLIENTE = parseFloat(
-          factura.ECD_DET_SALDO_CLIENTE
-        );
-        state.cobranza.ingreso_depositos.map((deposito) => {
-          deposito.facturas.map((fac_deposito) => {
-            if (factura.ECD_DET_NUM_DOC === fac_deposito.ECD_DET_NUM_DOC) {
-              factura.ECD_DET_SALDO_CLIENTE -= parseFloat(
-                fac_deposito.aplicar_monto_deposito
-              ).toFixed(2);
-            }
-          });
-        });
-
-        if (
-          factura.aplicar_monto_aplicacion &&
-          factura.aplicar_monto_aplicacion > 0
-        ) {
-          state.ingreso_aplicacion.monto_aplicado += parseFloat(
-            factura.aplicar_monto_aplicacion
-          );
-          state.ingreso_aplicacion.monto_no_aplicado -= parseFloat(
-            factura.aplicar_monto_aplicacion
-          ).toFixed(2);
-        }
-
-        factura.ECD_DET_SALDO_CLIENTE = parseFloat(
-          factura.ECD_DET_SALDO_CLIENTE
-        );
-        state.cobranza.ingreso_aplicaciones.map((aplicacion) => {
-          aplicacion.facturas.map((fac_aplicacion) => {
-            if (factura.ECD_DET_NUM_DOC === fac_aplicacion.ECD_DET_NUM_DOC) {
-              factura.ECD_DET_SALDO_CLIENTE -= parseFloat(
-                fac_aplicacion.aplicar_monto_aplicacion
-              ).toFixed(2);
-            }
-          });
-        });
-
-        if (factura.aplicar_monto_cheque && factura.aplicar_monto_cheque > 0) {
-          factura.ECD_DET_SALDO_CLIENTE = (
-            parseFloat(factura.ECD_DET_SALDO_CLIENTE) -
-            parseFloat(factura.aplicar_monto_cheque)
-          ).toFixed(2);
-          state.ingreso_cheque.monto_aplicado += parseFloat(
-            factura.aplicar_monto_cheque
-          );
-          state.ingreso_cheque.monto_no_aplicado -= parseFloat(
-            factura.aplicar_monto_cheque
-          ).toFixed(2);
-        }
-      });
     },
     setDashboardSections: (state, data) => {
       state.dashboard_sections = data.dashboard_sections;
@@ -2771,7 +1850,6 @@ const store = createStore({
     },
     setRecibosReposicion: (state, data) => {
 
-
       state.recibos_reposicion = data.recibos;
     },
     setRecibosReposicionLoading: (state, value) => {
@@ -2783,51 +1861,8 @@ const store = createStore({
     setGenerar: (state, data) => {
       state.generar = data;
     },
-    checkPermitePedido: (state) => {
-      let existen = false;
-
-      if (
-        (state.cobranza.ingreso_efectivo.facturas &&
-          state.cobranza.ingreso_efectivo.facturas.length) ||
-        (state.cobranza.ingreso_tarjeta.facturas &&
-          state.cobranza.ingreso_tarjeta.facturas.length) ||
-        (state.cobranza.ingreso_cheques.facturas &&
-          state.cobranza.ingreso_cheques.facturas.length)
-      ) {
-        existen = true;
-      }
-
-      state.cobranza.ingreso_depositos.map((deposito) => {
-        if (deposito.facturas.length) {
-          existen = true;
-        }
-      });
-
-      state.cobranza.ingreso_aplicaciones.map((aplicacion) => {
-        if (aplicacion.facturas.length) {
-          existen = true;
-        }
-      });
-      state.permite_pedido = !existen;
-      state.pago_a_padido = null;
-    },
-    resetPagoaPedido: (state) => {
-      state.pago_a_padido = null;
-    },
     setDespacho: (state, value) => {
       state.despacho = value;
-    },
-    setNotificaciones: (state, value) => {
-      state.notificaciones.data = value;
-    },
-    setNotificacionesLoading: (state, value) => {
-      state.notificaciones.loading = value;
-    },
-    setGuiasProcesadas: (state, value) => {
-      state.guiasprocesadas.data = value;
-    },
-    setGuiasProcesadasLoading: (state, value) => {
-      state.guiasprocesadas.loading = value;
     },
     resetFlatPickrState: (state) => {
       const horaInicio = new Date();
@@ -2896,7 +1931,6 @@ const store = createStore({
     resetFiltrarCliente: (state) => {
       state.filtrar_cliente = null;
     },
-
 
   },
   modules: {},

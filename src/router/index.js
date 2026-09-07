@@ -35,8 +35,8 @@ const VentasCrearCliente = () =>
 //   import("@/views/cobranzas/CobranzasPedidoView.vue");
 const CobranzasAprobacionDepositos = () =>
   import("@/views/cobranzas/AprobacionDepositosView.vue");
-const CobranzasCierredecaja = () =>
-  import("@/views/cobranzas/CierredecajaView.vue");
+// const CobranzasCierredecaja = () =>
+//   import("@/views/cobranzas/CierredecajaView.vue");
 const CobranzasConsultasCobros = () =>
   import("@/views/cobranzas/ConsultasCobrosView.vue");
 const LiberarOrdenDespacho = () =>
@@ -261,14 +261,14 @@ const routes = [
           title: "Cobros - Aprobación de depósitos",
         },
       },
-      {
-        path: "cierredecaja",
-        name: "cobranzas-cierredecaja",
-        component: CobranzasCierredecaja,
-        meta: {
-          title: "Cobros - Cierre de caja",
-        },
-      },
+      // {
+      //   path: "cierredecaja",
+      //   name: "cobranzas-cierredecaja",
+      //   component: CobranzasCierredecaja,
+      //   meta: {
+      //     title: "Cobros - Cierre de caja",
+      //   },
+      // },
       {
         path: "consulta-cierre-caja",
         name: "cobranza-consulta-cierre-caja",
