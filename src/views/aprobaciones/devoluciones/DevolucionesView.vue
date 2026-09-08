@@ -152,10 +152,10 @@
   <!-- END Page Content -->
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { ref, reactive, computed, onMounted,  } from "vue";
 import { useStore} from 'vuex'
 import { Modal } from "bootstrap";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import {  swalInfo,  toast } from "@/functions/swal-alert.js";
 
 import VerDevolucionAprobarModal from "./modals/VerDevolucionAprobarModal.vue";
 

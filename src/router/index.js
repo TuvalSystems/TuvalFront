@@ -51,7 +51,7 @@ const AprobacionesComercialesConsulta = () =>
   import("@/views/aprobaciones/ComercialesConsultaView.vue");
 
 const AprobacionesDevoluciones = () =>
-  import("@/views/aprobaciones/DevolucionesView.vue");
+  import("@/views/aprobaciones/devoluciones/DevolucionesView.vue");
 
 const AprobacionesReservas = () =>
   import("@/views/aprobaciones/ReservasView.vue");
@@ -261,14 +261,6 @@ const routes = [
           title: "Cobros - Aprobación de depósitos",
         },
       },
-      // {
-      //   path: "cierredecaja",
-      //   name: "cobranzas-cierredecaja",
-      //   component: CobranzasCierredecaja,
-      //   meta: {
-      //     title: "Cobros - Cierre de caja",
-      //   },
-      // },
       {
         path: "consulta-cierre-caja",
         name: "cobranza-consulta-cierre-caja",
@@ -364,6 +356,14 @@ const routes = [
         component: AprobacionesReservas,
         meta: {
           title: "Aprobaciones - Reservas",
+        },
+      },
+       {
+        path: "devoluciones",
+        name: "aprobaciones-devoluciones-consulta",
+         component: () => import("@/views/aprobaciones/devoluciones/DevolucionesConsultaView.vue"),
+        meta: {
+          title: "Aprobaciones - Devoluciones",
         },
       },
     ],
