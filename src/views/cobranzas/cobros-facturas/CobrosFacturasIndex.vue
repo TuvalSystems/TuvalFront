@@ -736,16 +736,12 @@ function hasCurrentCustomerCollection() {
 }
 
 function getCollectionInvoiceEventCashBoxId(event) {
-  return event?.boxId ?? event?.box_id ?? event?.caja_id ?? event?.cajaId ?? null;
+  return event?.boxId ?? null;
 }
 
 function getCurrentCashBoxId() {
   return (
     collectionDraft.caja_id ??
-    dataCashBoxStatus.value?.id ??
-    dataCashBoxStatus.value?.caja_id ??
-    dataCashBoxStatus.value?.cajaId ??
-    dataCashBoxStatus.value?.idCaja ??
     null
   );
 }

@@ -22,7 +22,7 @@ function resolveCashBoxId(cashBox) {
         return cashBox ?? null;
     }
 
-    return cashBox.id ?? cashBox.caja_id ?? cashBox.cajaId ?? cashBox.idCaja ?? null;
+    return cashBox.id ?? null;
 }
 
 export function useInvoiceCollectionDraft() {
