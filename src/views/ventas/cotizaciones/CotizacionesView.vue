@@ -22,6 +22,15 @@
           <div class="block-options-item">
             <div class="row g-3 align-items-center">
               <div class="col-auto">
+                <label for="cot" class="col-form-label fs-sm">Cotización</label>
+              </div>
+              <div class="col-auto">
+                <input type="text" style="width: 150px" class="form-control form-control-sm" id="cot" v-model="cotizacion_filtro"
+                 
+                  @change="buscarCotizacion"  
+                 />
+              </div>
+              <div class="col-auto">
                 <label for="fecha_desde" class="col-form-label fs-sm">Desde</label>
               </div>
               <div class="col-auto">
@@ -317,7 +326,7 @@
 
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, watch } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
@@ -350,13 +359,6 @@ const { checkExistingReserve } = useValidatesReserved()
 const { verifyStockBeforeRequestReserve } = useQuotationReserveRequestSale()
 //** imports pra nuevos procesos */
 
-
-import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
-import { useImageUpload } from "@/composables/core/useImageUpload";
-
-
-const { fetchAndFillQuotation, loadDataForReorder } = useProcessCreateQuote();
-const { uploadedFiles } = useImageUpload();
 
 // const motivoStore = useMotivosStore()
 const flatPickrState = reactive({
@@ -463,7 +465,7 @@ const indexCotizacion = ref(null);
 const tipo = ref(null);
 const fecha_desde = ref(null);
 const fecha_hasta = ref(null);
-const estado_filtro = ref(null);
+const cotizacion_filtro = ref(null);
 function limpiarFecha() {
   fecha_desde.value = null;
   fecha_hasta.value = null;
@@ -476,7 +478,7 @@ function refrescarFecha() {
 
   llenarcotizaciones();
 }
-async function funcionvercotizacion(cotizacion, index) {
+async function funcionvercotizacion(cotizacion) {
 
   vercotizacion.value = cotizacion;
   tipo.value = "cotizacion";
@@ -484,11 +486,13 @@ async function funcionvercotizacion(cotizacion, index) {
   vercotizacionModalObj.show();
 }
 
-async function closeModalVerCotizacion() {
-  vercotizacionModalObj.hide();
-  vercotizacion.value = {};
-  llenarcotizaciones();
+function buscarCotizacion(){
+  if(cotizacion_filtro.value && cotizacion_filtro.value.length > 0){
+    llenarcotizaciones();
+  }
 }
+
+
 
 
 
@@ -563,7 +567,6 @@ function motivoEspera(cotizacion) {
 let vercotizacionModal = ref(null);
 let vercotizacionModalObj = null;
 
-let errorMsg = ref("");
 const cotizaciones = computed(() => store.state.cotizaciones);
 const vercotizaciones = ref(false);
 
@@ -575,6 +578,7 @@ async function llenarcotizaciones() {
     estado: selectedStatus.value,
     fecha_desde: fecha_desde.value,
     fecha_hasta: fecha_hasta.value,
+    cotizacion_filtro : cotizacion_filtro.value
   };
 
   try {
