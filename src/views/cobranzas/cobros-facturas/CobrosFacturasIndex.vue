@@ -735,20 +735,50 @@ function hasCurrentCustomerCollection() {
   );
 }
 
-async function resetCollectionViewAfterInvoiceChange() {
-  clearCurrentCustomerCollection();
-  await cleanSearchClients();
+function getCollectionInvoiceEventCashBoxId(event) {
+  return event?.boxId ?? event?.box_id ?? event?.caja_id ?? event?.cajaId ?? null;
+}
+
+function getCurrentCashBoxId() {
+  return (
+    collectionDraft.caja_id ??
+    dataCashBoxStatus.value?.id ??
+    dataCashBoxStatus.value?.caja_id ??
+    dataCashBoxStatus.value?.cajaId ??
+    dataCashBoxStatus.value?.idCaja ??
+    null
+  );
+}
+
+function isCurrentCashBoxCollectionInvoiceEvent(event) {
+  const eventCashBoxId = getCollectionInvoiceEventCashBoxId(event);
+  const currentCashBoxId = getCurrentCashBoxId();
+
+  return (
+    Boolean(eventCashBoxId && currentCashBoxId) &&
+    String(eventCashBoxId) === String(currentCashBoxId)
+  );
+}
+
+async function refreshCollectionViewForCashBoxEvent() {
+  await getUserCashBoxStatus();
+
+  if (hasCurrentCustomerCollection()) {
+    clearCurrentCustomerCollection();
+    await cleanSearchClients();
+  }
+
   showCustomerResults.value = true;
 }
 
-function shouldResetCollectionViewAfterInvoiceChange() {
-  return hasCurrentCustomerCollection();
+function shouldRefreshCollectionViewForCashBoxEvent(event) {
+  return isCurrentCashBoxCollectionInvoiceEvent(event);
 }
 
 const stopRefreshCollectionInvoiceUpdateOnEvent =
   useRefreshCollectionInvoiceUpdateOnEvent({
-    refreshFn: resetCollectionViewAfterInvoiceChange,
-    shouldRefresh: shouldResetCollectionViewAfterInvoiceChange,
+    refreshFn: refreshCollectionViewForCashBoxEvent,
+    shouldRefresh: shouldRefreshCollectionViewForCashBoxEvent,
   });
 onUnmounted(() => {
   stopRefreshCollectionInvoiceUpdateOnEvent?.();
