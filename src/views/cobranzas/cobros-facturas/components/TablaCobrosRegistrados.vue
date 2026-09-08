@@ -23,7 +23,6 @@ const { table, columns, listPerpage, statusClass, fetchList, onSort, refresh } =
   useClientRegisteredCollectionsTable();
 const {
   //imprimir el pdf del cobro
-  loadingPrintCollectionPdf,
   printPdfCollection,
 } = useInvoiceCollectionActions();
 const clientId = computed(() => props.collectionDraft?.cliente_id ?? null);
@@ -157,10 +156,10 @@ defineExpose({
   refresh: refreshList,
 });
 
-const handleClick = ({ row, col }) => {};
+const handleClick = () => {};
 
-function isRowDisabled(row) {
-  return lockedIds.value.has(row.id);
+function isRowDisabled() {
+  // return lockedIds.value.has(row.id);
 }
 
 const lockIdPdf = ref(new Map());

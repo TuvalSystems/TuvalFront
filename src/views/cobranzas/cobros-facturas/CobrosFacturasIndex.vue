@@ -1,9 +1,20 @@
 <script setup>
 import { swalError, swalSuccess, swalWarning } from "@/functions/swal-alert.js";
-import { onMounted, ref, computed, markRaw, nextTick, watch } from "vue";
+import {
+  onMounted,
+  ref,
+  computed,
+  markRaw,
+  nextTick,
+  watch,
+  onUnmounted,
+} from "vue";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { roundTo, toNumber } from "@/functions";
 import BaseBlock from "@/components/BaseBlock.vue";
+
+//eventos
+import { useRefreshCollectionInvoiceUpdateOnEvent } from "@/composables/cobranzas/cobros-facturas/useRefreshCollectionInvoiceUpdateOnEvent.js";
 
 //composables
 import { useInvoiceCollectionActions } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionActions";
@@ -610,6 +621,8 @@ const cannotProcessCollection = computed(() => {
 
 function clearCurrentCustomerCollection() {
   selectedCustomer.value = null;
+  infoClient.value = {};
+  infoSegmento.value = {};
   resetDraft();
   resetCustomerCollectionData();
 }
@@ -707,11 +720,38 @@ async function registerCollection(payload = collectionDraft) {
   swalSuccess(response?.message);
   await registeredCollectionsRef.value?.refresh();
   await resetDraftPreservingClient();
- await refreshCustomerCollectionData(selectedCustomer.value, false);
+  await refreshCustomerCollectionData(selectedCustomer.value, false);
 }
 
 onMounted(() => {
   getUserCashBoxStatus();
+});
+
+function hasCurrentCustomerCollection() {
+  return Boolean(
+    selectedCustomer.value ||
+      collectionDraft.cliente_id ||
+      totalPaymentRecords.value > 0
+  );
+}
+
+async function resetCollectionViewAfterInvoiceChange() {
+  clearCurrentCustomerCollection();
+  await cleanSearchClients();
+  showCustomerResults.value = true;
+}
+
+function shouldResetCollectionViewAfterInvoiceChange() {
+  return hasCurrentCustomerCollection();
+}
+
+const stopRefreshCollectionInvoiceUpdateOnEvent =
+  useRefreshCollectionInvoiceUpdateOnEvent({
+    refreshFn: resetCollectionViewAfterInvoiceChange,
+    shouldRefresh: shouldResetCollectionViewAfterInvoiceChange,
+  });
+onUnmounted(() => {
+  stopRefreshCollectionInvoiceUpdateOnEvent?.();
 });
 </script>
 
@@ -755,7 +795,9 @@ onMounted(() => {
       <div class="cash-box-empty-content">
         <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
           <h2 class="cash-box-empty-title mb-0">Caja no asignada</h2>
-          <span class="fs-xs fw-semibold bg-warning-light text-warning px-2 py-1 rounded-pill">
+          <span
+            class="fs-xs fw-semibold bg-warning-light text-warning px-2 py-1 rounded-pill"
+          >
             Acción requerida
           </span>
         </div>
@@ -904,7 +946,6 @@ onMounted(() => {
         ref="registeredCollectionsRef"
         :collection-draft="collectionDraft"
       />
-
     </BaseBlock>
   </div>
 </template>
