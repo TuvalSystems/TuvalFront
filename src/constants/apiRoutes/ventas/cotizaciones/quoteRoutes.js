@@ -10,6 +10,10 @@ export const QUOTE_API_ROUTES = {
         GET_DEFAULT_PRICE_LIST: 'cotizaciones/prospecto/obtener-lista-precio-defecto'
     },
 
+    REMINDER : {
+        LIST_REASON_NO_SALES : 'cotizaciones/lista-motivos-no-venta'
+    },
+
 
     QUOTES: {
         LIST_ALTERNATIVE_ITEMS: 'cotizaciones/lista-items-alternativos',
@@ -24,6 +28,8 @@ export const QUOTE_API_ROUTES = {
         CREATE_ORDER: 'pedidos/crear-pedido-v2',
         LIST_PROYECTS_SELLERS :'cotizaciones/obtener-lista-proyectos',
         LIST_HISTORY_INVOICES : 'cotizaciones/lista-facturas-historicas'
-
     }
+
+
+
 }

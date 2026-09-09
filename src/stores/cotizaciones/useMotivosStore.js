@@ -1,29 +1,44 @@
-import { defineStore } from 'pinia';
-import axiosClient from "../../axios";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import axiosClient from "@/axios";
+import { useApiAction } from "@/composables/core/useApiAction";
+import { swalError } from "@/functions/swal-alert.js";
+import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
+export const useMotivosStore = defineStore('motivos', () => {
 
-export const useMotivosStore = defineStore('motivos', {
-   
-    state: () => ({
-        motivos :[],
-        loading : false,
-        error: null
-    }),
+    const motivos = ref([]);
+    const loading = ref(false);
+    const error = ref(null);
+    const { run } = useApiAction();
 
-    actions:{
-        async fetchMotivos(){
-            this.loafing = true;
-            this.error = null;
-
-            try {
-                const response = await axiosClient.get('/cotizaciones/lista-motivos-no-venta');
-                this.motivos = response.data.data;
-                this.loading = false;
-            } catch (error) {
-                this.error = error;
-            } finally{
-                this.loading = false;
-            }
+    async function fetchMotivos({ force = false } = {}) {
+        if (motivos.value.length && !force) {
+            return { ok: true, data: motivos.value };
         }
+        error.value = null;
+        return run(() => axiosClient.get(QUOTE_API_ROUTES.REMINDER.LIST_REASON_NO_SALES), {
+            loadingRef: loading,
+            onSuccess: (resp) => {
+                error.value = null;
+                motivos.value = resp || [];
+            },
+            onError: (backend, err) => {
+                error.value = backend?.error || backend?.message || err?.message;
+                swalError(error.value || "Error al obtener los motivos");
+            },
+        });
     }
-    
+
+    function clear() {
+        motivos.value = [];
+    }
+
+    return {
+        loading,
+        motivos,
+        fetchMotivos,
+        clear,
+        error
+    }
+
 });

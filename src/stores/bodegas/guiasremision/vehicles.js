@@ -14,7 +14,7 @@ export const useVehiclesStore = defineStore("vehicles", () => {
     async function fetch({ force = false } = {}) {
         if ((vehicles.value.length || transporters.value.length) > 0 && !force) {
             return { vehiculos: vehicles.value, transportistas: transporters.value };
-        };
+        }
 
         return run(() => axiosClient.post(apiVehicle), {
             loadingRef: loading,
