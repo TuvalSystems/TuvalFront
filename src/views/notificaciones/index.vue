@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { swalError, swalSuccess } from "@/functions/swal-alert.js";
 import { useNotifications } from '@/composables/notificaciones/useNotifications';
 const { table, columns, listPerpage, onSort, refresh, fetchAllNotify,loadingMarkAsRead,
@@ -7,11 +8,87 @@ const { table, columns, listPerpage, onSort, refresh, fetchAllNotify,loadingMark
 } = useNotifications();
 import BaseTable from "@/components/BaseTable.vue";
 
+const router = useRouter();
+
 const handleClick = ({ row, col }) => {
     if (col.key === "numero_guia") {
     }
 };
 
+function parseNotificationData(value) {
+    if (!value) return {};
+    if (typeof value === 'object') return value;
+    if (typeof value !== 'string') return {};
+
+    try {
+        return JSON.parse(value);
+    } catch {
+        return {};
+    }
+}
+
+function getNotificationPayload(row) {
+    const parsed = parseNotificationData(row?.data);
+    if (parsed?.data) {
+        const nested = parseNotificationData(parsed.data);
+        if (Object.keys(nested).length) return nested;
+    }
+
+    return parsed;
+}
+
+function hasQuotationLink(row) {
+    return !!getNotificationPayload(row)?.cotizacion;
+}
+
+function normalizeQuotationStatus(value) {
+    const status = String(value ?? '').trim().toLowerCase();
+    if (!status) return '';
+
+    if (['procesado', 'procesada', 'procesados', 'procesadas'].includes(status)) {
+        return 'procesadas';
+    }
+
+    if (['caducado', 'caducada', 'caducados', 'caducadas'].includes(status)) {
+        return 'caducado';
+    }
+
+    if (['rechazado', 'rechazada', 'rechazados', 'rechazadas'].includes(status)) {
+        return 'rechazadas';
+    }
+
+    return 'pendientes';
+}
+
+function getQuotationRoute(row) {
+    const payload = getNotificationPayload(row);
+    const cotizacion = payload?.cotizacion;
+    const pvCodigo = payload?.pvCodigo ?? payload?.pv_codigo ?? payload?.PTO_VTA_ID;
+    const pvId = payload?.pvId ?? payload?.pv_id ?? payload?.punto_venta_id;
+    const status = payload?.estado ?? payload?.Estado ?? payload?.status ?? payload?.state;
+    if (!cotizacion) return null;
+
+    return {
+        name: 'ventas-cotizaciones',
+        query: {
+            cotizacion,
+            estado: normalizeQuotationStatus(status),
+            ...(pvCodigo ? { pvCodigo } : {}),
+            ...(pvId ? { pvId } : {}),
+        }
+    };
+}
+
+function getQuotationHref(row) {
+    const route = getQuotationRoute(row);
+    return route ? router.resolve(route).href : '#';
+}
+
+function goToQuotation(row) {
+    const route = getQuotationRoute(row);
+    if (!route) return;
+    router.push(route);
+}
 
 const lockIdMark = ref(new Map());
 function isLockedMark(row) {
@@ -108,8 +185,19 @@ onMounted(() => {
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
                 @onPageChange="fetchAllNotify" @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick"> 
+                <template #cell-title="{ row, value }">
+                    <a v-if="hasQuotationLink(row)" :href="getQuotationHref(row)" class="fw-semibold"
+                        @click.prevent="goToQuotation(row)">
+                        {{ value }}
+                    </a>
+                    <span v-else>{{ value }}</span>
+                </template>
                 <!-- Slot específico para la columna 'estado' -->
                 <template #actions="{ row }">
+                    <button v-if="hasQuotationLink(row)" type="button" class="btn btn-alt-primary btn-sm mx-1"
+                        title="Ver cotización" aria-label="Ver cotización" @click="goToQuotation(row)">
+                        <i class="fa fa-external-link-alt"></i>
+                    </button>
                     <button type="button" class="btn btn-primary btn-sm mx-1" aria-placeholder="marcar como leido"
                         @click="markAsReadNotify(row)" :disabled="isLockedMark(row)">
                         <span v-if="isLockedMark(row)" class="spinner-border spinner-border-sm" 

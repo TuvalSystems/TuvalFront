@@ -326,9 +326,9 @@
 
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from "vue";
+import { ref, reactive, computed, onMounted, nextTick, watch } from "vue";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import {
@@ -460,12 +460,64 @@ function onSort(event, i) {
 const templateStore = useTemplateStore();
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 const vercotizacion = ref({});
 const indexCotizacion = ref(null);
 const tipo = ref(null);
 const fecha_desde = ref(null);
 const fecha_hasta = ref(null);
 const cotizacion_filtro = ref(null);
+
+function queryValue(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function hasQueryParam(key) {
+  return Object.prototype.hasOwnProperty.call(route.query, key);
+}
+
+function getRoutePuntoVenta() {
+  const pvCodigo = queryValue(route.query.pvCodigo);
+  if (pvCodigo) return pvCodigo;
+
+  const pvId = queryValue(route.query.pvId);
+  if (pvId && Array.isArray(store.state.puntosdeventa)) {
+    const puntoVenta = store.state.puntosdeventa.find((punto) => String(punto.id) === String(pvId));
+    if (puntoVenta?.PTO_VTA_ID) return puntoVenta.PTO_VTA_ID;
+  }
+
+  return store.state.puntodeventaselect;
+}
+
+function normalizeRouteStatus(value) {
+  const status = String(value ?? '').trim().toLowerCase();
+  if (!status) return '';
+
+  if (['procesado', 'procesada', 'procesados', 'procesadas'].includes(status)) {
+    return 'procesadas';
+  }
+
+  if (['caducado', 'caducada', 'caducados', 'caducadas'].includes(status)) {
+    return 'caducado';
+  }
+
+  if (['rechazado', 'rechazada', 'rechazados', 'rechazadas'].includes(status)) {
+    return 'rechazadas';
+  }
+
+  return 'pendientes';
+}
+
+function applyRouteFilters() {
+  if (hasQueryParam('cotizacion')) {
+    cotizacion_filtro.value = queryValue(route.query.cotizacion) || null;
+  }
+
+  if (hasQueryParam('estado')) {
+    selectedStatus.value = normalizeRouteStatus(queryValue(route.query.estado));
+  }
+}
+
 function limpiarFecha() {
   fecha_desde.value = null;
   fecha_hasta.value = null;
@@ -574,7 +626,7 @@ const vercotizaciones = ref(false);
 
 async function llenarcotizaciones() {
   const consulta = {
-    puntodeventa_id: store.state.puntodeventaselect,
+    puntodeventa_id: getRoutePuntoVenta(),
     estado: selectedStatus.value,
     fecha_desde: fecha_desde.value,
     fecha_hasta: fecha_hasta.value,
@@ -777,6 +829,7 @@ function refreshQuotes(){
 
 
 onMounted(() => {
+  applyRouteFilters();
   llenarcotizaciones();
 
   vercotizacionModalObj = new Modal(vercotizacionModal.value);
@@ -806,6 +859,15 @@ onMounted(() => {
   }
 
 });
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteFilters();
+    llenarcotizaciones();
+  },
+  { flush: 'post' }
+);
 
 async function rechazarCotizacionEstadoEspera(id) {
   const res = await changeStatusQuoteBeenWaiting(id);
