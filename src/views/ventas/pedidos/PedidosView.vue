@@ -22,7 +22,10 @@ import {
   toast,
 } from "@/functions/swal-alert.js";
 import { useOrderActions } from "@/composables/venta/pedidos/useOrderActions";
-const {  cancelOrder } = useOrderActions();
+const {
+  cancelOrder,
+  cancelOrderStatusSending: cancelOrderStatusSendingAction,
+} = useOrderActions();
 const { loadingChange, changeStatusOrderBeenWaiting } = useUpdateOrderStatus();
 
 const flatPickrState = reactive({
@@ -216,14 +219,12 @@ async function cancelarPedido(order) {
   const resp = await cancelOrder(order?.id);
   if (!resp?.ok) {
     const message = resp?.message || "No se pudo cancelar el pedido.";
-    (resp?.status ?? 0) >= 500
-      ? swalError(message)
-      : swalWarning(message);
+    (resp?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
     return;
   }
   swalSuccess(resp?.message || "Pedido cancelado exitosamente.");
   verpedidoModalObj.hide();
-  llenarpedidos('todos');
+  llenarpedidos("todos");
 }
 function cerrarFacturarExistente() {
   facturarexistenteModalObj.hide();
@@ -596,6 +597,19 @@ const handleVisibilityChange = () => {
     llenarpedidos("todos");
   }
 };
+
+//proceso para cancelar un pedido en estado enviando
+
+async function cancelOrderStatusSending(id) {
+  const res = await cancelOrderStatusSendingAction(id);
+  if (res?.ok) {
+    swalSuccess(res?.message || "Pedido cancelado");
+    llenarpedidos("todos");
+    return;
+  }
+  const msg = res?.message || "No se pudo actualizar el estado del usuario";
+  (res?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
 </script>
 <template>
   <!-- Hero -->
@@ -1096,15 +1110,6 @@ const handleVisibilityChange = () => {
                               Actualizar Datos
                             </button>
                           </li>
-
-                          <!-- reprogramar pedido que nace de reserva -->
-                          <!-- <li v-if="canRescheduleInvoice(row)">
-                            <button class="dropdown-item d-flex align-items-center gap-2 py-2"
-                              @click="openModalUpdateDateInvoice(row)">
-                              <i class="fa-regular fa-calendar-days text-success me-2"></i> Reprogramar
-                            </button>
-                          </li> -->
-
                           <li
                             v-if="
                               row.estado === 'espera' &&
@@ -1124,13 +1129,21 @@ const handleVisibilityChange = () => {
                               <span class="fw-semibold">Rechazar</span>
                             </button>
                           </li>
+
+                          <li>
+                            <button
+                              v-if="row.estado === 'enviando'"
+                              class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                              :disabled="loadingChange"
+                              @click="cancelOrderStatusSending(row.id)"
+                            >
+                              <i class="fa-solid fa-ban fa-fw"></i>
+                              <span class="fw-semibold">Cancelar Enviando</span>
+                            </button>
+                          </li>
                         </ul>
 
                         <!-- dropdown -->
-                        <!-- <button v-if="row.estado === 'espera'" type="button" class="btn btn-danger btn-sm mx-1"
-                          :disabled="loadingChange" @click="rechazarPedidoEstadoEspera(row.id)">
-                         
-                        </button> -->
                       </td>
                     </tr>
                   </template>
