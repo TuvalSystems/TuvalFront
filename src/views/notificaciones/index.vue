@@ -9,6 +9,7 @@ const {
     listPerpage,
     refresh,
     fetchAllNotify,
+    ensureInitialNotifications,
     loadingMarkAsRead,
     markAsReadItem,
     markAsReadAll
@@ -251,9 +252,7 @@ function fetchPage(page) {
 }
 
 onMounted(() => {
-    if (!table.items.length && !table.loading) {
-        fetchAllNotify(1);
-    }
+    ensureInitialNotifications();
 });
 </script>
 
@@ -344,7 +343,7 @@ onMounted(() => {
 
                                 <div class="min-w-0">
                                     <h3 class="notification-title">
-                                        <a v-if="hasQuotationLink(row)" :href="getQuotationHref(row)" class="text-body"
+                                        <a v-if="hasQuotationLink(row)" :href="getQuotationHref(row)" class="notification-title-link"
                                             @click.prevent.stop="goToQuotation(row)">
                                             {{ row.title }}
                                         </a>
@@ -589,6 +588,16 @@ onMounted(() => {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+}
+
+.notification-title-link {
+    color: var(--notification-card-color);
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+        color: var(--bs-primary);
     }
 }
 

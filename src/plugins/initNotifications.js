@@ -9,22 +9,45 @@ let initialized = false;
 let unwatch = null;
 let currentUid = null;
 
+function ensureSessionWatcher() {
+  if (unwatch) return;
 
-async function loadInitialNotifications() {
-  const { setUnreadCount, setItems, setLoading } = useNotificationCenter();
+  unwatch = store.watch(
+    (state) => [state.user?.data?.id, state.user?.token],
+    () => initNotifications()
+  );
+}
+
+async function loadInitialNotifications(userId) {
+  if (!userId) return;
+
+  const { clearSnapshot, setItems, setLoading, setSnapshot, setUnreadCount } = useNotificationCenter();
   setLoading(true);
+  const payload = {
+    page: 1,
+    perPage: 10,
+    search: '',
+    sortBy: 'created_at',
+    sortOrder: 'desc',
+    orderBy: 'desc',
+    userId,
+  };
+
   try {
-    const { data } = await axiosClient.post("notifications/all");
-    if (data?.ok) {
-      setItems(data.notifications ?? []);
-      setUnreadCount(data.unread_count ?? 0);
+    const { data } = await axiosClient.post("notifications/all", payload);
+    const paginator = data?.data ?? {};
+
+    if (data?.success === true) {
+      setSnapshot(paginator, payload);
     } else {
       setItems([]);
       setUnreadCount(0);
+      clearSnapshot();
     }
   } catch (e) {
     setItems([]);
     setUnreadCount(0);
+    clearSnapshot();
   } finally {
     setLoading(false);
   }
@@ -32,9 +55,10 @@ async function loadInitialNotifications() {
 
 export function initNotifications() {
   const uid = getCurrentUserId();
-  const { resetUnread, incrementUnread } = useNotificationCenter();
+  const token = store.state.user?.token;
+  const { clearSnapshot, incrementUnread, resetUnread, setItems } = useNotificationCenter();
 
-  if (!uid) {
+  if (!uid || !token) {
     if (currentUid) {
       try {
         echo.leave(`App.Models.GpUsuario.${currentUid}`);
@@ -42,13 +66,10 @@ export function initNotifications() {
       currentUid = null;
       initialized = false;
     }
-     resetUnread();
-    if (!unwatch) {
-      unwatch = store.watch(
-        (s) => [s?.state?.user?.data, s?.state?.user?.token],
-        () => initNotifications()
-      );
-    }
+    resetUnread();
+    setItems([]);
+    clearSnapshot();
+    ensureSessionWatcher();
     return;
   }
 
@@ -78,6 +99,7 @@ export function initNotifications() {
     const title = n.title ?? "Notificación";
     const msg = n.message ?? "";
     incrementUnread(1);
+    clearSnapshot();
     bsToast({
       title,
       text: msg,
@@ -85,14 +107,9 @@ export function initNotifications() {
       delay: 60000,
     });
   });
-   loadInitialNotifications();
+  loadInitialNotifications(uid);
   // Watch para cambios de sesión/token
-  if (!unwatch) {
-    unwatch = store.watch(
-      (s) => [s.user?.data, s.user?.token],
-      () => initNotifications()
-    );
-  }
+  ensureSessionWatcher();
 }
 // Llamado como plugin
 export default { install: () => initNotifications() };
