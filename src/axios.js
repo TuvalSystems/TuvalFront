@@ -46,16 +46,14 @@ axiosClient.interceptors.response.use(
             return new Promise(() => { });
         }
 
-        // Caso 2: Error 401 (No autorizado / Token vencido) -> MEJORA RECOMENDADA
+        // Caso 2: Error 401 (No autorizado / Token vencido)
         if (response && response.status === 401) {
-            // Si el usuario recibe un 401, significa que su token ya no sirve.
-            // Lo ideal es limpiar el estado y mandarlo al login.
-
-            // store.dispatch('logout'); // Si tienes una acción de logout
-            // O limpiar manualmente si no tienes acción:
             if (store.state.user.token) {
-                store.state.user.token = null;
-                router.push({ name: 'Login' }); // Redirigir a login
+                store.commit("logout");
+            }
+
+            if (router.currentRoute.value.name !== 'Login') {
+                router.push({ name: 'Login' });
             }
         }
 
