@@ -352,10 +352,10 @@ onMounted(() => {
 
                                     <div class="notification-meta">
                                         <span class="badge notification-chip bg-primary-light text-primary">{{ getNotificationBadge(row) }}</span>
-                                        <span v-if="getNotificationStatusLabel(row)" class="badge notification-chip"
+                                        <!-- <span v-if="getNotificationStatusLabel(row)" class="badge notification-chip"
                                             :class="getNotificationStatusClass(row)">
                                             {{ getNotificationStatusLabel(row) }}
-                                        </span>
+                                        </span> -->
                                         <span v-if="getPuntoVentaBadge(row)" class="badge notification-chip bg-body-light text-muted border">
                                             {{ getPuntoVentaBadge(row) }}
                                         </span>
