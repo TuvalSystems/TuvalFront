@@ -13,6 +13,21 @@ const axiosClient = axios.create({
     // Opcional: Establecer un tiempo máximo de espera (ej. 60 segundos)
 });
 
+function isPasswordChangeResponse(response) {
+    const data = response?.data || {};
+    const message = `${data.error || ""} ${data.message || ""}`;
+
+    return response?.status === 403 && message.includes("Debe cambiar su contraseña");
+}
+
+function redirectToPasswordChange() {
+    store.commit("setMustChangePassword", true);
+
+    if (router.currentRoute.value.name !== 'password-change') {
+        router.push({ name: 'password-change' });
+    }
+}
+
 // --- Interceptor de Solicitud (Request) ---
 axiosClient.interceptors.request.use(config => {
     // Validamos token antes de inyectar
@@ -61,6 +76,11 @@ axiosClient.interceptors.response.use(
         // Redirige a la vista home si el backend revoca el acceso.
 
         if (response && response.status === 403) {
+            if (isPasswordChangeResponse(response)) {
+                redirectToPasswordChange();
+                return Promise.reject(error);
+            }
+
             if (error.config?.url === SYSTEM_USERS_API_ROUTES.OBTENER_SECCIONES_ACTIVAS) {
                 return Promise.reject(error);
             }

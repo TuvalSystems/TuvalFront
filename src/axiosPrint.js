@@ -11,6 +11,21 @@ const axiosPrint = axios.create({
     responseType: 'blob',
 })
 
+function isPasswordChangeResponse(response) {
+    const data = response?.data || {};
+    const message = `${data.error || ""} ${data.message || ""}`;
+
+    return response?.status === 403 && message.includes("Debe cambiar su contraseña");
+}
+
+function redirectToPasswordChange() {
+    store.commit("setMustChangePassword", true);
+
+    if (router.currentRoute.value.name !== 'password-change') {
+        router.push({ name: 'password-change' });
+    }
+}
+
 axiosPrint.interceptors.request.use(config => {
     if (store.state.user.token) {
         config.headers.Authorization = `Bearer ${store.state.user.token}`;
@@ -51,6 +66,11 @@ axiosPrint.interceptors.response.use(
         }
 
         if (response && response.status === 403) {
+            if (isPasswordChangeResponse(response)) {
+                redirectToPasswordChange();
+                return Promise.reject(error);
+            }
+
             const homeRouteName = store.state.home || sessionStorage.getItem("HOME");
 
             if (homeRouteName && router.currentRoute.value.name !== homeRouteName) {

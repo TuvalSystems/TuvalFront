@@ -4,6 +4,19 @@ import axiosPrint from "../axiosPrint";
 
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 
+function normalizeBooleanFlag(value) {
+  if (value === true || value === 1) {
+    return true;
+  }
+
+  if (value === false || value === 0 || value === null || value === undefined) {
+    return false;
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === "true" || normalized === "1";
+}
+
 function getStoredPuntoVentaSelectId() {
   const storedId = sessionStorage.getItem("PUNTOVENTASELECTID");
   if (storedId) {
@@ -27,7 +40,7 @@ const store = createStore({
       data: JSON.parse(sessionStorage.getItem("USERDATA")),
       token: sessionStorage.getItem("TOKEN"),
     },
-    must_change_password: sessionStorage.getItem("MUST_CHANGE_PASSWORD"),
+    must_change_password: normalizeBooleanFlag(sessionStorage.getItem("MUST_CHANGE_PASSWORD")),
     menu: JSON.parse(sessionStorage.getItem("MENU")),
     home: sessionStorage.getItem("HOME"),
     puntosdeventa: JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA")),
@@ -1405,11 +1418,8 @@ const store = createStore({
       state.puntodeventaselect = userData.puntodeventaselect.PTO_VTA_ID;
       state.puntoventaselectid = userData.puntodeventaselect.id ?? null;
       state.bodegas = userData.puntodeventaselect.bodegas;
-      state.must_change_password = userData.must_change_password;
-      sessionStorage.setItem(
-        "MUST_CHANGE_PASSWORD",
-        userData.must_change_password
-      );
+      state.must_change_password = normalizeBooleanFlag(userData.must_change_password);
+      sessionStorage.setItem("MUST_CHANGE_PASSWORD", String(state.must_change_password));
       sessionStorage.setItem("TOKEN", userData.token);
       sessionStorage.setItem("USERDATA", JSON.stringify(userData.user));
       sessionStorage.setItem("MENU", JSON.stringify(userData.menu));
@@ -1455,6 +1465,10 @@ const store = createStore({
         state.home = home;
         sessionStorage.setItem("HOME", home);
       }
+    },
+    setMustChangePassword: (state, value) => {
+      state.must_change_password = normalizeBooleanFlag(value);
+      sessionStorage.setItem("MUST_CHANGE_PASSWORD", String(state.must_change_password));
     },
     setPerfilesLoading: (state, loading) => {
       state.perfiles.loading = loading;

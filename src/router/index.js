@@ -692,18 +692,51 @@ async function refreshUserAccessForRoute() {
   };
 }
 
+function isPasswordChangeRequired(value) {
+  if (value === true || value === 1) return true;
+  if (value === false || value === 0 || value === null || value === undefined) return false;
+
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === "true" || normalized === "1";
+}
+
+function getMustChangePasswordFlag() {
+  return isPasswordChangeRequired(store.state.must_change_password) ||
+    isPasswordChangeRequired(sessionStorage.getItem("MUST_CHANGE_PASSWORD"));
+}
+
+function isMustChangePasswordError(error) {
+  const status = error?.response?.status || error?.status;
+  const data = error?.response?.data || {};
+  const message = `${data.error || ""} ${data.message || ""}`;
+
+  return status === 403 && message.includes("Debe cambiar su contraseña");
+}
+
+function redirectToPasswordChange(next) {
+  store.commit("setMustChangePassword", true);
+  return next({ name: "password-change" });
+}
+
 router.beforeEach(async (to, from, next) => {
   const isAuthenticated = !!store.state.user.token;
   const isGuestRoute = to.meta.isGuest;
   const requiresAuth = to.meta.requiresAuth;
   let homeRouteName = store.state.home;
-  const must_change_password =
-    store.state.must_change_password ||
-    JSON.parse(sessionStorage.getItem("MUST_CHANGE_PASSWORD"));
+  const mustChangePassword = getMustChangePasswordFlag();
 
   // usuario no autenticado y ruta ptotegida
   if (requiresAuth && !isAuthenticated) {
     return next({ name: "Login" });
+  }
+
+  // usuario autenticado pero debe cambiar su contraseña
+  if (
+    isAuthenticated &&
+    mustChangePassword &&
+    to.name !== "password-change"
+  ) {
+    return next({ name: "password-change" });
   }
 
   // usuario autenticado en ruta de invitados como login
@@ -718,6 +751,11 @@ router.beforeEach(async (to, from, next) => {
         store.commit("logout");
         return next({ name: "Login" });
       }
+
+      if (isMustChangePasswordError(error)) {
+        return redirectToPasswordChange(next);
+      }
+
       // Si falla el refresco, se conserva el home local para no bloquear el flujo.
     }
 
@@ -725,23 +763,10 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: homeRouteName });
   }
 
-  //usuario autenticado pero debe cambiar su contraseña e intenta ir a cualquier ruta que no sea password-change
-  if (
-    isAuthenticated &&
-    (must_change_password === true ||
-      must_change_password === 1 ||
-      must_change_password === "1") &&
-    to.name !== "password-change"
-  ) {
-    return next({ name: "password-change" });
-  }
-
   // usuario que ya cambió su contraseña pero intenta ir a la vista de cambio
   if (
     isAuthenticated &&
-    (must_change_password === false ||
-      must_change_password === 0 ||
-      must_change_password === "0") &&
+    !mustChangePassword &&
     to.name === "password-change" &&
     homeRouteName
   ) {
@@ -770,8 +795,16 @@ router.beforeEach(async (to, from, next) => {
         return next({ name: "Login" });
       }
 
-      if (status === 403 && homeRouteName) {
+      if (isMustChangePasswordError(error)) {
+        return redirectToPasswordChange(next);
+      }
+
+      if (status === 403 && homeRouteName && to.name !== homeRouteName) {
         return next({ name: homeRouteName });
+      }
+
+      if (status === 403) {
+        return next(false);
       }
     }
 

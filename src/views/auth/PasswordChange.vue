@@ -16,7 +16,6 @@ const errors = reactive({});
 let errorMsg = ref('');
 const cargando = ref('cargando');
 const loading = ref(false);
-const successMessage = ref('');
 const showPassword = ref(false);
 const rules = {
     password: { required, minLength: minLength(8) },
@@ -28,8 +27,7 @@ const submit = async () => {
     try {
         const response = await axios.post('usuario/change-password', form);
 
-        actions.state.must_change_password = response.data.data.must_change_password;
-        sessionStorage.setItem("MUST_CHANGE_PASSWORD", response.data.data.must_change_password);
+        actions.commit("setMustChangePassword", response.data.data.must_change_password);
         await swalSuccess(response.data.message);
         setTimeout(() => {
             loading.value = true;
