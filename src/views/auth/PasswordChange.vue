@@ -1,140 +1,275 @@
 <script setup>
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from '../../axios';
-import actions from '@/store'
+import { computed, onBeforeUnmount, reactive, ref, watchEffect } from "vue";
+import { useRouter } from "vue-router";
+import axios from "../../axios";
+import actions from "@/store";
+import { useTemplateStore } from "@/stores/template";
 import useVuelidate from "@vuelidate/core";
-import { required, minLength } from "@vuelidate/validators";
-import { swalSuccess, } from "@/functions/swal-alert.js";
+import { minLength, required } from "@vuelidate/validators";
+import { swalSuccess } from "@/functions/swal-alert.js";
 
 const router = useRouter();
+const templateStore = useTemplateStore();
 const form = reactive({
-    password: '',
+  password: "",
 });
 
 const errors = reactive({});
-let errorMsg = ref('');
-const cargando = ref('cargando');
+const errorMsg = ref("");
 const loading = ref(false);
 const showPassword = ref(false);
 const rules = {
-    password: { required, minLength: minLength(8) },
+  password: { required, minLength: minLength(8) },
+};
+
+const v$ = useVuelidate(rules, form);
+const darkModeMediaQuery =
+  typeof window !== "undefined" && window.matchMedia
+    ? window.matchMedia("(prefers-color-scheme: dark)")
+    : null;
+
+const syncDarkModeWithSystem = (matches) => {
+  if (!templateStore.settings.darkModeSystem) {
+    return;
+  }
+
+  templateStore.darkMode({ mode: matches ? "on" : "off" });
+};
+
+templateStore.setColorTheme({
+  theme: templateStore.settings.colorTheme,
+});
+
+if (darkModeMediaQuery) {
+  syncDarkModeWithSystem(darkModeMediaQuery.matches);
 }
 
-const v$ = useVuelidate(rules, form)
+const handleSystemThemeChange = (event) => {
+  syncDarkModeWithSystem(event.matches);
+};
+
+darkModeMediaQuery?.addEventListener("change", handleSystemThemeChange);
+
+onBeforeUnmount(() => {
+  darkModeMediaQuery?.removeEventListener("change", handleSystemThemeChange);
+});
+
+watchEffect(() => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.body.classList.toggle("dark-mode", templateStore.settings.darkMode);
+  document.documentElement.dataset.bsTheme = templateStore.settings.darkMode
+    ? "dark"
+    : "light";
+  document.documentElement.dataset.colorTheme =
+    templateStore.settings.colorTheme || "default";
+});
+
+const hasPasswordError = computed(() => {
+  return v$.value.password.$error || Boolean(errors.password?.length);
+});
+
+const passwordFeedback = computed(() => {
+  if (errors.password?.length) {
+    return errors.password[0];
+  }
+
+  if (!v$.value.password.$error) {
+    return "";
+  }
+
+  if (v$.value.password.$errors.some((error) => error.$validator === "required")) {
+    return "La contraseña es requerida.";
+  }
+
+  if (v$.value.password.$errors.some((error) => error.$validator === "minLength")) {
+    return "Mínimo 8 caracteres.";
+  }
+
+  return "Contraseña inválida.";
+});
+
+const resetErrors = () => {
+  Object.keys(errors).forEach((key) => delete errors[key]);
+  errorMsg.value = "";
+};
+
 const submit = async () => {
-    loading.value = true;
-    try {
-        const response = await axios.post('usuario/change-password', form);
+  resetErrors();
 
-        actions.commit("setMustChangePassword", response.data.data.must_change_password);
-        await swalSuccess(response.data.message);
-        setTimeout(() => {
-            loading.value = true;
-            router.push({ name: actions.state.home });
-        }, 1500);
-        loading.value = false;
-    } catch (error) {
-        if (error.response?.status === 422) {
-            Object.keys(errors).forEach(key => delete errors[key]);
-            Object.assign(errors, error.response.data.errors);
+  const isValid = await v$.value.$validate();
+  if (!isValid) {
+    return;
+  }
 
-        } else {
-            errorMsg.value = error.response?.data?.errors ?? 'Error al cambiar la contraseña';
-        }
-    } finally {
-        loading.value = false;
+  loading.value = true;
+
+  try {
+    const response = await axios.post("usuario/change-password", form);
+
+    actions.commit(
+      "setMustChangePassword",
+      response.data?.data?.must_change_password
+    );
+    await swalSuccess(response.data.message);
+    router.push({ name: actions.state.home });
+  } catch (error) {
+    if (error.response?.status === 422) {
+      Object.assign(errors, error.response.data.errors ?? {});
+      return;
     }
+
+    errorMsg.value =
+      error.response?.data?.error ??
+      error.response?.data?.message ??
+      "Error al cambiar la contraseña";
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
-<template>
-    <div class="hero-static d-flex align-items-center">
-        <div class="content">
-            <div class="row justify-content-center push">
-                <div class="col-md-8 col-lg-6 col-xl-4">
-                    <BaseBlock title="Actualización de Contraseña" class="mb-0">
-                        <template #options>
-                        </template>
-                        <div class="p-sm-3 px-lg-4 px-xxl-5 py-lg-5">
-                            <p class="fw-medium text-muted">Para poder acceder al sistema debes actualizar tu contraseña
-                            </p>
-                            <p v-if="errors.password" class="alert alert-danger">{{ errors.password ? errors.password[0]
-                                : '' }}</p>
-                            <!-- form de cambio de contraseña -->
-                            <form @submit.prevent="submit">
-                                <div class="py-3">
-                                    <div class="mb-4">
-                                        <div class="input-group has-validation">
-                                            <input :type="showPassword ? 'text' : 'password'"
-                                                class="form-control form-control-lg form-control-alt pe-5"
-                                                v-model="form.password" placeholder="Nueva Contraseña"
-                                                :class="{ 'is-invalid': v$.password.$error }"
-                                                @blur="v$.password.$touch" />
 
-                                            <button type="button" @click="showPassword = !showPassword"
-                                                class="btn btn-outline-secondary" tabindex="-1"
-                                                aria-label="Mostrar/Ocultar contraseña">
-                                                <i
-                                                    :class="showPassword ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'"></i>
-                                            </button>
-                                            <div v-if="v$.password.$error"
-                                                class="invalid-feedback animated fadeIn mt-1">
-                                                <span
-                                                    v-if="v$.password.$errors.find(e => e.$validator === 'required')">La
-                                                    contraseña es
-                                                    requerida.</span>
-                                                <span
-                                                    v-if="v$.password.$errors.find(e => e.$validator === 'minLength')">Mínimo
-                                                    8
-                                                    caracteres.</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row justify-content-center mb-4">
-                                    <div class="col-sm-12 ">
-                                        <button class="btn w-100 btn-alt-primary" type="submit" :disabled="loading">
-                                            <i class="fa-solid fa-lock me-1 opacity-50"></i> {{ loading ? 'Guardando...'
-                                                :
-                                                'Cambiar contraseña'
-                                            }}</button>
-                                    </div>
-                                </div>
-                                <div ref="cargando" class="text-center hide">
-                                    <div class="spinner-border text-primary mt-4"><span
-                                            class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </BaseBlock>
-                </div>
+<template>
+  <main class="password-change-page d-flex align-items-center">
+    <div class="content content-full">
+      <div class="row justify-content-center">
+        <div class="col-sm-10 col-md-8 col-lg-5 col-xl-4">
+          <BaseBlock
+            title="Actualización de Contraseña"
+            class="mb-0"
+            bordered
+            content-full
+          >
+            <template #options>
+              <span class="password-change-icon" aria-hidden="true">
+                <i class="fa-solid fa-key"></i>
+              </span>
+            </template>
+
+            <p class="password-change-copy fw-medium mb-4">
+              Para poder acceder al sistema debes actualizar tu contraseña.
+            </p>
+
+            <div
+              v-if="errorMsg"
+              class="alert alert-danger d-flex align-items-start gap-2 mb-4"
+              role="alert"
+            >
+              <i class="fa-solid fa-circle-exclamation mt-1"></i>
+              <span>{{ errorMsg }}</span>
             </div>
+
+            <form novalidate @submit.prevent="submit">
+              <div class="mb-4">
+                <label class="form-label" for="password-change-input">
+                  Nueva contraseña
+                </label>
+                <div class="input-group has-validation">
+                  <input
+                    id="password-change-input"
+                    v-model="form.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    class="form-control form-control-lg form-control-alt"
+                    placeholder="Nueva contraseña"
+                    autocomplete="new-password"
+                    :class="{ 'is-invalid': hasPasswordError }"
+                    :disabled="loading"
+                    @blur="v$.password.$touch()"
+                    @input="resetErrors"
+                  />
+
+                  <button
+                    type="button"
+                    class="btn btn-alt-secondary password-toggle"
+                    :aria-label="
+                      showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                    "
+                    :title="
+                      showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                    "
+                    :disabled="loading"
+                    @click="showPassword = !showPassword"
+                  >
+                    <i
+                      :class="
+                        showPassword ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'
+                      "
+                    ></i>
+                  </button>
+
+                  <div
+                    v-if="passwordFeedback"
+                    class="invalid-feedback password-feedback animated fadeIn"
+                  >
+                    {{ passwordFeedback }}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-alt-primary password-submit w-100 d-inline-flex align-items-center justify-content-center"
+                type="submit"
+                :disabled="loading"
+              >
+                <span
+                  v-if="loading"
+                  class="spinner-border spinner-border-sm"
+                  aria-hidden="true"
+                ></span>
+                <i v-else class="fa-solid fa-lock opacity-50"></i>
+                <span>{{ loading ? "Guardando..." : "Cambiar contraseña" }}</span>
+              </button>
+            </form>
+          </BaseBlock>
         </div>
+      </div>
     </div>
+  </main>
 </template>
 
-<style>
-/* Asegurar que los mensajes de error no afecten el diseño */
-.invalid-feedback {
-    position: absolute;
-    width: 100%;
+<style scoped>
+.password-change-page {
+  min-height: 100vh;
+  color: var(--bs-body-color);
+  background: var(--bs-body-bg);
 }
 
-/* Espaciado consistente */
-.mb-4 {
-    margin-bottom: 1.5rem !important;
-    position: relative;
+.password-change-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--tuval-primary-strong);
+  background: var(--tuval-primary-soft);
+  border-radius: var(--tuval-radius-sm);
 }
 
-/* Estilo para el botón del ojo */
-.btn-outline-secondary {
-    border-color: #ced4da;
-    background-color: white;
-
+.password-change-copy {
+  color: var(--tuval-text-muted);
+  line-height: 1.5;
 }
 
-.btn-outline-secondary:hover {
-    background-color: #57585a;
+.password-toggle {
+  min-width: 3.25rem;
+  color: var(--tuval-text);
+}
+
+.password-submit {
+  min-height: 3rem;
+  gap: 0.5rem;
+}
+
+.password-feedback {
+  flex-basis: 100%;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .password-change-page {
+    padding-inline: 1rem;
+  }
 }
 </style>
