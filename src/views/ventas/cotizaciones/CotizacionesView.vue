@@ -476,17 +476,72 @@ function hasQueryParam(key) {
   return Object.prototype.hasOwnProperty.call(route.query, key);
 }
 
+function samePuntoVentaCode(a, b) {
+  const left = String(a ?? '').trim();
+  const right = String(b ?? '').trim();
+  if (!left || !right) return false;
+  if (left === right) return true;
+
+  const leftNumber = Number(left);
+  const rightNumber = Number(right);
+  return Number.isFinite(leftNumber) && Number.isFinite(rightNumber) && leftNumber === rightNumber;
+}
+
+function findRoutePuntoVenta() {
+  const puntos = Array.isArray(store.state.puntosdeventa) ? store.state.puntosdeventa : [];
+  const pvCodigo = queryValue(route.query.pvCodigo);
+  const pvId = queryValue(route.query.pvId);
+
+  if (pvId) {
+    const byId = puntos.find((punto) => String(punto.id) === String(pvId));
+    if (byId) return byId;
+  }
+
+  if (pvCodigo) {
+    return puntos.find((punto) => samePuntoVentaCode(punto.PTO_VTA_ID, pvCodigo)) ?? null;
+  }
+
+  return null;
+}
+
 function getRoutePuntoVenta() {
+  const puntoVenta = findRoutePuntoVenta();
+  if (puntoVenta?.PTO_VTA_ID) return puntoVenta.PTO_VTA_ID;
+
   const pvCodigo = queryValue(route.query.pvCodigo);
   if (pvCodigo) return pvCodigo;
 
-  const pvId = queryValue(route.query.pvId);
-  if (pvId && Array.isArray(store.state.puntosdeventa)) {
-    const puntoVenta = store.state.puntosdeventa.find((punto) => String(punto.id) === String(pvId));
-    if (puntoVenta?.PTO_VTA_ID) return puntoVenta.PTO_VTA_ID;
+  return store.state.puntodeventaselect;
+}
+
+function syncRoutePuntoVenta() {
+  const puntoVenta = findRoutePuntoVenta();
+  if (!puntoVenta?.PTO_VTA_ID) return;
+
+  const sameCode = samePuntoVentaCode(store.state.puntodeventaselect, puntoVenta.PTO_VTA_ID);
+  const sameId = !puntoVenta.id || String(store.state.puntoventaselectid ?? '') === String(puntoVenta.id);
+
+  if (sameCode && sameId) {
+    return;
   }
 
-  return store.state.puntodeventaselect;
+  sessionStorage.setItem('CURRENTCLIENTE', null);
+  sessionStorage.setItem('CURRENTSUCURSAL', null);
+  sessionStorage.setItem('PTO_ANTERIOR', store.state.puntodeventaselect);
+  sessionStorage.setItem('PUNTODEVENTASELECT', puntoVenta.PTO_VTA_ID);
+
+  if (puntoVenta.id) {
+    sessionStorage.setItem('PUNTOVENTASELECTID', puntoVenta.id);
+  } else {
+    sessionStorage.removeItem('PUNTOVENTASELECTID');
+  }
+
+  store.state.currentCliente = null;
+  store.state.currentSucursal = null;
+  store.state.puntodeventaselect = puntoVenta.PTO_VTA_ID;
+  store.state.puntoventaselectid = puntoVenta.id ?? null;
+  store.state.bodegas = puntoVenta.bodegas ?? [];
+  sessionStorage.setItem('BODEGAS', JSON.stringify(store.state.bodegas));
 }
 
 function normalizeRouteStatus(value) {
@@ -509,6 +564,8 @@ function normalizeRouteStatus(value) {
 }
 
 function applyRouteFilters() {
+  syncRoutePuntoVenta();
+
   if (hasQueryParam('cotizacion')) {
     cotizacion_filtro.value = queryValue(route.query.cotizacion) || null;
   }

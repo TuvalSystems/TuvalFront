@@ -17,7 +17,7 @@ const router = useRouter();
 const user = actions.state.user.data;
 const puntosdeventa = computed(() => actions.state.puntosdeventa);
 const bodegas = computed(() => actions.state.bodegas);
-const puntodeventaselect = actions.state.puntodeventaselect;
+const puntodeventaselect = computed(() => actions.state.puntodeventaselect);
 const currentCliente = ref(actions.state.currentCliente);
 const currentSucursal = ref(actions.state.currentSucursal);
 
