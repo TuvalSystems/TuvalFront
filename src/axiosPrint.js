@@ -1,18 +1,66 @@
 import axios from 'axios';
 import store from './store';
+import router from './router';
 
 const axiosPrint = axios.create({
     baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`, //http://172.30.1.7/api,
     headers: {
-        "Access-Control-Allow-Origin": "*",
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
     },
     responseType: 'blob',
 })
 
 axiosPrint.interceptors.request.use(config => {
-    config.headers.Authorization = `Bearer ${store.state.user.token}`;
+    if (store.state.user.token) {
+        config.headers.Authorization = `Bearer ${store.state.user.token}`;
+    }
+
+    const currentRoute = router.currentRoute.value;
+    const currentRouteName = currentRoute?.meta?.extends || currentRoute?.name;
+    if (currentRouteName && !config.headers["X-Current-Route"]) {
+        config.headers["X-Current-Route"] = currentRouteName;
+    }
+
     return config;
+}, error => {
+    return Promise.reject(error);
 })
+
+axiosPrint.interceptors.response.use(
+    response => response,
+    error => {
+        const { response } = error;
+
+        if (response && response.status === 503) {
+            if (router.currentRoute.value.name !== 'Maintenance') {
+                router.push({ name: 'Maintenance' });
+            }
+
+            return new Promise(() => { });
+        }
+
+        if (response && response.status === 401) {
+            if (store.state.user.token) {
+                store.commit("logout");
+            }
+
+            if (router.currentRoute.value.name !== 'Login') {
+                router.push({ name: 'Login' });
+            }
+        }
+
+        if (response && response.status === 403) {
+            const homeRouteName = store.state.home || sessionStorage.getItem("HOME");
+
+            if (homeRouteName && router.currentRoute.value.name !== homeRouteName) {
+                router.push({ name: homeRouteName });
+                return new Promise(() => { });
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 export default axiosPrint;
