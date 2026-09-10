@@ -1,4 +1,5 @@
 import { echo } from "@/resources/echo";
+import axiosClient from "@/axios";
 import { getCurrentUserId } from "@/utils/auth";
 import store from "@/store";
 import { bsToast } from "@/utils/bsToast";
@@ -31,7 +32,7 @@ async function loadInitialNotifications() {
 
 export function initNotifications() {
   const uid = getCurrentUserId();
-  const { resetUnread,  incrementUnread } = useNotificationCenter();
+  const { resetUnread, incrementUnread } = useNotificationCenter();
 
   if (!uid) {
     if (currentUid) {
@@ -76,6 +77,7 @@ export function initNotifications() {
   chan.notification((n) => {
     const title = n.title ?? "Notificación";
     const msg = n.message ?? "";
+    incrementUnread(1);
     bsToast({
       title,
       text: msg,
@@ -83,7 +85,6 @@ export function initNotifications() {
       delay: 60000,
     });
   });
-   incrementUnread(1);
    loadInitialNotifications();
   // Watch para cambios de sesión/token
   if (!unwatch) {

@@ -5,16 +5,22 @@ const state = reactive({
     loading: false
 });
 
-function setUnreadCount(n = 1) {
-    state.unreadCount = Number(n) || 1;
+function normalizeCount(value, fallback = 0) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(0, Math.trunc(parsed));
+}
+
+function setUnreadCount(n = 0) {
+    state.unreadCount = normalizeCount(n);
 }
 
 function incrementUnread(n = 1) {
-  state.unreadCount += Number(n) || 1;
+    state.unreadCount += normalizeCount(n, 1);
 }
 
 function decrementUnread(n = 1) {
-    state.unreadCount = Math.max(0, state.unreadCount - (Number(n) || 1));
+    state.unreadCount = Math.max(0, state.unreadCount - normalizeCount(n, 1));
 }
 
 function resetUnread() {
