@@ -14,7 +14,7 @@ async function loadInitialNotifications() {
   const { setUnreadCount, setItems, setLoading } = useNotificationCenter();
   setLoading(true);
   try {
-    const { data } = await axiosClient.get("notifications/all");
+    const { data } = await axiosClient.post("notifications/all");
     if (data?.ok) {
       setItems(data.notifications ?? []);
       setUnreadCount(data.unread_count ?? 0);
