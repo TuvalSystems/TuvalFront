@@ -11,7 +11,7 @@ export function useCreditOrdersActions() {
     const loadingCustomerCredit = ref(false);
 
     async function fetchCreditOrderDetail(orderId) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDITICIA_DETALLE_PEDIDO, { id: orderId }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDIT.ORDERS.DETAIL, { id: orderId }), {
             loadingRef: loadingDetailOrder,
             onSuccess: (info) => {
                 detailCreditOrder.value = Array.isArray(info) ? info : [];
@@ -20,7 +20,7 @@ export function useCreditOrdersActions() {
     }
 
     async function fetchCustomerCreditStatus(orderId) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDITICIA_ESTADO_CUENTA_PEDIDO_CLIENTE, { id: orderId }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDIT.ORDERS.CUSTOMER_ACCOUNT_STATUS, { id: orderId }), {
             loadingRef: loadingCustomerCredit,
             onSuccess: (info) => {
                 customerCreditStatus.value = Array.isArray(info) ? info : [];
@@ -31,21 +31,21 @@ export function useCreditOrdersActions() {
 
     const laodingCreditApproval = ref(false);
     async function approveCreditOrder(id, msg) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDITICIA_APROBAR_PEDIDO, { id: id, msg: msg }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDIT.ORDERS.APPROVE, { id: id, msg: msg }), {
             loadingRef: laodingCreditApproval,
         });
     }
 
     const loadingCreditRejection = ref(false);
     async function rejectCreditOrder(id, msg) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDITICIA_RECHAZAR_PEDIDO, { id: id, msg: msg }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDIT.ORDERS.REJECT, { id: id, msg: msg }), {
             loadingRef: loadingCreditRejection,
         });
     }
 
     const loadingCreditRejectionStock = ref(false);
     async function rejectCreditOrderForStock(id, msg) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDITICIA_RECHAZAR_PEDIDO_STOCK, { id: id, msg: msg }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDIT.ORDERS.REJECT_BY_STOCK, { id: id, msg: msg }), {
             loadingRef: loadingCreditRejectionStock,
         });
     }

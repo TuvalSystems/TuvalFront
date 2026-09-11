@@ -16,7 +16,7 @@ export function useInvoiceCollectionActions() {
     const loadingCashBoxStatus = ref(false);
     const dataCashBoxStatus = ref(null);
     async function getUserCashBoxStatus(date = null) {
-        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.GET_USER_CASH_BOX_STATUS, {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CASH_BOX.STATUS, {
             pvId: selectedPointSaleId.value,
             pvCodigo: selectedPointSaleCode.value,
             fecha: date
@@ -31,7 +31,7 @@ export function useInvoiceCollectionActions() {
 
     const loadingOpenCashBox = ref(false);
     async function openCashBoxed() {
-        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.OPEN_USER_CASH_BOX, {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CASH_BOX.OPEN, {
             pvId: selectedPointSaleId.value
         }), {
             loadingRef: loadingOpenCashBox
@@ -47,7 +47,7 @@ export function useInvoiceCollectionActions() {
         }
         return run(async () => {
             const filename = await downloadFileFromApi({
-                url: INVOICE_COLLECTION_API_ROUTES.DOWNLOAD_PDF,
+                url: INVOICE_COLLECTION_API_ROUTES.ACCOUNT_STATEMENTS.DOWNLOAD_PDF,
                 method: "POST",
                 payload: paylaod,
                 filenameFallback: "estado-cuenta.pdf",
@@ -70,7 +70,7 @@ export function useInvoiceCollectionActions() {
         }
         return run(async () => {
             const filename = await downloadFileFromApi({
-                url: INVOICE_COLLECTION_API_ROUTES.DOWNLOAD_EXCEL,
+                url: INVOICE_COLLECTION_API_ROUTES.ACCOUNT_STATEMENTS.DOWNLOAD_EXCEL,
                 method: "POST",
                 payload: paylaod,
                 filenameFallback: "estado-cuenta.xlsx",
@@ -90,7 +90,7 @@ export function useInvoiceCollectionActions() {
     const loadingClientInvoices = ref(false);
     async function fetchClientInvoices(id) {
         return run(
-            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.INVOICE_CLIENTS, { id: id }),
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CLIENTS.INVOICES, { id: id }),
             {
                 loadingRef: loadingClientInvoices,
                 onSuccess: (data) => {
@@ -106,7 +106,7 @@ export function useInvoiceCollectionActions() {
     const loadingPendingApplicationDocuments = ref(false);
     async function fetchPendingApplicationDocuments(id) {
         return run(
-            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.APPLICATIONS_PENDING, { id: id }),
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CLIENTS.PENDING_APPLICATIONS, { id: id }),
             {
                 loadingRef: loadingPendingApplicationDocuments,
                 onSuccess: (data) => {
@@ -122,7 +122,7 @@ export function useInvoiceCollectionActions() {
     const loadingCollectionBanks = ref(false);
     async function fetchCollectionBanks() {
         return run(
-            () => axiosClient.get(INVOICE_COLLECTION_API_ROUTES.GET_BANKS),
+            () => axiosClient.get(INVOICE_COLLECTION_API_ROUTES.BANKS.LIST),
             {
                 loadingRef: loadingCollectionBanks,
                 onSuccess: (data) => {
@@ -149,7 +149,7 @@ export function useInvoiceCollectionActions() {
     const loadingRetentionReceiptValidation = ref(false);
     async function validateRetentionReceiptNumber(clientId, receiptNumber) {
         return run(
-            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_RECEIPT_NUMBER, {
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.RECEIPTS.VALIDATE_NUMBER, {
                 id: clientId,
                 comprobante: receiptNumber
             }),
@@ -161,7 +161,7 @@ export function useInvoiceCollectionActions() {
 
     const loadingDepositReceiptValidation = ref(false);
     async function validateDepositReceiptNumber(clientId, bankId, receiptNumber) {
-        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_DEPOSIT_RECEIP_NUMBER, {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.RECEIPTS.VALIDATE_DEPOSIT_NUMBER, {
             cliente_id: clientId,
             banco_id: bankId,
             comprobante: receiptNumber
@@ -173,7 +173,7 @@ export function useInvoiceCollectionActions() {
 
     const loadingCheckReceiptValidation = ref(false);
     async function validateCheckReceiptNumber(clientId, bankId, account, receiptNumber) {
-        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_CHECK, {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.RECEIPTS.VALIDATE_CHECK, {
             cliente_id: clientId,
             banco_id: bankId,
             cheque: receiptNumber,
@@ -187,7 +187,7 @@ export function useInvoiceCollectionActions() {
 
     const loadingRegisterInvoiceCollection = ref(false);
     async function registerInvoiceCollection(payload) {
-        return await run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.REGISTER_COLLECTION, payload), {
+        return await run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.COLLECTIONS.REGISTER, payload), {
             loadingRef: loadingRegisterInvoiceCollection
         });
     }
@@ -198,7 +198,7 @@ export function useInvoiceCollectionActions() {
     async function printPdfCollection(id) {
         return run(async () => {
             const fileName = await downloadFileFromApi({
-                url: INVOICE_COLLECTION_API_ROUTES.DOWNLOAD_COLLECTION_PDF,
+                url: INVOICE_COLLECTION_API_ROUTES.COLLECTIONS.DOWNLOAD_PDF,
                 method: "POST",
                 payload: { cobro_id: id },
                 filenameFallback: "cobro.pdf"

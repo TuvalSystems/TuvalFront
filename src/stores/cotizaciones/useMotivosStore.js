@@ -16,7 +16,7 @@ export const useMotivosStore = defineStore('motivos', () => {
             return { ok: true, data: motivos.value };
         }
         error.value = null;
-        return run(() => axiosClient.get(QUOTE_API_ROUTES.REMINDER.LIST_REASON_NO_SALES), {
+        return run(() => axiosClient.get(QUOTE_API_ROUTES.REMINDERS.LIST_NO_SALE_REASONS), {
             loadingRef: loading,
             onSuccess: (resp) => {
                 error.value = null;

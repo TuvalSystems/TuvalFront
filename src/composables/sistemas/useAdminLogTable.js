@@ -3,12 +3,12 @@ import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { getStatusBadgeClass } from "@/helpers/statusBadge";
 import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
+import { ADMIN_API_ROUTES } from "@/constants/apiRoutes/sistema/useAdminRoutes";
 
 export function useAdminLogTable() {
     const { run } = useApiAction();
     const ctrl = ref(null); // AbortController actual
     let debounceId;
-    const apiList = "/admin/lista-logs";
 
     const table = reactive({
         items: [],
@@ -49,7 +49,7 @@ export function useAdminLogTable() {
         const payload = {
             ...table.filters,
         }
-        return run(() => axiosClient.post(apiList, {filters : payload,  page: table.currentPage}, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(ADMIN_API_ROUTES.LOGS.LIST, {filters : payload,  page: table.currentPage}, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-logs`,

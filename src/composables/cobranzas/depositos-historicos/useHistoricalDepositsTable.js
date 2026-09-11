@@ -52,7 +52,7 @@ export function useHistoricalDepositsTable() {
             ...table.filters,
         }
         return run(() => axiosClient.post(
-            HISTORICAL_DEPOSITS_API_ROUTES.LISTA_DEPOSITOS_HISTORICOS,
+            HISTORICAL_DEPOSITS_API_ROUTES.LIST,
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }), {
             loadingRef,

@@ -7,7 +7,7 @@ export function useCustomerPaymentApply() {
     const { run } = useApiAction();
     const loadingPayment = ref(false);
     async function fecthDataValidate(data) {
-        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.VALIDATE_COLLECTION, { data }), {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.COLLECTIONS.VALIDATE, { data }), {
             loadingRef: loadingPayment
         });
     }

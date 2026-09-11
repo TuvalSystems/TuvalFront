@@ -81,7 +81,7 @@ axiosClient.interceptors.response.use(
                 return Promise.reject(error);
             }
 
-            if (error.config?.url === SYSTEM_USERS_API_ROUTES.OBTENER_SECCIONES_ACTIVAS) {
+            if (error.config?.url === SYSTEM_USERS_API_ROUTES.SECTIONS.ACTIVE) {
                 return Promise.reject(error);
             }
 

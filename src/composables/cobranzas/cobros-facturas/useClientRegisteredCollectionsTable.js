@@ -52,7 +52,7 @@ export function useClientRegisteredCollectionsTable() {
         }
 
         return await run(async () => axiosClient.post(
-            INVOICE_COLLECTION_API_ROUTES.LIST_COLLECTION,
+            INVOICE_COLLECTION_API_ROUTES.COLLECTIONS.LIST,
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }
         ), {

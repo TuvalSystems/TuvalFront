@@ -13,7 +13,7 @@ export function useApprovalQuote() {
     const store = useStore();
     const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
     async function fetchListQuotes() {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_COTIZACIONES_PENDIENTES, { puntodeventa_id: ptoVtaSelect.value }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.QUOTES.LIST_PENDING, { puntodeventa_id: ptoVtaSelect.value }), {
             loadingRef: loading,
             onSuccess: (info) => {
                 quotes.value = info
@@ -27,7 +27,7 @@ export function useApprovalQuote() {
 
 
     async function fetchListQuotesConsult() {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_COTIZACIONES_PENDIENTES_CONSULTA, { puntodeventa_id: ptoVtaSelect.value }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.QUOTES.LIST_PENDING_QUERY, { puntodeventa_id: ptoVtaSelect.value }), {
             loadingRef: loadingConsult,
             onSuccess: (info) => {
                 quotesConsult.value = info

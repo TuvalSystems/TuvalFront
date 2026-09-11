@@ -7,7 +7,7 @@ export function useUpdateOrderStatus() {
     const { run } = useApiAction();
     const loadingChange = ref(false);
     async function changeStatusOrderBeenWaiting(id) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_CAMBIAR_ESTADO_PEDIDO, { id },
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.ORDERS.CHANGE_STATUS, { id },
             { headers: { "Content-Type": "application/json" } }
         ), {
             loadingRef: loadingChange,

@@ -39,7 +39,7 @@ export function useCloseCashBox() {
   const loadingCloseCashBox = ref(false);
   async function closeCashBox() {
     const payload = buildCashClosurePayload();
-    return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.BOX.CLOSE_BOX, {
+    return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CASH_BOX.CLOSE, {
       pvId: payload.pvId,
       pvCodigo: payload.pvCodigo,
       caja_id: payload.caja_id
@@ -57,7 +57,7 @@ export function useCloseCashBox() {
       return { ok: false, status: 400, message: "Seleccione caja y fecha." };
     }
     const payload = buildCashClosurePayload();
-    return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.BOX.RESUMEN, {
+    return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CASH_BOX.SUMMARY, {
       pvId: payload.pvId,
       pvCodigo: payload.pvCodigo,
       caja_id: payload.caja_id,
@@ -84,7 +84,7 @@ export function useCloseCashBox() {
     const payload = buildCashClosurePayload();
     return await run(async () => {
       const filename = await downloadFileFromApi({
-        url: INVOICE_COLLECTION_API_ROUTES.BOX.PRINT_PDF,
+        url: INVOICE_COLLECTION_API_ROUTES.CASH_BOX.PRINT_PDF,
         method: "POST",
         payload: {
           caja_id: payload.caja_id,

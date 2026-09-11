@@ -1149,7 +1149,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE_QUOTE, formData), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
                 console.error('Error al crear la cotización:', error);
@@ -1204,7 +1204,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     const loadingGetQuoteData = ref(false);
 
     async function fetchAndFillQuotation(quoteId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECOVER_QUOTE, { id: quoteId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECOVER, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
             onSuccess: async (res) => {
                 isRecoveringQuote.value = true;
@@ -1333,7 +1333,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef, uploadedPdfsRef) {
 
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECREATE_QUOTE, { id: quoteId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECREATE, { id: quoteId }), {
             loadingRef: loadingReorder,
             onSuccess: (res) => {
                 const initialState = getInitialState();
@@ -1450,7 +1450,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingCopyQuoteOrOrder = ref(false);
     async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.COPY_QUOTE_OR_ORDER, {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.COPY_QUOTE_OR_ORDER, {
             rowId: originalId,
             tipo: type,
             cliente_id: clienteId,
@@ -1563,7 +1563,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingIsReordering = ref(false);
     async function reOrder(rowId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.REORDER, { id: rowId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.REORDER, { id: rowId }), {
             loadingRef: loadingIsReordering,
             onSuccess: (res) => {
                 const initialState = getInitialState();
@@ -1782,7 +1782,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE_ORDER, formData), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.CREATE, formData), {
             loadingRef: loadingSaveOrder,
             onError: (error) => {
                 console.error('Error al crear el pedido:', error);
@@ -1809,7 +1809,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     const loadingProyectSellers = ref(false);
     const dataProyectSellers = ref([]);
     async function fetchListProyectSellers() {
-        return run(() => axiosClient.get(QUOTE_API_ROUTES.QUOTES.LIST_PROYECTS_SELLERS), {
+        return run(() => axiosClient.get(QUOTE_API_ROUTES.PROJECTS.LIST_SELLERS), {
             loadingRef: loadingProyectSellers,
             onSuccess: (info) => {
                 dataProyectSellers.value = Array.isArray(info) ? info : [];

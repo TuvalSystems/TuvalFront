@@ -1,29 +1,33 @@
 export const APPROVAL_API_ROUTES = {
-    
+    ORDERS: {
+        VERIFY_STOCK: 'aprobaciones/verificar-stock-pedido',
+    },
 
-    VERIFICAR_STOCK_PEDIDOS_APROBACIONES :"aprobaciones/verificar-stock-pedido",
+    COMMERCIAL: {
+        QUOTES: {
+            LIST_PENDING: 'aprobaciones/comercial/lista-cotizaciones-pendientes',
+            LIST_PENDING_QUERY: 'aprobaciones/comercial/consulta/lista-cotizaciones-pendientes',
+            CHANGE_STATUS: 'aprobaciones/comercial/rechazar-cotizacion-estado-espera',
+        },
 
-    //cotizaciones
-    // comercial
-    COMERCIAL_LISTA_COTIZACIONES_PENDIENTES : "aprobaciones/comercial/lista-cotizaciones-pendientes",
-    COMERCIAL_LISTA_COTIZACIONES_PENDIENTES_CONSULTA : "aprobaciones/comercial/consulta/lista-cotizaciones-pendientes",
-    COMERCIAL_CAMBIAR_ESTADO_COTIZACION: "aprobaciones/comercial/rechazar-cotizacion-estado-espera",
-    
-    //pedidos 
-    // comercial
-    COMERCIAL_LISTA_PEDIDOS_PENDIENTES : "aprobaciones/comercial/lista-pedidos-pendientes",
-    COMERCIAL_LISTA_PEDIDOS_PENDIENTES_CONSULTA : "aprobaciones/comercial/consulta/lista-pedidos-pendientes",
-    COMERCIAL_CAMBIAR_ESTADO_PEDIDO : "aprobaciones/comercial/rechazar-pedido-estado-espera",
+        ORDERS: {
+            LIST_PENDING: 'aprobaciones/comercial/lista-pedidos-pendientes',
+            LIST_PENDING_QUERY: 'aprobaciones/comercial/consulta/lista-pedidos-pendientes',
+            CHANGE_STATUS: 'aprobaciones/comercial/rechazar-pedido-estado-espera',
+            APPROVE: 'aprobaciones/comercial/aprobar-pedido',
+            REJECT: 'aprobaciones/comercial/rechazar-pedido',
+            REJECT_BY_STOCK: 'aprobaciones/comercial/rechazar-pedido-stock',
+        },
+    },
 
-    COMERCIAL_APROBAR_PEDIDO: "aprobaciones/comercial/aprobar-pedido",
-    COMERCIAL_RECHAZAR_PEDIDO: "aprobaciones/comercial/rechazar-pedido",
-    COMERCIAL_RECHAZAR_PEDIDO_POR_STOCK: "aprobaciones/comercial/rechazar-pedido-stock",
-
-    //crediticia
-    CREDITICIA_LISTA_PEDIDOS_PENDIENTES : 'aprobaciones/crediticia/lista-pedidos-pendientes',
-    CREDITICIA_DETALLE_PEDIDO : 'aprobaciones/crediticia/detalle-pedido',
-    CREDITICIA_ESTADO_CUENTA_PEDIDO_CLIENTE : 'aprobaciones/crediticia/estado-cuenta',
-    CREDITICIA_APROBAR_PEDIDO : "aprobaciones/crediticia/aprobar-pedido",
-    CREDITICIA_RECHAZAR_PEDIDO :"aprobaciones/crediticia/rechazar-pedido",
-    CREDITICIA_RECHAZAR_PEDIDO_STOCK :"aprobaciones/crediticia/rechazar-pedido-stock"
-}
+    CREDIT: {
+        ORDERS: {
+            LIST_PENDING: 'aprobaciones/crediticia/lista-pedidos-pendientes',
+            DETAIL: 'aprobaciones/crediticia/detalle-pedido',
+            CUSTOMER_ACCOUNT_STATUS: 'aprobaciones/crediticia/estado-cuenta',
+            APPROVE: 'aprobaciones/crediticia/aprobar-pedido',
+            REJECT: 'aprobaciones/crediticia/rechazar-pedido',
+            REJECT_BY_STOCK: 'aprobaciones/crediticia/rechazar-pedido-stock',
+        },
+    },
+};

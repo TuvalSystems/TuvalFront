@@ -8,7 +8,7 @@ export function useOrderActions() {
 
     const loadingCancelOrder = ref(false);
     async function cancelOrder(orderId) {
-        return run(() => axiosClient.post(ORDER_API_ROUTES.ACTIONS.CANCEL_ORDER, { id: orderId }),
+        return run(() => axiosClient.post(ORDER_API_ROUTES.ACTIONS.CANCEL, { id: orderId }),
             loadingCancelOrder,
         );
     }
@@ -17,7 +17,7 @@ export function useOrderActions() {
 
     const loadingCancel = ref(false);
     async function cancelOrderStatusSending(id) {
-        return run(() => axiosClient.post(ORDER_API_ROUTES.ACTIONS.CANCEL_ORDER_BY_STATUS_SENDING, { id: id }),
+        return run(() => axiosClient.post(ORDER_API_ROUTES.ACTIONS.CANCEL_WHILE_SENDING, { id: id }),
             loadingCancelOrder
         );
     }
