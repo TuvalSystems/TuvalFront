@@ -13,7 +13,7 @@ function ensureSessionWatcher() {
   if (unwatch) return;
 
   unwatch = store.watch(
-    (state) => [state.user?.data?.id, state.user?.token],
+    (state) => [state.user?.data?.id, state.authenticated],
     () => initNotifications()
   );
 }
@@ -55,14 +55,16 @@ async function loadInitialNotifications(userId) {
 
 export function initNotifications() {
   const uid = getCurrentUserId();
-  const token = store.state.user?.token;
+  const authenticated = store.state.authenticated;
   const { clearSnapshot, incrementUnread, resetUnread, setItems } = useNotificationCenter();
 
-  if (!uid || !token) {
+  if (!uid || !authenticated) {
     if (currentUid) {
       try {
         echo.leave(`App.Models.GpUsuario.${currentUid}`);
-      } catch {}
+      } catch {
+        // El canal ya estaba desconectado.
+      }
       currentUid = null;
       initialized = false;
     }
@@ -80,7 +82,9 @@ export function initNotifications() {
   if (currentUid && currentUid !== uid) {
     try {
       echo.leave(`App.Models.GpUsuario.${currentUid}`);
-    } catch {}
+    } catch {
+      // El canal ya estaba desconectado.
+    }
   }
 
   currentUid = uid;
@@ -91,10 +95,6 @@ export function initNotifications() {
   //    console.log(`📡 Subscribed App.Models.GpUsuario.${uid}`);
   // });
 
-  // (Opcional) log de errores del canal
-  chan.error?.((err) => {
-    // console.warn("Canal notificaciones error:", err);
-  });
   chan.notification((n) => {
     const title = n.title ?? "Notificación";
     const msg = n.message ?? "";
@@ -108,7 +108,7 @@ export function initNotifications() {
     });
   });
   loadInitialNotifications(uid);
-  // Watch para cambios de sesión/token
+  // Observa los cambios de la sesión web.
   ensureSessionWatcher();
 }
 // Llamado como plugin

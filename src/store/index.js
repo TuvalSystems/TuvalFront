@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 import axiosClient from "../axios";
 import axiosPrint from "../axiosPrint";
+import { prepareCsrf } from "@/utils/cookieSession";
 import { readSessionJson } from "@/utils/sessionStorage";
 
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -37,9 +38,10 @@ function getStoredPuntoVentaSelectId() {
 
 const store = createStore({
   state: {
+    authenticated: false,
+    sessionRestored: false,
     user: {
-      data: readSessionJson("USERDATA"),
-      token: sessionStorage.getItem("TOKEN"),
+      data: null,
     },
     must_change_password: normalizeBooleanFlag(sessionStorage.getItem("MUST_CHANGE_PASSWORD")),
     menu: readSessionJson("MENU"),
@@ -451,14 +453,58 @@ const store = createStore({
   },
   getters: {},
   actions: {
-    login({ commit }, user) {
-      return axiosClient.post("/login", user).then(({ data }) => {
-        commit("setUser", data.data);
-        return data.data;
-      });
+    async restoreSession({ state, commit }) {
+      if (state.sessionRestored) return;
+
+      const applyContext = (context) => {
+        const previousUser = readSessionJson('USERDATA');
+        const selectedPoint = state.puntodeventaselect;
+
+        if (previousUser?.id !== context.user.id) commit('logout');
+        if (previousUser?.id === context.user.id) {
+          const selected = context.puntosdeventa?.find(
+            (point) => String(point.PTO_VTA_ID) === String(selectedPoint)
+          );
+          if (selected) context.puntodeventaselect = selected;
+        }
+        commit('setUser', context);
+      };
+
+      try {
+        const { data } = await axiosClient.get('/session', { skipAuthRedirect: true });
+        applyContext(data.data);
+      } catch (error) {
+        const legacyToken = sessionStorage.getItem('TOKEN');
+
+        if (error.response?.status === 401 && legacyToken) {
+          try {
+            await prepareCsrf();
+            const { data } = await axiosClient.post('/session/migrate', {}, {
+              skipAuthRedirect: true,
+              headers: { Authorization: `Bearer ${legacyToken}` },
+            });
+            applyContext(data.data);
+            return;
+          } catch (migrationError) {
+            if (![401, 403, 419].includes(migrationError.response?.status)) {
+              throw migrationError;
+            }
+          }
+        }
+
+        if ([401, 403].includes(error.response?.status)) commit('logout');
+        else throw error;
+      }
+    },
+    async login({ commit }, user) {
+      await prepareCsrf();
+      const { data } = await axiosClient.post('/login', user, { skipAuthRedirect: true });
+      commit('logout');
+      commit('setUser', data.data);
+      return data.data;
     },
     logout({ commit }) {
-      return axiosClient.get("/logout").then((data) => {
+      return axiosClient.post("/logout").then((data) => {
         commit("logout");
         return data;
       });
@@ -1367,7 +1413,8 @@ const store = createStore({
             /* FIN DE INTERVALOS */
     logout: (state) => {
       state.user.data = {};
-      state.user.token = null;
+      state.authenticated = false;
+      state.sessionRestored = true;
       state.user.home = null;
       state.user.menu = [];
       state.home = null;
@@ -1408,7 +1455,8 @@ const store = createStore({
       state.currentCliente = null;
     },
     setUser: (state, userData) => {
-      state.user.token = userData.token;
+      state.authenticated = true;
+      state.sessionRestored = true;
       state.user.data = userData.user;
       state.menu = userData.menu;
       state.home = userData.home.to;
@@ -1421,7 +1469,7 @@ const store = createStore({
       state.bodegas = userData.puntodeventaselect.bodegas;
       state.must_change_password = normalizeBooleanFlag(userData.must_change_password);
       sessionStorage.setItem("MUST_CHANGE_PASSWORD", String(state.must_change_password));
-      sessionStorage.setItem("TOKEN", userData.token);
+      sessionStorage.removeItem("TOKEN");
       sessionStorage.setItem("USERDATA", JSON.stringify(userData.user));
       sessionStorage.setItem("MENU", JSON.stringify(userData.menu));
       sessionStorage.setItem("HOME", userData.home.to);

@@ -719,7 +719,18 @@ function redirectToPasswordChange(next) {
 }
 
 router.beforeEach(async (to, from, next) => {
-  const isAuthenticated = !!store.state.user.token;
+  if (!store.state.sessionRestored) {
+    try {
+      await store.dispatch('restoreSession');
+    } catch (error) {
+      if (error.response?.status === 503 && to.name !== 'Maintenance') {
+        return next({ name: 'Maintenance' });
+      }
+      if (to.meta.isGuest) return next();
+      if (to.name !== 'Maintenance') return next(error);
+    }
+  }
+  const isAuthenticated = store.state.authenticated;
   const isGuestRoute = to.meta.isGuest;
   const requiresAuth = to.meta.requiresAuth;
   let homeRouteName = store.state.home;

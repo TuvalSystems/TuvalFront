@@ -3,7 +3,9 @@ import store from './store';
 import router from './router';
 
 const axiosPrint = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`, //http://172.30.1.7/api,
+    baseURL: `${import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL}/api`,
+    withCredentials: true,
+    withXSRFToken: true,
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -27,9 +29,7 @@ function redirectToPasswordChange() {
 }
 
 axiosPrint.interceptors.request.use(config => {
-    if (store.state.user.token) {
-        config.headers.Authorization = `Bearer ${store.state.user.token}`;
-    }
+    // La sesión se envía mediante cookie HttpOnly.
 
     const currentRoute = router.currentRoute.value;
     const currentRouteName = currentRoute?.meta?.extends || currentRoute?.name;
@@ -46,17 +46,19 @@ axiosPrint.interceptors.response.use(
     response => response,
     error => {
         const { response } = error;
+        if (error.config?.skipAuthRedirect) return Promise.reject(error);
 
         if (response && response.status === 503) {
             if (router.currentRoute.value.name !== 'Maintenance') {
                 router.push({ name: 'Maintenance' });
             }
 
-            return new Promise(() => { });
+            error.handledByRedirect = true;
+            return Promise.reject(error);
         }
 
         if (response && response.status === 401) {
-            if (store.state.user.token) {
+            if (store.state.authenticated) {
                 store.commit("logout");
             }
 
@@ -75,7 +77,8 @@ axiosPrint.interceptors.response.use(
 
             if (homeRouteName && router.currentRoute.value.name !== homeRouteName) {
                 router.push({ name: homeRouteName });
-                return new Promise(() => { });
+                error.handledByRedirect = true;
+                return Promise.reject(error);
             }
         }
 

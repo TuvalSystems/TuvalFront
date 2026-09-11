@@ -4,7 +4,9 @@ import router from './router';
 import { SYSTEM_USERS_API_ROUTES } from "@/constants/apiRoutes/sistema/userRoutes";
 
 const axiosClient = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
+    baseURL: `${import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL}/api`,
+    withCredentials: true,
+    withXSRFToken: true,
     headers: {
         'Accept': 'application/json',
         // NOTA: No ponemos 'Content-Type' aquí para permitir 
@@ -30,10 +32,7 @@ function redirectToPasswordChange() {
 
 // --- Interceptor de Solicitud (Request) ---
 axiosClient.interceptors.request.use(config => {
-    // Validamos token antes de inyectar
-    if (store.state.user.token) {
-        config.headers.Authorization = `Bearer ${store.state.user.token}`;
-    }
+    // La sesión se envía mediante cookie HttpOnly.
 
     const currentRoute = router.currentRoute.value;
     const currentRouteName = currentRoute?.meta?.extends || currentRoute?.name;
@@ -51,6 +50,7 @@ axiosClient.interceptors.response.use(
     response => response,
     error => {
         const { response } = error;
+        if (error.config?.skipAuthRedirect) return Promise.reject(error);
 
         // Caso 1: Error 503 (Mantenimiento)
         if (response && response.status === 503) {
@@ -64,7 +64,7 @@ axiosClient.interceptors.response.use(
 
         // Caso 2: Error 401 (No autorizado / Token vencido)
         if (response && response.status === 401) {
-            if (store.state.user.token) {
+            if (store.state.authenticated) {
                 store.commit("logout");
             }
 
