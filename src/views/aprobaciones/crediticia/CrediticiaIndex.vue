@@ -8,8 +8,7 @@ import verDetallePedidoCrediticioModal from '@/views/aprobaciones/crediticia/mod
 import verEstadoCuentaModal from '@/views/aprobaciones/crediticia/modals/verEstadoCuentaModal.vue';
 import { useCreditOrdersActions } from '@/composables/aprobaciones/pedidos/useCreditOrdersActions';
 
-import { swalWarning, swalError, swalSuccess } from '@/functions/swal-alert';
-import { useApprovalOrder } from '@/composables/aprobaciones/pedidos/useApprovalOrder';
+import { swalWarning, swalError } from '@/functions/swal-alert';
 const {
   table,
   listPerpage,
@@ -21,26 +20,14 @@ const {
 } = useCreditOrdersPendingTable();
 
 const {
-  detailCreditOrder,
-  loadingDetailOrder,
+
   fetchCreditOrderDetail,
-  customerCreditStatus,
-  loadingCustomerCredit,
+
   fetchCustomerCreditStatus,
 
-  //process
-  laodingCreditApproval,
-  approveCreditOrder,
-  loadingCreditRejection,
-  rejectCreditOrder,
-  loadingCreditRejectionStock,
-  rejectCreditOrderForStock
+
 } = useCreditOrdersActions();
 
-const {
-  loadingValidateStockOrderApproval,
-  validateStockForOrderApproval
-} = useApprovalOrder();
 
 const modalOrderDetailRef = ref(null);
 const modalOrderDetailObj = useBootstrapModal(modalOrderDetailRef);
@@ -157,17 +144,6 @@ async function openCustomerStatementModal(id) {
 async function closeModalCustomers() {
   modalCustomerStatementObj.hide();
 }
-
-
-
-
-
-
-
-
-
-
-
 
 onMounted(() => {
   fetchList(1);
