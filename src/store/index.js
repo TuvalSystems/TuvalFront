@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 import axiosClient from "../axios";
 import axiosPrint from "../axiosPrint";
+import { readSessionJson } from "@/utils/sessionStorage";
 
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 
@@ -24,7 +25,7 @@ function getStoredPuntoVentaSelectId() {
   }
 
   const selectedPtoVta = sessionStorage.getItem("PUNTODEVENTASELECT");
-  const puntosdeventa = JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA"));
+  const puntosdeventa = readSessionJson("PUNTOSDEVENTA");
   const selected = Array.isArray(puntosdeventa)
     ? puntosdeventa.find(
       (punto) => String(punto.PTO_VTA_ID) === String(selectedPtoVta)
@@ -37,17 +38,17 @@ function getStoredPuntoVentaSelectId() {
 const store = createStore({
   state: {
     user: {
-      data: JSON.parse(sessionStorage.getItem("USERDATA")),
+      data: readSessionJson("USERDATA"),
       token: sessionStorage.getItem("TOKEN"),
     },
     must_change_password: normalizeBooleanFlag(sessionStorage.getItem("MUST_CHANGE_PASSWORD")),
-    menu: JSON.parse(sessionStorage.getItem("MENU")),
+    menu: readSessionJson("MENU"),
     home: sessionStorage.getItem("HOME"),
-    puntosdeventa: JSON.parse(sessionStorage.getItem("PUNTOSDEVENTA")),
-    bodegas: JSON.parse(sessionStorage.getItem("BODEGAS")),
+    puntosdeventa: readSessionJson("PUNTOSDEVENTA"),
+    bodegas: readSessionJson("BODEGAS"),
     puntodeventaselect: sessionStorage.getItem("PUNTODEVENTASELECT"),
     puntoventaselectid: getStoredPuntoVentaSelectId(),
-    currentCliente: JSON.parse(sessionStorage.getItem("CURRENTCLIENTE")),
+    currentCliente: readSessionJson("CURRENTCLIENTE"),
     registro_copia: sessionStorage.getItem("REGISTROCOPIA"),
     currentClienteCobro: null,
     currentClienteDevolucion: null,
@@ -72,7 +73,7 @@ const store = createStore({
     despacho: "Retiro en bodega",
     fecha_entrega: "",
     nota_cliente: null,
-    formasdepago: JSON.parse(sessionStorage.getItem("FORMADEPAGO")),
+    formasdepago: readSessionJson("FORMADEPAGO"),
     formadepago: [],
     condiciondepago_id: null,
     condiciondepago_print: sessionStorage.getItem("CONDICIONDEPAGOPRINT"),
@@ -88,8 +89,8 @@ const store = createStore({
       select_nombre: "contiene",
       text_nombre: "",
     },
-    condiciondepago: JSON.parse(sessionStorage.getItem("CONDICIONDEPAGO")),
-    proveedores: JSON.parse(sessionStorage.getItem("PROVEEDORES")),
+    condiciondepago: readSessionJson("CONDICIONDEPAGO"),
+    proveedores: readSessionJson("PROVEEDORES"),
     descuentoarticulo: 0,
     descuentooriginal: 0,
     subtotal: 0,
