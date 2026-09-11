@@ -48,6 +48,13 @@ export function useApiAction() {
                 }
             }
 
+            // También descarta fallos HTTP y de negocio de peticiones anteriores.
+            if (latestOnly && key && seqId !== latestSeq.get(key)) {
+                return { ok: false, data: backend, raw: error, message: msg, status, stale: true };
+            }
+            if (error.handledByRedirect) {
+                return { ok: false, data: backend, raw: error, message: msg, status, handled: true };
+            }
             onError && onError(backend, error);
             return { ok: false, data: backend, raw: error, message: msg , status: status };
         } finally {

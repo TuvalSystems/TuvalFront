@@ -57,8 +57,9 @@ axiosClient.interceptors.response.use(
             if (router.currentRoute.value.name !== 'Maintenance') {
                 router.push({ name: 'Maintenance' });
             }
-            // Promesa vacía para detener la ejecución y evitar alertas innecesarias
-            return new Promise(() => { });
+            // Finaliza la petición para que los consumidores ejecuten su finally.
+            error.handledByRedirect = true;
+            return Promise.reject(error);
         }
 
         // Caso 2: Error 401 (No autorizado / Token vencido)
@@ -89,7 +90,8 @@ axiosClient.interceptors.response.use(
 
             if (homeRouteName && router.currentRoute.value.name !== homeRouteName) {
                 router.push({ name: homeRouteName });
-                return new Promise(() => { });
+                error.handledByRedirect = true;
+                return Promise.reject(error);
             }
         }
 
