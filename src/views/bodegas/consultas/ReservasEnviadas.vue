@@ -7,7 +7,7 @@ import BaseTable from "@/components/BaseTable.vue";
 import { useSendReservationTable } from '@/composables/bodegas/consultas/useSendReservationTable.js'
 import { useReservationTransferByWarehouse } from '@/composables/bodegas/reservas/useReservationTransferByWarehouse';
 import { useDetalleDespachoPedidos } from "@/composables/bodegas/consultas/detallesconsulta/useDetalleDespachoPedidos";
-import { swalError, swalSuccess } from "@/functions/swal-alert.js";
+import { swalError, swalSuccess , swalWarning} from "@/functions/swal-alert.js";
 import { formatPrice } from "@/functions";
 
 const { table, columns, listPerpage, fetchList, onSort, refresh } = useSendReservationTable();

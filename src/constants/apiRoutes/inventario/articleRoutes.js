@@ -1,4 +1,4 @@
-export const INVENTARIO_ARTICULOS_API_ROUTES = {
-    CONFIGURACION_SEGMENTACION: '/inventario/articulos/configuracion-segmentacion',
-    CONFIGURACION_NIVEL_SEGMENTACION : '/inventario/articulos/configuracion-nivel'
+export const INVENTORY_ARTICLES_API_ROUTES = {
+    SEGMENTATION_CONFIG: '/inventario/articulos/configuracion-segmentacion',
+    SEGMENTATION_LEVEL_CONFIG: '/inventario/articulos/configuracion-nivel',
 };

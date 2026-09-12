@@ -1,17 +1,14 @@
 import axiosClient from "@/axios";
 import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { useStore } from "vuex";
 import { getStatusBadgeClass } from "@/helpers/statusBadge";
 import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 export function useOrderReservationTable() {
     const { run } = useApiAction();
-    const store = useStore();
-
     const ctrl = ref(null); // AbortController actual
     let debounceId;
     const apiList = "/pedidos/listar-pedidos-reservas";
-    const ptoVtaId = store.state.puntodeventaselect;
+    
 
     const table = reactive({
         items: [],

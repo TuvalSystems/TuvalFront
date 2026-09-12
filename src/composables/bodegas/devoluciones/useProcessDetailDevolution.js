@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 import {  swalWarning } from "@/functions/swal-alert";
 
-import { downloadFileFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/fileDownload";
 
 export function useProcessDetailDevolution(infoRef) {
     const { run } = useApiAction();

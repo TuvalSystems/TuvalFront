@@ -46,7 +46,7 @@ export function useCreditOrdersPendingTable() {
         const payload = {
             ...table.filters
         };
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDITICIA_LISTA_PEDIDOS_PENDIENTES,
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDIT.ORDERS.LIST_PENDING,
             { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
             onSuccess: (paginator) => {

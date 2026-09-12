@@ -3,12 +3,8 @@ import { useFormNoVenta } from '@/composables/venta/cotizaciones/useFormNoVenta'
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { watch, onMounted , ref} from 'vue';
 import {
-    swalSimple,
-    swalInfo,
     swalSuccess,
-    swalWarning,
     swalError,
-    toast,
 } from "@/functions/swal-alert.js";
 
 const emit = defineEmits(['actualizarEstado']);
@@ -67,7 +63,7 @@ onMounted(() => {
 
 </script>
 <template>
-    <BaseBlock :title="`Cotización de Factura: ${vercotizacion.cotizacion}`">
+    <BaseBlock :title="`Recordatorio de Cotización: ${vercotizacion.cotizacion}`">
         <template #options>
             <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close"
                 @click="resetForm">

@@ -5,6 +5,7 @@ export function useApprovalsGridRefresh({
   debounceMs = 350,
   onSubscribed,
   onEvent,
+  onError,
 } = {}) {
   let timer;
 
@@ -38,6 +39,8 @@ export function useApprovalsGridRefresh({
     clearTimeout(timer);
     try {
       echo.leave("approvals-reservations");
-    } catch {}
+    } catch (error) {
+      if (typeof onError === "function") onError(error);
+    }
   };
 }

@@ -19,10 +19,9 @@ export function useUserActions() {
         run
     } = useApiAction();
     const loadingStatus = ref(false);
-    const apiUpdateStatus = 'usuario/change-status-user';
 
     async function UpdateStatus(id) {
-        return run(() => axiosClient.post(apiUpdateStatus, {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.ACTIONS.CHANGE_STATUS, {
             id: id
         }), {
             loadingRef: loadingStatus,
@@ -30,9 +29,8 @@ export function useUserActions() {
     }
 
     const loadingReset = ref(false);
-    const apiUpdateReset = 'usuario/reset-password';
     async function resetPasswordUser(id) {
-        return run(() => axiosClient.post(apiUpdateReset, {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.ACTIONS.RESET_PASSWORD, {
             id: id
         }), {
             loadingRef: loadingReset,
@@ -42,10 +40,9 @@ export function useUserActions() {
 
 
     const loadingDetail = ref(false);
-    const apiDetailUser = 'usuario/detalle-usuario';
     const detailUser = ref(null);
     async function getDetailUser(id) {
-        return run(() => axiosClient.post(apiDetailUser, {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.ACTIONS.DETAIL, {
             id: id
         }), {
             loadingRef: loadingDetail,
@@ -57,10 +54,9 @@ export function useUserActions() {
 
 
     const loadingProfileWeb = ref(false);
-    const apiProfileWeb = 'usuario/perfiles-web'
     const perfilesWeb = ref([]);
     async function getProfilesWeb() {
-        return run(() => axiosClient.post(apiProfileWeb), {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.PROFILE.WEB), {
             loadingRef: loadingProfileWeb,
             onSuccess: (info) => {
                 perfilesWeb.value = info ?? []
@@ -70,10 +66,9 @@ export function useUserActions() {
 
 
     const loadingProfileApp = ref(false);
-    const apiProfileApp = 'usuario/perfiles-app'
     const perfilesApp = ref([]);
     async function getProfilesApp() {
-        return run(() => axiosClient.post(apiProfileApp), {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.PROFILE.APP), {
             loadingRef: loadingProfileApp,
             onSuccess: (info) => {
                 perfilesApp.value = info ?? []
@@ -85,18 +80,16 @@ export function useUserActions() {
 
 
     const loadingMobileAppAccess = ref(false);
-    const apiMobileAppAccess = 'usuario/acceso-app-movil';
     async function updateMobileAppAccess(id) {
-        return run(() => axiosClient.post(apiMobileAppAccess, { id: id }), {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.ACCESS.MOBILE_APP, { id: id }), {
             loadingRef: loadingMobileAppAccess
         });
     }
 
 
     const loadingAdminCollectionAccess = ref(false);
-    const apiAdminCollectionAccess = 'usuario/acceso-admin-cobros';
     async function updateAdminCollectionAccess(id) {
-        return run(() => axiosClient.post(apiAdminCollectionAccess, { id: id }), {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.ACCESS.COLLECTION_ADMIN, { id: id }), {
             loadingRef: loadingAdminCollectionAccess
         });
     }
@@ -110,9 +103,8 @@ export function useUserActions() {
         perfil_app_id: null,
     });
     const loadingUpdateProfiles = ref(false);
-    const apiChangeDetailUser = 'usuario/actualizar-perfiles';
     async function updateProfilesUser() {
-        return run(() => axiosClient.post(apiChangeDetailUser, { form }), {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.PROFILE.UPDATE, { form }), {
             loadingRef: loadingUpdateProfiles,
         });
     }
@@ -123,7 +115,7 @@ export function useUserActions() {
     const listSectionsActives = ref([]);
     const homeSectionActive = ref(null);
     async function fetchSectionsActivesByUser() {
-        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.OBTENER_SECCIONES_ACTIVAS), {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.SECTIONS.ACTIVE), {
             loadingRef: loadingSectionsActive,
             onSuccess: (info) => {
                 listSectionsActives.value = Array.isArray(info?.menu) ? info.menu : [];

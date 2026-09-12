@@ -30,10 +30,7 @@ const { loadingFacturaDemanda, procesarReservaFacturaDemanda, ptoVtaReservation 
 
 // Formateadores (USD y cantidades)
 const nf2 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const nf4 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-const money = (n) => `$${nf2.format(n ?? 0)}`;
 const num2 = (n) => nf2.format(n ?? 0);
-const num4 = (n) => nf4.format(n ?? 0);
 
 
 
@@ -73,7 +70,7 @@ async function procesar() {
         });
     }
 
-};
+}
 
 watch(
     () => infoReserva,

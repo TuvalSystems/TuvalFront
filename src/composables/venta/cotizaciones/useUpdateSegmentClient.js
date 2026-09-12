@@ -1,7 +1,6 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { reactive, ref } from "vue";
-import { swalError, swalSuccess } from "@/functions/swal-alert.js";
 
 export function useUpdateSegmentClient() {
   const { run } = useApiAction();

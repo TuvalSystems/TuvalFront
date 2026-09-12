@@ -12,7 +12,7 @@ export function useApprovalOrder() {
     const store = useStore();
     const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
     async function fetchListOrders() {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_PEDIDOS_PENDIENTES, { puntodeventa_id: ptoVtaSelect.value }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.ORDERS.LIST_PENDING, { puntodeventa_id: ptoVtaSelect.value }), {
             loadingRef: loadingOrders,
             onSuccess: (info) => (orders.value = info),
             successMessage: "Proceso realizado exitosamente.",
@@ -22,7 +22,7 @@ export function useApprovalOrder() {
 
 
     async function fetchListOrdersConsult() {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_LISTA_PEDIDOS_PENDIENTES_CONSULTA, { puntodeventa_id: ptoVtaSelect.value }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.ORDERS.LIST_PENDING_QUERY, { puntodeventa_id: ptoVtaSelect.value }), {
             loadingRef: loadingOrderConsult,
             onSuccess: (info) => (orderConsult.value = info),
             successMessage: "Proceso realizado exitosamente.",
@@ -36,7 +36,7 @@ export function useApprovalOrder() {
 
     const loadingValidateStockOrderApproval  = ref(false);
     async function validateStockForOrderApproval(id){
-      return run(() => axiosClient.post(APPROVAL_API_ROUTES.VERIFICAR_STOCK_PEDIDOS_APROBACIONES, {id : id}),{
+      return run(() => axiosClient.post(APPROVAL_API_ROUTES.ORDERS.VERIFY_STOCK, {id : id}),{
         loadingRef : loadingValidateStockOrderApproval ,
 
       });

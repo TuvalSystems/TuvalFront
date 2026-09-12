@@ -3,12 +3,12 @@ import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { getStatusBadgeClass } from "@/helpers/statusBadge";
 import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
+import { SYSTEM_USERS_API_ROUTES } from "@/constants/apiRoutes/sistema/userRoutes";
 export function useUserTable() {
 
     const { run } = useApiAction();
     const ctrl = ref(null);
     let debounceId;
-    const apiList = "usuario/lista-usuarios";
 
     const table = reactive({
         items: [],
@@ -29,7 +29,7 @@ export function useUserTable() {
     const estadoClass = (st) => getStatusBadgeClass(st, 'boolean');
 
     const booleanBadgeClass = (value) => {
-        return Boolean(value)
+        return value
         ? "badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold px-3 py-2"
         : "badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-3 py-2";
     };
@@ -54,7 +54,7 @@ export function useUserTable() {
         const payload = {
             ...table.filters,
         }
-        return run(() => axiosClient.post(apiList, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.ACTIONS.LIST, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-usuarios`,

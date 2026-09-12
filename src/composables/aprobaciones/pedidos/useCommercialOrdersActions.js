@@ -9,7 +9,7 @@ export function useCommercialOrdersActions() {
 
     const loadingCommercialApproval = ref(false);
     async function approveComercialOrder(id, msg) {    
-       return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_APROBAR_PEDIDO, {
+       return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.ORDERS.APPROVE, {
             id: id, msg: msg
         }), {
             loadingRef: loadingCommercialApproval
@@ -18,14 +18,14 @@ export function useCommercialOrdersActions() {
 
     const loadingCommercialRejection = ref(false);
     async function rejectionCommercialOrder(id, msg) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_RECHAZAR_PEDIDO, { id: id, msg: msg }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.ORDERS.REJECT, { id: id, msg: msg }), {
             loadingRef: loadingCommercialRejection
         });
     }
 
     const loadingCommercialRejectionStock = ref(false);
     async function rejectionCommercialOrderStock(id, msg) {
-        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMERCIAL_RECHAZAR_PEDIDO_POR_STOCK, { id: id, msg: msg }), {
+        return run(() => axiosClient.post(APPROVAL_API_ROUTES.COMMERCIAL.ORDERS.REJECT_BY_STOCK, { id: id, msg: msg }), {
             loadingRef: loadingCommercialRejectionStock
         });
     }

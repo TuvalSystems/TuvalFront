@@ -1,7 +1,6 @@
 import axiosClient from "@/axios";
 import { watch, ref, reactive, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { getStatusBadgeClass } from "@/helpers/statusBadge";
 import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 export function useUnapplicationTable() {
   const { run } = useApiAction();

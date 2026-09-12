@@ -5,7 +5,7 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import {
   swalWarning
 } from "@/functions/swal-alert.js";
-import { isBlank, validarPlacaEC, toDate, isValidDateStr } from "@/utils/guia-remision/validators";
+import { isBlank,  toDate, isValidDateStr } from "@/utils/guia-remision/validators";
 export const useReservationGuideProcess = () => {
   //instancia general para apis 
   const { run } = useApiAction();

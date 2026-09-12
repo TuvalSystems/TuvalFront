@@ -90,7 +90,7 @@ export function useReceiveReservationTransfers() {
   // 1) search + perPage
   watch(
     [() => table.searchTerm, () => table.perPage],
-    ([newSearch, newPerPage], [oldSearch, oldPerPage]) => {
+    ([newSearch, newPerPage], [ oldPerPage]) => {
       const s = (newSearch ?? '').trim();
 
       // si cambió perPage, recarga SIEMPRE (sin esperar a 4 chars)

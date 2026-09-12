@@ -13,6 +13,21 @@ const axiosClient = axios.create({
     // Opcional: Establecer un tiempo máximo de espera (ej. 60 segundos)
 });
 
+function isPasswordChangeResponse(response) {
+    const data = response?.data || {};
+    const message = `${data.error || ""} ${data.message || ""}`;
+
+    return response?.status === 403 && message.includes("Debe cambiar su contraseña");
+}
+
+function redirectToPasswordChange() {
+    store.commit("setMustChangePassword", true);
+
+    if (router.currentRoute.value.name !== 'password-change') {
+        router.push({ name: 'password-change' });
+    }
+}
+
 // --- Interceptor de Solicitud (Request) ---
 axiosClient.interceptors.request.use(config => {
     // Validamos token antes de inyectar
@@ -42,20 +57,19 @@ axiosClient.interceptors.response.use(
             if (router.currentRoute.value.name !== 'Maintenance') {
                 router.push({ name: 'Maintenance' });
             }
-            // Promesa vacía para detener la ejecución y evitar alertas innecesarias
-            return new Promise(() => { });
+            // Finaliza la petición para que los consumidores ejecuten su finally.
+            error.handledByRedirect = true;
+            return Promise.reject(error);
         }
 
-        // Caso 2: Error 401 (No autorizado / Token vencido) -> MEJORA RECOMENDADA
+        // Caso 2: Error 401 (No autorizado / Token vencido)
         if (response && response.status === 401) {
-            // Si el usuario recibe un 401, significa que su token ya no sirve.
-            // Lo ideal es limpiar el estado y mandarlo al login.
-
-            // store.dispatch('logout'); // Si tienes una acción de logout
-            // O limpiar manualmente si no tienes acción:
             if (store.state.user.token) {
-                store.state.user.token = null;
-                router.push({ name: 'Login' }); // Redirigir a login
+                store.commit("logout");
+            }
+
+            if (router.currentRoute.value.name !== 'Login') {
+                router.push({ name: 'Login' });
             }
         }
 
@@ -63,7 +77,12 @@ axiosClient.interceptors.response.use(
         // Redirige a la vista home si el backend revoca el acceso.
 
         if (response && response.status === 403) {
-            if (error.config?.url === SYSTEM_USERS_API_ROUTES.OBTENER_SECCIONES_ACTIVAS) {
+            if (isPasswordChangeResponse(response)) {
+                redirectToPasswordChange();
+                return Promise.reject(error);
+            }
+
+            if (error.config?.url === SYSTEM_USERS_API_ROUTES.SECTIONS.ACTIVE) {
                 return Promise.reject(error);
             }
 
@@ -71,7 +90,8 @@ axiosClient.interceptors.response.use(
 
             if (homeRouteName && router.currentRoute.value.name !== homeRouteName) {
                 router.push({ name: homeRouteName });
-                return new Promise(() => { });
+                error.handledByRedirect = true;
+                return Promise.reject(error);
             }
         }
 

@@ -12,7 +12,6 @@ export function useNotifications() {
 
     const center = useNotificationCenter();
     const itemsCenter = center.items;
-    const loadingCenter = center.loading;
     const { run } = useApiAction();
     const store = useStore();
     const user = store.state.user.data;
@@ -67,6 +66,51 @@ export function useNotifications() {
     });
     const loadingRef = toRef(table, "loading");
 
+    function canHydrateFromSnapshot(snapshot) {
+        if (!snapshot) return false;
+        return Number(snapshot.currentPage) === 1
+            && String(snapshot.perPage) === String(table.perPage)
+            && String(snapshot.searchTerm ?? '') === String(table.searchTerm ?? '')
+            && String(snapshot.sortField ?? '') === String(table.sortField ?? '')
+            && String(snapshot.sortOrder ?? '') === String(table.sortOrder ?? '')
+            && String(snapshot.userId ?? '') === String(user?.id ?? '');
+    }
+
+    function hydrateFromSnapshot() {
+        const snapshot = center.snapshot.value;
+        if (!canHydrateFromSnapshot(snapshot)) return false;
+
+        table.items = snapshot.items ?? [];
+        table.currentPage = Number(snapshot.currentPage) || 1;
+        table.totalPage = Number(snapshot.totalPage) || 1;
+        table.totalItems = Number(snapshot.totalItems) || 0;
+        table.userId = snapshot.userId ?? user?.id ?? "";
+        return true;
+    }
+
+    function ensureInitialNotifications() {
+        if (hydrateFromSnapshot()) return;
+
+        if (center.loading.value) {
+            const stop = watch(
+                center.loading,
+                (loading) => {
+                    if (loading) return;
+                    stop();
+                    if (!hydrateFromSnapshot() && !table.items.length && !table.loading) {
+                        fetchAllNotify(1);
+                    }
+                },
+                { flush: 'post' }
+            );
+            return;
+        }
+
+        if (!table.items.length && !table.loading) {
+            fetchAllNotify(1);
+        }
+    }
+
     async function fetchAllNotify(page = 1) {
         center.setLoading(true);
         if (ctrl.value) ctrl.value.abort();
@@ -91,8 +135,7 @@ export function useNotifications() {
                 table.items = rows;
                 table.totalPage = paginador?.last_page ?? 1;
                 table.totalItems = paginador?.total ?? 0;
-                center.setItems(rows ?? []);
-                center.setUnreadCount(paginador.unread_count ?? 0);
+                center.setSnapshot(paginador, payload);
                 center.setLoading(false);
             }
         })
@@ -104,6 +147,7 @@ export function useNotifications() {
     };
 
     const refresh = () => {
+        center.clearSnapshot();
         table.perPage = "10";
         table.searchTerm = "";
         table.sortField = "created_at";
@@ -120,8 +164,9 @@ export function useNotifications() {
     // 1) search + perPage
     watch(
         [() => table.searchTerm, () => table.perPage],
-        ([newSearch, newPerPage], [oldSearch, oldPerPage]) => {
+        ([newSearch, newPerPage], [ oldPerPage]) => {
             const s = (newSearch ?? '').trim();
+            center.clearSnapshot();
 
             // si cambió perPage, recarga SIEMPRE (sin esperar a 4 chars)
             if (newPerPage !== oldPerPage) {
@@ -140,7 +185,10 @@ export function useNotifications() {
 
     watch(
         [() => table.sortField, () => table.sortOrder],
-        () => fetchAllNotify(1),
+        () => {
+            center.clearSnapshot();
+            fetchAllNotify(1);
+        },
         { flush: 'post' }
     );
 
@@ -197,6 +245,8 @@ export function useNotifications() {
         onSort,
         refresh,
         fetchAllNotify,
+        ensureInitialNotifications,
+        hydrateFromSnapshot,
         markAsReadItem,
         markAsReadAll,
     }

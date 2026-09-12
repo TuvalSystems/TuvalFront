@@ -1,0 +1,277 @@
+import axiosClient from "@/axios";
+import { useApiAction } from "@/composables/core/useApiAction";
+import { INVOICE_COLLECTION_API_ROUTES } from "@/constants/apiRoutes/cobranzas/invoiceCollectionRoutes";
+import { downloadFileFromApi } from "@/utils/fileDownload";
+import { ref, computed } from "vue";
+import { useStore } from 'vuex'
+
+
+export function useInvoiceCollectionActions() {
+    const { run } = useApiAction();
+    const store = useStore();
+    const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
+    const selectedPointSaleCode = computed(() => store.state.puntodeventaselect);
+
+
+    const loadingCashBoxStatus = ref(false);
+    const dataCashBoxStatus = ref(null);
+    async function getUserCashBoxStatus(date = null) {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CASH_BOX.STATUS, {
+            pvId: selectedPointSaleId.value,
+            pvCodigo: selectedPointSaleCode.value,
+            fecha: date
+        }), {
+            loadingRef: loadingCashBoxStatus,
+            onSuccess: (info) => {
+                dataCashBoxStatus.value = info ?? null
+            }
+        });
+    }
+
+
+    const loadingOpenCashBox = ref(false);
+    async function openCashBoxed() {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CASH_BOX.OPEN, {
+            pvId: selectedPointSaleId.value
+        }), {
+            loadingRef: loadingOpenCashBox
+
+        });
+    }
+
+
+    const loadingDownloadPdf = ref(false);
+    async function printPdfStatusAccountClient(id) {
+        const paylaod = {
+            id: id
+        }
+        return run(async () => {
+            const filename = await downloadFileFromApi({
+                url: INVOICE_COLLECTION_API_ROUTES.ACCOUNT_STATEMENTS.DOWNLOAD_PDF,
+                method: "POST",
+                payload: paylaod,
+                filenameFallback: "estado-cuenta.pdf",
+            });
+            return { data: { success: true, data: filename } };
+
+        }, {
+            loadingRef: loadingDownloadPdf,
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+    }
+
+
+    const loadingDownloadExcel = ref(false);
+    async function printExcelStatusAccountClient(id) {
+        const paylaod = {
+            id: id
+        }
+        return run(async () => {
+            const filename = await downloadFileFromApi({
+                url: INVOICE_COLLECTION_API_ROUTES.ACCOUNT_STATEMENTS.DOWNLOAD_EXCEL,
+                method: "POST",
+                payload: paylaod,
+                filenameFallback: "estado-cuenta.xlsx",
+            });
+            return { data: { success: true, data: filename } };
+
+        }, {
+            loadingRef: loadingDownloadExcel,
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+    }
+
+    const clientInvoices = ref([]);
+    const retentionInvoices = ref([]);
+    const loadingClientInvoices = ref(false);
+    async function fetchClientInvoices(id) {
+        return run(
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CLIENTS.INVOICES, { id: id }),
+            {
+                loadingRef: loadingClientInvoices,
+                onSuccess: (data) => {
+                    clientInvoices.value = data.facturas ?? data.invoices ?? [];
+                    retentionInvoices.value = data.facturas_retenciones ?? [];
+                }
+
+            }
+        );
+    }
+
+    const pendingApplicationDocuments = ref([]);
+    const loadingPendingApplicationDocuments = ref(false);
+    async function fetchPendingApplicationDocuments(id) {
+        return run(
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.CLIENTS.PENDING_APPLICATIONS, { id: id }),
+            {
+                loadingRef: loadingPendingApplicationDocuments,
+                onSuccess: (data) => {
+                    pendingApplicationDocuments.value = data ?? [];
+                }
+            }
+        );
+    }
+
+    const bankTuval = ref([]);
+    const bankClient = ref([]);
+    const bankCard = ref([]);
+    const loadingCollectionBanks = ref(false);
+    async function fetchCollectionBanks() {
+        return run(
+            () => axiosClient.get(INVOICE_COLLECTION_API_ROUTES.BANKS.LIST),
+            {
+                loadingRef: loadingCollectionBanks,
+                onSuccess: (data) => {
+                    bankTuval.value = data.bancos_tuval ?? [];
+                    bankClient.value = data.bancos_clientes ?? [];
+                    bankCard.value = data.bancos_tarjetas ?? [];
+                }
+            }
+        );
+    }
+
+    function resetCustomerCollectionData() {
+        clientInvoices.value = [];
+        retentionInvoices.value = [];
+        pendingApplicationDocuments.value = [];
+        bankTuval.value = [];
+        bankClient.value = [];
+        bankCard.value = [];
+    }
+
+
+
+
+    const loadingRetentionReceiptValidation = ref(false);
+    async function validateRetentionReceiptNumber(clientId, receiptNumber) {
+        return run(
+            () => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.RECEIPTS.VALIDATE_NUMBER, {
+                id: clientId,
+                comprobante: receiptNumber
+            }),
+            {
+                loadingRef: loadingRetentionReceiptValidation
+            });
+    }
+
+
+    const loadingDepositReceiptValidation = ref(false);
+    async function validateDepositReceiptNumber(clientId, bankId, receiptNumber) {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.RECEIPTS.VALIDATE_DEPOSIT_NUMBER, {
+            cliente_id: clientId,
+            banco_id: bankId,
+            comprobante: receiptNumber
+        }), {
+            loadingRef: loadingDepositReceiptValidation
+        });
+    }
+
+
+    const loadingCheckReceiptValidation = ref(false);
+    async function validateCheckReceiptNumber(clientId, bankId, account, receiptNumber) {
+        return run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.RECEIPTS.VALIDATE_CHECK, {
+            cliente_id: clientId,
+            banco_id: bankId,
+            cheque: receiptNumber,
+            cuenta: account
+        }), {
+            loadingRef: loadingCheckReceiptValidation
+        });
+    }
+
+
+
+    const loadingRegisterInvoiceCollection = ref(false);
+    async function registerInvoiceCollection(payload) {
+        return await run(() => axiosClient.post(INVOICE_COLLECTION_API_ROUTES.COLLECTIONS.REGISTER, payload), {
+            loadingRef: loadingRegisterInvoiceCollection
+        });
+    }
+
+
+
+    const loadingPrintCollectionPdf = ref(false);
+    async function printPdfCollection(id) {
+        return run(async () => {
+            const fileName = await downloadFileFromApi({
+                url: INVOICE_COLLECTION_API_ROUTES.COLLECTIONS.DOWNLOAD_PDF,
+                method: "POST",
+                payload: { cobro_id: id },
+                filenameFallback: "cobro.pdf"
+            });
+            return { data: { success: true, data: fileName } };
+        }, {
+            loadingRef: loadingPrintCollectionPdf,
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+    }
+
+
+
+
+
+    return {
+        //obtener estado de caja
+        loadingCashBoxStatus,
+        getUserCashBoxStatus,
+        dataCashBoxStatus,
+
+        //aperturar caja
+        loadingOpenCashBox,
+        openCashBoxed,
+
+        //download pdf 
+        loadingDownloadPdf,
+        printPdfStatusAccountClient,
+        //download excel
+        loadingDownloadExcel,
+        printExcelStatusAccountClient,
+
+        //carga de facturas y facturas retenciones
+        clientInvoices,
+        retentionInvoices,
+        loadingClientInvoices,
+        fetchClientInvoices,
+
+        //carga de documentos pendiente de aplicacion 
+        pendingApplicationDocuments,
+        loadingPendingApplicationDocuments,
+        fetchPendingApplicationDocuments,
+        //carga de bancos 
+        bankTuval,
+        bankClient,
+        bankCard,
+        loadingCollectionBanks,
+        fetchCollectionBanks,
+
+        //limpieza de data del cliente
+        resetCustomerCollectionData,
+
+        //validacion de comprobante
+        loadingRetentionReceiptValidation,
+        validateRetentionReceiptNumber,
+
+
+        //validacion de comprobante de 
+        loadingDepositReceiptValidation,
+        validateDepositReceiptNumber,
+
+        //validacion de cheque
+        loadingCheckReceiptValidation,
+        validateCheckReceiptNumber,
+
+        //registrar cobro
+        loadingRegisterInvoiceCollection,
+        registerInvoiceCollection,
+
+        //imprimir el pdf del cobro
+        loadingPrintCollectionPdf,
+        printPdfCollection,
+    }
+}

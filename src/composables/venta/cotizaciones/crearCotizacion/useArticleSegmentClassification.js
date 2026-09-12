@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, reactive, watch, computed, unref } from "vue";
-import { INVENTARIO_ARTICULOS_API_ROUTES } from "@/constants/apiRoutes/inventario/articleRoutes";
+import { INVENTORY_ARTICLES_API_ROUTES } from "@/constants/apiRoutes/inventario/articleRoutes";
 
 
 
@@ -60,7 +60,7 @@ export function useArticleSegmentClassification(articles = ref([])) {
             codigoCategoria: segmentFilters.codigoCategoria,
             codigoLinea: segmentFilters.codigoLinea,
         };
-        return run(() => axiosClient.post(INVENTARIO_ARTICULOS_API_ROUTES.CONFIGURACION_SEGMENTACION, params), {
+        return run(() => axiosClient.post(INVENTORY_ARTICLES_API_ROUTES.SEGMENTATION_CONFIG, params), {
             loadingRef: loadingConfig,
             onSuccess: (info) => {
                 classificationConfigList.value = Array.isArray(info) ? info : [];

@@ -15,7 +15,7 @@ const BackendSecciones = () => import("@/views/backend/SeccionesView.vue");
 
 // Ventas: Cotizaciones
 const VentasCrearCotizacion = () =>
-  import("@/views/ventas/cotizaciones/CrearCotizacionView.vue");
+  import("@/views/ventas/cotizaciones/crear-cotizacion/CrearCotizacionView.vue");
 const VentasCotizacionProspecto = () =>
   import("@/views/ventas/cotizaciones/CotizacionProspectoView.vue");
 const VentasCotizaciones = () =>
@@ -29,14 +29,14 @@ const VentasCrearCliente = () =>
   import("@/views/ventas/cotizaciones/CrearClienteView.vue");
 
 // Cobranzas: cobroFacturas
-const CobranzasFacturas = () =>
-  import("@/views/cobranzas/CobranzasFacturasView.vue");
-const CobranzasPedido = () =>
-  import("@/views/cobranzas/CobranzasPedidoView.vue");
+// const CobranzasFacturas = () =>
+//   import("@/views/cobranzas/CobranzasFacturasView.vue");
+// const CobranzasPedido = () =>
+//   import("@/views/cobranzas/CobranzasPedidoView.vue");
 const CobranzasAprobacionDepositos = () =>
   import("@/views/cobranzas/AprobacionDepositosView.vue");
-const CobranzasCierredecaja = () =>
-  import("@/views/cobranzas/CierredecajaView.vue");
+// const CobranzasCierredecaja = () =>
+//   import("@/views/cobranzas/CierredecajaView.vue");
 const CobranzasConsultasCobros = () =>
   import("@/views/cobranzas/ConsultasCobrosView.vue");
 const LiberarOrdenDespacho = () =>
@@ -49,11 +49,9 @@ const AprobacionesComerciales = () =>
 
 const AprobacionesComercialesConsulta = () =>
   import("@/views/aprobaciones/ComercialesConsultaView.vue");
-const AprobacionesCrediticias = () =>
-  import("@/views/aprobaciones/CrediticiasView.vue");
 
 const AprobacionesDevoluciones = () =>
-  import("@/views/aprobaciones/DevolucionesView.vue");
+  import("@/views/aprobaciones/devoluciones/DevolucionesView.vue");
 
 const AprobacionesReservas = () =>
   import("@/views/aprobaciones/ReservasView.vue");
@@ -68,10 +66,7 @@ const DespachoPedidos = () => import("@/views/bodegas/DespachoPedidos.vue");
 const RecibosDeCompraL = () => import("@/views/bodegas/RecibosDeCompraL.vue");
 const Transportistasyvehiculos = () =>
   import("@/views/bodegas/Transportistasyvehiculos.vue");
-const TransferenciasVenta = () =>
-  import("@/views/bodegas/TransferenciasVenta.vue");
-const TransferenciasVentaBodega = () =>
-  import("@/views/bodegas/TransferenciasVentaBodega.vue");
+
 
 const RecibosVenta = () => import("@/views/bodegas/RecibosVenta.vue");
 const RecibosReposicion = () => import("@/views/bodegas/RecibosReposicion.vue");
@@ -238,36 +233,32 @@ const routes = [
     component: LayoutBackend,
     meta: { requiresAuth: true },
     children: [
+     
       {
-        path: "cobrofacturas",
-        name: "cobranzas-cobrofacturas",
-        component: CobranzasFacturas,
+        path: "cobros-facturas",
+        name: "cobranzas-cobros-facturas",
+        component: () => import("@/views/cobranzas/cobros-facturas/CobrosFacturasIndex.vue"),
         meta: {
-          title: "Cobros - Cobros Generales",
+          title: "Cobros - Gestión Cobros",
         },
       },
-      {
-        path: "cobropedido",
-        name: "cobranzas-cobropedido",
-        component: CobranzasPedido,
+
+       {
+        path: "cierre-caja",
+        name: "cobranzas-cierre-caja",
+        component: () => import("@/views/cobranzas/cierre-caja/CierreCajaIndex.vue"),
         meta: {
-          title: "Cobros - Cobros Pedido",
+          title: "Cobros - Gestión de cierre de caja",
         },
       },
+      
+      
       {
         path: "aprobaciondepositos",
         name: "cobranzas-aprobaciondepositos",
         component: CobranzasAprobacionDepositos,
         meta: {
           title: "Cobros - Aprobación de depósitos",
-        },
-      },
-      {
-        path: "cierredecaja",
-        name: "cobranzas-cierredecaja",
-        component: CobranzasCierredecaja,
-        meta: {
-          title: "Cobros - Cierre de caja",
         },
       },
       {
@@ -365,6 +356,14 @@ const routes = [
         component: AprobacionesReservas,
         meta: {
           title: "Aprobaciones - Reservas",
+        },
+      },
+       {
+        path: "devoluciones",
+        name: "aprobaciones-devoluciones-consulta",
+         component: () => import("@/views/aprobaciones/devoluciones/DevolucionesConsultaView.vue"),
+        meta: {
+          title: "Aprobaciones - Devoluciones",
         },
       },
     ],
@@ -693,18 +692,51 @@ async function refreshUserAccessForRoute() {
   };
 }
 
+function isPasswordChangeRequired(value) {
+  if (value === true || value === 1) return true;
+  if (value === false || value === 0 || value === null || value === undefined) return false;
+
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === "true" || normalized === "1";
+}
+
+function getMustChangePasswordFlag() {
+  return isPasswordChangeRequired(store.state.must_change_password) ||
+    isPasswordChangeRequired(sessionStorage.getItem("MUST_CHANGE_PASSWORD"));
+}
+
+function isMustChangePasswordError(error) {
+  const status = error?.response?.status || error?.status;
+  const data = error?.response?.data || {};
+  const message = `${data.error || ""} ${data.message || ""}`;
+
+  return status === 403 && message.includes("Debe cambiar su contraseña");
+}
+
+function redirectToPasswordChange(next) {
+  store.commit("setMustChangePassword", true);
+  return next({ name: "password-change" });
+}
+
 router.beforeEach(async (to, from, next) => {
   const isAuthenticated = !!store.state.user.token;
   const isGuestRoute = to.meta.isGuest;
   const requiresAuth = to.meta.requiresAuth;
   let homeRouteName = store.state.home;
-  const must_change_password =
-    store.state.must_change_password ||
-    JSON.parse(sessionStorage.getItem("MUST_CHANGE_PASSWORD"));
+  const mustChangePassword = getMustChangePasswordFlag();
 
   // usuario no autenticado y ruta ptotegida
   if (requiresAuth && !isAuthenticated) {
     return next({ name: "Login" });
+  }
+
+  // usuario autenticado pero debe cambiar su contraseña
+  if (
+    isAuthenticated &&
+    mustChangePassword &&
+    to.name !== "password-change"
+  ) {
+    return next({ name: "password-change" });
   }
 
   // usuario autenticado en ruta de invitados como login
@@ -719,6 +751,11 @@ router.beforeEach(async (to, from, next) => {
         store.commit("logout");
         return next({ name: "Login" });
       }
+
+      if (isMustChangePasswordError(error)) {
+        return redirectToPasswordChange(next);
+      }
+
       // Si falla el refresco, se conserva el home local para no bloquear el flujo.
     }
 
@@ -726,23 +763,10 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: homeRouteName });
   }
 
-  //usuario autenticado pero debe cambiar su contraseña e intenta ir a cualquier ruta que no sea password-change
-  if (
-    isAuthenticated &&
-    (must_change_password === true ||
-      must_change_password === 1 ||
-      must_change_password === "1") &&
-    to.name !== "password-change"
-  ) {
-    return next({ name: "password-change" });
-  }
-
   // usuario que ya cambió su contraseña pero intenta ir a la vista de cambio
   if (
     isAuthenticated &&
-    (must_change_password === false ||
-      must_change_password === 0 ||
-      must_change_password === "0") &&
+    !mustChangePassword &&
     to.name === "password-change" &&
     homeRouteName
   ) {
@@ -771,8 +795,16 @@ router.beforeEach(async (to, from, next) => {
         return next({ name: "Login" });
       }
 
-      if (status === 403 && homeRouteName) {
+      if (isMustChangePasswordError(error)) {
+        return redirectToPasswordChange(next);
+      }
+
+      if (status === 403 && homeRouteName && to.name !== homeRouteName) {
         return next({ name: homeRouteName });
+      }
+
+      if (status === 403) {
+        return next(false);
       }
     }
 

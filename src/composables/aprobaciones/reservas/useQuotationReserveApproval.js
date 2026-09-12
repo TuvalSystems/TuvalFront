@@ -1,6 +1,6 @@
 import axiosClient from "@/axios";
 import { swalWarning } from "@/functions/swal-alert.js";
-import { watch, reactive, ref, unref, computed } from "vue";
+import { watch, reactive, ref, computed } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
 import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetween";
@@ -42,7 +42,7 @@ export function useQuotationReserveApproval() {
   };
 
   async function fetchQuotationWithDetial(id) {
-    return  run(() => axiosClient.get(`${apiFetchWithDetail}${id}`), {
+    return run(() => axiosClient.get(`${apiFetchWithDetail}${id}`), {
       loadingRef: loadingQ,
       onSuccess: (res) => {
         data.value = res;
@@ -54,7 +54,7 @@ export function useQuotationReserveApproval() {
 
 
   async function fetchQuotationWithDetialAndStock(id) {
-    return  run(() => axiosClient.get(`${apiFetchWithDetailAnStock}${id}`), {
+    return run(() => axiosClient.get(`${apiFetchWithDetailAnStock}${id}`), {
       loadingRef: loadingQ1,
       onSuccess: (res) => {
         dataQuotationDetailStock.value = res;
@@ -64,7 +64,7 @@ export function useQuotationReserveApproval() {
   }
 
   async function fetchQuotationWithDetialAndStockActive(id) {
-    return  run(() => axiosClient.get(`${apiFetchWithDetailAnStockActive}${id}`), {
+    return run(() => axiosClient.get(`${apiFetchWithDetailAnStockActive}${id}`), {
       loadingRef: loadingQ2,
       onSuccess: (res) => {
         dataQuotationDetailAndStockActive.value = res;
@@ -75,7 +75,7 @@ export function useQuotationReserveApproval() {
 
 
   async function checkStockReserved() {
-    return  run(() => axiosClient.post(apiCheckStockReserved, { id: dataSendApproval.id }), {
+    return run(() => axiosClient.post(apiCheckStockReserved, { id: dataSendApproval.id }), {
       loadingRef: loadingApproval,
       successMessage: "Proceso realizado exitosamente.",
     });
@@ -83,7 +83,7 @@ export function useQuotationReserveApproval() {
 
   /** denegar solicitud */
   async function denyReservation() {
-    return  run(() => axiosClient.post(apiDenyReservation, { data: dataSendApproval }), {
+    return run(() => axiosClient.post(apiDenyReservation, { data: dataSendApproval }), {
       loadingRef: loadingDeny,
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: () => { resetForm(); }
@@ -94,7 +94,7 @@ export function useQuotationReserveApproval() {
 
   /** aprobar solicitud */
   async function approveReservation() {
-    return  run(() => axiosClient.post(apiApproveReservation, { data: dataSendApproval }), {
+    return run(() => axiosClient.post(apiApproveReservation, { data: dataSendApproval }), {
       loadingRef: loadingApproval,
       successMessage: "Proceso realizado exitosamente.",
       onSuccess: () => { resetForm(); }
@@ -104,9 +104,9 @@ export function useQuotationReserveApproval() {
   const apiCancelReservation = '/reservas/cancelar-solicitud-reserva'
   const loadingCancelReservation = ref(false)
   async function cancelReservation(id) {
-    return  run(() => axiosClient.post(apiCancelReservation, { id }), {
-       loadingRef: loadingCancelReservation,
-       successMessage: "Proceso realizado exitosamente.",
+    return run(() => axiosClient.post(apiCancelReservation, { id }), {
+      loadingRef: loadingCancelReservation,
+      successMessage: "Proceso realizado exitosamente.",
     });
   }
 

@@ -18,7 +18,7 @@ function defaultForm() {
     };
 }
 
-export function useSectionAction({ onSuccess } = {}) {
+export function useSectionAction() {
 
     const { run } = useApiAction();
 

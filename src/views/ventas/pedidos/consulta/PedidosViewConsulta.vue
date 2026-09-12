@@ -1,8 +1,6 @@
 <script setup>
 import { ref, reactive, computed, onMounted} from "vue";
 import { useStore } from 'vuex'
-import { useRouter } from "vue-router";
-import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import VerPedidoModal from "@/views/ventas/modals/consulta/verModalPedidoConsulta.vue";
 import LevantarClienteModal from "@/views/ventas/modals/LevantarCliente.vue";
@@ -13,7 +11,6 @@ import { format } from "@/functions";
 import {
   swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 
 
@@ -181,11 +178,6 @@ function levantarFiltrocliente() {
   filtrarClienteModalObj.show();
 }
 
-
-function cancelarPedido() {
-  verpedidoModalObj.hide();
-  llenarpedidos('todos');
-}
 
 
 

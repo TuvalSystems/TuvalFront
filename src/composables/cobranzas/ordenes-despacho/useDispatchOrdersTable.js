@@ -62,7 +62,7 @@ export function useDispatchOrdersTable() {
             ...table.filters,
         }
         return run(() => axiosClient.post(
-            DISPATCH_ORDERS_API_ROUTES.LISTA_CONSULTA_ORDENES_DESPACHO,
+            DISPATCH_ORDERS_API_ROUTES.LIST,
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }), {
             loadingRef,

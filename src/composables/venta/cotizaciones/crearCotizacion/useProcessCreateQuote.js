@@ -75,7 +75,10 @@ const getInitialState = () => ({
     origen: '',
 
     //pdf
-    documentos_pdf: []
+    documentos_pdf: [],
+
+    //seleccion de tipo de proyecto 
+    proyecto: null
 
 });
 export function useProcessCreateQuote(draftId = 'default') {
@@ -317,7 +320,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             proveedores: [],
             proveedores_listo: false,
             descuento_temporal: 0,
-            validador_l : false,
+            validador_l: false,
         }
         form.value.items.push(itemEstandarizado);
         calculateTotals();
@@ -727,7 +730,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 let precioCalculado = valorUnitario + ((valorUnitario * modificador) / 100);
                 const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
                 if (art.cambiar_valor) {
-                        
+
                 } else {
                     if (diferencia < 0.001) {
                         art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
@@ -855,15 +858,15 @@ export function useProcessCreateQuote(draftId = 'default') {
                     const key = `${item.ART_CODIGO}_${bd.STO_ART_BODEGA}`;
                     const infoGlobal = globalStockUsage[key];
                     if (infoGlobal && infoGlobal.used > infoGlobal.available) {
-                    if (Number(bd.seleccionado) > 0) {
-                        bd.seleccionado = 0;
-                        itemHasError = true;
+                        if (Number(bd.seleccionado) > 0) {
+                            bd.seleccionado = 0;
+                            itemHasError = true;
+                        }
                     }
-                }
                 });
             }
 
-          if (qtyRequired > 0 && matchesRequired && !itemHasError && !globalOverstock) {
+            if (qtyRequired > 0 && matchesRequired && !itemHasError && !globalOverstock) {
                 item.stockListo = true;
             } else {
                 item.stockListo = false;
@@ -1098,7 +1101,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
         //modificador global
         formData.append('modificador_global', form.value.modificador_global);
-
+        formData.append('proyecto', form.value.proyecto);
         //items de cotizacion
         formData.append('items', JSON.stringify(form.value.items));
         formData.append('origen', form.value.origen || 'cotizacion');
@@ -1146,7 +1149,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE_QUOTE, formData), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
                 console.error('Error al crear la cotización:', error);
@@ -1201,7 +1204,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     const loadingGetQuoteData = ref(false);
 
     async function fetchAndFillQuotation(quoteId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECOVER_QUOTE, { id: quoteId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECOVER, { id: quoteId }), {
             loadingRef: loadingGetQuoteData,
             onSuccess: async (res) => {
                 isRecoveringQuote.value = true;
@@ -1263,7 +1266,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
                 //origen
                 form.value.origen = cotizacion.origen;
-
+                // proyecto
+                form.value.proyecto = cotizacion.proyecto
                 //imagenes
                 if (imagenesOperaciones && imagenesOperaciones.length > 0) {
                     if (uploadedFilesRef) {
@@ -1329,7 +1333,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     const loadingReorder = ref(false);
     async function loadDataForReorder(quoteId, uploadedFilesRef, uploadedPdfsRef) {
 
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECREATE_QUOTE, { id: quoteId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.RECREATE, { id: quoteId }), {
             loadingRef: loadingReorder,
             onSuccess: (res) => {
                 const initialState = getInitialState();
@@ -1373,6 +1377,10 @@ export function useProcessCreateQuote(draftId = 'default') {
 
                 form.value.modificador_global = Number(cotizacion.modificador_global || 0);
                 form.value.origen = cotizacion.origen;
+
+                // proyecto
+                form.value.proyecto = cotizacion.proyecto
+
                 form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
@@ -1442,7 +1450,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingCopyQuoteOrOrder = ref(false);
     async function copyRawQuoteOrOrder(originalId, type, clienteId, sucursalId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.COPY_QUOTE_OR_ORDER, {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.COPY_QUOTE_OR_ORDER, {
             rowId: originalId,
             tipo: type,
             cliente_id: clienteId,
@@ -1481,6 +1489,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.modificador_global = 0;
                 form.value.imagenesoperaciones = [];
                 form.value.origen = 'cotizacion';
+                // proyecto
+                form.value.proyecto = '';
                 form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
@@ -1550,10 +1560,10 @@ export function useProcessCreateQuote(draftId = 'default') {
      * PROCESO DE VOLVER A PEDIR UN  PEDIDO 
      */
 
-    
+
     const loadingIsReordering = ref(false);
     async function reOrder(rowId, uploadedFilesRef, uploadedPdfsRef) {
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.REORDER, { id: rowId }), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.REORDER, { id: rowId }), {
             loadingRef: loadingIsReordering,
             onSuccess: (res) => {
                 const initialState = getInitialState();
@@ -1587,6 +1597,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.nota_operaciones = pedido.nota_operaciones || '';
                 form.value.modificador_global = Number(pedido.modificador_global || 0);
                 form.value.origen = 'cotizacion';
+                // proyecto
+                form.value.proyecto = pedido.proyecto;
                 form.value.items = items.map((item, index) => ({
                     ...item,
                     id: null,
@@ -1723,6 +1735,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('modificador_global', form.value.modificador_global);
         formData.append('origen', form.value.origen);
         formData.append('items', JSON.stringify(form.value.items));
+
+        formData.append('proyecto', form.value.proyecto);
         //imagenes de operaciones
         if (form.value.imagenesoperaciones && form.value.imagenesoperaciones.length > 0) {
             form.value.imagenesoperaciones.forEach((item, index) => {
@@ -1768,7 +1782,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE_ORDER, formData), {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.CREATE, formData), {
             loadingRef: loadingSaveOrder,
             onError: (error) => {
                 console.error('Error al crear el pedido:', error);
@@ -1791,6 +1805,20 @@ export function useProcessCreateQuote(draftId = 'default') {
         });
     }
 
+
+    const loadingProyectSellers = ref(false);
+    const dataProyectSellers = ref([]);
+    async function fetchListProyectSellers() {
+        return run(() => axiosClient.get(QUOTE_API_ROUTES.PROJECTS.LIST_SELLERS), {
+            loadingRef: loadingProyectSellers,
+            onSuccess: (info) => {
+                dataProyectSellers.value = Array.isArray(info) ? info : [];
+            },
+            onError: (error) => {
+                console.error('Error al obtener la lista de proyectos:', error);
+            },
+        });
+    }
 
     return {
         form,
@@ -1908,7 +1936,13 @@ export function useProcessCreateQuote(draftId = 'default') {
         //manejo de borradores 
         fetchCurrentDraft,
         getActiveDrafts,
-        removeDraft
+        removeDraft,
+
+
+        //lista de proyectos
+        loadingProyectSellers,
+        dataProyectSellers,
+        fetchListProyectSellers
     };
 
 

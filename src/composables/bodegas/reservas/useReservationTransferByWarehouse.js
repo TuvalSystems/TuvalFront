@@ -8,7 +8,7 @@ import {
 import { useApiAction } from "@/composables/core/useApiAction";
 import { useVehiclesStore } from "@/stores/bodegas/guiasremision/vehicles";
 
-import { downloadFileFromApi } from "@/utils/pdf";
+import { downloadFileFromApi } from "@/utils/fileDownload";
 export function useReservationTransferByWarehouse() {
   const { run } = useApiAction();
   const vehicles = useVehiclesStore();

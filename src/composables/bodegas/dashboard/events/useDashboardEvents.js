@@ -5,7 +5,8 @@ export function useDashboardEvents({
     debounceMs = 350,
     onSubscribed,
     onEvent,
-}) {
+    onError,
+} = {}) {
     let timer;
 
     const notificationSound = new Audio('/sounds/notificacion.mp3');
@@ -60,6 +61,8 @@ export function useDashboardEvents({
         // document.removeEventListener('click', unlockSound);
         try {
             echo.leave("refresh-dashboard-dispatch-pendings");
-        } catch { }
+        } catch (error) {
+            if (typeof onError === "function") onError(error);
+        }
     };
 }

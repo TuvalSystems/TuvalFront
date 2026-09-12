@@ -1,7 +1,7 @@
 import { ref, reactive } from "vue";
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { isBlank, validarPlacaEC, toDate, isValidDateStr } from "@/utils/guia-remision/validators";
+import { isBlank, toDate, isValidDateStr } from "@/utils/guia-remision/validators";
 import { swalWarning } from "@/functions/swal-alert.js";
 import { formatJm } from "@/functions";
 
