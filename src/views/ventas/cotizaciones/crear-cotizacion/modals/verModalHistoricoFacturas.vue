@@ -147,7 +147,9 @@ function formatNumber(value) {
         <template #cell-cantidad="{ value }">
           <span class="text-nowrap">{{ formatNumber(value) }}</span>
         </template>
-
+         <template #cell-precio="{ value }">
+          <span class="text-nowrap">$ {{ formatNumber(value) }}</span>
+        </template>
         <template #cell-descuento="{ value }">
           <span class="text-nowrap">{{ formatNumber(value) }}</span>
         </template>
