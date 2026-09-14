@@ -88,6 +88,14 @@ export function useHistoryInvoicesTable() {
             thClass: "text-muted  text-uppercase fw-bold",
             width: "10px"
         },
+         {
+            label: "precio",
+            key: "precio",
+            sortable: false,
+            align: "text-end",
+            thClass: "text-muted  text-uppercase fw-bold",
+            width: "15px"
+        },
         {
             label: "descuento",
             key: "descuento",
