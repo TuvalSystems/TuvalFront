@@ -208,6 +208,10 @@ export function useInvoiceCollectionChecks({
         return Number(user?.id) === 107 || [1, 2].includes(Number(user?.perfil_id));
     });
 
+    const isCheckCondition = computed(() => {
+        return Boolean(client.value?.es_cheque);
+    });
+
     //vaidation 
     const v$ = useVuelidate(createCheckRule(), checkPayload);
     const showTableInvoices = ref(false);
@@ -278,8 +282,8 @@ export function useInvoiceCollectionChecks({
                 message: `No se pudo validar la fecha de vencimiento de la factura ${documentNumber}.`,
             };
         }
-
         if (
+            isCheckCondition.value &&
             !canBypassCheckDueDateLimit.value &&
             checkDueDate.getTime() > allowedCheckDueDate.getTime()
         ) {
