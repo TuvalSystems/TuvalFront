@@ -149,6 +149,14 @@ function selectCustomer(client) {
         </table>
       </div>
     </BaseBlock>
+    <div
+      v-else-if="showResults && !errorSearch && clientsRef.length === 0"
+      class="text-center text-muted py-5"
+      role="status"
+    >
+      <i class="fa fa-box-open fa-2x text-muted mb-2" aria-hidden="true"></i>
+      <p class="text-muted mb-0">No se encontraron clientes para mostrar</p>
+    </div>
   </BaseBlock>
 </template>
 
