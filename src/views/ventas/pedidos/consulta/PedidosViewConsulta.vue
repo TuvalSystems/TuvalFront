@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from "vuex";
-import { Modal } from "bootstrap";
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import VerPedidoModal from "@/views/ventas/modals/consulta/verModalPedidoConsulta.vue";
 import LevantarClienteModal from "@/views/ventas/modals/LevantarCliente.vue";
 import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
@@ -169,14 +169,14 @@ async function funcionverpedido(pedido) {
 //   tipo.value = 'pedido';
 // }
 
-let verpedidoModal = ref(null);
-let verpedidoModalObj = null;
+const verpedidoModal = ref(null);
+const verpedidoModalObj = useBootstrapModal(verpedidoModal);
 
 let levantarClienteModal = ref(null);
 // let levantarClienteModalObj = null;
 
-let filtrarClienteModal = ref(null);
-let filtrarClienteModalObj = null;
+const filtrarClienteModal = ref(null);
+const filtrarClienteModalObj = useBootstrapModal(filtrarClienteModal);
 
 function levantarFiltrocliente() {
   store.commit("resetClientes");
@@ -381,9 +381,6 @@ function motivoEspera(pedido) {
 // }
 
 onMounted(() => {
-  verpedidoModalObj = new Modal(verpedidoModal.value);
-  // levantarClienteModalObj = new Modal(levantarClienteModal.value);
-  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
   // Remove labels from
   document.querySelectorAll("#datasetLength label").forEach((el) => {
     el.remove();

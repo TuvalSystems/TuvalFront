@@ -8,7 +8,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 
 import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
 
-import { Modal } from "bootstrap";
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import { useDetalleDespachoPedidos } from "@/composables/bodegas/consultas/detallesconsulta/useDetalleDespachoPedidos";
 import { swalError } from "@/functions/swal-alert.js";
 import { formatPrice } from "@/functions";
@@ -192,8 +192,8 @@ const handleClick = ({ row, col }) => {
 };
 
 // funcion para modal de filtro de cliente
-let filtrarClienteModal = ref(null);
-let filtrarClienteModalObj = null;
+const filtrarClienteModal = ref(null);
+const filtrarClienteModalObj = useBootstrapModal(filtrarClienteModal);
 function levantarFiltrocliente() {
   filtrarClienteModalObj.show();
 }
@@ -259,7 +259,6 @@ function resetConsult() {
 
 onMounted(() => {
   // initialize('/despachos/guiasdespachadas/', puntoVentaId); // Llamada inicial para cargar datos
-  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
   if (!table.items.length && !table.loading) {
     fetchItems(1);
   }

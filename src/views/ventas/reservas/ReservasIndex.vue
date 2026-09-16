@@ -6,7 +6,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useApprovedReservationsTable } from "@/composables/venta/cotizaciones/reservas/useApprovedReservationsTable";
 import { usePtoVtaStore } from "../../../stores/bodegas/utils/useListPuntoVentaStore";
 import { formatPriceJm } from "@/functions";
-import { Modal } from "bootstrap";
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas/useQuotationReserveApproval";
 import { swalWarning, swalError, swalSuccess } from "@/functions/swal-alert.js";
 //componente
@@ -106,10 +106,10 @@ function unlockTest(id) {
 
 const dataModal = ref(null);
 const dataDemandaModal = ref(null);
-let verCrearEditarReservaModal = ref(null);
-let verCrearEditarReservaModalObj = null;
-let verUsoFacturaDemandaModalObj = null;
-let verUsoFacturaDemandaModal = ref(null);
+const verCrearEditarReservaModal = ref(null);
+const verCrearEditarReservaModalObj = useBootstrapModal(verCrearEditarReservaModal);
+const verUsoFacturaDemandaModal = ref(null);
+const verUsoFacturaDemandaModalObj = useBootstrapModal(verUsoFacturaDemandaModal);
 async function crearReserva(row) {
   if (row.estado == "pendiente") {
     swalWarning(
@@ -181,8 +181,8 @@ async function cancelarReserva(id) {
 }
 
 // funcion para modal de filtro de cliente
-let filtrarClienteModal = ref(null);
-let filtrarClienteModalObj = null;
+const filtrarClienteModal = ref(null);
+const filtrarClienteModalObj = useBootstrapModal(filtrarClienteModal);
 function levantarFiltrocliente() {
   filtrarClienteModalObj.show();
 }
@@ -199,8 +199,8 @@ async function handleCustomerSelected(selection) {
 
 /** funciones para visualizar el detalle de la cotizacion  */
 
-let verCotizacionDetalleModal = ref(null);
-let verCotizacionDetalleModalObj = null;
+const verCotizacionDetalleModal = ref(null);
+const verCotizacionDetalleModalObj = useBootstrapModal(verCotizacionDetalleModal);
 let datosModalCotizacionDetalle = ref(null);
 let datosModalCotizacionSegmento = ref(null);
 async function visualizarDetalleCotización(id) {
@@ -218,17 +218,9 @@ async function visualizarDetalleCotización(id) {
   unlock(id);
 }
 
-function modalesComponent() {
-  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
-  verCotizacionDetalleModalObj = new Modal(verCotizacionDetalleModal.value);
-  verCrearEditarReservaModalObj = new Modal(verCrearEditarReservaModal.value);
-  verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
-}
-
 /** socket */
 let stopRefresh;
 onMounted(() => {
-  modalesComponent();
   ptoVta.fetchAll();
   if (!table.items.length && !table.loading) {
     fetchList(1);

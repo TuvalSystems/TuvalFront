@@ -3,7 +3,7 @@ import { ref, reactive, computed, onMounted, nextTick, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
-import { Modal } from "bootstrap";
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import VerPedidoModal from "../modals/VerPedidoModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
@@ -187,20 +187,20 @@ function levantarcliente(pedido) {
   tipo.value = "pedido";
 }
 
-let verpedidoModal = ref(null);
-let verpedidoModalObj = null;
+const verpedidoModal = ref(null);
+const verpedidoModalObj = useBootstrapModal(verpedidoModal);
 
-let facturarexistenteModal = ref(null);
-let facturarexistenteModalObj = null;
+const facturarexistenteModal = ref(null);
+const facturarexistenteModalObj = useBootstrapModal(facturarexistenteModal);
 
-let facturardespachadoModal = ref(null);
-let facturardespachadoModalObj = null;
+const facturardespachadoModal = ref(null);
+const facturardespachadoModalObj = useBootstrapModal(facturardespachadoModal);
 
-let levantarClienteModal = ref(null);
-let levantarClienteModalObj = null;
+const levantarClienteModal = ref(null);
+const levantarClienteModalObj = useBootstrapModal(levantarClienteModal);
 
-let filtrarClienteModal = ref(null);
-let filtrarClienteModalObj = null;
+const filtrarClienteModal = ref(null);
+const filtrarClienteModalObj = useBootstrapModal(filtrarClienteModal);
 
 function levantarFiltrocliente() {
   store.commit("resetClientes");
@@ -502,8 +502,8 @@ function motivoEspera(pedido) {
   swalWarning(msg);
 }
 
-let verActualizarDatos = ref(null);
-let verActualizarDatosObj = null;
+const verActualizarDatos = ref(null);
+const verActualizarDatosObj = useBootstrapModal(verActualizarDatos);
 let datosModalAcPedido = ref({});
 
 async function operModalActualizarDatosPedido(pedido) {
@@ -523,8 +523,8 @@ function closeModalActualizarDatosPedido() {
   verActualizarDatosObj.hide();
 }
 
-let verModalUpdateDateInvoice = ref(null);
-let verModalUpdateDateInvoiceObj = null;
+const verModalUpdateDateInvoice = ref(null);
+const verModalUpdateDateInvoiceObj = useBootstrapModal(verModalUpdateDateInvoice);
 let datosModalPedidoAcDate = ref({});
 
 
@@ -534,13 +534,6 @@ function closeModalUpdateDateInvoice() {
 }
 
 onMounted(() => {
-  verpedidoModalObj = new Modal(verpedidoModal.value);
-  levantarClienteModalObj = new Modal(levantarClienteModal.value);
-  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
-  facturarexistenteModalObj = new Modal(facturarexistenteModal.value);
-  facturardespachadoModalObj = new Modal(facturardespachadoModal.value);
-  verActualizarDatosObj = new Modal(verActualizarDatos.value);
-  verModalUpdateDateInvoiceObj = new Modal(verModalUpdateDateInvoice.value);
   // Remove labels from
   document.querySelectorAll("#datasetLength label").forEach((el) => {
     el.remove();

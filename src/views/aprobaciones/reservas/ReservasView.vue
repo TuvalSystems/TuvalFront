@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, nextTick, onBeforeUnmount } from "vue";
-import { Modal } from "bootstrap";
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import BaseTable from "@/components/BaseTable.vue";
 import { swalError } from "@/functions/swal-alert.js";
 
@@ -72,8 +72,8 @@ const handleClick = ({ row, col }) => {
   }
 };
 
-let verCotizacionDetalleModal = ref(null);
-let verCotizacionDetalleModalObj = null;
+const verCotizacionDetalleModal = ref(null);
+const verCotizacionDetalleModalObj = useBootstrapModal(verCotizacionDetalleModal);
 let datosModalCotizacionDetalle = ref(null);
 let datosModalCotizacionSegmento = ref(null);
 
@@ -123,11 +123,13 @@ function unLockedModal(id) {
   modalLocks.value = m;
 }
 
-let verDetalleCotizacionAprobacionModal = ref(null);
-let verDetalleCotizacionAprobacionModalObj = null;
+const verDetalleCotizacionAprobacionModal = ref(null);
+const verDetalleCotizacionAprobacionModalObj = useBootstrapModal(
+  verDetalleCotizacionAprobacionModal
+);
 let dataModalReserva = ref(null);
-let verUsoFacturaDemandaModalObj = null;
-let verUsoFacturaDemandaModal = ref(null);
+const verUsoFacturaDemandaModal = ref(null);
+const verUsoFacturaDemandaModalObj = useBootstrapModal(verUsoFacturaDemandaModal);
 const dataModal = ref(null);
 async function verModalAprobacionReserva(row) {
   if (row.tipo_reserva_id === 1) {
@@ -203,8 +205,10 @@ function unLockedModalCancel(id) {
   modalCancelLocks.value = m;
 }
 
-let verModalRechazarReservaModal = ref(null);
-let verModalRechazarReservaModalObj = null;
+const verModalRechazarReservaModal = ref(null);
+const verModalRechazarReservaModalObj = useBootstrapModal(
+  verModalRechazarReservaModal
+);
 const dataRechazoModal = ref(null);
 async function verModalRechazar(row) {
   if (!row || row.id === null) return;
@@ -230,22 +234,10 @@ async function closeModalRechazarReserva() {
   refresh();
 }
 
-function ensureModals() {
-  verCotizacionDetalleModalObj = new Modal(verCotizacionDetalleModal.value);
-  verModalRechazarReservaModalObj = new Modal(
-    verModalRechazarReservaModal.value
-  );
-  verDetalleCotizacionAprobacionModalObj = new Modal(
-    verDetalleCotizacionAprobacionModal.value
-  );
-  verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
-  filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
-}
-
 /** filtro y busqueda de clientes */
 
-let filtrarClienteModal = ref(null);
-let filtrarClienteModalObj = null;
+const filtrarClienteModal = ref(null);
+const filtrarClienteModalObj = useBootstrapModal(filtrarClienteModal);
 function levantarFiltrocliente() {
   filtrarClienteModalObj.show();
 }
@@ -266,7 +258,6 @@ onMounted(async () => {
   if (tipoReservasStore.tipoReservas.length == 0) {
     tipoReservasStore.fetchListTypeReserved();
   }
-  ensureModals();
   if (!table.items.length && !table.loading) {
     fetchReservationRequests(1);
   }
