@@ -54,7 +54,7 @@ const AprobacionesDevoluciones = () =>
   import("@/views/aprobaciones/devoluciones/DevolucionesView.vue");
 
 const AprobacionesReservas = () =>
-  import("@/views/aprobaciones/ReservasView.vue");
+  import("@/views/aprobaciones/reservas/ReservasView.vue");
 // Devoluciones
 
 const DevolucionesPedidos = () =>

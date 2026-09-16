@@ -6,7 +6,7 @@ import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import VerPedidoModal from "../modals/VerPedidoModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
-import FiltrarCliente from "../modals/FiltrarCliente.vue";
+import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
 import FacturarExistenteModal from "../modals/FacturarExistenteModal.vue";
 import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
 import flatPickr from "vue-flatpickr-component";
@@ -15,6 +15,7 @@ import { format } from "@/functions";
 import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
 import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
 import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
+import { useCustomerFilterSearch } from "@/composables/venta/cliente/useCustomerFilterSearch";
 import {
   swalSuccess,
   swalWarning,
@@ -39,6 +40,16 @@ const flatPickrState = reactive({
   },
 });
 
+//composable para busqueda de clientes
+const {
+  clients,
+  errorSearchClient,
+  loadingSearch,
+  showCustomerResults,
+  searchCustomerFilters,
+  updateCustomerSearchTerm,
+  cleanSearchClients,
+} = useCustomerFilterSearch();
 // Helper variables
 const cols = reactive([
   {
@@ -127,6 +138,9 @@ function onSort(event, i) {
   sortEl.sort = toset;
 }
 
+// variables de filtro de cliente
+const selectedCustomer = ref(null);
+
 const store = useStore();
 const templateStore = useTemplateStore();
 const router = useRouter();
@@ -136,11 +150,11 @@ const tipo = ref(null);
 const fecha_desde = ref(null);
 const fecha_hasta = ref(null);
 const estado_filtro = ref(null);
-const filtrar_cliente = computed(() => store.state.filtrar_cliente);
 
 function limpiarFecha() {
   fecha_desde.value = null;
   fecha_hasta.value = null;
+  selectedCustomer.value = null;
   store.commit("resetFiltrarCliente");
   llenarpedidos("todos");
 }
@@ -248,7 +262,7 @@ async function llenarpedidos(estado) {
     estado: estado,
     fecha_desde: fecha_desde.value,
     fecha_hasta: fecha_hasta.value,
-    cliente: filtrar_cliente.value,
+    cliente: selectedCustomer.value,
   });
   store
     .dispatch("llenarpedidos", consulta)
@@ -261,19 +275,7 @@ async function llenarpedidos(estado) {
     });
 }
 
-function filtrarCliente() {
-  filtrarClienteModalObj.hide();
-  llenarpedidos(estado_filtro.value);
-}
-
 function refreshllenarpedidos() {
-  // store.dispatch('sendfacturasgp').then(() => {
-  //   verpedidos.value = true;
-  //   llenarpedidos('todos');
-  // }).catch(err => {
-  //     verpedidos.value = false;
-  //     errorMsg.value = err.response.data.error
-  // });
   llenarpedidos("todos");
 }
 
@@ -458,7 +460,7 @@ async function facturarpedido(pedido) {
     }
     // CASO 2: Error Crítico (500, Red, etc.)
     // Actualizamos la variable reactiva si la usas en el template
-    if (typeof errorMsg !== "undefined") {
+    if (typeof errorMsg.value !== "undefined") {
       errorMsg.value = message;
     }
 
@@ -525,23 +527,6 @@ let verModalUpdateDateInvoice = ref(null);
 let verModalUpdateDateInvoiceObj = null;
 let datosModalPedidoAcDate = ref({});
 
-const BLOCKED_STATES = ["facturado", "rechazado", "anulada", "eliminado"];
-function canRescheduleInvoice(row) {
-  return (
-    row.origen === "factura_demanda" && !BLOCKED_STATES.includes(row.estado)
-  );
-}
-async function openModalUpdateDateInvoice(pedido) {
-  if (pedido.origen !== "factura_demanda") {
-    swalWarning(
-      "Solo se puede reprogramar la facturación de pedidos de origen reserva"
-    );
-    return;
-  }
-  datosModalPedidoAcDate.value = pedido;
-  await nextTick();
-  verModalUpdateDateInvoiceObj.show();
-}
 
 function closeModalUpdateDateInvoice() {
   datosModalPedidoAcDate.value = {};
@@ -610,6 +595,16 @@ async function cancelOrderStatusSending(id) {
   const msg = res?.message || "No se pudo actualizar el estado del usuario";
   (res?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 }
+
+/** filtro y busqueda de clientes */
+
+async function handleCustomerSelected(selection) {
+  selectedCustomer.value = selection;
+  showCustomerResults.value = false;
+  cleanSearchClients();
+  llenarpedidos(estado_filtro.value);
+  filtrarClienteModalObj.hide();
+}
 </script>
 <template>
   <!-- Hero -->
@@ -641,8 +636,8 @@ async function cancelOrderStatusSending(id) {
             >
               <i class="fa fa-user"></i> Cliente
             </button>
-            <code class="text-muted" v-if="filtrar_cliente">
-              {{ filtrar_cliente.CLI_RUC }}</code
+            <code class="text-muted" v-if="selectedCustomer">
+              {{ selectedCustomer.CLI_RUC }}</code
             >
           </div>
           <div class="block-options-item">
@@ -1240,6 +1235,7 @@ async function cancelOrderStatusSending(id) {
       </div>
     </div>
   </div>
+  <!-- modal de filtro de clientes -->
   <div
     class="modal"
     id="modal-filtrar-cliente"
@@ -1251,7 +1247,15 @@ async function cancelOrderStatusSending(id) {
   >
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
       <div class="modal-content">
-        <FiltrarCliente @filtrarCliente="filtrarCliente()"></FiltrarCliente>
+        <FiltrarCliente
+          :clients="clients"
+          :loading="loadingSearch"
+          :error-search="errorSearchClient"
+          :show-results="showCustomerResults"
+          @search-term-change="updateCustomerSearchTerm"
+          @search-customers="searchCustomerFilters"
+          @select-customer="handleCustomerSelected"
+        ></FiltrarCliente>
       </div>
     </div>
   </div>

@@ -1,41 +1,62 @@
 <script setup>
-import {
-  onMounted,
-  ref,
-  nextTick,
-  onBeforeUnmount,
-} from "vue";
+import { onMounted, ref, nextTick, onBeforeUnmount } from "vue";
 import { Modal } from "bootstrap";
 import BaseTable from "@/components/BaseTable.vue";
-import {
-  swalError,
-} from "@/functions/swal-alert.js";
-import { useQuotationReserveRequests } from "@/composables/aprobaciones/reservas/useQuotationReserveRequests";
-import { useApprovalsGridRefresh } from "@/composables/aprobaciones/reservas/useApprovalsGridRefresh";
-import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas/useQuotationReserveApproval";
+import { swalError } from "@/functions/swal-alert.js";
+
+//stores
+import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
+import { useTipoReservasStore } from "@/stores/cotizaciones/reservas/useTipoReservasStore";
+
+// modals
 import VerCotizacionDetalleReservaComponent from "@/views/aprobaciones/modals/VerCotizacionDetalleReservaModal.vue";
 import verCotizacionAprobacionReservaComponent from "@/views/aprobaciones/modals/verCotizacionAprobacionReservaModal.vue";
 import verCotizacionReservaRechazarModal from "@/views/aprobaciones/modals/verCotizacionReservaRechazarModal.vue";
 import verUsoFacturaDemandaComponent from "@/views/ventas/reservas/modal/verUsoFacturaDemandaModal.vue";
-import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
-import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
-import FiltrarClienteConsulta from "@/views/bodegas/modals/FiltrarClienteConsulta.vue";
+
+//componente
+import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
+
+//composables
+import { useApprovalsGridRefresh } from "@/composables/aprobaciones/reservas/useApprovalsGridRefresh";
+import { useQuotationReserveRequests } from "@/composables/aprobaciones/reservas/useQuotationReserveRequests";
+import { useQuotationReserveApproval } from "@/composables/aprobaciones/reservas/useQuotationReserveApproval";
+import { useCustomerFilterSearch } from "@/composables/venta/cliente/useCustomerFilterSearch";
+
 import { formatPriceJm } from "@/functions";
-import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits'
-const { columns, listPerpage, table, refresh, fetchReservationRequests, onSort, estadoClass,
-  totalClass } =
-  useQuotationReserveRequests();
+import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
+const {
+  columns,
+  listPerpage,
+  table,
+  refresh,
+  fetchReservationRequests,
+  onSort,
+  estadoClass,
+  totalClass,
+} = useQuotationReserveRequests();
 const ptoVta = usePtoVtaStore();
-const tipoReservasStore = useTipoReservasStore()
+const tipoReservasStore = useTipoReservasStore();
 
 const {
   fetchQuotationWithDetial,
   fetchQuotationWithDetialAndStock,
-  fetchQuotationWithDetialAndStockActive
+  fetchQuotationWithDetialAndStockActive,
 } = useQuotationReserveApproval();
 const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits();
 
+const {
+  clients,
+  errorSearchClient,
+  loadingSearch,
+  showCustomerResults,
+  searchCustomerFilters,
+  updateCustomerSearchTerm,
+  cleanSearchClients,
+} = useCustomerFilterSearch();
 
+// variables de filtro de cliente
+const selectedCustomer = ref(null);
 
 /** para bloquear fila de la tabla cuando
  * se esta visualizando la informacion de la cotizacion
@@ -57,14 +78,14 @@ let datosModalCotizacionDetalle = ref(null);
 let datosModalCotizacionSegmento = ref(null);
 
 function lock(id) {
-  const s = new Set(lockedIds.value)
-  s.add(id)
-  lockedIds.value = s
+  const s = new Set(lockedIds.value);
+  s.add(id);
+  lockedIds.value = s;
 }
 function unlock(id) {
-  const s = new Set(lockedIds.value)
-  s.delete(id)
-  lockedIds.value = s
+  const s = new Set(lockedIds.value);
+  s.delete(id);
+  lockedIds.value = s;
 }
 async function visualizarDetalleCotización(id) {
   if (lockedIds.value.has(id)) return;
@@ -88,18 +109,18 @@ const modalLocks = ref(new Map());
 const isModalLocked = (modalRow) => {
   const id = typeof modalRow === "object" ? modalRow?.id : modalRow;
   return modalLocks.value.get(String(id)) === true;
-}
+};
 
 function lockModal(id) {
-  const m = new Map(modalLocks.value)
-  m.set(String(id), true)
+  const m = new Map(modalLocks.value);
+  m.set(String(id), true);
   modalLocks.value = m;
 }
 
 function unLockedModal(id) {
-  const m = new Map(modalLocks.value)
-  m.delete(String(id))
-  modalLocks.value = m
+  const m = new Map(modalLocks.value);
+  m.delete(String(id));
+  modalLocks.value = m;
 }
 
 let verDetalleCotizacionAprobacionModal = ref(null);
@@ -114,15 +135,13 @@ async function verModalAprobacionReserva(row) {
   } else if (row.tipo_reserva_id === 2) {
     openModalAprobacionFacturaDemanda(row);
   }
-
-
 }
 
 // modal aprobacion  reserva
 async function openModalAprobacionReserva(row) {
-  if (!row || row.id === null) return
-  const id = row.id
-  if (isModalLocked(id)) return
+  if (!row || row.id === null) return;
+  const id = row.id;
+  if (isModalLocked(id)) return;
   dataModalReserva.value = null;
   lockModal(id);
   const resp = await fetchQuotationWithDetialAndStock(row.id);
@@ -144,9 +163,9 @@ async function closeModalAprobacionReserva() {
 
 // modal de aprobacion a factura demanda
 async function openModalAprobacionFacturaDemanda(row) {
-  if (!row || row.id === null) return
-  const id = row.id
-  if (isModalLocked(id)) return
+  if (!row || row.id === null) return;
+  const id = row.id;
+  if (isModalLocked(id)) return;
   dataModal.value = null;
   lockModal(id);
   const resp = await fetchQuotationWithDetialAndStockActive(row.id);
@@ -166,32 +185,31 @@ async function closeModalUsoFacturaDemanda() {
   refresh();
 }
 
-
 /** rechazo de reservca */
 const modalCancelLocks = ref(new Map());
 const isModalCancelLocked = (modalRow) => {
   const id = typeof modalRow === "object" ? modalRow?.id : modalRow;
   return modalCancelLocks.value.get(String(id)) === true;
-}
+};
 function lockModalCancel(id) {
-  const m = new Map(modalCancelLocks.value)
-  m.set(String(id), true)
+  const m = new Map(modalCancelLocks.value);
+  m.set(String(id), true);
   modalCancelLocks.value = m;
 }
 
 function unLockedModalCancel(id) {
-  const m = new Map(modalCancelLocks.value)
-  m.delete(String(id))
-  modalCancelLocks.value = m
+  const m = new Map(modalCancelLocks.value);
+  m.delete(String(id));
+  modalCancelLocks.value = m;
 }
 
 let verModalRechazarReservaModal = ref(null);
 let verModalRechazarReservaModalObj = null;
 const dataRechazoModal = ref(null);
 async function verModalRechazar(row) {
-  if (!row || row.id === null) return
-  const id = row.id
-  if (isModalCancelLocked(id)) return
+  if (!row || row.id === null) return;
+  const id = row.id;
+  if (isModalCancelLocked(id)) return;
 
   dataRechazoModal.value = null;
   lockModalCancel(id);
@@ -204,7 +222,6 @@ async function verModalRechazar(row) {
   verModalRechazarReservaModalObj.show();
   await nextTick();
   unLockedModalCancel(id);
-
 }
 
 async function closeModalRechazarReserva() {
@@ -215,35 +232,39 @@ async function closeModalRechazarReserva() {
 
 function ensureModals() {
   verCotizacionDetalleModalObj = new Modal(verCotizacionDetalleModal.value);
-  verModalRechazarReservaModalObj = new Modal(verModalRechazarReservaModal.value);
+  verModalRechazarReservaModalObj = new Modal(
+    verModalRechazarReservaModal.value
+  );
   verDetalleCotizacionAprobacionModalObj = new Modal(
     verDetalleCotizacionAprobacionModal.value
   );
   verUsoFacturaDemandaModalObj = new Modal(verUsoFacturaDemandaModal.value);
   filtrarClienteModalObj = new Modal(filtrarClienteModal.value);
-
 }
 
+/** filtro y busqueda de clientes */
 
 let filtrarClienteModal = ref(null);
 let filtrarClienteModalObj = null;
 function levantarFiltrocliente() {
   filtrarClienteModalObj.show();
 }
-function filtrarClienteConsulta(clienteRuc) {
+
+async function handleCustomerSelected(selection) {
+  selectedCustomer.value = selection;
+  showCustomerResults.value = false;
+  table.cliente = selectedCustomer.value.CLI_RUC;
+  cleanSearchClients();
   filtrarClienteModalObj.hide();
-  table.cliente = clienteRuc;
 }
 
-
-
 /* ---- SOCKET: approvals ---- */
-let stopGridSocket
+let stopGridSocket;
 
 onMounted(async () => {
   ptoVta.fetchAll();
   if (tipoReservasStore.tipoReservas.length == 0) {
-    tipoReservasStore.fetchListTypeReserved()
+    tipoReservasStore.fetchListTypeReserved();
   }
   ensureModals();
   if (!table.items.length && !table.loading) {
@@ -256,16 +277,14 @@ onMounted(async () => {
     // Si quieres log de suscripción:
     // onSubscribed: () => console.log("📡 Suscrito: refresh-authorized-reservations"),
     // onEvent: (e) => console.log('🔔 ReservedListAuthorizedChanged:', e),
-  })
+  });
 
   if (puntosVentaReservaLimitsStore.puntosVentaReservaLimits.length == 0) {
-    puntosVentaReservaLimitsStore.fetchPuntosVentaReservaLimits()
+    puntosVentaReservaLimitsStore.fetchPuntosVentaReservaLimits();
   }
-
 });
 onBeforeUnmount(() => {
-  stopGridSocket?.()
-
+  stopGridSocket?.();
 });
 </script>
 <template>
@@ -285,8 +304,13 @@ onBeforeUnmount(() => {
     <BaseBlock title="Aprobaciones Reservas" content-full rounded>
       <template #options>
         <div class="block-options-item">
-          <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
-            aria-label="Refrescar">
+          <button
+            class="btn btn-outline-primary btn-sm"
+            @click="refresh"
+            :disabled="table.loading"
+            title="Refrescar"
+            aria-label="Refrescar"
+          >
             <i v-if="!table.loading" class="fa fa-refresh"></i>
             <span v-else class="spinner-border spinner-border-sm"></span>
           </button>
@@ -298,7 +322,11 @@ onBeforeUnmount(() => {
           <small class="text-muted d-block mb-1">Sucursal</small>
           <select class="form-control form-control-sm" v-model="table.ptovta">
             <option value="">Todas</option>
-            <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
+            <option
+              v-for="p in ptoVta.list"
+              :key="p.PTO_VTA_BOD_PUNTO_VENTA"
+              :value="p.PTO_VTA_BOD_PUNTO_VENTA"
+            >
               {{ p.PTO_VTA_DESCRIPCION }}
             </option>
           </select>
@@ -306,8 +334,12 @@ onBeforeUnmount(() => {
         <!-- sucursal -->
         <div class="col-12 col-sm-6 col-lg-2">
           <small class="text-muted d-block mb-1">Cliente</small>
-          <button type="button" title="Seleccionar cliente" @click="levantarFiltrocliente()"
-            class="btn btn-outline-info btn-sm w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-2">
+          <button
+            type="button"
+            title="Seleccionar cliente"
+            @click="levantarFiltrocliente()"
+            class="btn btn-outline-info btn-sm w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-2"
+          >
             <i class="fa fa-user"></i>
             <span>Cliente</span>
           </button>
@@ -315,11 +347,17 @@ onBeforeUnmount(() => {
         <!-- sucursal -->
         <div class="col-12 col-sm-6 col-lg-2">
           <small class="text-muted d-block mb-1">Tipo Reserva</small>
-          <select class="form-select form-select-sm" v-model="table.tipoReserva">
+          <select
+            class="form-select form-select-sm"
+            v-model="table.tipoReserva"
+          >
             <option value="">Todos</option>
-            <option v-for="item in tipoReservasStore.tipoReservas" :key="item.value" :value="item.id"> {{
-              item.descripcion
-            }}
+            <option
+              v-for="item in tipoReservasStore.tipoReservas"
+              :key="item.value"
+              :value="item.id"
+            >
+              {{ item.descripcion }}
             </option>
           </select>
         </div>
@@ -327,44 +365,87 @@ onBeforeUnmount(() => {
       <div class="row justify-content-between align-items-center mb-3">
         <div class="col-md-1">
           <select v-model="table.perPage" class="form-select">
-            <option v-for="item in listPerpage" :key="item.value" :value="item.value"> {{ item.label }}
+            <option
+              v-for="item in listPerpage"
+              :key="item.value"
+              :value="item.value"
+            >
+              {{ item.label }}
             </option>
           </select>
         </div>
         <div class="col-md-4">
-          <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+          <input
+            v-model="table.searchTerm"
+            placeholder="Buscar..."
+            class="form-control"
+          />
         </div>
       </div>
-      <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
-        :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
-        :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
-        @onPageChange="fetchReservationRequests" @onSearch="table.searchTerm" @onClick="handleClick"
-        @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">
+      <BaseTable
+        :columns="columns"
+        :data="table.items"
+        :loading="table.loading"
+        :perPage="table.perPage"
+        :totalItems="table.totalItems"
+        :currentPage="table.currentPage"
+        :totalPage="table.totalPage"
+        :sortField="table.sortField"
+        :sortOrder="table.sortOrder"
+        @onSort="onSort"
+        @onPageChange="fetchReservationRequests"
+        @onSearch="table.searchTerm"
+        @onClick="handleClick"
+        @onKeyDown="handleClick"
+        :is-row-disabled="isRowDisabled"
+      >
         <!-- Slot específico para la columna 'estado' -->
         <template #cell-estado="{ value, row }">
-          <span :class="estadoClass(value)" style="font-size:12px">{{
+          <span :class="estadoClass(value)" style="font-size: 12px">{{
             row.estado ?? "N/A"
           }}</span>
         </template>
         <template #cell-bodegas_uso="{ value, row }">
-          <code v-for="(bod, index) in value" :key="`${row.id}-bodega-${index}`" class="d-block mb-1"
-            style="width: fit-content;">
-        {{ bod }}
-    </code>
+          <code
+            v-for="(bod, index) in value"
+            :key="`${row.id}-bodega-${index}`"
+            class="d-block mb-1"
+            style="width: fit-content"
+          >
+            {{ bod }}
+          </code>
         </template>
         <template #cell-total="{ value, row }">
-          <span :class="totalClass(value)"> ${{ formatPriceJm(row.total) ?? "N/A" }}</span>
+          <span :class="totalClass(value)">
+            ${{ formatPriceJm(row.total) ?? "N/A" }}</span
+          >
         </template>
         <template #actions="{ row }">
-          <button type="button" class="btn btn-primary btn-sm mx-1" @click="verModalAprobacionReserva(row)"
-            :disabled="isModalLocked(row)">
-            <span v-if="isModalLocked(row)" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm mx-1"
+            @click="verModalAprobacionReserva(row)"
+            :disabled="isModalLocked(row)"
+          >
+            <span
+              v-if="isModalLocked(row)"
+              class="spinner-border spinner-border-sm"
+              aria-hidden="true"
+            ></span>
             <i v-else class="fa-solid fa-circle-check me-1"></i>
             <!-- Aprobar -->
           </button>
-          <button type="button" class="btn btn-danger btn-sm" @click="verModalRechazar(row)"
-            :disabled="isModalCancelLocked(row)">
-            <span v-if="isModalCancelLocked(row)" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="btn btn-danger btn-sm"
+            @click="verModalRechazar(row)"
+            :disabled="isModalCancelLocked(row)"
+          >
+            <span
+              v-if="isModalCancelLocked(row)"
+              class="spinner-border spinner-border-sm"
+              aria-hidden="true"
+            ></span>
             <i v-else class="fa fa-ban me-11"></i>
             <!-- Rechazar -->
           </button>
@@ -384,66 +465,114 @@ onBeforeUnmount(() => {
 
   <!-- Modales para visualizar el detalle de la cotización -->
   <!-- Modal de reserva -->
-  <div class="modal" id="modal-cotizacion-detalle" tabindex="-1" aria-labelledby="modal-cotizacion-detalle"
-    aria-hidden="true" ref="verCotizacionDetalleModal">
+  <div
+    class="modal"
+    id="modal-cotizacion-detalle"
+    tabindex="-1"
+    aria-labelledby="modal-cotizacion-detalle"
+    aria-hidden="true"
+    ref="verCotizacionDetalleModal"
+  >
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-        <VerCotizacionDetalleReservaComponent v-if="datosModalCotizacionDetalle &&
-          datosModalCotizacionSegmento &&
-          datosModalCotizacionDetalle.id" :infoReserva="datosModalCotizacionDetalle"
-          :segmento="datosModalCotizacionSegmento">
+        <VerCotizacionDetalleReservaComponent
+          v-if="
+            datosModalCotizacionDetalle &&
+            datosModalCotizacionSegmento &&
+            datosModalCotizacionDetalle.id
+          "
+          :infoReserva="datosModalCotizacionDetalle"
+          :segmento="datosModalCotizacionSegmento"
+        >
         </VerCotizacionDetalleReservaComponent>
       </div>
     </div>
   </div>
 
   <!-- Modal de aprobación de reservas -->
-  <div class="modal" id="modal-cotizacion-reserva" tabindex="-1" aria-labelledby="modal-cotizacion-reserva"
-    aria-hidden="true" ref="verDetalleCotizacionAprobacionModal">
+  <div
+    class="modal"
+    id="modal-cotizacion-reserva"
+    tabindex="-1"
+    aria-labelledby="modal-cotizacion-reserva"
+    aria-hidden="true"
+    ref="verDetalleCotizacionAprobacionModal"
+  >
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-        <verCotizacionAprobacionReservaComponent v-if="dataModalReserva && dataModalReserva.reserva"
-          :reserva="dataModalReserva" @closeModalAprobacionReserva="closeModalAprobacionReserva()">
+        <verCotizacionAprobacionReservaComponent
+          v-if="dataModalReserva && dataModalReserva.reserva"
+          :reserva="dataModalReserva"
+          @closeModalAprobacionReserva="closeModalAprobacionReserva()"
+        >
         </verCotizacionAprobacionReservaComponent>
       </div>
     </div>
   </div>
 
-
   <!-- Moda de rechazo de reservas -->
-  <div class="modal" id="modal-rechazo-reserva" tabindex="-1" aria-labelledby="modal-rechazo-reserva" aria-hidden="true"
-    ref="verModalRechazarReservaModal">
+  <div
+    class="modal"
+    id="modal-rechazo-reserva"
+    tabindex="-1"
+    aria-labelledby="modal-rechazo-reserva"
+    aria-hidden="true"
+    ref="verModalRechazarReservaModal"
+  >
     <div class="modal-dialog modal-md modal-dialog-centered">
       <div class="modal-content">
-        <verCotizacionReservaRechazarModal v-if="dataRechazoModal && dataRechazoModal.reserva"
-          :reserva="dataRechazoModal" @closeModalRechazarReserva="closeModalRechazarReserva()">
+        <verCotizacionReservaRechazarModal
+          v-if="dataRechazoModal && dataRechazoModal.reserva"
+          :reserva="dataRechazoModal"
+          @closeModalRechazarReserva="closeModalRechazarReserva()"
+        >
         </verCotizacionReservaRechazarModal>
       </div>
     </div>
   </div>
 
-
   <!-- Modal para generar facturas a demanda -->
-  <div class="modal" id="modal-uso-reserva" tabindex="-1" aria-labelledby="modal-uso-reserva" aria-hidden="false"
-    ref="verUsoFacturaDemandaModal">
+  <div
+    class="modal"
+    id="modal-uso-reserva"
+    tabindex="-1"
+    aria-labelledby="modal-uso-reserva"
+    aria-hidden="false"
+    ref="verUsoFacturaDemandaModal"
+  >
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-        <verUsoFacturaDemandaComponent v-if="dataModal" :reserva="dataModal"
-          @closeModalUsoFacturaDemanda="closeModalUsoFacturaDemanda()">
+        <verUsoFacturaDemandaComponent
+          v-if="dataModal"
+          :reserva="dataModal"
+          @closeModalUsoFacturaDemanda="closeModalUsoFacturaDemanda()"
+        >
         </verUsoFacturaDemandaComponent>
       </div>
     </div>
   </div>
 
   <!-- Modal para filtro de cliente -->
-  <div class="modal" id="modal-filtrar-cliente" tabindex="-1" aria-labelledby="modal-filtrar-cliente" aria-hidden="true"
-    ref="filtrarClienteModal">
+  <div
+    class="modal"
+    id="modal-filtrar-cliente"
+    tabindex="-1"
+    aria-labelledby="modal-filtrar-cliente"
+    aria-hidden="true"
+    ref="filtrarClienteModal"
+  >
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-        <FiltrarClienteConsulta @filtrarClienteConsulta="filtrarClienteConsulta"></FiltrarClienteConsulta>
+        <FiltrarCliente
+          :clients="clients"
+          :loading="loadingSearch"
+          :error-search="errorSearchClient"
+          :show-results="showCustomerResults"
+          @search-term-change="updateCustomerSearchTerm"
+          @search-customers="searchCustomerFilters"
+          @select-customer="handleCustomerSelected"
+        ></FiltrarCliente>
       </div>
     </div>
   </div>
-
-
 </template>

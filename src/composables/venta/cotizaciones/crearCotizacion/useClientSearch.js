@@ -3,12 +3,12 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, reactive } from "vue";
 import { swalError } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
+import { CLIENT_API_ROUTES } from "@/constants/apiRoutes/ventas/cliente/clientRoutes";
 
 export function useClientSearch() {
     const store = useStore();
     const ptoVtaSelect = store.state.puntodeventaselect;
     const { run } = useApiAction();
-    const apiSearchClients = 'consultas/buscar-clientes';
     const loadingSearch = ref(false);
     const dataSearch = reactive({
         search: null,
@@ -21,7 +21,7 @@ export function useClientSearch() {
 
 
     async function searchClients() {
-        return  run(() => axiosClient.post(apiSearchClients, dataSearch), {
+        return  run(() => axiosClient.post(CLIENT_API_ROUTES.ACTIONS.SEARCH_CLIENT, dataSearch), {
             loadingRef: loadingSearch,
             successMessage: 'Proceso realizado exitosamente',
             onSuccess: (list) => {

@@ -139,7 +139,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import {  toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 import { formatPriceJm } from "@/functions";
 

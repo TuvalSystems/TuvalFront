@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, watch, ref } from 'vue';
+import { computed } from 'vue';
+import {  watch, ref } from 'vue';
 const props = defineProps({
     clients: {
         type: Array,
@@ -20,7 +21,7 @@ const props = defineProps({
 });
 const searchTerm = ref('');
 const emit = defineEmits(['search-term-change', 'search-customers', 'select-customer']);
-
+const clientsRef = computed(() =>  props.clients);
 watch(searchTerm, (value) => {
     emit('search-term-change', value ?? '');
 });
@@ -63,7 +64,7 @@ function selectCustomer(client) {
         </div>
     </div>
 
-    <BaseBlock v-else-if="showResults && clients.length > 0" class="mb-2" transparent rounded>
+    <BaseBlock v-else-if="showResults && clientsRef.length > 0" class="mb-2" transparent rounded>
         <div class="table-responsive">
             <table class="table table-hover table-sm align-middle">
                 <thead>
@@ -79,7 +80,7 @@ function selectCustomer(client) {
                 </thead>
 
                 <tbody>
-                    <tr v-for="(client, index) in clients" :key="client.id ?? client.CLI_RUC ?? index"
+                    <tr v-for="(client, index) in clientsRef" :key="client.id ?? client.CLI_RUC ?? index"
                         class="cursor-pointer" @click="selectCustomer(client)">
                         <td class="fs-sm">
                             <span class="text-primary fw-semibold">
