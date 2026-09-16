@@ -342,11 +342,11 @@ import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { format } from "@/functions";
-import VerNoVentaModalComponent from "../modals/verNoVentaModal.vue";
+import VerNoVentaModalComponent from "./modals/verNoVentaModal.vue";
 import { useMotivosStore } from '@/stores/cotizaciones/useMotivosStore'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore'
 import { usePuntosVentaReservaLimits } from '@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits'
-import VerSolicitudReservaModalComponent from "@/views/ventas/modals/verSolicitudReservaModal.vue";
+import VerSolicitudReservaModalComponent from "@/views/ventas/cotizaciones/modals/verSolicitudReservaModal.vue";
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 import { useUpdateQuotationStatus } from "@/composables/aprobaciones/cotizaciones/useUpdateQuotationStatus";
 import { useQuotationReserveRequestSale } from '@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale';

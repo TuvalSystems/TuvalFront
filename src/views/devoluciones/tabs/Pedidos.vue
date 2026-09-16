@@ -132,15 +132,13 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore} from 'vuex'
-import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import SolicitarDevolucion from "../modals/SolicitarDevolucion.vue"
 import VerPedidoModal from "../../ventas/modals/VerPedidoModal.vue";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import { formatPrice, format } from "@/functions";
+import {  swalError } from "@/functions/swal-alert.js";
+import {  format } from "@/functions";
 
 const store = useStore();
-const templateStore = useTemplateStore();
 const pedidos = computed(() => store.state.pedidos);
 const verpedido = ref({});
 const indexPedido = ref(null);

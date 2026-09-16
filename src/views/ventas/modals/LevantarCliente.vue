@@ -1,6 +1,5 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
-import { useStore } from 'vuex'
 import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
@@ -20,7 +19,6 @@ const {
 
   //customer
   infoClient,
-  infoSegmento,
   loadingAvailableCredit,
   fetchAvailableCreditCustomer,
 
@@ -37,7 +35,6 @@ const {
 } = useClientSearch();
 const templateStore = useTemplateStore();
 const router = useRouter();
-const store = useStore();
 
 
 

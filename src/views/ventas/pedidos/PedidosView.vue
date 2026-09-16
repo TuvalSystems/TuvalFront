@@ -12,8 +12,8 @@ import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { format } from "@/functions";
-import verActualizarOrdYNotaModalComponent from "@/views/ventas/modals/verActualizarOrdenYNotaClienteModal.vue";
-import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
+import verActualizarOrdYNotaModalComponent from "@/views/ventas/pedidos/modals/verActualizarOrdenYNotaClienteModal.vue";
+import verActualizarFechaFacturaReserva from "@/views/ventas/pedidos/modals/verActualizarFechaFacturaReserva.vue";
 import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
 import { useCustomerFilterSearch } from "@/composables/venta/cliente/useCustomerFilterSearch";
 import {
