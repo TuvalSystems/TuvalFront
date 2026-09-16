@@ -44,7 +44,7 @@ function selectCustomer(client) {
 </script>
 
 <template>
-  <BaseBlock title="Filtrar cliente" class="mb-0 pb-4">
+  <BaseBlock title="Buscar cliente" class="mb-0 pb-4">
     <div class="row g-2 mb-2">
       <div class="col">
         <div class="input-group input-group-sm">
