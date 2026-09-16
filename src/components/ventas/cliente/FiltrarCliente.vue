@@ -3,6 +3,10 @@ import { computed } from "vue";
 import { watch, ref } from "vue";
 import { CUSTOMER_SEARCH_MIN_LENGTH } from "@/constants/customerSearch";
 const props = defineProps({
+  title: {
+    type: String,
+    default: "Buscar cliente",
+  },
   clients: {
     type: Array,
     default: () => [],
@@ -44,9 +48,10 @@ function selectCustomer(client) {
 </script>
 
 <template>
-  <BaseBlock title="Buscar cliente" class="mb-0 pb-4">
+  <BaseBlock :title="title" class="mb-0 pb-4">
     <div class="row g-2 mb-2">
-      <div class="col">
+      <slot name="filters"></slot>
+      <div :class="$slots.filters ? 'col-12 col-lg' : 'col'">
         <div class="input-group input-group-sm">
           <input
             v-model="searchTerm"
