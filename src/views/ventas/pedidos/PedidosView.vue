@@ -181,7 +181,6 @@ async function funcionverpedido(pedido) {
 }
 
 function levantarcliente(pedido) {
-  store.commit("resetCotizacion");
   levantarClienteModalObj.show();
   verpedido.value = pedido;
   tipo.value = "pedido";

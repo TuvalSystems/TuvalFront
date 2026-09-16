@@ -24,16 +24,12 @@ const props = defineProps({
 
 const {
   //process
-  laodingCreditApproval,
   approveCreditOrder,
-  loadingCreditRejection,
   rejectCreditOrder,
-  loadingCreditRejectionStock,
   rejectCreditOrderForStock
 } = useCreditOrdersActions();
 
 const {
-  loadingValidateStockOrderApproval,
   validateStockForOrderApproval
 } = useApprovalOrder();
 async function closeModalEvent() {

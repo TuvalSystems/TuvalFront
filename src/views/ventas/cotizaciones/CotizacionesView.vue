@@ -769,7 +769,6 @@ async function levantarcliente(pedido) {
     return;
   }
 
-  store.commit("resetCotizacion");
   levantarClienteModalObj.show();
   vercotizacion.value = pedido;
   tipo.value = "cotizacion";
