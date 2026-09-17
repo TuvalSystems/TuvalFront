@@ -1,6 +1,8 @@
 import { computed, reactive, ref, watch } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
+import { useStore } from "vuex";
+
 import {
     decimal,
     helpers,
@@ -35,7 +37,7 @@ const paymentAmountMaxLength = helpers.withMessage(
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
     maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
 );
-const CHECK_DUE_DATE_GRACE_DAYS = 1;
+const CHECK_DUE_DATE_GRACE_DAYS = 3;
 
 function resolveSource(source) {
     if (typeof source === "function") {
@@ -200,6 +202,16 @@ export function useInvoiceCollectionChecks({
     const invoiceRefreshVersion = computed(() => resolveSource(invoiceDataVersion) ?? 0);
     const checkPayload = reactive(createEmptyCheck());
 
+    const store = useStore();
+    const canBypassCheckDueDateLimit = computed(() => {
+        const user = store.state.user?.data;
+        return Number(user?.id) === 107 || [1, 2].includes(Number(user?.perfil_id));
+    });
+
+    const isCheckCondition = computed(() => {
+        return Boolean(client.value?.es_cheque);
+    });
+
     //vaidation 
     const v$ = useVuelidate(createCheckRule(), checkPayload);
     const showTableInvoices = ref(false);
@@ -270,8 +282,11 @@ export function useInvoiceCollectionChecks({
                 message: `No se pudo validar la fecha de vencimiento de la factura ${documentNumber}.`,
             };
         }
-
-        if (checkDueDate.getTime() > allowedCheckDueDate.getTime()) {
+        if (
+            isCheckCondition.value &&
+            !canBypassCheckDueDateLimit.value &&
+            checkDueDate.getTime() >= allowedCheckDueDate.getTime()
+        ) {
             return {
                 valid: false,
                 message:

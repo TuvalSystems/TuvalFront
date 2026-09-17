@@ -486,7 +486,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (noprospecto) {
     store.commit("resetNuevoCliente");
-    store.commit("resetCotizacion");
   }
 });
 </script>

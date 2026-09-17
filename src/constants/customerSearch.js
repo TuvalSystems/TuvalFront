@@ -1,0 +1,1 @@
+export const CUSTOMER_SEARCH_MIN_LENGTH = 4;

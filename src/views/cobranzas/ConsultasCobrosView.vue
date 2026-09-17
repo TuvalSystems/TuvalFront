@@ -17,90 +17,47 @@
   <!-- Page Content -->
   <div class="content">
     <!-- Full Table -->
-    <BaseBlock title="Por cliente" class="pb-4">
-      <form class="row row-cols-lg-auto g-3 align-items-center" @submit.prevent="onSubmit">
-        <div class="col-auto">
-          <div class="row">
-            <label class="col-sm-5 col-form-label text-end" for="fecha">Fecha Inicio:</label>
-            <div class="col-sm-7">
-              <div class="input-group date" style="max-width: 180px;">
-                <span class="input-group-text"><i class="far fa-calendar"></i></span>
-                <flat-pickr id="fecha" name="fecha" class="form-control fs-sm" placeholder="Y-m-d"
-                  v-model="set_fecha_inicio" :config="flatPickrState.fecha" />
-              </div>
+    <div class="mb-4">
+      <FiltrarCliente
+        title="Por cliente"
+        :clients="clients"
+        :loading="loadingSearch || loading"
+        :error-search="errorSearchClient"
+        :show-results="showCustomerResults"
+        @search-term-change="updateCustomerSearchTerm"
+        @search-customers="buscarclientes"
+        @select-customer="selectcliente"
+      >
+        <template #filters>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="input-group input-group-sm">
+              <label class="input-group-text" for="cobros-fecha-inicio">Fecha inicio</label>
+              <flat-pickr
+                id="cobros-fecha-inicio"
+                name="fecha_inicio"
+                class="form-control"
+                placeholder="Y-m-d"
+                v-model="set_fecha_inicio"
+                :config="flatPickrState.fecha"
+              />
             </div>
           </div>
-        </div>
-        <div class="col-auto">
-          <div class="row">
-            <label class="col-sm-5 col-form-label text-end" for="fecha">Fecha fin:</label>
-            <div class="col-sm-7">
-              <div class="input-group date" style="max-width: 180px;">
-                <span class="input-group-text"><i class="far fa-calendar"></i></span>
-                <flat-pickr id="fecha" name="fecha" class="form-control fs-sm" placeholder="Y-m-d"
-                  v-model="set_fecha_fin" :config="flatPickrState.fecha" />
-              </div>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="input-group input-group-sm">
+              <label class="input-group-text" for="cobros-fecha-fin">Fecha fin</label>
+              <flat-pickr
+                id="cobros-fecha-fin"
+                name="fecha_fin"
+                class="form-control"
+                placeholder="Y-m-d"
+                v-model="set_fecha_fin"
+                :config="flatPickrState.fecha"
+              />
             </div>
           </div>
-        </div>
-        <div class="col-12">
-          <label class="visually-hidden" for="buscar-cliente">Buscar cliente...</label>
-          <input type="text" class="form-control" :class="errorbuscarcliente ? 'is-invalid' : ''" id="buscar-cliente"
-            name="buscar-cliente" placeholder="Buscar cliente..." @keyup.enter="buscarclientes"
-            v-model="buscarcliente.busqueda" />
-        </div>
-        <div>
-          <button type="button" v-on:click="buscarclientes" class="btn btn-primary">Buscar</button>
-        </div>
-      </form>
-      <div v-if="clientes.loading" class="text-center">
-        <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-      <BaseBlock v-if="verclientes && clientes.data.length" class="mb-0">
-        <div class="table-responsive">
-          <table class="table table-hover table-sm table-vcenter">
-            <thead>
-              <tr>
-                <th>RUC</th>
-                <th>Razón Social</th>
-                <th>Contacto</th>
-                <th>Ciudad</th>
-                <th>Provincia</th>
-                <th>Teléfono</th>
-                <th>Correo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(cliente, index) in clientes.data" :key="index">
-                <td class="">
-                  <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RUC }} </a>
-                </td>
-                <td class="fs-sm">
-                  <a @click="selectcliente(cliente)" href="javascript:void(0)"> {{ cliente.CLI_RAZON_SOCIAL }} </a>
-                </td>
-                <td class="fs-sm">
-                  {{ cliente.CLI_CONTACTO }}
-                </td>
-                <td class="fs-sm">
-                  {{ cliente.CLI_CIUDAD }}
-                </td>
-                <td class="fs-sm">
-                  {{ cliente.CLI_PROVINCIA }}
-                </td>
-                <td class="fs-sm">
-                  {{ cliente.CLI_TELEFONO_1 }}
-                </td>
-                <td class="fs-sm">
-                  <a :href="'mailto:' + cliente.CLI_CORREO_ELECT_SRI">{{ cliente.CLI_CORREO_ELECT_SRI }}</a>
-                </td>
-
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </BaseBlock>
-    </BaseBlock>
+        </template>
+      </FiltrarCliente>
+    </div>
     <div v-if="loading" class="text-center">
       <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span></div>
     </div>
@@ -140,7 +97,7 @@
       </div>
     </BaseBlock>
     <BaseBlock v-if="currentCaja" :title="'Total de cobros de ' + currentCaja.CAJA_CODIGO" class="pb-4">
-      <form class="row row-cols-lg-auto g-3 align-items-center" @submit.prevent="onSubmit">
+      <form class="row row-cols-lg-auto g-3 align-items-center" @submit.prevent>
         <div class="col-auto">
           <div class="row">
             <label class="col-sm-4 col-form-label text-end" for="fecha">Fecha:</label>
@@ -429,6 +386,8 @@
 </template>
 <script setup>
 import { ref, reactive, computed } from "vue";
+import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
+import { useCustomerFilterSearch } from "@/composables/venta/cliente/useCustomerFilterSearch";
 import { useStore } from 'vuex'
 import {  swalSuccess, swalWarning, swalError } from "@/functions/swal-alert.js";
 import flatPickr from 'vue-flatpickr-component';
@@ -456,14 +415,15 @@ const {
 } = useInvoiceCollectionActions();
 
 const store = useStore();
-const clientes = computed(() => store.state.clientes);
-let errorMsg = ref('');
-const verclientes = ref(false);
-let errorbuscarcliente = ref(false);
-const buscarcliente = reactive({
-  busqueda: null,
-  tipo: 'cobranza'
-});
+const {
+  clients,
+  loadingSearch,
+  errorSearchClient,
+  showCustomerResults,
+  updateCustomerSearchTerm,
+  searchCustomerFilters,
+  cleanSearchClients,
+} = useCustomerFilterSearch();
 const cobros_cliente = ref([]);
 const today = new Date();
 const fecha = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
@@ -507,41 +467,35 @@ function imprimirCaja(set_fecha) {
     });
 }
 
-async function buscarclientes(ev) {
-  if (buscarcliente.busqueda.length < 3) {
-    errorbuscarcliente.value = true;
-    return;
-  }
+async function buscarclientes() {
+  if (loading.value) return;
   currentCliente.value = null;
-  errorbuscarcliente.value = false;
-  verclientes.value = true;
-  ev.preventDefault();
-  store.dispatch('buscarclientes', buscarcliente)
-    .catch(err => {
-      verclientes.value = false;
-      errorMsg.value = err.response.data.error
-    });
+  cobros_cliente.value = [];
+  await searchCustomerFilters();
 }
 
-function selectcliente(cliente) {
+async function selectcliente(cliente) {
+  if (loading.value) return;
   loading.value = true;
-  verclientes.value = false;
-  const consulta = reactive({
-    cliente: cliente,
-    fecha_inicio: set_fecha_inicio,
-    fecha_fin: set_fecha_fin,
-    puntoVenta: puntoVenta.value
-  })
-  store.dispatch('consultacobroscliente', consulta).then((res) => {
+  currentCliente.value = null;
+  cobros_cliente.value = [];
+  cleanSearchClients();
+  const consulta = {
+    cliente,
+    fecha_inicio: set_fecha_inicio.value,
+    fecha_fin: set_fecha_fin.value,
+    puntoVenta: puntoVenta.value,
+  };
+  try {
+    const res = await store.dispatch("consultacobroscliente", consulta);
     currentCliente.value = cliente;
     cobros_cliente.value = res.cobros;
+  } catch (err) {
+    swalError(err.response?.data?.error || err.message || "No se pudieron consultar los cobros del cliente.");
+  } finally {
     loading.value = false;
-  })
-    .catch(err => {
-      errorMsg.value = err.response.data.error
-    });
+  }
 }
-
 
 async function printAccountStatementExcel() {
     const resp = await printExcelStatusAccountClient(currentCliente.value.id);

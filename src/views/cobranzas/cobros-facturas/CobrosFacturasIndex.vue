@@ -397,7 +397,7 @@ const paymentMethodSections = computed(() => {
       props: {
         facturas: getAvailableInvoicesForPaymentMethod("cheques"),
         cheque: collectionDraft.cheque,
-        cliente: selectedCustomer.value,
+        cliente: infoClient.value,
         bancoClientes: bankClient.value,
         loadingDocs: loadingCustomerCollectionData.value,
         invoiceDataVersion: customerCollectionDataVersion.value,

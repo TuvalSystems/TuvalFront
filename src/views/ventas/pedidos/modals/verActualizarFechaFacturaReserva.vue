@@ -1,12 +1,8 @@
 <script setup>
-import { onMounted, watch, ref, reactive } from 'vue';
+import { onMounted, watch,  reactive } from 'vue';
 import {
-  swalSimple,
-  swalInfo,
   swalSuccess,
-  swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 import { useOrderUpdate } from '@/composables/venta/pedidos/useOrderUpdate'
 import flatPickr from "vue-flatpickr-component";

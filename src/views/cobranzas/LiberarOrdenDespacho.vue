@@ -176,7 +176,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted  } from "vue";
 import { useStore} from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import {  swalSuccess,  swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 import VerPedidoModal from "../ventas/modals/VerPedidoModal.vue"
 import { formatPriceJm } from "@/functions";

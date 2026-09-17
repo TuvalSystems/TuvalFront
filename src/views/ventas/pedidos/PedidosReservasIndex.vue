@@ -7,8 +7,8 @@ import { Modal } from "bootstrap";
 import { formatPriceJm } from "@/functions";
 import { useOrderReservationTable } from "@/composables/venta/pedidos/useOrderReservationTable.js";
 import { useApiValidatesOrdersReservation } from "@/composables/venta/pedidos/useApiValidatesOrdersReservation.js";
-import verActualizarFechaFacturaReserva from "@/views/ventas/modals/verActualizarFechaFacturaReserva.vue";
-import verActualizarPendienteDespachoPedidosModal from "@/views/ventas/modals/verActualizarPendienteDespachoPedidosModal.vue";
+import verActualizarFechaFacturaReserva from "@/views/ventas/pedidos/modals/verActualizarFechaFacturaReserva.vue";
+import verActualizarPendienteDespachoPedidosModal from "@/views/ventas/pedidos/modals/verActualizarPendienteDespachoPedidosModal.vue";
 
 import {
     swalWarning,

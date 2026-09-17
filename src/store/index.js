@@ -512,21 +512,6 @@ const store = createStore({
         return res;
       });
     },
-    buscarclientes({ commit }, data) {
-      commit("setClientesLoading", true);
-      return axiosClient.post("/consultas/buscarcliente", data).then((res) => {
-        commit("setClientesLoading", false);
-        commit("setClientes", res.data.clientes);
-        return res;
-      });
-    },
-    cupoDisponible({ commit }, ruc) {
-      return axiosClient.get("/consultas/cupodisponible/" + ruc).then((res) => {
-        commit("setSegmentoClienteLoading", false);
-        commit("setSegmentoCliente", res.data.segmento);
-        return res.data.cliente;
-      });
-    },
     addCotizacion({ commit }, data) {
       commit("setCotizacionLoading", true);
       return axiosClient
@@ -653,20 +638,6 @@ const store = createStore({
       });
     },
 
-    llenarpedidosporaprobarcrediticiosStop({ commit }) {
-      commit("llenarpedidosporaprobarcrediticiosStop");
-    },
-    llenarpedidosporaprobarcrediticios({ commit }) {
-      const consulta = {
-        puntodeventa_id: this.state.puntodeventaselect,
-      };
-      return axiosClient
-        .post("/aprobaciones/verpedidosporaprobarcrediticios", consulta)
-        .then((res) => {
-          commit("setPedidosCrediticios", res.data.pedidos);
-          return res;
-        });
-    },
 
     aprobarCotizacion(_, cotizacion) {
       return axiosClient
@@ -679,37 +650,6 @@ const store = createStore({
       return axiosClient
         .post("/aprobaciones/rechazarcotizacion", cotizacion)
         .then((res) => {
-          return res;
-        });
-    },
-    consultaParaAprobarPedido(_, pedido) {
-      return axiosClient
-        .post("/aprobaciones/consultaparaaprobarpedido", pedido)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    aprobarPedidoCrediticio({ dispatch }, pedido) {
-      return axiosClient
-        .post("/aprobaciones/aprobarpedidocrediticio", pedido)
-        .then((res) => {
-          dispatch("llenarpedidosporaprobarcrediticios");
-          return res;
-        });
-    },
-    rechazarPedidoCrediticioPorStock({ dispatch }, pedido) {
-      return axiosClient
-        .post("/aprobaciones/rechazarpedidocrediticioporstock", pedido)
-        .then((res) => {
-          dispatch("llenarpedidosporaprobarcrediticios");
-          return res;
-        });
-    },
-    rechazarPedidoCrediticio({ dispatch }, pedido) {
-      return axiosClient
-        .post("/aprobaciones/rechazarpedidocrediticio", pedido)
-        .then((res) => {
-          dispatch("llenarpedidosporaprobarcrediticios");
           return res;
         });
     },
@@ -1351,9 +1291,6 @@ const store = createStore({
   mutations: {
     /* FUNCIONES EN INTERVALOS */
 
-    llenarpedidosporaprobarcrediticiosStop(state) {
-      clearInterval(state.llenarpedidosporaprobar_crediticios);
-    },
 
     setIntervalBodegasDashboard(state, newInterval) {
       state.bodegasdashboard = newInterval;
@@ -1403,9 +1340,6 @@ const store = createStore({
 
     setCurrentclienteDevolucion: (state, cliente) => {
       state.currentClienteDevolucion = cliente;
-    },
-    nullCurrentcliente: (state) => {
-      state.currentCliente = null;
     },
     setUser: (state, userData) => {
       state.user.token = userData.token;
@@ -1486,12 +1420,6 @@ const store = createStore({
     resetArticulo: (state) => {
       state.articulos.data = [];
     },
-    setClientesLoading: (state, loading) => {
-      state.clientes.loading = loading;
-    },
-    setClientes: (state, clientes) => {
-      state.clientes.data = clientes;
-    },
     resetClientes: (state) => {
       state.clientes.data = [];
     },
@@ -1564,9 +1492,6 @@ const store = createStore({
     },
     setDevoluciones: (state, devoluciones) => {
       state.devoluciones.data = devoluciones;
-    },
-    setPedidosCrediticios: (state, pedidos) => {
-      state.pedidos_crediticios.data = pedidos;
     },
     setDevolucionesPorAprobarLoading: (state, estado) => {
       state.devoluciones_por_aprobar.loading = estado;
@@ -1939,9 +1864,6 @@ const store = createStore({
       state.sucursales_facturacion = state.clientes_devolucion.find(
         (item) => item.id === state.devolucion.cliente_volver_a_facturar_id
       ).sucursales;
-    },
-    setFiltrarCliente: (state, value) => {
-      state.filtrar_cliente = value;
     },
     resetFiltrarCliente: (state) => {
       state.filtrar_cliente = null;
