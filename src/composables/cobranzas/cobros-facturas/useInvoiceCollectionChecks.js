@@ -37,7 +37,7 @@ const paymentAmountMaxLength = helpers.withMessage(
     PAYMENT_AMOUNT_MAX_LENGTH_MESSAGE,
     maxLength(PAYMENT_AMOUNT_MAX_LENGTH)
 );
-const CHECK_DUE_DATE_GRACE_DAYS = 1;
+const CHECK_DUE_DATE_GRACE_DAYS = 3;
 
 function resolveSource(source) {
     if (typeof source === "function") {
