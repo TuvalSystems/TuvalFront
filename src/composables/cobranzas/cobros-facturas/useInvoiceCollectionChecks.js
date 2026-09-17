@@ -285,7 +285,7 @@ export function useInvoiceCollectionChecks({
         if (
             isCheckCondition.value &&
             !canBypassCheckDueDateLimit.value &&
-            checkDueDate.getTime() > allowedCheckDueDate.getTime()
+            checkDueDate.getTime() >= allowedCheckDueDate.getTime()
         ) {
             return {
                 valid: false,
