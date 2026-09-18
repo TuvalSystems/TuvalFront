@@ -12,8 +12,6 @@ import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crea
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import { useImageUpload } from "@/composables/core/useImageUpload";
 import { usePdfUpload } from "@/composables/core/usePdfUpload";
-import flatPickr from "vue-flatpickr-component";
-import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import draggable from "vuedraggable";
 import {
@@ -36,6 +34,9 @@ import verModalListaBorradores from "./modals/verModalListaBorradores.vue";
 import verModalHistoricoFacturas from "./modals/verModalHistoricoFacturas.vue";
 import { useRouter, useRoute } from "vue-router";
 import ConfiguracionSegmentacionCard from "@/views/ventas/cotizaciones/crear-cotizacion/components/ConfiguracionSegmentacionCard.vue";
+import InformacionCliente from "./components/InformacionCliente.vue";
+import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
+import { CUSTOMER_SEARCH_MIN_LENGTH } from "@/constants/customerSearch";
 
 const router = useRouter();
 const route = useRoute();
@@ -66,7 +67,6 @@ const {
   fetchWarehouseByPtoVtaUser,
 
   //validations
-  getClientStatus,
 } = useClientSearch();
 const {
   form,
@@ -190,13 +190,6 @@ const triggerPdfInput = () => {
 };
 
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
-const flatPickrState = reactive({
-  minDate: "today",
-  monthSelectorType: "static",
-  locale: Spanish,
-  dateFormat: "Y-m-d",
-});
-
 //variables de modales
 const verModalActualizarSegmento = ref(null);
 const verModalCrearDireccionModal = ref(null);
@@ -251,17 +244,24 @@ const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
 const showResultClients = ref(false);
 const showInfoClient = ref(false);
 
+function updateCustomerSearchTerm(value) {
+  dataSearch.search = value ?? "";
+  clients.value = [];
+  showResultClients.value = false;
+  errorSearchClient.value = false;
+}
+
 async function searchFilterClientes() {
-  // clearForm(uploadedFiles);//limpia el formulario
-  await clearCotizacion();
-  showResultClients.value = true;
-  showInfoClient.value = false;
-  if (dataSearch.search == null || dataSearch.search.length < 4) {
-    showResultClients.value = false;
-    showInfoClient.value = false;
+  const search = dataSearch.search?.trim() ?? "";
+  if (search.length < CUSTOMER_SEARCH_MIN_LENGTH) {
     errorSearchClient.value = true;
     return false;
   }
+  await clearCotizacion();
+  showResultClients.value = true;
+  showInfoClient.value = false;
+  errorSearchClient.value = false;
+  dataSearch.search = search;
   dataSearch.tipo = "proceso";
   const resp = await searchClients();
 
@@ -353,34 +353,16 @@ async function processSelectClient(client) {
   form.value.punto_venta_id = ptoVtaSelect.value;
 }
 
-const checkCoords = (idSucursal) => {
-  if (!idSucursal) return false;
-  const sucursal = sucursales.value.find((s) => s.id === idSucursal);
-  // Aquí podrías agregar validaciones extra si las coordenadas vienen como JSON o string raro
-  return sucursal && sucursal.coordenadas;
-};
-
-// Tus computadas quedan más limpias
-const hasCoordinates = computed(() =>
-  checkCoords(form.value.direccion_facturacion_id)
-);
-const hasCoordinates2 = computed(() =>
-  checkCoords(form.value.direccion_entrega_id)
-);
-
-const hasDispatch = computed(() => {
-  const warehouse = warehouseByUser.value.find(
-    (w) => w.relacion_bodega.BOD_BODEGA === form.value.bodega_facturacion
-  );
-  return !!warehouse?.relacion_bodega.PERMITE_DESPACHO;
-});
-
 // proceso de crear direccion nueva para un cliente
 let dataClient = ref({});
 async function openModalCreateAddress() {
   dataClient.value = form.value.cliente;
   await nextTick();
   verModalCrearDireccionModalObj.show();
+}
+
+function updateClientInfoField({ field, value }) {
+  form.value[field] = value;
 }
 
 async function closeModalCreateAddress(client) {
@@ -626,7 +608,12 @@ async function openModalProviders(item, i) {
 const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   const item = form.value.items[index];
   item.proveedores = providers;
-  if (nuevoPrecio !== null && nuevoPrecio !== undefined && nuevoPrecio !== '' && Number(nuevoPrecio) !== Number(item.valor_original_l)) {
+  if (
+    nuevoPrecio !== null &&
+    nuevoPrecio !== undefined &&
+    nuevoPrecio !== "" &&
+    Number(nuevoPrecio) !== Number(item.valor_original_l)
+  ) {
     item.ART_VALOR = nuevoPrecio;
     item.ART_VALOR_ORIGINAL = nuevoPrecio;
     item.valor_original_l = nuevoPrecio;
@@ -1077,14 +1064,9 @@ watch(
   }
 );
 
-/** funcion para bloquear el selector de bodega si el origen es reserva */
-
-const isWarehouseSelectionDisabled = computed(() => {
-  return loadingWarehouseByUser.value || form.value.origen === "reserva";
-});
-
 const DEFAULT_PROJECT_ID = 1;
-const isEmptyProject = (project) => project === null || project === undefined || project === "";
+const isEmptyProject = (project) =>
+  project === null || project === undefined || project === "";
 
 function setDefaultProject() {
   if (!isEmptyProject(form.value.proyecto)) return;
@@ -1227,30 +1209,20 @@ onMounted(async () => {
 <template>
   <div class="content">
     <div :key="currentDraftId">
-      <BaseBlock title="Cliente" content-full rounded class="mb-2">
-        <div class="row g-2">
-          <div class="col">
-            <div class="input-group input-group-sm">
-              <input
-                type="text"
-                class="form-control"
-                :class="errorSearchClient ? 'is-invalid' : ''"
-                placeholder="Buscar cliente..."
-                autocomplete="off"
-                @keyup.enter="searchFilterClientes"
-                v-model="dataSearch.search"
-              />
-              <button
-                class="btn btn-primary"
-                type="button"
-                @click="searchFilterClientes"
-                :disabled="loadingSearch"
-              >
-                <i class="fa fa-search"></i>
-              </button>
-            </div>
-          </div>
-          <div class="col-auto d-flex gap-2">
+      <FiltrarCliente
+        title="Buscar Cliente"
+        class="mb-2"
+        :search-value="dataSearch.search ?? ''"
+        :clients="clients"
+        :loading="loadingSearch"
+        :error-search="errorSearchClient"
+        :show-results="showResultClients"
+        @search-term-change="updateCustomerSearchTerm"
+        @search-customers="searchFilterClientes"
+        @select-customer="selectClient"
+      >
+        <template #actions>
+          <div class="col-12 col-lg-auto d-flex flex-wrap gap-2">
             <button
               class="btn btn-primary btn-sm fw-semibold"
               type="button"
@@ -1267,7 +1239,6 @@ onMounted(async () => {
             >
               <i class="fa fa-folder-open text-warning me-1"></i> Borradores
             </button>
-
             <router-link
               :to="{ name: 'ventas-crearcliente' }"
               class="btn btn-success btn-sm"
@@ -1276,406 +1247,39 @@ onMounted(async () => {
               <i class="fa fa-plus me-1"></i> Crear
             </router-link>
           </div>
+        </template>
+      </FiltrarCliente>
+
+      <!-- detalle visual de informacion de cliente -->
+      <div
+        v-if="loadingAvailableCredit && !form.cliente?.id"
+        class="text-center py-4"
+      >
+        <div class="spinner-border spinner-border-sm text-primary">
+          <span class="visually-hidden">Cargando...</span>
         </div>
-
-        <!-- loading de carga de clientes -->
-        <div
-          v-if="loadingSearch && showResultClients && !form.cliente?.id"
-          class="text-center py-4"
-        >
-          <output class="spinner-border text-primary mt-4">
-            <span class="visually-hidden">Loading...</span>
-          </output>
+        <div class="fs-sm text-muted mt-2">
+          Obteniendo Información del Cliente...
         </div>
+      </div>
 
-        <!-- mensaje de visualizacion en caso de que no haya clientes -->
-        <div
-          v-if="
-            clients.length === 0 &&
-            !loadingSearch &&
-            showResultClients &&
-            !form.cliente?.id
-          "
-          class="text-center py-4"
-        >
-          <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
-          <p class="text-muted mb-0">
-            No se encontraron registros para mostrar
-          </p>
-        </div>
+      <!-- Informacion del cliente -->
+      <InformacionCliente
+        v-if="showInfoClient && form.cliente?.id"
+        :info-cliente="form.cliente"
+        :form="form"
+        :loading="loadingAvailableCredit"
+        :info-segmento="infoSegmento"
+        :warehouse-by-user="warehouseByUser"
+        :sucursales="sucursales"
+        :loading-sucursales="loadingSucursales"
+        :loading-warehouse-by-user="loadingWarehouseByUser"
+        :loading-proyect-sellers="loadingProyectSellers"
+        :data-proyect-sellers="dataProyectSellers"
+        @create-address="openModalCreateAddress"
+        @update-field="updateClientInfoField"
+      />
 
-        <!-- table de clientes  -->
-        <BaseBlock
-          v-if="showResultClients && clients.length > 0 && !loadingSearch"
-          class="mb-2 mt-2"
-        >
-          <div class="table-responsive">
-            <table class="table table-hover table-sm">
-              <thead>
-                <tr>
-                  <th>Ruc</th>
-                  <th>Razón Social</th>
-                  <th>Contacto</th>
-                  <th>Ciudad</th>
-                  <th>Provincia</th>
-                  <th>Teléfono</th>
-                  <th>Correo</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(client, index) in clients" :key="index">
-                  <td
-                    class="fs-sm"
-                    @click="selectClient(client)"
-                    style="cursor: pointer"
-                  >
-                    <span class="text-primary">{{ client.CLI_RUC }}</span>
-                  </td>
-                  <td
-                    class="fs-sm"
-                    @click="selectClient(client)"
-                    style="cursor: pointer"
-                  >
-                    <span class="text-primary">{{
-                      client.CLI_RAZON_SOCIAL
-                    }}</span>
-                  </td>
-                  <td class="fs-sm">{{ client.CLI_CONTACTO }}</td>
-                  <td class="fs-sm">{{ client.CLI_CIUDAD }}</td>
-                  <td class="fs-sm">{{ client.CLI_PROVINCIA }}</td>
-                  <td class="fs-sm">{{ client.CLI_TELEFONO_1 }}</td>
-                  <td class="fs-sm">
-                    <a :href="'mailto:' + client.CLI_CORREO_ELECT_SRI"
-                      >{{ client.CLI_CORREO_ELECT_SRI }}
-                      <span
-                        class="badge bg-danger text-white"
-                        v-if="!client.emails_validated"
-                      >
-                        correo no valido</span
-                      >
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </BaseBlock>
-
-        <!-- detalle visual de informacion de cliente -->
-        <div
-          v-if="loadingAvailableCredit && !form.cliente?.id"
-          class="text-center py-4"
-        >
-          <div class="spinner-border text-primary mt-4">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0 mt-2">
-          <div
-            class="content-fluid"
-            :class="{ 'opacity-50': loadingAvailableCredit }"
-          >
-            <div class="row g-1 mb-2">
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Ruc</small>
-                  <div class="fw-semibold text-truncate">
-                    {{ form.cliente.CLI_RUC }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Razón Social</small>
-                  <div class="fw-semibold text-truncate">
-                    {{ form.cliente.CLI_RAZON_SOCIAL }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Descuento Comercial</small>
-                  <div class="fw-semibold">
-                    {{ form.cliente.CLI_DSTO_COMERCIAL }} %
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Ciudad</small>
-                  <div class="fw-semibold">{{ form.cliente.CLI_CIUDAD }}</div>
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Provincia</small>
-                  <div class="fw-semibold">
-                    {{ form.cliente.CLI_PROVINCIA }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Condición de Pago</small>
-                  <div class="fw-semibold">
-                    {{ form.cliente.CLI_CONDICION_PAGO }}
-                  </div>
-                  <span
-                    class="badge bg-info"
-                    v-if="form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0"
-                    >{{ form.cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de
-                    gracia</span
-                  >
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Suspendido</small>
-                  <span
-                    class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                    :class="getClientStatus(form.cliente.suspendido).class"
-                  >
-                    {{ getClientStatus(form.cliente.suspendido).text }}
-                  </span>
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Cupo Asignado</small>
-                  <div class="fw-semibold">
-                    ${{ form.cliente.cupo_asignado }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Cupo Disponible</small>
-                  <div
-                    class="fw-semibold"
-                    :class="
-                      parseFloat(form.cliente.cupo_disponible) < 0
-                        ? 'text-danger'
-                        : ''
-                    "
-                  >
-                    ${{ form.cliente.cupo_disponible }}
-                  </div>
-                </div>
-              </div>
-              <div v-if="infoSegmento" class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Segmento</small>
-                  <div class="fw-semibold">{{ form.segmento.segmento }}</div>
-                </div>
-              </div>
-              <div v-if="infoSegmento" class="col-6 col-lg-4">
-                <div class="kv">
-                  <small class="label-small">Sub segmento</small>
-                  <div class="fw-semibold">{{ form.segmento.subsegmento }}</div>
-                </div>
-              </div>
-              <div class="col-12 col-lg-4">
-                <div class="kv space-y-2">
-                  <small class="label-small">Bodegas</small>
-                  <select
-                    class="form-select form-select-sm"
-                    v-model="form.bodega_facturacion"
-                    :disabled="isWarehouseSelectionDisabled"
-                  >
-                    <option
-                      v-for="(bod, index) in warehouseByUser"
-                      :key="index"
-                      :value="bod.relacion_bodega.BOD_BODEGA"
-                    >
-                      {{ bod.relacion_bodega.BOD_BODEGA }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="col-12 col-lg-8">
-                <div class="kv space-y-2">
-                  <small class="label-small">Dirección de Facturación</small>
-                  <div class="input-group input-group-sm">
-                    <select
-                      class="form-select"
-                      v-model="form.direccion_facturacion_id"
-                      :disabled="loadingSucursales"
-                    >
-                      <option
-                        v-for="(suc, index) in sucursales"
-                        :key="index"
-                        :value="suc.id"
-                      >
-                        {{ suc.CLI_SUC_ID_DIRECCION }} -
-                        {{ suc.CLI_SUC_DIRECCION }}
-                        {{
-                          !suc.emails_validated ? "⚠️ (Correo Inválido)" : ""
-                        }}
-                      </option>
-                    </select>
-                    <button
-                      class="btn btn-outline-secondary"
-                      type="button"
-                      :title="
-                        hasCoordinates
-                          ? 'Ver ubicación en mapa'
-                          : 'Dirección sin coordenadas'
-                      "
-                      :class="{ 'opacity-50': !hasCoordinates }"
-                    >
-                      <img
-                        v-if="hasCoordinates"
-                        src="/assets/images/earth.png"
-                        alt="Tiene coordenadas"
-                        class="img-fluid"
-                        style="max-width: 18px"
-                      />
-                      <img
-                        v-else
-                        src="/assets/images/earth2.png"
-                        alt="No tiene coordenadas"
-                        class="img-fluid"
-                        style="max-width: 18px"
-                      />
-                    </button>
-                    <button
-                      class="btn btn-primary"
-                      type="button"
-                      @click="openModalCreateAddress"
-                    >
-                      <i class="fa fa-plus"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-lg-4">
-                <div class="kv space-y-2">
-                  <small class="label-small">Modalidad de Entrega</small>
-                  <div class="btn-group btn-group-sm" role="group">
-                    <input
-                      type="radio"
-                      class="btn-check"
-                      name="tipoEntrega"
-                      id="retiro"
-                      value="retiro"
-                      v-model="form.tipo_entrega"
-                      autocomplete="off"
-                    />
-                    <label class="btn btn-outline-primary" for="retiro">
-                      <i class="fa fa-box me-2"></i>Retiro en Bodega
-                    </label>
-
-                    <input
-                      v-if="hasDispatch"
-                      type="radio"
-                      class="btn-check"
-                      name="tipoEntrega"
-                      id="despacho"
-                      value="despacho"
-                      v-model="form.tipo_entrega"
-                      autocomplete="off"
-                    />
-                    <label
-                      v-if="hasDispatch"
-                      class="btn btn-outline-primary"
-                      for="despacho"
-                    >
-                      <i class="fa fa-truck me-2"></i>Despacho en Ruta
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div v-show="form.tipo_entrega === 'retiro'"></div>
-              <div
-                v-show="form.tipo_entrega === 'despacho'"
-                class="row g-1 mb-2"
-              >
-                <div class="col-12 col-lg-6">
-                  <div class="kv space-y-2">
-                    <small class="label-small">Dirección de Entrega</small>
-                    <div class="input-group input-group-sm">
-                      <select
-                        class="form-select form-select-sm"
-                        v-model="form.direccion_entrega_id"
-                      >
-                        <option
-                          v-for="(suc, index) in sucursales"
-                          :key="index"
-                          :value="suc.id"
-                        >
-                          {{ suc.CLI_SUC_ID_DIRECCION }} -
-                          {{ suc.CLI_SUC_DIRECCION }}
-                        </option>
-                      </select>
-                      <button
-                        class="btn btn-outline-secondary btn-sm"
-                        type="button"
-                        :title="
-                          hasCoordinates2
-                            ? 'Ver ubicación en mapa'
-                            : 'Dirección sin coordenadas'
-                        "
-                        :class="{ 'opacity-50': !hasCoordinates2 }"
-                      >
-                        <img
-                          v-if="hasCoordinates2"
-                          src="/assets/images/earth.png"
-                          alt="Tiene coordenadas"
-                          class="img-fluid"
-                          style="max-width: 18px"
-                        />
-                        <img
-                          v-else
-                          src="/assets/images/earth2.png"
-                          alt="No tiene coordenadas"
-                          class="img-fluid"
-                          style="max-width: 18px"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-lg-6">
-                  <div class="kv space-y-2">
-                    <small class="label-small">Fecha de Entrega</small>
-                    <flat-pickr
-                      id="fecha_entrega"
-                      class="form-control form-control-sm"
-                      v-model="form.fecha_entrega"
-                      :config="flatPickrState"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-lg-8">
-                <div class="kv space-y-2">
-                  <label class="label-small" for="lista-proyectos">
-                    Tipo de Venta
-                  </label>
-                  <select
-                    id="lista-proyectos"
-                    v-model="form.proyecto"
-                    class="form-select form-select-sm project-select"
-                    :disabled="
-                      loadingProyectSellers ||
-                      dataProyectSellers.length === 0
-                    "
-                  >
-                    <option
-                      v-for="proyect in dataProyectSellers"
-                      :key="proyect.coMotproven"
-                      :value="proyect.coMotproven"
-                    >
-                      {{ proyect.txDeslar }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </BaseBlock>
-      </BaseBlock>
       <!-- banner de seleccion de clasificacion -->
       <div v-if="showInfoClient && form.cliente?.id">
         <ConfiguracionSegmentacionCard
@@ -2815,43 +2419,6 @@ onMounted(async () => {
   }
 }
 
-.label-small {
-  display: block;
-  margin-bottom: 0.18rem;
-  color: var(--tuval-text-muted, var(--bs-secondary-color));
-  font-size: 0.625rem;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.kv > small:not(.label-small) {
-  display: block;
-  line-height: 1;
-}
-
-.project-select {
-  max-width: 22rem;
-}
-
-.kv .badge2 {
-  white-space: normal;
-  /* CLAVE: Permite que el texto haga salto de línea */
-  text-align: left;
-  /* Alinea el texto a la izquierda para leer mejor párrafos */
-  display: block;
-  /* Hace que ocupe el ancho disponible de la columna */
-  line-height: 1.4;
-  /* Da un poco de aire entre las líneas de texto */
-  font-weight: 10px;
-  /* Opcional: quita la negrita si el texto es muy largo */
-}
-
-.kv .fw-semibold {
-  line-height: 1.1;
-}
-
 .text-monospace {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", monospace;
@@ -2869,14 +2436,6 @@ onMounted(async () => {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", monospace;
   font-size: 14px;
-}
-
-.form-control-sm.flatpickr-input {
-  height: calc(1.5em + 0.5rem + 2px);
-  /* Altura estándar de sm en BS5 */
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-  font-size: 0.875rem;
 }
 
 /* Ocultar flechas en Chrome, Safari, Edge, Opera */
