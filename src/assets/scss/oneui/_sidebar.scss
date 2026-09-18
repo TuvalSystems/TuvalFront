@@ -29,7 +29,7 @@
   background-color: $sidebar-bg;
   overflow-x: hidden;
   overflow-y: auto;
-  transform: translateX(-100%) translateY(0) translateZ(0);
+  transform: translateX(-100%) translateY(0);
   -webkit-overflow-scrolling: touch;
 
   .side-trans-enabled & {
@@ -53,7 +53,7 @@
 
   @include media-breakpoint-down(lg) {
     .sidebar-o-xs & {
-      transform: translateX(0) translateY(0) translateZ(0);
+      transform: translateX(0) translateY(0);
     }
   }
 
@@ -61,27 +61,26 @@
     width: $sidebar-width;
 
     .sidebar-o & {
-      transform: translateX(0) translateY(0) translateZ(0);
+      transform: translateX(0) translateY(0);
     }
 
     // Mini Sidebar
     .sidebar-mini.sidebar-o & {
       overflow-x: hidden;
       transform: translateX(-($sidebar-width - $sidebar-mini-width))
-        translateY(0) translateZ(0);
+        translateY(0);
       transition: transform $side-transition;
     }
 
     .sidebar-mini.sidebar-o.sidebar-r & {
-      transform: translateX($sidebar-width - $sidebar-mini-width) translateY(0)
-        translateZ(0);
+      transform: translateX($sidebar-width - $sidebar-mini-width) translateY(0);
     }
 
     .sidebar-mini.sidebar-o & .content-side,
     .sidebar-mini.sidebar-o & .content-header {
       width: $sidebar-width;
       transform: translateX(($sidebar-width - $sidebar-mini-width))
-        translateY(0) translateZ(0);
+        translateY(0);
       transition: transform $side-transition;
     }
 
