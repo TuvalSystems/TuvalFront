@@ -15,7 +15,6 @@
   transform: translateX(100%) translateY(0) translateZ(0);
   opacity: 0;
   -webkit-overflow-scrolling: touch;
-  will-change: transform;
 
   .side-trans-enabled & {
     transition: transform $side-transition, opacity $side-transition;

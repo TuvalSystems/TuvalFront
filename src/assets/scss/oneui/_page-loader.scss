@@ -11,9 +11,17 @@
   background-color: $white;
   z-index: 999998;
   transform: translateY(-100%);
+  visibility: hidden;
+  pointer-events: none;
 
   &.show {
     transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+
+    &::after {
+      animation: page-loader 0.9s infinite ease-in-out;
+    }
   }
 
   &::after {
@@ -29,7 +37,6 @@
     background-color: $primary;
     content: "";
     z-index: 999999;
-    animation: page-loader 0.9s infinite ease-in-out;
   }
 }
 

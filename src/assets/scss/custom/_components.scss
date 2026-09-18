@@ -22,10 +22,8 @@ body {
   box-shadow: none;
 }
 
-@supports (backdrop-filter: blur(12px)) {
-  #page-header {
-    backdrop-filter: saturate(1.2) blur(12px);
-  }
+#page-container:not(.page-header-dark) > #page-header {
+  background-color: var(--tuval-surface);
 }
 
 #sidebar {

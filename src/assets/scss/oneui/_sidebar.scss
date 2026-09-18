@@ -31,7 +31,6 @@
   overflow-y: auto;
   transform: translateX(-100%) translateY(0) translateZ(0);
   -webkit-overflow-scrolling: touch;
-  will-change: transform;
 
   .side-trans-enabled & {
     transition: transform $side-transition;
@@ -84,7 +83,6 @@
       transform: translateX(($sidebar-width - $sidebar-mini-width))
         translateY(0) translateZ(0);
       transition: transform $side-transition;
-      will-change: transform;
     }
 
     .sidebar-mini.sidebar-o & .content-header {

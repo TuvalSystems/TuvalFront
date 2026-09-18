@@ -23,6 +23,7 @@
   --tuval-shadow-md: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.08);
   --tuval-focus-ring: 0 0 0 0.16rem rgba(37, 99, 235, 0.18);
   --bs-primary: var(--tuval-primary);
+  --bs-primary-rgb: 37, 99, 235;
   --bs-body-bg: var(--tuval-bg);
   --bs-body-color: var(--tuval-text);
   --bs-border-color: var(--tuval-border);
@@ -49,9 +50,92 @@
   --tuval-shadow-md: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.28);
   --tuval-focus-ring: 0 0 0 0.16rem rgba(96, 165, 250, 0.22);
   --bs-primary: var(--tuval-primary);
+  --bs-primary-rgb: 96, 165, 250;
   --bs-body-bg: var(--tuval-bg);
   --bs-body-color: var(--tuval-text);
   --bs-border-color: var(--tuval-border);
+}
+
+@mixin tuval-bootstrap-colors($primary) {
+  --bs-primary: var(--tuval-primary);
+  --bs-primary-rgb: #{red($primary)}, #{green($primary)}, #{blue($primary)};
+  --bs-body-bg: var(--tuval-bg);
+  --bs-body-color: var(--tuval-text);
+  --bs-border-color: var(--tuval-border);
+}
+
+@mixin tuval-light-palette($primary, $bg, $surface, $text, $sidebar-dark) {
+  --tuval-primary: #{$primary};
+  --tuval-primary-soft: #{rgba($primary, 0.12)};
+  --tuval-primary-strong: #{darken($primary, 12%)};
+  --tuval-bg: #{$bg};
+  --tuval-surface: #{$surface};
+  --tuval-surface-muted: #{mix($surface, $bg, 72%)};
+  --tuval-border: #{darken($bg, 7%)};
+  --tuval-border-strong: #{darken($bg, 14%)};
+  --tuval-text: #{$text};
+  --tuval-text-muted: #{mix($text, $bg, 55%)};
+  --tuval-sidebar: #{$surface};
+  --tuval-sidebar-dark: #{$sidebar-dark};
+  --tuval-focus-ring: 0 0 0 0.16rem #{rgba($primary, 0.18)};
+  @include tuval-bootstrap-colors($primary);
+}
+
+@mixin tuval-dark-palette($primary, $darker, $text) {
+  color-scheme: dark;
+  --tuval-primary: #{$primary};
+  --tuval-primary-soft: #{rgba($primary, 0.14)};
+  --tuval-primary-strong: #{lighten($primary, 12%)};
+  --tuval-bg: #{darken($darker, 3%)};
+  --tuval-surface: #{$darker};
+  --tuval-surface-muted: #{lighten($darker, 3%)};
+  --tuval-border: #{lighten($darker, 9%)};
+  --tuval-border-strong: #{lighten($darker, 16%)};
+  --tuval-text: #{$text};
+  --tuval-text-muted: #{mix($text, $darker, 60%)};
+  --tuval-sidebar: #{$darker};
+  --tuval-sidebar-dark: #{darken($darker, 4%)};
+  --tuval-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --tuval-shadow-md: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.28);
+  --tuval-focus-ring: 0 0 0 0.16rem #{rgba($primary, 0.22)};
+  @include tuval-bootstrap-colors($primary);
+}
+
+.theme-amethyst {
+  @include tuval-light-palette($theme-amethyst-primary, $theme-amethyst-body-bg, $theme-amethyst-sidebar-bg, $theme-amethyst-body-color, $theme-amethyst-sidebar-dark-bg);
+}
+.theme-city {
+  @include tuval-light-palette($theme-city-primary, $theme-city-body-bg, $theme-city-sidebar-bg, $theme-city-body-color, $theme-city-sidebar-dark-bg);
+}
+.theme-flat {
+  @include tuval-light-palette($theme-flat-primary, $theme-flat-body-bg, $theme-flat-sidebar-bg, $theme-flat-body-color, $theme-flat-sidebar-dark-bg);
+}
+.theme-modern {
+  @include tuval-light-palette($theme-modern-primary, $theme-modern-body-bg, $theme-modern-sidebar-bg, $theme-modern-body-color, $theme-modern-sidebar-dark-bg);
+}
+.theme-smooth {
+  @include tuval-light-palette($theme-smooth-primary, $theme-smooth-body-bg, $theme-smooth-sidebar-bg, $theme-smooth-body-color, $theme-smooth-sidebar-dark-bg);
+}
+
+.theme-amethyst.dark-mode,
+.theme-amethyst .dark-mode {
+  @include tuval-dark-palette($theme-amethyst-primary, $theme-amethyst-darker, $theme-amethyst-body-bg-dark);
+}
+.theme-city.dark-mode,
+.theme-city .dark-mode {
+  @include tuval-dark-palette($theme-city-primary, $theme-city-darker, $theme-city-body-bg-dark);
+}
+.theme-flat.dark-mode,
+.theme-flat .dark-mode {
+  @include tuval-dark-palette($theme-flat-primary, $theme-flat-darker, $theme-flat-body-bg-dark);
+}
+.theme-modern.dark-mode,
+.theme-modern .dark-mode {
+  @include tuval-dark-palette($theme-modern-primary, $theme-modern-darker, $theme-modern-body-bg-dark);
+}
+.theme-smooth.dark-mode,
+.theme-smooth .dark-mode {
+  @include tuval-dark-palette($theme-smooth-primary, $theme-smooth-darker, $theme-smooth-body-bg-dark);
 }
 
 @media (prefers-reduced-motion: reduce) {
