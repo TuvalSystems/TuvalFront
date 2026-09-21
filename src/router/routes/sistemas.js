@@ -24,7 +24,7 @@ const routes = [
         ],
       },
       {
-        path: "Movil",
+        path: "movil",
         name: "sistemas-movil",
         component: RouterView,
         children: [
@@ -62,14 +62,14 @@ const routes = [
         ],
       },
       {
-        path: "Mantenimientos",
-        name: "sistemas-mantenimiento",
+        path: "mantenimientos",
+        name: "sistemas-mantenimientos",
         component: RouterView,
         children: [
           {
-            path: "Lista Tipo Despachos",
+            path: "lista-tipo-despachos",
             name: "sistemas-mantenimientos-tipo-despachos",
-            component: () => import("@/view/sistemas/mantenimientos/tipo-despachos/TipoDespachoIndex.vue"),
+            component: () => import("@/views/sistemas/mantenimientos/tipo-despachos/TipoDespachoIndex.vue"),
             meta: { title: "Tipo Despachos" }
           }
         ]

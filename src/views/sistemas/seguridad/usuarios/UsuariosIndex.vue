@@ -16,31 +16,31 @@ const {
   table,
   listPerpage,
   columns,
-  loadingRef,
+  // loadingRef,
   fetchList,
   onSort,
   refresh,
-  estadoClass,
+  // estadoClass,
   booleanBadgeClass
 } = useUserTable();
 
 const {
-  loadingStatus,
+  // loadingStatus,
   UpdateStatus,
-  loadingReset,
+  // loadingReset,
   resetPasswordUser,
 
   //detalle de usuario 
-  loadingDetail,
+  // loadingDetail,
   detailUser,
   getDetailUser,
 
   //lista de perfiles web 
-  loadingProfileWeb,
+  // loadingProfileWeb,
   getProfilesWeb,
   perfilesWeb,
   //lista de perfiles app
-  loadingProfileApp,
+  // loadingProfileApp,
   getProfilesApp,
   perfilesApp,
   //funciones helpers 

@@ -34,4 +34,11 @@ export const QUOTE_API_ROUTES = {
     PROJECTS: {
         LIST_SELLERS: 'cotizaciones/obtener-lista-proyectos',
     },
+
+    DISPATCH_TYPE :{
+        LIST : 'cotizaciones/tipo-despachos/lista',
+        CREATED : 'cotizaciones/tipo-despachos/crear-registro',
+        UPDATED :'cotizaciones/tipo-despachos/actualizar-registro',
+        UPDATED_STATUS : 'cotizaciones/tipo-despachos/actualizar-estado'
+    }
 };
