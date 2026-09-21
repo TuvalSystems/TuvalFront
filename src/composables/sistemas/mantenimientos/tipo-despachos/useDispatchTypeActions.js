@@ -11,7 +11,8 @@ export function useDispatchTypeActions() {
         return {
             descripcion: payload?.descripcion,
             observacion: payload?.observacion,
-            responsable_pago : payload?.responsable_pago
+            responsable_pago: payload?.responsable_pago,
+            punto_venta_ids : payload?.punto_venta_ids
         }
     }
 
@@ -32,9 +33,36 @@ export function useDispatchTypeActions() {
         });
     }
 
+    const loadingDetail = ref(false);
+    const detail = ref(null);
+    async function getDetailDispatchType(id){
+        detail.value = null;
+        return run(()=>axiosClient.post(QUOTE_API_ROUTES.DISPATCH_TYPE.GET_DETAIL, {id: id}),{
+            loadingRef : loadingDetail,
+            onSuccess : (info)=> {
+                const record = Array.isArray(info) ? info[0] : info;
+                detail.value = record && typeof record === 'object'
+                    ? { ...record, id: record.id ?? id }
+                    : null;
+            }
+        });
+    }
+
+
     async function updateStatusDispatchType(id) {
         return run(() => axiosClient.post(QUOTE_API_ROUTES.DISPATCH_TYPE.UPDATED_STATUS, { id: id }), {
             loadingRef: saving
+        });
+    }
+
+    const loadingPointSales = ref(false);
+    const listPointSales = ref([]);
+    async function fetchListPointSales() {
+        return run(() => axiosClient.get(QUOTE_API_ROUTES.DISPATCH_TYPE.LIST_POINT_SALES), {
+            loadingRef: loadingPointSales,
+            onSuccess: (info) => {
+                listPointSales.value = Array.isArray(info) ? info : [];
+            }
         });
     }
 
@@ -42,7 +70,15 @@ export function useDispatchTypeActions() {
         saving,
         saveDispatchType,
         updateDispatchType,
-        updateStatusDispatchType
+        updateStatusDispatchType,
+        listPointSales,
+        loadingPointSales,
+        fetchListPointSales,
+
+        //detail 
+        loadingDetail,
+        detail,
+        getDetailDispatchType
 
     }
 }

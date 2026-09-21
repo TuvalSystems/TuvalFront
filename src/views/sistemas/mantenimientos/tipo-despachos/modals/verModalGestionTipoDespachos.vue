@@ -6,17 +6,22 @@ import { useDispatchTypeActions } from "@/composables/sistemas/mantenimientos/ti
 const props = defineProps({
   typeOption: { type: String, required: true },
   detail: { type: Object, default: null },
+  pointSales: { type: Array, default: () => [] },
 });
 const emit = defineEmits(["closeModal", "saved"]);
-const { saving, saveDispatchType, updateDispatchType } =
-  useDispatchTypeActions();
+const {
+  saving,
+  saveDispatchType,
+  updateDispatchType,
+} = useDispatchTypeActions();
 const isEditing = computed(() => props.typeOption === "actualizar");
-const form = reactive({ descripcion: "", observacion: "" });
+const form = reactive({ descripcion: "", observacion: "", responsable_pago: "", punto_venta_ids: [] });
 
 function resetForm() {
   form.descripcion = "";
   form.observacion = "";
   form.responsable_pago = "";
+  form.punto_venta_ids = [];
 }
 
 defineExpose({ resetForm });
@@ -27,6 +32,7 @@ watch(
     form.descripcion = props.detail?.descripcion ?? "";
     form.observacion = props.detail?.observacion ?? "";
     form.responsable_pago = props.detail?.responsable_pago ?? "";
+    form.punto_venta_ids = (props.detail?.puntos_venta ?? []).map((point) => point.id);
   },
   { immediate: true }
 );
@@ -37,7 +43,8 @@ async function submitForm() {
   const payload = {
     descripcion: form.descripcion.trim(),
     observacion: form.observacion.trim(),
-    responsable_pago : form.responsable_pago
+    responsable_pago: form.responsable_pago,
+    punto_venta_ids : form.punto_venta_ids
   };
   const response = isEditing.value
     ? await updateDispatchType({ id: props.detail?.id, ...payload })
@@ -105,6 +112,7 @@ async function submitForm() {
           :disabled="saving"
         ></textarea>
       </div>
+      <!-- responsable del pago -->
       <div>
         <label
           for="dispatch-type-responsable-pago"
@@ -121,9 +129,30 @@ async function submitForm() {
           <option value="cliente">CLIENTE</option>
         </select>
       </div>
+
+       <!-- select multiple de puntos de venta -->
+         <div>
+        <label
+          for="dispatch-type-puntos-venta"
+          class="form-label fw-semibold"
+          >Puntos de Venta
+        </label>
+        <select
+          class="form form-select form-select-sm"
+          id="dispatch-type-puntos-venta"
+          v-model="form.punto_venta_ids"
+          multiple
+          size="5"
+          :disabled="saving"
+        >
+          <option v-for="point in pointSales" :key="point.id" :value="point.id">
+            {{ point.codigo }} - {{ point.descripcion }}
+          </option>
+        </select>
+      </div>
     </div>
 
-    <div class="modal-footer dispatch-modal-footer px-4 py-3">
+    <div class="modal-footer dispatch-modal-footer px-2 py-2">
       <button
         type="button"
         class="btn btn-alt-secondary btn-sm"

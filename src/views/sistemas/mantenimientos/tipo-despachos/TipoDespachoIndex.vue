@@ -25,7 +25,15 @@ const {
   onSort,
   booleanBadgeClass,
 } = useDispatchTypeTable();
-const { updateStatusDispatchType } = useDispatchTypeActions();
+const {
+  updateStatusDispatchType,
+  loadingDetail,
+  detail,
+  getDetailDispatchType,
+  loadingPointSales,
+  listPointSales,
+  fetchListPointSales,
+} = useDispatchTypeActions();
 const modalRef = ref(null);
 const modalFormRef = ref(null);
 const modal = useBootstrapModal(modalRef, {
@@ -33,21 +41,53 @@ const modal = useBootstrapModal(modalRef, {
   keyboard: false,
 });
 const typeOption = ref("crear");
-const selectedDispatchType = ref(null);
+const loadingDetailId = ref(null);
+
+async function loadPointSales() {
+  if (listPointSales.value.length) return true;
+  const response = await fetchListPointSales();
+  if (response?.ok) return true;
+  const message =
+    response?.message || "No se pudieron cargar los puntos de venta.";
+  (response?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
+  return false;
+}
 
 async function openCreateModal() {
+  if (loadingDetail.value || loadingPointSales.value) return;
+  if (!(await loadPointSales())) return;
   typeOption.value = "crear";
-  selectedDispatchType.value = null;
+  detail.value = null;
   await nextTick();
   modalFormRef.value?.resetForm();
   modal.show();
 }
 
 async function openUpdateModal(row) {
-  typeOption.value = "actualizar";
-  selectedDispatchType.value = { ...row };
-  await nextTick();
-  modal.show();
+  if (loadingDetail.value || loadingPointSales.value || row?.id == null) return;
+  loadingDetailId.value = row.id;
+  try {
+    const response = await getDetailDispatchType(row.id);
+    if (!response?.ok) {
+      const message =
+        response?.message ||
+        "No se pudo obtener el detalle del tipo de despacho.";
+      (response?.status ?? 0) >= 500
+        ? swalError(message)
+        : swalWarning(message);
+      return;
+    }
+    if (!(await loadPointSales())) return;
+    if (!detail.value) {
+      swalWarning("No se encontró el detalle del tipo de despacho.");
+      return;
+    }
+    typeOption.value = "actualizar";
+    await nextTick();
+    modal.show();
+  } finally {
+    loadingDetailId.value = null;
+  }
 }
 
 function handleSaved() {
@@ -59,13 +99,17 @@ async function openAlertChangeStatus(row) {
   const isActive = Number(row.estado) === 1;
   const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
   const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
-  const dispatchType = row.descripcion ? `«${row.descripcion}»` : "este tipo de despacho";
+  const dispatchType = row.descripcion
+    ? `«${row.descripcion}»`
+    : "este tipo de despacho";
   const message = isActive
     ? `El tipo de despacho ${dispatchType} dejará de estar disponible para seleccionar en las cotizaciones.`
     : `El tipo de despacho ${dispatchType} volverá a estar disponible para seleccionar en las cotizaciones.`;
   toast
     .fire({
-      title: isActive ? "¿Desactivar tipo de despacho?" : "¿Activar tipo de despacho?",
+      title: isActive
+        ? "¿Desactivar tipo de despacho?"
+        : "¿Activar tipo de despacho?",
       text: message,
       icon: "warning",
       showCancelButton: true,
@@ -95,12 +139,18 @@ async function changeStatusDispatchType(row) {
   const isActive = Number(row.estado) === 1;
   const resp = await updateStatusDispatchType(row?.id);
   if (resp?.ok) {
-    swalSuccess(`El tipo de despacho se ${isActive ? "desactivó" : "activó"} correctamente.`);
+    swalSuccess(
+      `El tipo de despacho se ${
+        isActive ? "desactivó" : "activó"
+      } correctamente.`
+    );
     await refresh();
     return;
   }
 
-  const message = resp?.message || `No se pudo ${isActive ? "desactivar" : "activar"} el tipo de despacho.`;
+  const message =
+    resp?.message ||
+    `No se pudo ${isActive ? "desactivar" : "activar"} el tipo de despacho.`;
   (resp?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
 }
 
@@ -132,6 +182,7 @@ onMounted(async () => {
           <button
             type="button"
             class="btn btn-primary btn-sm"
+            :disabled="loadingDetail || loadingPointSales"
             @click="openCreateModal"
           >
             <i class="fa fa-plus me-1"></i> Crear registro
@@ -212,9 +263,19 @@ onMounted(async () => {
           <button
             type="button"
             class="btn btn-sm btn-primary"
+            :disabled="loadingDetail || loadingPointSales"
             @click="openUpdateModal(row)"
           >
-            <i class="fa fa-pencil me-1"></i>
+            <i
+              :class="
+                (loadingDetail || loadingPointSales) &&
+                loadingDetailId === row.id
+                  ? 'fa fa-spinner fa-spin'
+                  : 'fa fa-pencil'
+              "
+              aria-hidden="true"
+            ></i>
+            <span class="visually-hidden">Editar tipo de despacho</span>
           </button>
         </template>
 
@@ -243,7 +304,8 @@ onMounted(async () => {
         <verModalGestionTipoDespachos
           ref="modalFormRef"
           :type-option="typeOption"
-          :detail="selectedDispatchType"
+          :detail="detail"
+          :point-sales="listPointSales"
           @closeModal="modal.hide()"
           @saved="handleSaved"
         />
