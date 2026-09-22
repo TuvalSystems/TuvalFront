@@ -1,6 +1,7 @@
 
 <script setup>
 import { useProviderTable } from "@/composables/sistemas/mantenimientos/proveedores/useProviderTable";
+import { useProviderActions } from "@/composables/sistemas/mantenimientos/proveedores/useProviderActions";
 import { onMounted } from "vue";
 import BaseTable from "@/components/BaseTable.vue";
 import {
@@ -20,6 +21,13 @@ const {
   statusBooleanClass,
 } = useProviderTable();
 
+const {
+  loadingCarrierProvider,
+  updateStatusCarrierProvider,
+  loadingStatusProvider,
+  updateStatusProvider,
+} = useProviderActions();
+
 const isEnabledValue = (value) => {
   const normalizedValue = String(value ?? "")
     .trim()
@@ -28,8 +36,9 @@ const isEnabledValue = (value) => {
   return ["1", "true", "activo", "si"].includes(normalizedValue);
 };
 
+
 async function openAlertChangeCarrier(row) {
-   const isActive = Number(row.estado) === 1;
+  const isActive = Number(row.estado) === 1;
   const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
   const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
   const dispatchType = row.descripcion
@@ -68,13 +77,10 @@ async function openAlertChangeCarrier(row) {
     });
 }
 
-
-async function changeStatusCarrier(row){
-
-}
+async function changeStatusCarrier(row) {}
 
 async function openAlertChangeStatus(row) {
-   const isActive = Number(row.estado) === 1;
+  const isActive = Number(row.estado) === 1;
   const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
   const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
   const dispatchType = row.descripcion
@@ -113,10 +119,7 @@ async function openAlertChangeStatus(row) {
     });
 }
 
-
-async function changeStatus(row){
-
-}
+async function changeStatus(row) {}
 
 onMounted(async () => {
   await fetchList(1);
@@ -193,6 +196,8 @@ onMounted(async () => {
         :sortOrder="table.filters.sortOrder"
         @onSort="onSort"
         @onPageChange="fetchList"
+        @onSearch="table.searchTerm"
+       
       >
         <!-- id -->
         <template #cell-id="{ row }">

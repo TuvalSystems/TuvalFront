@@ -39,8 +39,8 @@ export function useProviderTable() {
         { label: "razon social", key: "razon_social", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "clase", key: "clase", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "id principal", key: "id_principal", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
-        { label: "es transportista", key: "es_transportista", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
-        { label: "estado", key: "estado", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
+        { label: "es transportista", key: "es_transportista", sortable: true, clickable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
+        { label: "estado", key: "estado", sortable: true,clickable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
         { label: "F. creación", key: "created_at", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "170px" },
     ]);
 
