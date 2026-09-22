@@ -212,12 +212,12 @@ export function useInvoiceCollectionChecks({
         return Boolean(client.value?.es_cheque);
     });
 
-    const isCheckToday = computed(() => {
-        const issueDate = parseComparableDate(checkPayload.fechaEmision);
-        const dueDate = parseComparableDate(checkPayload.fechaVencimiento);
+    // const isCheckToday = computed(() => {
+    //     const issueDate = parseComparableDate(checkPayload.fechaEmision);
+    //     const dueDate = parseComparableDate(checkPayload.fechaVencimiento);
 
-        return Boolean(issueDate && dueDate && issueDate.getTime() === dueDate.getTime());
-    });
+    //     return Boolean(issueDate && dueDate && issueDate.getTime() === dueDate.getTime());
+    // });
 
     //vaidation 
     const v$ = useVuelidate(createCheckRule(), checkPayload);
@@ -291,7 +291,7 @@ export function useInvoiceCollectionChecks({
         }
         if (
             isCheckCondition.value &&
-            !isCheckToday.value &&
+            // !isCheckToday.value &&
             !canBypassCheckDueDateLimit.value &&
             checkDueDate.getTime() >= allowedCheckDueDate.getTime()
         ) {
