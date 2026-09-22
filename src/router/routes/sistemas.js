@@ -71,6 +71,12 @@ const routes = [
             name: "sistemas-mantenimientos-tipo-despachos",
             component: () => import("@/views/sistemas/mantenimientos/tipo-despachos/TipoDespachoIndex.vue"),
             meta: { title: "Tipo Despachos" }
+          },
+            {
+            path: "lista-proveedores",
+            name: "sistemas-mantenimientos-lista-proveedores",
+            component: () => import("@/views/sistemas/mantenimientos/proveedores/ProveedoresIndex.vue"),
+            meta: { title: "Proveedores" }
           }
         ]
       }

@@ -745,14 +745,6 @@ const store = createStore({
         return res;
       });
     },
-    guardarDireccion(_, direccion) {
-      direccion.CLI_DIR_PUNTO_VENTA = this.state.puntodeventaselect;
-      return axiosClient
-        .post("/cotizaciones/guardardireccion", direccion)
-        .then((res) => {
-          return res;
-        });
-    },
     guardarCliente({ commit }, direccion) {
       direccion.CLI_PUNTO_VENTA = this.state.puntodeventaselect;
       return axiosClient

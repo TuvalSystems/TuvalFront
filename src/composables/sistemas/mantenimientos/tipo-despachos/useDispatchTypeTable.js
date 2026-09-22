@@ -3,7 +3,7 @@ import { ref, reactive, watch, toRef } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { getStatusBadgeClass } from "@/helpers/statusBadge";
 import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
-import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
+import { DISPATCH_TYPES_API } from "@/constants/apiRoutes/ventas/tipo-despachos/dispatchTypesRoutes";
 
 export function useDispatchTypeTable() {
 
@@ -51,7 +51,7 @@ export function useDispatchTypeTable() {
         const payload = {
             ...table.filters,
         }
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.DISPATCH_TYPE.LIST, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(DISPATCH_TYPES_API.LIST, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-tipo-despachos`,
