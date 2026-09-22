@@ -7,7 +7,7 @@ import { useAdminLogTable } from "@/composables/sistemas/useAdminLogTable";
 
 const { table,
   columns,
-  loadingRef,
+  // loadingRef,
   listPerpage,
   fetchList,
   refresh,

@@ -62,6 +62,7 @@ const STATUS_MAPS = {
         cancelada: "danger",
     },
     log: {
+        success: "success",
         pending: "dark",
         resolved: "success",
         failed: "danger",
