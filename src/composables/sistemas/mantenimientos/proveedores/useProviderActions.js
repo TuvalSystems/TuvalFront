@@ -18,7 +18,7 @@ export function useProviderActions() {
 
     const loadingStatusProvider = ref(false);
     async function updateStatusProvider(id) {
-        return await run(() => axiosClient.put(`${PROVIDER_API_ROUTES.UPDATED_CARRIER}/${encodeURIComponent(id)}`), {
+        return await run(() => axiosClient.put(`${PROVIDER_API_ROUTES.UPDATED_STATUS}/${encodeURIComponent(id)}`), {
             loadingRef: loadingStatusProvider,
             onError: (backend, error) => {
                 console.error(backend, error);

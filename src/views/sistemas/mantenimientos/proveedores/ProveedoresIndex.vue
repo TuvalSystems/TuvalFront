@@ -36,90 +36,91 @@ const isEnabledValue = (value) => {
   return ["1", "true", "activo", "si"].includes(normalizedValue);
 };
 
-
 async function openAlertChangeCarrier(row) {
-  const isActive = Number(row.estado) === 1;
-  const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
-  const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
-  const dispatchType = row.descripcion
-    ? `«${row.descripcion}»`
-    : "este tipo de despacho";
-  const message = isActive
-    ? `El tipo de despacho ${dispatchType} dejará de estar disponible para seleccionar en las cotizaciones.`
-    : `El tipo de despacho ${dispatchType} volverá a estar disponible para seleccionar en las cotizaciones.`;
-  toast
-    .fire({
-      title: isActive
-        ? "¿Desactivar tipo de despacho?"
-        : "¿Activar tipo de despacho?",
-      text: message,
-      icon: "warning",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: confirmClass,
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: confirmText,
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.isConfirmed || result.value) {
-        changeStatusCarrier(row);
-      }
-    });
+  if (row?.id == null || loadingCarrierProvider.value || loadingStatusProvider.value) return;
+
+  const isCarrier = isEnabledValue(row.es_transportista);
+  const providerName = row.razon_social || row.ruc || `#${row.id}`;
+  const result = await toast.fire({
+    title: isCarrier ? "¿Quitar condición de transportista?" : "¿Marcar como transportista?",
+    text: isCarrier
+      ? `El proveedor «${providerName}» dejará de figurar como transportista.`
+      : `El proveedor «${providerName}» figurará como transportista.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: isCarrier ? "btn btn-danger m-1" : "btn btn-success m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: isCarrier ? "Sí, quitar" : "Sí, marcar",
+    cancelButtonText: "Cancelar",
+  });
+
+  if (result.isConfirmed) await changeStatusCarrier(row);
 }
 
-async function changeStatusCarrier(row) {}
+async function changeStatusCarrier(row) {
+  if (loadingCarrierProvider.value || loadingStatusProvider.value) return;
+
+  const isCarrier = isEnabledValue(row.es_transportista);
+  const resp = await updateStatusCarrierProvider(row?.id);
+  if (resp?.ok) {
+    swalSuccess(isCarrier
+      ? "Se quitó la condición de transportista al proveedor."
+      : "El proveedor quedó marcado como transportista.");
+    await fetchList(table.currentPage);
+    return;
+  }
+
+  if (resp?.canceled || resp?.handled) return;
+  const message = resp?.message || (isCarrier
+    ? "No se pudo quitar la condición de transportista."
+    : "No se pudo marcar al proveedor como transportista.");
+  (resp?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
+}
 
 async function openAlertChangeStatus(row) {
-  const isActive = Number(row.estado) === 1;
-  const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
-  const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
-  const dispatchType = row.descripcion
-    ? `«${row.descripcion}»`
-    : "este tipo de despacho";
-  const message = isActive
-    ? `El tipo de despacho ${dispatchType} dejará de estar disponible para seleccionar en las cotizaciones.`
-    : `El tipo de despacho ${dispatchType} volverá a estar disponible para seleccionar en las cotizaciones.`;
-  toast
-    .fire({
-      title: isActive
-        ? "¿Desactivar tipo de despacho?"
-        : "¿Activar tipo de despacho?",
-      text: message,
-      icon: "warning",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: confirmClass,
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: confirmText,
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.isConfirmed || result.value) {
-        changeStatus(row);
-      }
-    });
+  if (row?.id == null || loadingCarrierProvider.value || loadingStatusProvider.value) return;
+
+  const isActive = isEnabledValue(row.estado);
+  const providerName = row.razon_social || row.ruc || `#${row.id}`;
+  const result = await toast.fire({
+    title: isActive ? "¿Inactivar proveedor?" : "¿Activar proveedor?",
+    text: isActive
+      ? `El proveedor «${providerName}» quedará inactivo.`
+      : `El proveedor «${providerName}» quedará activo.`,
+    icon: "warning",
+    showCancelButton: true,
+    customClass: {
+      confirmButton: isActive ? "btn btn-danger m-1" : "btn btn-success m-1",
+      cancelButton: "btn btn-secondary m-1",
+    },
+    confirmButtonText: isActive ? "Sí, inactivar" : "Sí, activar",
+    cancelButtonText: "Cancelar",
+  });
+
+  if (result.isConfirmed) await changeStatus(row);
 }
 
-async function changeStatus(row) {}
+async function changeStatus(row) {
+  if (loadingCarrierProvider.value || loadingStatusProvider.value) return;
+
+  const isActive = isEnabledValue(row.estado);
+  const resp = await updateStatusProvider(row?.id);
+  if (resp?.ok) {
+    swalSuccess(isActive
+      ? "El proveedor quedó inactivo."
+      : "El proveedor quedó activo.");
+    await fetchList(table.currentPage);
+    return;
+  }
+
+  if (resp?.canceled || resp?.handled) return;
+  const message = resp?.message || (isActive
+    ? "No se pudo inactivar al proveedor."
+    : "No se pudo activar al proveedor.");
+  (resp?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
+}
 
 onMounted(async () => {
   await fetchList(1);
@@ -143,7 +144,7 @@ onMounted(async () => {
 
   <!-- contenido -->
   <div class="content">
-    <BaseBlock title="Lista de Tipo despachos" content-full rounded>
+    <BaseBlock title="Lista de Proveedores" content-full rounded>
       <template #options>
         <div class="block-options-item">
           <button
@@ -197,7 +198,6 @@ onMounted(async () => {
         @onSort="onSort"
         @onPageChange="fetchList"
         @onSearch="table.searchTerm"
-       
       >
         <!-- id -->
         <template #cell-id="{ row }">
