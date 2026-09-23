@@ -164,12 +164,13 @@ onMounted(() => { });
 }
 
 .segment-option:hover .star.filled {
-  color: #ff9800;
+  color: var(--tuval-primary-strong, var(--bs-primary));
   transform: scale(1.08);
 }
 
 .segment-option.active {
-  background-color: #e7f1ff;
+  color: var(--tuval-primary, var(--bs-primary));
+  background-color: var(--tuval-primary-soft, var(--bs-body-bg));
   font-weight: 600;
 }
 
@@ -184,14 +185,18 @@ onMounted(() => { });
 
 .star {
   font-size: 13px;
-  color: #cfd6df;
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
+  opacity: 0.45;
   line-height: 1;
-  transition: transform 0.15s ease, color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .star.filled {
-  color: #f6b100;
-  text-shadow: 0 1px 2px rgba(246, 177, 0, 0.35);
+  color: var(--tuval-primary, var(--bs-primary));
+  opacity: 1;
 }
 
 .cursor-pointer {
