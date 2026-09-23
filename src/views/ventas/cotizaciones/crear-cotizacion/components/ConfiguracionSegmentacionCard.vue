@@ -164,7 +164,7 @@ onMounted(() => { });
 }
 
 .segment-option:hover .star.filled {
-  color: var(--tuval-primary-strong, var(--bs-primary));
+  color: var(--bs-warning);
   transform: scale(1.08);
 }
 
@@ -195,7 +195,7 @@ onMounted(() => { });
 }
 
 .star.filled {
-  color: var(--tuval-primary, var(--bs-primary));
+  color: var(--bs-warning);
   opacity: 1;
 }
 
