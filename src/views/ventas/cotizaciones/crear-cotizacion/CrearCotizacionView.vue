@@ -1314,21 +1314,54 @@ onMounted(async () => {
         <div
           class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4"
         >
-          <div class="btn-group btn-group-sm">
+          <div class="d-flex flex-wrap align-items-center gap-2">
             <button
               type="button"
-              class="btn btn-outline-primary"
+              class="btn btn-sm btn-outline-primary"
               @click="openModalSearchItem"
             >
-              <i class="fa fa-search me-1"></i> Buscar Articulo
+              <i class="fa fa-search me-1"></i>Buscar artículo
             </button>
+
+            <div class="btn-group btn-group-sm">
+              <button
+                type="button"
+                class="btn btn-outline-secondary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                :disabled="loadingStockMasivo"
+              >
+                <i class="fa fa-plus me-1"></i>Agregar ítem L
+              </button>
+              <ul class="dropdown-menu shadow-sm">
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    @click="updateStockByBatchV2"
+                  >
+                    <i class="fa fa-percent fa-fw me-2"></i>Ítem L · IVA 5%
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    @click="updateStockByBatchV2"
+                  >
+                    <i class="fa fa-percent fa-fw me-2"></i>Ítem L · IVA 15%
+                  </button>
+                </li>
+              </ul>
+            </div>
+
             <button
               type="button"
-              class="btn btn-outline-success"
+              class="btn btn-sm btn-outline-success"
               :disabled="loadingStockMasivo"
               @click="updateStockByBatchV2"
             >
-              <i class="fa fa-rotate me-1"></i>Stock
+              <i class="fa fa-rotate me-1"></i>Actualizar stock
             </button>
           </div>
           <button
