@@ -99,9 +99,7 @@ async function searchStockExposicion(row) {
 }
 
 async function addItemToQuote(row) {
-  if (row.ART_TIPO_COMPRA !== "L" || row.ART_TIPO_COMPRA === "SERV") {
-    await searchStockWarehouse(row);
-  }
+  await searchStockWarehouse(row);
   row.descuento = props.form.cliente?.CLI_DSTO_COMERCIAL || 0;
   row.descuento_original = props.form.cliente?.CLI_DSTO_COMERCIAL || 0;
   emit("select-item", row);
@@ -199,33 +197,6 @@ onMounted(() => {});
               v-model="payload.text_nombre"
               @keyup.enter="buscarArticulo"
             />
-          </div>
-        </div>
-        <div class="col-12 col-md-1">
-          <small
-            class="fw-bold text-uppercase text-muted"
-            style="font-size: 10px"
-          >
-            Item L
-          </small>
-
-          <div
-            class="item-l-filter"
-            :class="{ 'item-l-filter--active': payload.terminal }"
-          >
-            <div class="form-check form-switch item-l-filter__switch">
-              <input
-                id="chkTerminal"
-                v-model="payload.terminal"
-                class="form-check-input "
-                type="checkbox"
-                role="switch"
-                aria-label="Filtrar artículos tipo L"
-              />
-            </div>
-            <label class="item-l-filter__label" for="chkTerminal">
-              {{ payload.terminal ? "Sí" : "No" }}
-            </label>
           </div>
         </div>
         <div class="col-12 text-end mt-3">
@@ -455,12 +426,7 @@ onMounted(() => {});
                     ${{ formatPrice(row.ART_VALOR) }}
                   </td>
                   <td class="text-end" style="width: 4rem">
-                    <span v-if="row.ART_TIPO_COMPRA !== 'L'">
                     ${{ formatPrice(getFinalPrice(row)) }}
-                    </span>
-                    <span v-else>
-                        {{ row.ART_IMP_VTA }}%
-                    </span>
                   </td>
                   <td class="text-end" style="width: 4rem">
                     {{ formatPrice(row.ART_PESO) }}Kg
@@ -494,56 +460,3 @@ onMounted(() => {});
     @hide="handleHide"
   />
 </template>
-
-<style scoped>
-.item-l-filter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  box-sizing: border-box;
-  height: 31px;
-  padding: 0.25rem 0.5rem;
-  color: var(--bs-secondary);
-  background-color: var(--bs-body-bg);
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--bs-border-radius-sm);
-  transition:
-    color 0.15s ease-in-out,
-    background-color 0.15s ease-in-out,
-    border-color 0.15s ease-in-out;
-}
-
-.item-l-filter--active {
-  color: var(--bs-primary);
-  background-color: rgba(var(--bs-primary-rgb), 0.08);
-  border-color: rgba(var(--bs-primary-rgb), 0.45);
-}
-
-.item-l-filter__switch {
-  display: flex;
-  align-items: center;
-  width: 2em;
-  height: 100%;
-  min-height: 0;
-  padding-left: 0;
-  margin: 0;
-}
-
-.item-l-filter__switch .form-check-input {
-  float: none;
-  flex-shrink: 0;
-  margin: 0;
-  cursor: pointer;
-}
-
-.item-l-filter__label {
-  min-width: 1.25rem;
-  margin-bottom: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1;
-  text-align: center;
-  cursor: pointer;
-}
-</style>

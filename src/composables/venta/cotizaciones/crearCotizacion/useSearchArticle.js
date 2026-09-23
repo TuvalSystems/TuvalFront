@@ -22,7 +22,6 @@ export function useSearchArticle() {
         codigo3l: '',
         select_nombre: 'contiene',
         text_nombre: '',
-        terminal: false,
         puntodeventaselect: store.state.puntodeventaselect,
         nivel_precio: '',
     });
@@ -141,7 +140,7 @@ export function useSearchArticle() {
     }
 
     function validateSearch() {
-        if (payload.text_codigo === '' && payload.text_nombre === '' && payload.codigo3l === '' && payload.terminal === false) {
+        if (payload.text_codigo === '' && payload.text_nombre === '' && payload.codigo3l === '') {
             swalWarning('Debe ingresar al menos un criterio de busqueda');
             return false;
         }
@@ -152,7 +151,6 @@ export function useSearchArticle() {
         payload.text_codigo = '';
         payload.text_nombre = '';
         payload.codigo3l = '';
-        payload.terminal = false;
         articles.value = [];
     }
 
@@ -161,7 +159,7 @@ export function useSearchArticle() {
 
     //funcion para verificar si el articulo puede ser seleccionado
     const isSelectable = (row) => {
-        return row.ART_TIPO_COMPRA === 'L' || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)
+        return row.ART_VALOR > 0
     }
 
     const getFinalPrice = (row) => {
@@ -178,7 +176,10 @@ export function useSearchArticle() {
         return await run(() => axiosClient.post(apiSearchArticles, payload), {
             loadingRef: loadingArt,
             onSuccess: (res) => {
-                articles.value = res;
+                articles.value = res.filter((article) => {
+                    const purchaseType = (article.ART_TIPO_COMPRA || '').trim().toUpperCase();
+                    return purchaseType !== 'L';
+                });
             },
             successMessage: 'Proceso realizado exitosamente',
         })
@@ -205,13 +206,12 @@ export function useSearchArticle() {
         });
     }
     const isShowTransit = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && row.stockTransito
+        return row.stockTransito
             && row.stockTransito.bodega;
     }
 
     const isButtonTransit = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L' && !row.stockTransito && !row.loadingStockTransit;
+        return !row.stockTransito && !row.loadingStockTransit;
     }
     const isEmptyTransit = () => {
         return false;
@@ -254,20 +254,17 @@ export function useSearchArticle() {
     }
 
     const isShowStock = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stock)
+        return Array.isArray(row.stock)
             && row.stock.length > 0;
     }
 
     const isButtonStockWarehouse = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && !row.loadingStockWarehouse
+        return !row.loadingStockWarehouse
             && !row.stock;
     }
 
     const isEmptyStockWarehouse = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stock)
+        return Array.isArray(row.stock)
             && row.stock.length === 0
             && !row.loadingStockWarehouse;
     }
@@ -277,21 +274,18 @@ export function useSearchArticle() {
 
     //exposicion 
     const isShowStockExposicion = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && row.stockExposicion
+        return row.stockExposicion
             && typeof row.stockExposicion === 'object'
             && row.stockExposicion.disponible !== undefined;
     }
 
     const isButtonStockExposicion = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && !row.loadingStockExposicion
+        return !row.loadingStockExposicion
             && !row.stockExposicion;
     }
 
     const isEmptyStockExposicion = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && row.stockExposicion?.disponible >= 0;
+        return row.stockExposicion?.disponible >= 0;
     }
 
     const apiStockExposicion = 'consultas/stock-exposicion';
