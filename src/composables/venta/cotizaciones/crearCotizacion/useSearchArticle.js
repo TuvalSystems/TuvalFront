@@ -1,7 +1,7 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref, reactive, watch, computed, toRef } from "vue";
-import { swalError, swalSuccess, swalWarning } from "@/functions/swal-alert";
+import { ref, reactive, computed, toRef } from "vue";
+import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
 
 export function useSearchArticle() {
@@ -22,7 +22,7 @@ export function useSearchArticle() {
         codigo3l: '',
         select_nombre: 'contiene',
         text_nombre: '',
-        terminal: '',
+        terminal: false,
         puntodeventaselect: store.state.puntodeventaselect,
         nivel_precio: '',
     });
@@ -141,7 +141,7 @@ export function useSearchArticle() {
     }
 
     function validateSearch() {
-        if (payload.text_codigo === '' && payload.text_nombre === '' && payload.codigo3l === '' && payload.terminal === '') {
+        if (payload.text_codigo === '' && payload.text_nombre === '' && payload.codigo3l === '' && payload.terminal === false) {
             swalWarning('Debe ingresar al menos un criterio de busqueda');
             return false;
         }
@@ -152,7 +152,7 @@ export function useSearchArticle() {
         payload.text_codigo = '';
         payload.text_nombre = '';
         payload.codigo3l = '';
-        payload.terminal = '';
+        payload.terminal = false;
         articles.value = [];
     }
 
@@ -164,7 +164,7 @@ export function useSearchArticle() {
         return row.ART_TIPO_COMPRA === 'L' || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)
     }
 
-    const getFinlaPrice = (row) => {
+    const getFinalPrice = (row) => {
         const precioBase = parseFloat(Number(row.ART_VALOR)) || 0;
         const porcentajeIva = parseFloat(Number(row.ART_IMP_VTA)) || 0;
         const descuento = precioBase * 0.25;
@@ -213,7 +213,7 @@ export function useSearchArticle() {
     const isButtonTransit = (row) => {
         return row.ART_TIPO_COMPRA !== 'L' && !row.stockTransito && !row.loadingStockTransit;
     }
-    const isEmptyTransit = (row) => {
+    const isEmptyTransit = () => {
         return false;
     }
 
@@ -337,7 +337,7 @@ export function useSearchArticle() {
 
         //opciones de articulos
         isSelectable,
-        getFinlaPrice,
+        getFinalPrice,
 
         //opciones transito
         fetchStockTransit,

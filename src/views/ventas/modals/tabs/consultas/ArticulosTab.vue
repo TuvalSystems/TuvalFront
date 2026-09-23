@@ -8,9 +8,9 @@ import { swalError } from "@/functions/swal-alert";
 
 const {
     payload,
-    cols,
-    onSort,
-    sortBy,
+    // cols,
+    // onSort,
+    // sortBy,
     searchOptions,
     //galeria
     gallery,
@@ -29,28 +29,28 @@ const {
     fetchSearchArticles,
 
     //opciones de articulos
-    isSelectable,
-    getFinlaPrice,
+    // isSelectable,
+    // getFinlaPrice,
 
     //opciones transito
-    fetchStockTransit,
-    isShowTransit,
-    isButtonTransit,
-    isEmptyTransit,
+    // fetchStockTransit,
+    // isShowTransit,
+    // isButtonTransit,
+    // isEmptyTransit,
 
 
     //opciones stock bodegas
-    fetchStockWarehouse,
+    // fetchStockWarehouse,
     fetchStockWarehouseConsult,
     isShowStock,
     isButtonStockWarehouse,
     isEmptyStockWarehouse,
 
     //opciones stock import
-    fetchStockImport,
-    isShowStockImport,
-    isButtonStockImport,
-    isEmptyStockImport
+    // fetchStockImport,
+    // isShowStockImport,
+    // isButtonStockImport,
+    // isEmptyStockImport
 } = useSearchArticle();
 
 
@@ -106,11 +106,11 @@ onMounted(() => { });
                             @keyup.enter="buscarArticulo" />
                     </div>
                 </div>
-                <div class="col-12 col-md-1">
+                <!-- <div class="col-12 col-md-1">
                     <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">Terminal</small>
                     <input type="text" class="form-control form-control-sm border-1 shadow-sm"
                         v-model="payload.terminal" @keyup.enter="buscarArticulo" />
-                </div>
+                </div> -->
                 <div class="col-12 text-end mt-3 ">
                     <button type="button" class="btn btn-sm btn-alt-secondary me-2" @click="resetSearch">
                         <i class="fa fa-eraser"></i>

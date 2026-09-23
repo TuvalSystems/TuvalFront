@@ -78,17 +78,6 @@ const store = createStore({
     condiciondepago_id: null,
     condiciondepago_print: sessionStorage.getItem("CONDICIONDEPAGOPRINT"),
     formadepago_id: null,
-    verarticulos: false,
-    verproveedor: false,
-    indexproveedor: null,
-    buscar_articulo: {
-      select_codigo: "empieza",
-      text_codigo: "",
-      codigo3l: "",
-      terminal: "",
-      select_nombre: "contiene",
-      text_nombre: "",
-    },
     condiciondepago: readSessionJson("CONDICIONDEPAGO"),
     proveedores: readSessionJson("PROVEEDORES"),
     descuentoarticulo: 0,
@@ -147,10 +136,6 @@ const store = createStore({
       CLI_TELEFONO_1: "",
     },
     perfiles: {
-      loading: false,
-      data: [],
-    },
-    articulos: {
       loading: false,
       data: [],
     },
@@ -504,14 +489,6 @@ const store = createStore({
       });
     },
 
-    buscararticulo({ commit }, data) {
-      commit("setArticuloLoading", true);
-      return axiosClient.post("/consultas/buscararticulo", data).then((res) => {
-        commit("setArticuloLoading", false);
-        commit("setArticulo", res.data.articulos);
-        return res;
-      });
-    },
     addCotizacion({ commit }, data) {
       commit("setCotizacionLoading", true);
       return axiosClient
@@ -522,36 +499,6 @@ const store = createStore({
           return res;
         });
     },
-    consultarStock(_, data) {
-      return axiosClient.post("/consultas/consultarstock", data).then((res) => {
-        return res.data;
-      });
-    },
-    consultaStockOthers(_, data) {
-      return axiosClient
-        .post("/consultas/consultastockothers", data)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    consultaStockTransito(_, data) {
-      return axiosClient
-        .post("/consultas/consulta-stock-transito", data)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    selectarticulo({ commit }, data) {
-      commit("setCotizacionLoading", true);
-      return axiosClient
-        .post("/cotizaciones/selectarticulo", data)
-        .then((res) => {
-          commit("setCotizacionLoading", false);
-          commit("addCotizacion", res.data.articulo);
-          return res;
-        });
-    },
-
     updateCantidad(_, updatecantidad) {
       return axiosClient
         .post("/cotizaciones/updatecantidad", updatecantidad)
@@ -1403,15 +1350,6 @@ const store = createStore({
     setPerfiles: (state, perfiles) => {
       state.perfiles.data = perfiles;
     },
-    setArticuloLoading: (state, loading) => {
-      state.articulos.loading = loading;
-    },
-    setArticulo: (state, articulos) => {
-      state.articulos.data = articulos;
-    },
-    resetArticulo: (state) => {
-      state.articulos.data = [];
-    },
     resetClientes: (state) => {
       state.clientes.data = [];
     },
@@ -1453,16 +1391,6 @@ const store = createStore({
     },
     resetCotizacionProspecto: (state) => {
       state.cotizacion.data = [];
-    },
-    limpiarBusqueda: (state) => {
-      state.buscar_articulo = {
-        select_codigo: "empieza",
-        text_codigo: "",
-        codigo3l: "",
-        terminal: "",
-        select_nombre: "contiene",
-        text_nombre: "",
-      };
     },
     setVercotizacionesLoading: (state, loading) => {
       state.cotizaciones.loading = loading;
