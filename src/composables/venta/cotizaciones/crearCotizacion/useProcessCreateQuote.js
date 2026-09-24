@@ -1246,7 +1246,11 @@ export function useProcessCreateQuote(draftId = 'default') {
                     descuento_original: Number(item.descuento_original || 0),
                     // Aseguramos que existan como arrays
                     proveedores: item.proveedores || [],
-                    stock: item.stock || []
+                    stock: item.stock || [],
+                    cod_categoria: item.cod_categoria || "",
+                    cod_linea: item.cod_linea || "",
+                    cod_clase: item.cod_clase || "",
+                    resultado_configuracion_item_l: item.resultado_configuracion_item_l || ""
                 }));
 
 
