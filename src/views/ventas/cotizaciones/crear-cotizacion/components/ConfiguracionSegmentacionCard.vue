@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted,  watch, computed } from 'vue';
 import { useArticleSegmentClassification } from "@/composables/venta/cotizaciones/crearCotizacion/useArticleSegmentClassification";
 import { swalError, swalWarning } from '@/functions/swal-alert';
 const props = defineProps({
@@ -9,7 +9,6 @@ const props = defineProps({
   }
 });
 
-const articles = ref(null);
 const {
   loadingConfig,
   segmentFilters,
@@ -25,7 +24,7 @@ const {
   //api que me trae la configuracion
   fetchSegmentClassificationConfig,
 
-} = useArticleSegmentClassification(articles);
+} = useArticleSegmentClassification();
 
 watch(
   () => props.form?.segmento?.coAtrHijo,

@@ -7,7 +7,6 @@ export const ARTICLES_API_ROUTES = {
         STOCK_TRANSIT: 'consultas/consulta-stock-transito',
         STOCK: 'consultas/consultarstock',
         STOCK_EXPOSITION: 'consultas/stock-exposicion',
-
-
+        
     }
 };
