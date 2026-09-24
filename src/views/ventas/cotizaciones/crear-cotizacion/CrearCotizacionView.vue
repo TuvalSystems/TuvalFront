@@ -6,13 +6,16 @@ import {
   swalSuccess,
   swalWarning,
 } from "@/functions/swal-alert.js";
+// composables
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
+import { usePdfUpload } from "@/composables/core/usePdfUpload";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import { useImageUpload } from "@/composables/core/useImageUpload";
-import { usePdfUpload } from "@/composables/core/usePdfUpload";
-import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
+import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle.js";
+
 import draggable from "vuedraggable";
 import {
   formatPrice4,
@@ -36,6 +39,8 @@ import { useRouter, useRoute } from "vue-router";
 import ConfiguracionSegmentacionCard from "@/views/ventas/cotizaciones/crear-cotizacion/components/ConfiguracionSegmentacionCard.vue";
 import InformacionCliente from "./components/InformacionCliente.vue";
 import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
+import verModalConfiguracionItemL from "@/views/ventas/cotizaciones/crear-cotizacion/modals/verModalConfiguracionItemL.vue";
+//constantes
 import { CUSTOMER_SEARCH_MIN_LENGTH } from "@/constants/customerSearch";
 
 const router = useRouter();
@@ -183,6 +188,11 @@ const {
   restorePersistedPdfs,
 } = usePdfUpload();
 
+const {
+  //busqueda de item L
+  searchItemL,
+  // loadingSearchItemL,
+} = useSearchArticle();
 const pdfInput = ref(null);
 
 const triggerPdfInput = () => {
@@ -200,6 +210,7 @@ const verModalPesoItemRef = ref(null);
 const verProveedoresRef = ref(null);
 const verModalBorradoresRef = ref(null);
 const verHistorialFacturasRef = ref(null);
+const verModalConfiguracionItemLRef = ref(null);
 const verModalActualizarSegmentoObj = useBootstrapModal(
   verModalActualizarSegmento
 );
@@ -240,6 +251,11 @@ const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
   backdrop: "static",
   keyboard: false,
 });
+
+const verModalConfiguracionItemLObj = useBootstrapModal(
+  verModalConfiguracionItemLRef
+);
+
 // variables para mostrar las busquedas
 const showResultClients = ref(false);
 const showInfoClient = ref(false);
@@ -621,6 +637,68 @@ const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   calculateTotals();
   verProveedoresObj.hide();
 };
+
+/** logica para seleccion y asignación de item L  */
+const filterItemsL = computed(() => {
+  return form.value.items
+    .filter((it) => it.ART_TIPO_COMPRA === "L")
+    .map((it) => it.ART_CODIGO);
+});
+
+async function searchItemLByType(porcentil) {
+  const payloadItemL = {
+    items: filterItemsL.value,
+    porcentaje: porcentil,
+  };
+
+  const resp = await searchItemL(payloadItemL);
+  if (resp?.ok) {
+    let row = resp?.data;
+    row.descuento = form.value.cliente?.CLI_DSTO_COMERCIAL || 0;
+    row.descuento_original = form.value.cliente?.CLI_DSTO_COMERCIAL || 0;
+    addItems(row);
+
+    swalSuccess("Item L asignado correctamente");
+    return;
+  }
+  const msg = resp?.message || "No se pudo obtener un item L valido";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
+// proceso de clasificacion de item L
+const dataItemLClasification = ref({
+  item: {},
+  index: 0,
+});
+async function openModalSegmentationItemL(item, i) {
+  dataItemLClasification.value.item = item;
+  dataItemLClasification.value.index = i;
+  verModalConfiguracionItemLObj.show();
+}
+
+function updateItemLClassification({ index, categoria, linea, clase }) {
+  const item = form.value.items[index];
+  if (!item) return;
+
+  item.cod_categoria = categoria;
+  item.cod_linea = linea;
+  item.cod_clase = clase;
+}
+
+function selectItemLAlternative({ index, alternative }) {
+  const item = form.value.items[index];
+  if (!item || !alternative?.ART_DESCRIPCION) return;
+
+  item.ART_DESCRIPCION = alternative.ART_DESCRIPCION;
+  item.ART_DESCRIPCION_ORIGINAL = alternative.ART_DESCRIPCION;
+}
+
+function updateItemLAlternativeStatus({ index, message }) {
+  const item = form.value.items[index];
+  if (!item) return;
+
+  item.resultado_configuracion_item_l  = message;
+}
 
 //proceso de modales stock y peso
 async function openModalStockRowItem(item, i) {
@@ -1314,21 +1392,54 @@ onMounted(async () => {
         <div
           class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4"
         >
-          <div class="btn-group btn-group-sm">
+          <div class="d-flex flex-wrap align-items-center gap-2">
             <button
               type="button"
-              class="btn btn-outline-primary"
+              class="btn btn-sm btn-outline-primary"
               @click="openModalSearchItem"
             >
-              <i class="fa fa-search me-1"></i> Buscar Articulo
+              <i class="fa fa-search me-1"></i>Buscar artículo
             </button>
+
+            <div class="btn-group btn-group-sm">
+              <button
+                type="button"
+                class="btn btn-outline-secondary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                :disabled="loadingStockMasivo"
+              >
+                <i class="fa fa-plus me-1"></i>Agregar ítem L
+              </button>
+              <ul class="dropdown-menu shadow-sm">
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    @click="searchItemLByType(5)"
+                  >
+                    <i class="fa fa-percent fa-fw me-2"></i>Ítem L · IVA 5%
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    @click="searchItemLByType(15)"
+                  >
+                    <i class="fa fa-percent fa-fw me-2"></i>Ítem L · IVA 15%
+                  </button>
+                </li>
+              </ul>
+            </div>
+
             <button
               type="button"
-              class="btn btn-outline-success"
+              class="btn btn-sm btn-outline-success"
               :disabled="loadingStockMasivo"
               @click="updateStockByBatchV2"
             >
-              <i class="fa fa-rotate me-1"></i>Stock
+              <i class="fa fa-rotate me-1"></i>Actualizar stock
             </button>
           </div>
           <button
@@ -1452,7 +1563,10 @@ onMounted(async () => {
                   <td class="fs-sm">{{ element.ART_PLAN_UMEDIDA }}</td>
                   <!-- abrir modal de proveedores -->
                   <td class="fs-sm">
-                    <div v-if="isItemL(element)">
+                    <div
+                      v-if="isItemL(element)"
+                      class="d-flex justify-content-center gap-1"
+                    >
                       <button
                         type="button"
                         class="btn btn-sm"
@@ -1464,6 +1578,14 @@ onMounted(async () => {
                         @click="openModalProviders(element, index)"
                       >
                         <i class="fa fa-people-arrows-left-right"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-warning"
+                        title="Configuración de ítem L"
+                        @click="openModalSegmentationItemL(element, index)"
+                      >
+                        <i class="fa fa-gear"></i>
                       </button>
                     </div>
                   </td>
@@ -1481,7 +1603,6 @@ onMounted(async () => {
                       :tablindex="index + 1"
                     />
                   </td>
-
                   <!-- modal para abrir stock de bodega -->
                   <td class="fs-sm">
                     <!-- boton stock -->
@@ -2399,6 +2520,30 @@ onMounted(async () => {
           @eliminar="deleteDraftItem"
         >
         </verModalListaBorradores>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal de configuracion de items L -->
+  <div
+    class="modal fade"
+    id="verModalConfiguracionItemLObj"
+    tabindex="-1"
+    aria-hidden="true"
+    ref="verModalConfiguracionItemLRef"
+  >
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <verModalConfiguracionItemL
+          v-if="dataItemLClasification.item"
+          :item="dataItemLClasification.item"
+          :indice="dataItemLClasification.index"
+          :form="form"
+          @update-classification="updateItemLClassification"
+          @select-alternative="selectItemLAlternative"
+          @update-alternative-status="updateItemLAlternativeStatus"
+        >
+        </verModalConfiguracionItemL>
       </div>
     </div>
   </div>

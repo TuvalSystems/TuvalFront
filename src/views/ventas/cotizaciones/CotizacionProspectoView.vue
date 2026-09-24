@@ -849,7 +849,7 @@ function onSort(event, i) {
 
 .prospect-form__label {
   margin-bottom: 0.2rem;
-  color: var(--bs-gray-700);
+  color: var(--tuval-text, var(--bs-body-color));
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.035em;
@@ -859,19 +859,19 @@ function onSort(event, i) {
 .prospect-form__control .input-group-text {
   width: 2.25rem;
   justify-content: center;
-  color: var(--bs-gray-600);
-  background-color: var(--bs-gray-100);
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
+  background-color: var(--tuval-surface-muted, var(--bs-body-bg));
 }
 
 .prospect-form__control .form-control,
 .prospect-form__textarea,
 .prospect-form__delivery .form-select {
-  border-color: var(--bs-gray-300);
+  border-color: var(--tuval-border, var(--bs-border-color));
 }
 
 .prospect-form__control:focus-within .input-group-text {
-  color: var(--bs-primary);
-  border-color: var(--bs-primary);
+  color: var(--tuval-primary, var(--bs-primary));
+  border-color: var(--tuval-primary, var(--bs-primary));
 }
 
 .prospect-form__textarea {
@@ -881,8 +881,8 @@ function onSort(event, i) {
 
 .prospect-form__delivery {
   padding: 0.65rem 0.75rem;
-  background-color: var(--bs-gray-100);
-  border: 1px solid var(--bs-gray-200);
+  background-color: var(--tuval-surface-muted, var(--bs-body-bg));
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
   border-radius: 0.5rem;
 }
 
@@ -900,9 +900,9 @@ function onSort(event, i) {
   min-height: 31px;
   padding: 0.3rem 0.6rem;
   margin: 0;
-  color: var(--bs-gray-700);
-  background-color: var(--bs-white);
-  border: 1px solid var(--bs-gray-300);
+  color: var(--tuval-text, var(--bs-body-color));
+  background-color: var(--tuval-surface, var(--bs-body-bg));
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
   border-radius: 0.375rem;
   cursor: pointer;
   transition:
@@ -913,9 +913,9 @@ function onSort(event, i) {
 
 .prospect-form__dispatch-option:hover,
 .prospect-form__dispatch-option--active {
-  color: var(--bs-primary);
-  background-color: rgba(var(--bs-primary-rgb), 0.08);
-  border-color: rgba(var(--bs-primary-rgb), 0.45);
+  color: var(--tuval-primary, var(--bs-primary));
+  background-color: var(--tuval-primary-soft, var(--bs-body-bg));
+  border-color: var(--tuval-primary, var(--bs-primary));
 }
 
 .prospect-form__dispatch-option .form-check-input {

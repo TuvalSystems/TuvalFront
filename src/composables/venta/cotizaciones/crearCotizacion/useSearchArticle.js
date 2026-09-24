@@ -3,7 +3,7 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, reactive, computed, toRef } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
-
+import { ARTICLES_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/articleRoutes";
 export function useSearchArticle() {
     const { run } = useApiAction();
     const store = useStore();
@@ -15,14 +15,12 @@ export function useSearchArticle() {
 
     const loadingArt = ref(false);
     const articles = ref([]);
-    const apiSearchArticles = '/consultas/articulos/lista';
     const getInitialPayload = () => ({
         select_codigo: 'empieza',
         text_codigo: '',
         codigo3l: '',
         select_nombre: 'contiene',
         text_nombre: '',
-        terminal: false,
         puntodeventaselect: store.state.puntodeventaselect,
         nivel_precio: '',
     });
@@ -141,7 +139,7 @@ export function useSearchArticle() {
     }
 
     function validateSearch() {
-        if (payload.text_codigo === '' && payload.text_nombre === '' && payload.codigo3l === '' && payload.terminal === false) {
+        if (payload.text_codigo === '' && payload.text_nombre === '' && payload.codigo3l === '') {
             swalWarning('Debe ingresar al menos un criterio de busqueda');
             return false;
         }
@@ -152,7 +150,6 @@ export function useSearchArticle() {
         payload.text_codigo = '';
         payload.text_nombre = '';
         payload.codigo3l = '';
-        payload.terminal = false;
         articles.value = [];
     }
 
@@ -161,7 +158,7 @@ export function useSearchArticle() {
 
     //funcion para verificar si el articulo puede ser seleccionado
     const isSelectable = (row) => {
-        return row.ART_TIPO_COMPRA === 'L' || (row.ART_TIPO_COMPRA !== 'L' && row.ART_VALOR > 0)
+        return row.ART_VALOR > 0
     }
 
     const getFinalPrice = (row) => {
@@ -175,10 +172,13 @@ export function useSearchArticle() {
 
     //function de consulta para listar todos los articulos de acuerdo a los filtros
     async function fetchSearchArticles() {
-        return await run(() => axiosClient.post(apiSearchArticles, payload), {
+        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.ITEMS, payload), {
             loadingRef: loadingArt,
             onSuccess: (res) => {
-                articles.value = res;
+                articles.value = res.filter((article) => {
+                    const purchaseType = (article.ART_TIPO_COMPRA || '').trim().toUpperCase();
+                    return purchaseType !== 'L';
+                });
             },
             successMessage: 'Proceso realizado exitosamente',
         })
@@ -186,8 +186,6 @@ export function useSearchArticle() {
 
 
     //funciones para stock transito 
-
-    const apiStockTransit = 'consultas/consulta-stock-transito';
     async function fetchStockTransit(row, form) {
         const loadingRowRef = toRef(row, 'loadingStockTransit');
         const payloadTransit = {
@@ -196,7 +194,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockTransit, payloadTransit), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK_TRANSIT, payloadTransit), {
             loadingRef: loadingRowRef,
             onSuccess: (res) => {
                 row.stockTransito = res || null;
@@ -205,13 +203,12 @@ export function useSearchArticle() {
         });
     }
     const isShowTransit = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && row.stockTransito
+        return row.stockTransito
             && row.stockTransito.bodega;
     }
 
     const isButtonTransit = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L' && !row.stockTransito && !row.loadingStockTransit;
+        return !row.stockTransito && !row.loadingStockTransit;
     }
     const isEmptyTransit = () => {
         return false;
@@ -220,7 +217,6 @@ export function useSearchArticle() {
 
 
     //functiones para consultas de stock bodegas 
-    const apiStockWarehouse = 'consultas/consultarstock';
     async function fetchStockWarehouse(row, form) {
         const loadingRowStockRef = toRef(row, 'loadingStockWarehouse');
         const payloadWarehouse = {
@@ -229,7 +225,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             onSuccess: (res) => {
                 row.stock = Array.isArray(res.stock) ? res.stock : [];
@@ -247,27 +243,24 @@ export function useSearchArticle() {
             cliente_id: null,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             successMessage: 'Proceso realizado exitosamente',
         });
     }
 
     const isShowStock = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stock)
+        return Array.isArray(row.stock)
             && row.stock.length > 0;
     }
 
     const isButtonStockWarehouse = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && !row.loadingStockWarehouse
+        return !row.loadingStockWarehouse
             && !row.stock;
     }
 
     const isEmptyStockWarehouse = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && Array.isArray(row.stock)
+        return Array.isArray(row.stock)
             && row.stock.length === 0
             && !row.loadingStockWarehouse;
     }
@@ -277,31 +270,27 @@ export function useSearchArticle() {
 
     //exposicion 
     const isShowStockExposicion = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && row.stockExposicion
+        return row.stockExposicion
             && typeof row.stockExposicion === 'object'
             && row.stockExposicion.disponible !== undefined;
     }
 
     const isButtonStockExposicion = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && !row.loadingStockExposicion
+        return !row.loadingStockExposicion
             && !row.stockExposicion;
     }
 
     const isEmptyStockExposicion = (row) => {
-        return row.ART_TIPO_COMPRA !== 'L'
-            && row.stockExposicion?.disponible >= 0;
+        return row.stockExposicion?.disponible >= 0;
     }
 
-    const apiStockExposicion = 'consultas/stock-exposicion';
     async function fetchStockExposicion(row) {
         const loadingRowExposicionRef = toRef(row, 'loadingStockExposicion');
         const payloadExposicion = {
             articulo: row.ART_CODIGO, // O el campo que necesites
             puntoventa: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockExposicion, payloadExposicion), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK_EXPOSITION, payloadExposicion), {
             loadingRef: loadingRowExposicionRef,
             onSuccess: (info) => {
                 row.stockExposicion = info;
@@ -310,6 +299,14 @@ export function useSearchArticle() {
         });
 
 
+    }
+
+    /** busacar items l  */
+    const loadingSearchItemL = ref(false);
+    async function searchItemL(payload) {
+        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.ITEMS_L, payload), {
+            loadingRef: loadingSearchItemL
+        });
     }
 
 
@@ -356,7 +353,11 @@ export function useSearchArticle() {
         isEmptyStockExposicion,
         isButtonStockExposicion,
         isShowStockExposicion,
-        fetchStockExposicion
+        fetchStockExposicion,
+
+        //busqueda de item L 
+        searchItemL,
+        loadingSearchItemL
 
 
     }
