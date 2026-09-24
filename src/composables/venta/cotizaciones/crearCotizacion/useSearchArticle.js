@@ -3,7 +3,7 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, reactive, computed, toRef } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
-
+import { ARTICLES_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/articleRoutes";
 export function useSearchArticle() {
     const { run } = useApiAction();
     const store = useStore();
@@ -15,7 +15,6 @@ export function useSearchArticle() {
 
     const loadingArt = ref(false);
     const articles = ref([]);
-    const apiSearchArticles = '/consultas/articulos/lista';
     const getInitialPayload = () => ({
         select_codigo: 'empieza',
         text_codigo: '',
@@ -173,7 +172,7 @@ export function useSearchArticle() {
 
     //function de consulta para listar todos los articulos de acuerdo a los filtros
     async function fetchSearchArticles() {
-        return await run(() => axiosClient.post(apiSearchArticles, payload), {
+        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.ITEMS, payload), {
             loadingRef: loadingArt,
             onSuccess: (res) => {
                 articles.value = res.filter((article) => {
@@ -187,8 +186,6 @@ export function useSearchArticle() {
 
 
     //funciones para stock transito 
-
-    const apiStockTransit = 'consultas/consulta-stock-transito';
     async function fetchStockTransit(row, form) {
         const loadingRowRef = toRef(row, 'loadingStockTransit');
         const payloadTransit = {
@@ -197,7 +194,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockTransit, payloadTransit), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK_TRANSIT, payloadTransit), {
             loadingRef: loadingRowRef,
             onSuccess: (res) => {
                 row.stockTransito = res || null;
@@ -220,7 +217,6 @@ export function useSearchArticle() {
 
 
     //functiones para consultas de stock bodegas 
-    const apiStockWarehouse = 'consultas/consultarstock';
     async function fetchStockWarehouse(row, form) {
         const loadingRowStockRef = toRef(row, 'loadingStockWarehouse');
         const payloadWarehouse = {
@@ -229,7 +225,7 @@ export function useSearchArticle() {
             cliente_id: form.cliente.id,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             onSuccess: (res) => {
                 row.stock = Array.isArray(res.stock) ? res.stock : [];
@@ -247,7 +243,7 @@ export function useSearchArticle() {
             cliente_id: null,   // Asumiendo que tienes esto
             puntodeventa_id: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockWarehouse, payloadWarehouse), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK, payloadWarehouse), {
             loadingRef: loadingRowStockRef,
             successMessage: 'Proceso realizado exitosamente',
         });
@@ -288,14 +284,13 @@ export function useSearchArticle() {
         return row.stockExposicion?.disponible >= 0;
     }
 
-    const apiStockExposicion = 'consultas/stock-exposicion';
     async function fetchStockExposicion(row) {
         const loadingRowExposicionRef = toRef(row, 'loadingStockExposicion');
         const payloadExposicion = {
             articulo: row.ART_CODIGO, // O el campo que necesites
             puntoventa: store.state.puntodeventaselect // O de tu store
         };
-        return run(() => axiosClient.post(apiStockExposicion, payloadExposicion), {
+        return run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.STOCK_EXPOSITION, payloadExposicion), {
             loadingRef: loadingRowExposicionRef,
             onSuccess: (info) => {
                 row.stockExposicion = info;
@@ -304,6 +299,14 @@ export function useSearchArticle() {
         });
 
 
+    }
+
+    /** busacar items l  */
+    const loadingSearchItemL = ref(false);
+    async function searchItemL(payload) {
+        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.ITEMS_L, payload), {
+            loadingRef: loadingSearchItemL
+        });
     }
 
 
@@ -350,7 +353,11 @@ export function useSearchArticle() {
         isEmptyStockExposicion,
         isButtonStockExposicion,
         isShowStockExposicion,
-        fetchStockExposicion
+        fetchStockExposicion,
+
+        //busqueda de item L 
+        searchItemL,
+        loadingSearchItemL
 
 
     }

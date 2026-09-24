@@ -6,13 +6,16 @@ import {
   swalSuccess,
   swalWarning,
 } from "@/functions/swal-alert.js";
+// composables
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
+import { usePdfUpload } from "@/composables/core/usePdfUpload";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import { useImageUpload } from "@/composables/core/useImageUpload";
-import { usePdfUpload } from "@/composables/core/usePdfUpload";
-import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
+import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle.js";
+
 import draggable from "vuedraggable";
 import {
   formatPrice4,
@@ -183,6 +186,11 @@ const {
   restorePersistedPdfs,
 } = usePdfUpload();
 
+const {
+  //busqueda de item L
+  searchItemL,
+  loadingSearchItemL,
+} = useSearchArticle();
 const pdfInput = ref(null);
 
 const triggerPdfInput = () => {
@@ -1086,6 +1094,33 @@ watch(
   () => setDefaultProject()
 );
 
+/** logica para seleccion y asignación de item L  */
+const filterItemsL = computed(() => {
+  return form.value.items
+    .filter((it) => it.ART_TIPO_COMPRA === "L")
+    .map((it) => it.ART_CODIGO);
+});
+
+async function searchItemLByType(porcentil) {
+  const payloadItemL = {
+    items: filterItemsL.value,
+    porcentaje: porcentil,
+  };
+
+  const resp = await searchItemL(payloadItemL);
+  if (resp?.ok) {
+    let row = resp?.data;
+    row.descuento = form.value.cliente?.CLI_DSTO_COMERCIAL || 0;
+    row.descuento_original = form.value.cliente?.CLI_DSTO_COMERCIAL || 0;
+    addItems(row);
+
+    swalSuccess("Item L asignado correctamente");
+    return;
+  }
+  const msg = resp?.message || "No se pudo obtener un item L valido";
+  (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+}
+
 onMounted(async () => {
   const mode = route.query.mode;
   const idDoc = route.query.id;
@@ -1338,7 +1373,7 @@ onMounted(async () => {
                   <button
                     type="button"
                     class="dropdown-item"
-                    @click="updateStockByBatchV2"
+                    @click="searchItemLByType(5)"
                   >
                     <i class="fa fa-percent fa-fw me-2"></i>Ítem L · IVA 5%
                   </button>
@@ -1347,7 +1382,7 @@ onMounted(async () => {
                   <button
                     type="button"
                     class="dropdown-item"
-                    @click="updateStockByBatchV2"
+                    @click="searchItemLByType(15)"
                   >
                     <i class="fa fa-percent fa-fw me-2"></i>Ítem L · IVA 15%
                   </button>
