@@ -697,7 +697,7 @@ function updateItemLAlternativeStatus({ index, message }) {
   const item = form.value.items[index];
   if (!item) return;
 
-  item.resultado_configuracion_item_l  = message;
+  item.resultado_configuracion_item_l = message;
 }
 
 //proceso de modales stock y peso

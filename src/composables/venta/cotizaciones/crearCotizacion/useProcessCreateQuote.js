@@ -321,7 +321,10 @@ export function useProcessCreateQuote(draftId = 'default') {
             proveedores_listo: false,
             descuento_temporal: 0,
             validador_l: false,
-            resultado_configuracion_item_l : ""
+            cod_categoria: rawItem.cod_categoria || "",
+            cod_linea: rawItem.cod_linea || "",
+            cod_clase: rawItem.cod_clase || "",
+            resultado_configuracion_item_l: rawItem.resultado_configuracion_item_l || ""
         }
         form.value.items.push(itemEstandarizado);
         calculateTotals();
@@ -1243,7 +1246,11 @@ export function useProcessCreateQuote(draftId = 'default') {
                     descuento_original: Number(item.descuento_original || 0),
                     // Aseguramos que existan como arrays
                     proveedores: item.proveedores || [],
-                    stock: item.stock || []
+                    stock: item.stock || [],
+                    cod_categoria: item.cod_categoria || "",
+                    cod_linea: item.cod_linea || "",
+                    cod_clase: item.cod_clase || "",
+                    resultado_configuracion_item_l: item.resultado_configuracion_item_l || ""
                 }));
 
 

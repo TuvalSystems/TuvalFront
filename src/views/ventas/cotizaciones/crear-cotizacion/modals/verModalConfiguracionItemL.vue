@@ -1,6 +1,6 @@
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useArticleSegmentClassification } from "@/composables/venta/cotizaciones/crearCotizacion/useArticleSegmentClassification";
 import { useItemLAlternativeSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useItemLAlternativeSearch";
 import { swalError, swalWarning } from "@/functions/swal-alert";
@@ -155,10 +155,25 @@ function isAlternativeSelected(alternative) {
   );
 }
 
-function loadItemClassification(item) {
-  segmentFilters.codigoCategoria = item?.cod_categoria || "";
-  segmentFilters.codigoLinea = item?.cod_linea || "";
-  segmentFilters.codigoClase = item?.cod_clase || "";
+let classificationLoadId = 0;
+
+async function loadItemClassification(item) {
+  const loadId = ++classificationLoadId;
+  const categoria = item?.cod_categoria || "";
+  const linea = item?.cod_linea || "";
+  const clase = item?.cod_clase || "";
+
+  // Los watchers de clasificación limpian los niveles dependientes.
+  // Se hidrata cada nivel después de que el watcher anterior haya terminado.
+  segmentFilters.codigoCategoria = categoria;
+  await nextTick();
+  if (loadId !== classificationLoadId) return;
+
+  segmentFilters.codigoLinea = linea;
+  await nextTick();
+  if (loadId !== classificationLoadId) return;
+
+  segmentFilters.codigoClase = clase;
   hasSearched.value = false;
   itemLAlternatives.value = [];
   itemLSearchError.value = null;
@@ -195,14 +210,14 @@ watch(
       (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
     }
 
-    loadItemClassification(props.item);
+    await loadItemClassification(props.item);
   },
   { immediate: true }
 );
 
 watch(
   () => props.item,
-  (item) => loadItemClassification(item),
+  async (item) => await loadItemClassification(item),
   { immediate: true }
 );
 </script>
