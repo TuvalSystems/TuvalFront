@@ -72,11 +72,17 @@ const routes = [
             component: () => import("@/views/sistemas/mantenimientos/tipo-despachos/TipoDespachoIndex.vue"),
             meta: { title: "Tipo Despachos" }
           },
-            {
+          {
             path: "lista-proveedores",
             name: "sistemas-mantenimientos-lista-proveedores",
             component: () => import("@/views/sistemas/mantenimientos/proveedores/ProveedoresIndex.vue"),
             meta: { title: "Proveedores" }
+          },
+          {
+            path: "lista-chofer-transportista",
+            name: "sistemas-mantenimientos-lista-chofer-transportista",
+            component: () => import("@/views/sistemas/mantenimientos/chofer-transportista/ChoferTransportistaIndex.vue"),
+            meta: { title: "Choferes Transportistas" }
           }
         ]
       }

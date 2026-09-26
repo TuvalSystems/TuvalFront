@@ -37,12 +37,19 @@ const isEnabledValue = (value) => {
 };
 
 async function openAlertChangeCarrier(row) {
-  if (row?.id == null || loadingCarrierProvider.value || loadingStatusProvider.value) return;
+  if (
+    row?.id == null ||
+    loadingCarrierProvider.value ||
+    loadingStatusProvider.value
+  )
+    return;
 
   const isCarrier = isEnabledValue(row.es_transportista);
   const providerName = row.razon_social || row.ruc || `#${row.id}`;
   const result = await toast.fire({
-    title: isCarrier ? "¿Quitar condición de transportista?" : "¿Marcar como transportista?",
+    title: isCarrier
+      ? "¿Quitar condición de transportista?"
+      : "¿Marcar como transportista?",
     text: isCarrier
       ? `El proveedor «${providerName}» dejará de figurar como transportista.`
       : `El proveedor «${providerName}» figurará como transportista.`,
@@ -65,22 +72,31 @@ async function changeStatusCarrier(row) {
   const isCarrier = isEnabledValue(row.es_transportista);
   const resp = await updateStatusCarrierProvider(row?.id);
   if (resp?.ok) {
-    swalSuccess(isCarrier
-      ? "Se quitó la condición de transportista al proveedor."
-      : "El proveedor quedó marcado como transportista.");
+    swalSuccess(
+      isCarrier
+        ? "Se quitó la condición de transportista al proveedor."
+        : "El proveedor quedó marcado como transportista."
+    );
     await fetchList(table.currentPage);
     return;
   }
 
   if (resp?.canceled || resp?.handled) return;
-  const message = resp?.message || (isCarrier
-    ? "No se pudo quitar la condición de transportista."
-    : "No se pudo marcar al proveedor como transportista.");
+  const message =
+    resp?.message ||
+    (isCarrier
+      ? "No se pudo quitar la condición de transportista."
+      : "No se pudo marcar al proveedor como transportista.");
   (resp?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
 }
 
 async function openAlertChangeStatus(row) {
-  if (row?.id == null || loadingCarrierProvider.value || loadingStatusProvider.value) return;
+  if (
+    row?.id == null ||
+    loadingCarrierProvider.value ||
+    loadingStatusProvider.value
+  )
+    return;
 
   const isActive = isEnabledValue(row.estado);
   const providerName = row.razon_social || row.ruc || `#${row.id}`;
@@ -108,17 +124,19 @@ async function changeStatus(row) {
   const isActive = isEnabledValue(row.estado);
   const resp = await updateStatusProvider(row?.id);
   if (resp?.ok) {
-    swalSuccess(isActive
-      ? "El proveedor quedó inactivo."
-      : "El proveedor quedó activo.");
+    swalSuccess(
+      isActive ? "El proveedor quedó inactivo." : "El proveedor quedó activo."
+    );
     await fetchList(table.currentPage);
     return;
   }
 
   if (resp?.canceled || resp?.handled) return;
-  const message = resp?.message || (isActive
-    ? "No se pudo inactivar al proveedor."
-    : "No se pudo activar al proveedor.");
+  const message =
+    resp?.message ||
+    (isActive
+      ? "No se pudo inactivar al proveedor."
+      : "No se pudo activar al proveedor.");
   (resp?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
 }
 
@@ -144,7 +162,7 @@ onMounted(async () => {
 
   <!-- contenido -->
   <div class="content">
-    <BaseBlock title="Lista de Proveedores" content-full rounded>
+    <BaseBlock title="Lista de Proveedores" class="mb-2" rounded>
       <template #options>
         <div class="block-options-item">
           <button
@@ -228,6 +246,16 @@ onMounted(async () => {
           >
             {{ isEnabledValue(value) ? "Activo" : "Inactivo" }}
           </span>
+        </template>
+
+        <!-- Slot de vacío -->
+        <template #empty>
+          <div class="text-center py-5">
+            <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">
+              No se encontraron registros para mostrar
+            </p>
+          </div>
         </template>
       </BaseTable>
     </BaseBlock>
