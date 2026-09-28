@@ -34,6 +34,7 @@ export function useAdminLogTable() {
         { label: "id", key: "id", sortable: true, align: "text-center" },
         { label: "Acción", key: "action", sortable: true, align: "text-start" },
         { label: "id local", key: "local_id", sortable: false, align: "text-start" },
+        { label: "id externo", key: "external_id", sortable: false, align: "text-start" },
         { label: "mensaje", key: "message", sortable: true, align: "text-start" },
         { label: "estado", key: "status", sortable: true, align: "text-center" },
         { label: "fecha", key: "created_at", sortable: true, align: "text-center" },
