@@ -98,6 +98,16 @@ onMounted(() => {});
         @onPageChange="fetchList"
         @onSearch="table.searchTerm"
       >
+        <template #cell-id="{ row }">
+          <span class="badge bg-body-secondary  text-muted  border" style="font-size:12px">
+            #{{ row.id }}
+          </span>
+        </template>
+         <template #cell-status="{ value }">
+          <span :class="statusBooleanClass(value)" style="font-size:12px">
+            {{ value ? 'Activo' : 'Inactivo' }}
+          </span>
+        </template>
         <!-- Slot de vacío -->
         <template #empty>
           <div class="text-center py-5">
