@@ -16,31 +16,24 @@ const {
   table,
   listPerpage,
   columns,
-  // loadingRef,
   fetchList,
   onSort,
   refresh,
-  // estadoClass,
   booleanBadgeClass
 } = useUserTable();
 
 const {
-  // loadingStatus,
   UpdateStatus,
-  // loadingReset,
   resetPasswordUser,
 
   //detalle de usuario 
-  // loadingDetail,
   detailUser,
   getDetailUser,
 
   //lista de perfiles web 
-  // loadingProfileWeb,
   getProfilesWeb,
   perfilesWeb,
   //lista de perfiles app
-  // loadingProfileApp,
   getProfilesApp,
   perfilesApp,
   //funciones helpers 
@@ -60,11 +53,11 @@ const modalSeleccionRef = ref(null);
 const modalSeleccionObj = useBootstrapModal(modalSeleccionRef);
 
 
-const handleClick = ({ row, col }) => {
-
+const handleClick = () => {
+ return false;
 };
 
-function isRowDisabled(row) {
+function isRowDisabled() {
   return false;
 
 }
