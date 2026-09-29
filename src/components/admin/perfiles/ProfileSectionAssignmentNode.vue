@@ -492,31 +492,31 @@ const routeSummary = computed(() => {
   padding: 0.28rem 0.48rem;
 }
 
-:global(#page-container.dark-mode .section-node-card) {
+:global(.dark-mode #page-container .section-node-card) {
   background: #243447 !important;
   color: #e5ecf5 !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .section-node-card:hover) {
+:global(.dark-mode #page-container .section-node-card:hover) {
   background: #2a3b50 !important;
   border-color: rgba(var(--bs-primary-rgb), 0.45) !important;
 }
 
-:global(#page-container.dark-mode .section-node-selected) {
+:global(.dark-mode #page-container .section-node-selected) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   border-color: rgba(var(--bs-primary-rgb), 0.75) !important;
 }
 
-:global(#page-container.dark-mode .section-title) {
+:global(.dark-mode #page-container .section-title) {
   color: #f4f7fb !important;
 }
 
-:global(#page-container.dark-mode .section-meta) {
+:global(.dark-mode #page-container .section-meta) {
   color: rgba(255, 255, 255, 0.58) !important;
 }
 
-:global(#page-container.dark-mode .section-route-box) {
+:global(.dark-mode #page-container .section-route-box) {
   background: rgba(0, 0, 0, 0.18) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
@@ -746,7 +746,7 @@ const routeSummary = computed(() => {
     padding-left: 0.75rem;
   }
 }
-:global(#page-container.dark-mode .section-node-home) {
+:global(.dark-mode #page-container .section-node-home) {
   border-color: rgba(var(--bs-warning-rgb), 0.65) !important;
   background:
     linear-gradient(
@@ -756,16 +756,16 @@ const routeSummary = computed(() => {
     ) !important;
 }
 
-:global(#page-container.dark-mode .section-route-header) {
+:global(.dark-mode #page-container .section-route-header) {
   color: rgba(255, 255, 255, 0.72) !important;
 }
 
-:global(#page-container.dark-mode .home-radio.active) {
+:global(.dark-mode #page-container .home-radio.active) {
   background: rgba(var(--bs-warning-rgb), 0.24) !important;
   box-shadow: inset 0 0 0 1px rgba(var(--bs-warning-rgb), 0.38) !important;
 }
 
-:global(#page-container.dark-mode .bg-selected-lt) {
+:global(.dark-mode #page-container .bg-selected-lt) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   color: var(--bs-primary) !important;
 }

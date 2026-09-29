@@ -396,52 +396,52 @@ function handleEdit(event) {
   }
 }
 
-:global(#page-container.dark-mode .profile-card) {
+:global(.dark-mode #page-container .profile-card) {
   background: #243447 !important;
   color: #e5ecf5 !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .profile-card:hover) {
+:global(.dark-mode #page-container .profile-card:hover) {
   background: #2a3b50 !important;
   border-color: rgba(var(--bs-primary-rgb), 0.45) !important;
 }
 
-:global(#page-container.dark-mode .profile-card-selected) {
+:global(.dark-mode #page-container .profile-card-selected) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   border-color: rgba(var(--bs-primary-rgb), 0.75) !important;
 }
 
-:global(#page-container.dark-mode .profile-title) {
+:global(.dark-mode #page-container .profile-title) {
   color: #f4f7fb !important;
 }
 
-:global(#page-container.dark-mode .profile-subtitle) {
+:global(.dark-mode #page-container .profile-subtitle) {
   color: rgba(255, 255, 255, 0.58) !important;
 }
 
-:global(#page-container.dark-mode .profile-avatar) {
+:global(.dark-mode #page-container .profile-avatar) {
   background: rgba(255, 255, 255, 0.08) !important;
   color: rgba(255, 255, 255, 0.70) !important;
 }
 
-:global(#page-container.dark-mode .profile-avatar-selected),
-:global(#page-container.dark-mode .profile-avatar-app) {
+:global(.dark-mode #page-container .profile-avatar-selected),
+:global(.dark-mode #page-container .profile-avatar-app) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   color: var(--bs-primary) !important;
 }
 
-:global(#page-container.dark-mode .profile-avatar-web) {
+:global(.dark-mode #page-container .profile-avatar-web) {
   background: rgba(var(--bs-info-rgb), 0.18) !important;
   color: var(--bs-info) !important;
 }
 
-:global(#page-container.dark-mode .profile-edit-btn) {
+:global(.dark-mode #page-container .profile-edit-btn) {
   background: rgba(255, 255, 255, 0.08) !important;
   color: rgba(255, 255, 255, 0.70) !important;
 }
 
-:global(#page-container.dark-mode .profile-edit-btn:hover) {
+:global(.dark-mode #page-container .profile-edit-btn:hover) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   color: var(--bs-primary) !important;
 }

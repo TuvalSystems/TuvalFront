@@ -17,7 +17,8 @@
   $link-color,
   $link-hover-color
 ) {
-  .dark-mode {
+  // Theme and dark mode live on the same centralized document root.
+  &.dark-mode {
     // Main Structure
     &,
     #side-overlay,

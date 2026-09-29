@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, watchEffect } from "vue";
+import { computed, onMounted } from "vue";
 import { useTemplateStore } from "@/stores/template";
 
 // Import all layout partials
@@ -9,24 +9,6 @@ import BaseSideOverlay from "@/layouts/partials/SideOverlay.vue";
 import BaseFooter from "@/layouts/partials/Footer.vue";
 // Main store
 const store = useTemplateStore();
-
-// Set default color theme
-store.setColorTheme({
-  theme: store.settings.colorTheme,
-});
-
-watchEffect(() => {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  document.body.classList.toggle("dark-mode", store.settings.darkMode);
-  document.documentElement.dataset.bsTheme = store.settings.darkMode
-    ? "dark"
-    : "light";
-  document.documentElement.dataset.colorTheme =
-    store.settings.colorTheme || "default";
-});
 
 // Render main classes based on store options
 const classContainer = computed(() => {
@@ -55,33 +37,9 @@ const classContainer = computed(() => {
     "rtl-support": store.settings.rtlSupport,
     "side-trans-enabled": store.settings.sideTransitions,
     "side-scroll": true,
-    "sidebar-dark page-header-dark dark-mode": store.settings.darkMode,
+    "sidebar-dark page-header-dark": store.settings.darkMode,
   };
 });
-
-// Change dark mode based on dark mode system preference
-if (store.settings.darkModeSystem) {
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  ) {
-    store.darkMode({ mode: "on" });
-  } else {
-    store.darkMode({ mode: "off" });
-  }
-}
-
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (e) => {
-    if (store.settings.darkModeSystem) {
-      if (e.matches) {
-        store.darkMode({ mode: "on" });
-      } else {
-        store.darkMode({ mode: "off" });
-      }
-    }
-  });
 
 // Remove side transitions on window resizing
 onMounted(() => {

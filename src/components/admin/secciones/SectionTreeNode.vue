@@ -482,59 +482,59 @@ function createChild() {
   }
 }
 
-:global(#page-container.dark-mode .section-node-card) {
+:global(.dark-mode #page-container .section-node-card) {
   background: #243447 !important;
   color: #e5ecf5 !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .section-node-card:hover) {
+:global(.dark-mode #page-container .section-node-card:hover) {
   background: #2a3b50 !important;
   border-color: rgba(var(--bs-primary-rgb), 0.45) !important;
 }
 
-:global(#page-container.dark-mode .section-node-selected) {
+:global(.dark-mode #page-container .section-node-selected) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   border-color: rgba(var(--bs-primary-rgb), 0.75) !important;
 }
 
-:global(#page-container.dark-mode .section-title) {
+:global(.dark-mode #page-container .section-title) {
   color: #f4f7fb !important;
 }
 
-:global(#page-container.dark-mode .section-meta) {
+:global(.dark-mode #page-container .section-meta) {
   color: rgba(255, 255, 255, 0.58) !important;
 }
 
-:global(#page-container.dark-mode .section-route-box) {
+:global(.dark-mode #page-container .section-route-box) {
   background: rgba(0, 0, 0, 0.18) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-:global(#page-container.dark-mode .section-route-label) {
+:global(.dark-mode #page-container .section-route-label) {
   color: rgba(255, 255, 255, 0.65) !important;
 }
 
-:global(#page-container.dark-mode .section-route-line code) {
+:global(.dark-mode #page-container .section-route-line code) {
   color: rgba(255, 255, 255, 0.86) !important;
 }
 
-:global(#page-container.dark-mode .section-toggle-btn) {
+:global(.dark-mode #page-container .section-toggle-btn) {
   background: rgba(255, 255, 255, 0.08) !important;
   color: rgba(255, 255, 255, 0.70) !important;
 }
 
-:global(#page-container.dark-mode .section-icon) {
+:global(.dark-mode #page-container .section-icon) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   color: var(--bs-primary) !important;
 }
 
-:global(#page-container.dark-mode .section-add-btn) {
+:global(.dark-mode #page-container .section-add-btn) {
   background: rgba(var(--bs-success-rgb), 0.18) !important;
   color: var(--bs-success) !important;
 }
 
-:global(#page-container.dark-mode .section-children) {
+:global(.dark-mode #page-container .section-children) {
   border-left-color: rgba(var(--bs-primary-rgb), 0.45) !important;
 }
 </style>

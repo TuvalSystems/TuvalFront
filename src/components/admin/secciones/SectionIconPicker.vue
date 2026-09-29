@@ -555,7 +555,7 @@ function useCustomValue() {
 }
 
 /* Dark mode OneUIX */
-:global(#page-container.dark-mode .icon-picker-current) {
+:global(.dark-mode #page-container .icon-picker-current) {
   background:
     linear-gradient(
       135deg,
@@ -565,44 +565,44 @@ function useCustomValue() {
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .icon-search-box) {
+:global(.dark-mode #page-container .icon-search-box) {
   background: rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .icon-current-code) {
+:global(.dark-mode #page-container .icon-current-code) {
   background: rgba(0, 0, 0, 0.22) !important;
   color: #e5ecf5 !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .icon-pack-btn),
-:global(#page-container.dark-mode .icon-option) {
+:global(.dark-mode #page-container .icon-pack-btn),
+:global(.dark-mode #page-container .icon-option) {
   background: #243447 !important;
   color: #e5ecf5 !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .icon-pack-btn:hover),
-:global(#page-container.dark-mode .icon-option:hover) {
+:global(.dark-mode #page-container .icon-pack-btn:hover),
+:global(.dark-mode #page-container .icon-option:hover) {
   background: #2a3b50 !important;
   border-color: rgba(var(--bs-primary-rgb), 0.45) !important;
 }
 
-:global(#page-container.dark-mode .icon-pack-btn-active),
-:global(#page-container.dark-mode .icon-option-selected) {
+:global(.dark-mode #page-container .icon-pack-btn-active),
+:global(.dark-mode #page-container .icon-option-selected) {
   background: rgba(var(--bs-primary-rgb), 0.20) !important;
   border-color: rgba(var(--bs-primary-rgb), 0.75) !important;
   color: #f4f7fb !important;
 }
 
-:global(#page-container.dark-mode .icon-option-code),
-:global(#page-container.dark-mode .icon-search-help),
-:global(#page-container.dark-mode .icon-note) {
+:global(.dark-mode #page-container .icon-option-code),
+:global(.dark-mode #page-container .icon-search-help),
+:global(.dark-mode #page-container .icon-note) {
   color: rgba(255, 255, 255, 0.64) !important;
 }
 
-:global(#page-container.dark-mode .icon-note) {
+:global(.dark-mode #page-container .icon-note) {
   background: rgba(var(--bs-info-rgb), 0.10) !important;
   border-color: rgba(var(--bs-info-rgb), 0.24) !important;
 }
