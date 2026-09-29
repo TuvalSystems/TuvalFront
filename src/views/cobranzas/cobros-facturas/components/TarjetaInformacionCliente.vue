@@ -151,53 +151,37 @@ async function refreshCollection() {
                         </button>
                     </div>
                 </div>
-                <div class="row g-2 mt-3 client-metrics-row">
-                    <div class="col-md-3">
-
-                        <div class="cobro-metric cobro-status-metric" :class="client.suspendido == 1
-                            ? 'cobro-status-suspended'
-                            : 'cobro-status-active'">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="status-icon">
-                                    <i class="fa" :class="client.suspendido == 1
-                                        ? 'fa-user-lock'
-                                        : 'fa-circle-check'"></i>
-                                </div>
-
-                                <div>
-                                    <span class="metric-label d-block mb-1">
-                                        Suspendido
-                                    </span>
-
-                                    <strong class="status-value">
-                                        {{ client.suspendido == 1
-                                            ? 'SI'
-                                            : 'NO' }}
-                                    </strong>
-                                </div>
-                            </div>
-                        </div>
+                <div class="client-metrics-grid">
+                    <div class="cobro-metric cobro-status-metric" :class="client.suspendido == 1
+                        ? 'cobro-status-suspended'
+                        : 'cobro-status-active'">
+                        <span class="metric-label">
+                            <i class="fa" :class="client.suspendido == 1
+                                ? 'fa-user-lock'
+                                : 'fa-circle-check'"></i>
+                            Suspendido
+                        </span>
+                        <strong class="status-value">
+                            {{ client.suspendido == 1 ? 'SI' : 'NO' }}
+                        </strong>
                     </div>
-                    <div class="col-md-3">
-                        <div class="cobro-metric">
-                            <span class="metric-label">Cupo disponible</span>
-                            <strong class="metric-value"
-                                :class="parseFloat(client.cupo_disponible) < 0 ? 'text-danger' : 'text-success'">
-                                ${{ formatPriceJm(client.cupo_disponible) }}
-                            </strong>
-                        </div>
+
+                    <div class="cobro-metric">
+                        <span class="metric-label">Cupo disponible</span>
+                        <strong class="metric-value"
+                            :class="parseFloat(client.cupo_disponible) < 0 ? 'text-danger' : 'text-success'">
+                            ${{ formatPriceJm(client.cupo_disponible) }}
+                        </strong>
                     </div>
-                    <div class="col-md-3">
-                        <div class="cobro-metric">
-                            <span class="metric-label">Cupo asignado</span>
-                            <strong class="metric-value">${{ formatPriceJm(client.cupo_asignado) }}</strong>
-                        </div>
+
+                    <div class="cobro-metric">
+                        <span class="metric-label">Cupo asignado</span>
+                        <strong class="metric-value">${{ formatPriceJm(client.cupo_asignado) }}</strong>
                     </div>
-                    <div class="col-md-3">
-                        <div class="cobro-metric">
-                            <span class="metric-label">Descuento comercial</span>
-                            <strong class="metric-value">{{ client.CLI_DSTO_COMERCIAL }}%</strong>
-                        </div>
+
+                    <div class="cobro-metric">
+                        <span class="metric-label">Descuento comercial</span>
+                        <strong class="metric-value">{{ client.CLI_DSTO_COMERCIAL }}%</strong>
                     </div>
                 </div>
             </section>
@@ -235,10 +219,6 @@ async function refreshCollection() {
 
 .cobro-client-header > .d-flex {
     gap: 0.65rem !important;
-}
-
-.cobro-client-header .row.mt-3 {
-    margin-top: 0.55rem !important;
 }
 
 .client-avatar {
@@ -379,68 +359,55 @@ async function refreshCollection() {
     background: rgba(var(--bs-warning-rgb), .14);
 }
 
+.client-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+}
+
 .cobro-metric {
     display: flex;
     width: 100%;
     height: 100%;
-    min-height: 2.65rem;
+    min-height: 2.2rem;
     flex-direction: column;
     justify-content: center;
-    padding: 0.45rem 0.6rem;
+    padding: 0.28rem 0.5rem;
     border: 1px solid var(--tuval-border, var(--bs-border-color));
     border-radius: var(--tuval-radius-md, 8px);
     background: var(--tuval-surface-muted, var(--bs-light));
 }
 
 .metric-label {
-    margin-bottom: 0.12rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    margin-bottom: 0.05rem;
     color: var(--tuval-text-muted, var(--bs-secondary-color));
-    font-size: 0.62rem;
+    font-size: 0.59rem;
     font-weight: 700;
+    line-height: 1.15;
     text-transform: uppercase;
 }
 
 .metric-value {
     color: var(--tuval-text, var(--bs-body-color));
-    font-size: 0.95rem;
+    font-size: 0.86rem;
     font-weight: 800;
-    line-height: 1.25;
+    line-height: 1.15;
     overflow-wrap: anywhere;
 }
 
-.client-metrics-row > [class*="col-"] {
-    display: flex;
-}
-
 .cobro-status-metric {
-    position: relative;
-    padding-left: 2.35rem;
-}
-
-.cobro-status-metric .d-flex {
-    display: block !important;
-    gap: 0.5rem !important;
-}
-
-.cobro-status-metric .metric-label {
-    margin-bottom: 0.12rem !important;
-}
-
-.status-icon {
-    position: absolute;
-    top: 50%;
-    left: 0.65rem;
-    transform: translateY(-50%);
-    width: 1.1rem;
-    text-align: center;
-    font-size: 0.85rem;
+    padding-inline: 0.5rem;
 }
 
 .status-value {
     display: block;
     font-weight: 800;
-    font-size: 0.95rem;
-    line-height: 1.25;
+    font-size: 0.86rem;
+    line-height: 1.15;
 }
 
 @media (max-width: 1199.98px) {
@@ -450,8 +417,20 @@ async function refreshCollection() {
     }
 }
 
+@media (max-width: 767.98px) {
+    .client-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 575.98px) {
     .client-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 380px) {
+    .client-metrics-grid {
         grid-template-columns: 1fr;
     }
 }

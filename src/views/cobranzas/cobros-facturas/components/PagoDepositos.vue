@@ -58,8 +58,6 @@ const {
   depositDateConfig,
   showTableInvoices,
   depositInvoices,
-  selectedBankName,
-  selectedDepositTypeLabel,
   validationMessage,
   formatDepositAmount,
   applyDeposit,
@@ -129,13 +127,6 @@ function handleDepositAmountInput(field, event) {
 
 <template>
   <section class="deposit-entry">
-    <!-- <div class="deposit-toolbar">
-      <div class="min-w-0">
-        <span class="deposit-kicker">Deposito o transferencia</span>
-        <h4 class="deposit-title">Ingreso de depositos</h4>
-      </div>
-    </div> -->
-
     <div class="deposit-section">
       <div class="section-heading">
         <div class="section-icon section-icon-bank">
@@ -293,7 +284,7 @@ function handleDepositAmountInput(field, event) {
 
       <div v-if="showTableInvoices" class="deposit-detail">
         <div class="deposit-summary-grid">
-          <div class="deposit-summary-item">
+          <!-- <div class="deposit-summary-item">
             <span>Tipo</span>
             <strong>{{ selectedDepositTypeLabel }}</strong>
           </div>
@@ -311,7 +302,7 @@ function handleDepositAmountInput(field, event) {
           <div class="deposit-summary-item">
             <span>Fecha</span>
             <strong>{{ depositPayload.fechaDeposito }}</strong>
-          </div>
+          </div> -->
 
           <div class="deposit-summary-item">
             <span>Monto deposito</span>
@@ -328,7 +319,10 @@ function handleDepositAmountInput(field, event) {
           </div>
 
           <div class="deposit-summary-item deposit-summary-warning">
-            <span>No aplicado</span>
+            <span>
+              <i class="fa fa-circle-exclamation" aria-hidden="true"></i>
+              Monto no aplicado
+            </span>
             <strong
               >${{
                 formatDepositAmount(depositPayload.montoNoAplicado)
@@ -547,17 +541,28 @@ function handleDepositAmountInput(field, event) {
 }
 
 .deposit-summary-warning {
-  color: var(--bs-warning-text-emphasis, var(--bs-body-color));
-  border-color: var(
-    --bs-warning-border-subtle,
-    rgba(var(--bs-warning-rgb), 0.35)
+  color: var(--bs-danger-text-emphasis, var(--bs-danger));
+  border: 2px solid var(
+    --bs-danger-border-subtle,
+    rgba(var(--bs-danger-rgb), 0.55)
   );
-  background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
+  background: var(--bs-danger-bg-subtle, rgba(var(--bs-danger-rgb), 0.14));
+  box-shadow: 0 0 0 0.18rem rgba(var(--bs-danger-rgb), 0.1);
 }
 
 .deposit-summary-warning span,
 .deposit-summary-warning strong {
   color: inherit;
+}
+
+.deposit-summary-warning span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.deposit-summary-warning strong {
+  font-size: 1rem;
 }
 
 .deposit-register-actions {

@@ -62,7 +62,6 @@ const {
   v$,
   showTableInvoices,
   checkInvoices,
-  selectedBankName,
   validationMessage,
   formatCheckAmount,
   applyCheck,
@@ -322,7 +321,7 @@ function handleCheckAmountInput(field, event) {
 
       <div v-if="showTableInvoices" class="check-detail">
         <div class="check-summary-grid">
-          <div class="check-summary-item check-summary-bank">
+          <!-- <div class="check-summary-item check-summary-bank">
             <span>Banco</span>
             <strong>{{ selectedBankName }}</strong>
           </div>
@@ -345,7 +344,7 @@ function handleCheckAmountInput(field, event) {
           <div class="check-summary-item">
             <span>Vencimiento</span>
             <strong>{{ checkPayload.fechaVencimiento }}</strong>
-          </div>
+          </div> -->
 
           <div class="check-summary-item">
             <span>Monto cheque</span>
@@ -362,7 +361,10 @@ function handleCheckAmountInput(field, event) {
           </div>
 
           <div class="check-summary-item check-summary-warning">
-            <span>No aplicado</span>
+            <span>
+              <i class="fa fa-circle-exclamation" aria-hidden="true"></i>
+              Monto no aplicado
+            </span>
             <strong
               >${{ formatCheckAmount(checkPayload.montoNoAplicado) }}</strong
             >
@@ -579,17 +581,28 @@ function handleCheckAmountInput(field, event) {
 }
 
 .check-summary-warning {
-  color: var(--bs-warning-text-emphasis, var(--bs-body-color));
-  border-color: var(
-    --bs-warning-border-subtle,
-    rgba(var(--bs-warning-rgb), 0.35)
+  color: var(--bs-danger-text-emphasis, var(--bs-danger));
+  border: 2px solid var(
+    --bs-danger-border-subtle,
+    rgba(var(--bs-danger-rgb), 0.55)
   );
-  background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
+  background: var(--bs-danger-bg-subtle, rgba(var(--bs-danger-rgb), 0.14));
+  box-shadow: 0 0 0 0.18rem rgba(var(--bs-danger-rgb), 0.1);
 }
 
 .check-summary-warning span,
 .check-summary-warning strong {
   color: inherit;
+}
+
+.check-summary-warning span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.check-summary-warning strong {
+  font-size: 1rem;
 }
 
 .check-register-actions {

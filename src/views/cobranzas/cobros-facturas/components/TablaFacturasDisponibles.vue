@@ -1,139 +1,139 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { formatPriceJm, roundTo, toNumber } from '@/functions';
+import { computed, ref } from "vue";
+import { formatPriceJm, roundTo, toNumber } from "@/functions";
 
 const props = defineProps({
   invoices: {
     type: [Array, Object],
-    default: () => []
+    default: () => [],
   },
   title: {
     type: String,
-    default: 'Facturas disponibles'
+    default: "Facturas disponibles",
   },
   documentLabel: {
     type: String,
-    default: 'documento(s)'
+    default: "documento(s)",
   },
   searchPlaceholder: {
     type: String,
-    default: 'Buscar documento...'
+    default: "Buscar documento...",
   },
   documentKey: {
     type: String,
-    default: 'documento'
+    default: "documento",
   },
   issueDateKey: {
     type: String,
-    default: 'fechaEmision'
+    default: "fechaEmision",
   },
   dueDateKey: {
     type: String,
-    default: 'fechaVencimiento'
+    default: "fechaVencimiento",
   },
   originalAmountKey: {
     type: String,
-    default: 'montoOriginal'
+    default: "montoOriginal",
   },
   balanceKey: {
     type: String,
-    default: 'saldoCliente'
+    default: "saldoCliente",
   },
   balanceLabel: {
     type: String,
-    default: 'Saldo'
+    default: "Saldo",
   },
   applyAllKey: {
     type: String,
-    default: 'aplicarTodo'
+    default: "aplicarTodo",
   },
   amountKey: {
     type: String,
-    default: 'aplicarMonto'
+    default: "aplicarMonto",
   },
   observationKey: {
     type: String,
-    default: 'observacion'
+    default: "observacion",
   },
   applyAllLabel: {
     type: String,
-    default: 'Todo'
+    default: "Todo",
   },
   amountLabel: {
     type: String,
-    default: 'Aplicar'
+    default: "Aplicar",
   },
   remainingLabel: {
     type: String,
-    default: 'Saldo final'
+    default: "Saldo final",
   },
   observationLabel: {
     type: String,
-    default: 'Observación'
+    default: "Observación",
   },
   showApplyAll: {
     type: Boolean,
-    default: true
+    default: true,
   },
   showObservation: {
     type: Boolean,
-    default: true
+    default: true,
   },
   emptyText: {
     type: String,
-    default: 'Sin facturas disponibles para aplicar'
+    default: "Sin facturas disponibles para aplicar",
   },
   emptySearchText: {
     type: String,
-    default: 'Sin resultados para el documento buscado'
+    default: "Sin resultados para el documento buscado",
   },
   formatAmount: {
     type: Function,
-    default: null
+    default: null,
   },
   remainingBalanceResolver: {
     type: Function,
-    default: null
-  }
+    default: null,
+  },
 });
 
 const emit = defineEmits([
-  'apply-all-change',
-  'amount-change',
-  'observation-change'
+  "apply-all-change",
+  "amount-change",
+  "observation-change",
 ]);
 
-const issueDateLabel = 'Fecha Emisión';
-const dueDateLabel = 'Fecha Vencimiento';
-const balanceDisplayLabel = 'Monto Pendiente';
-const amountDisplayLabel = 'Aplicar monto';
+const issueDateLabel = "Fecha Emisión";
+const dueDateLabel = "Fecha Vencimiento";
+const balanceDisplayLabel = "Monto Pendiente";
+const amountDisplayLabel = "Aplicar monto";
 
 const sortableColumnSettings = {
   document: {
     key: () => props.documentKey,
-    type: 'text'
+    type: "text",
   },
   issueDate: {
     key: () => props.issueDateKey,
-    type: 'date'
+    type: "date",
   },
   dueDate: {
     key: () => props.dueDateKey,
-    type: 'date'
+    type: "date",
   },
   originalAmount: {
     key: () => props.originalAmountKey,
-    type: 'number'
+    type: "number",
   },
   balance: {
     key: () => props.balanceKey,
-    type: 'number'
-  }
+    type: "number",
+  },
 };
 
-const searchTerm = ref('');
+const searchTerm = ref("");
 const sortColumn = ref(null);
-const sortDirection = ref('asc');
+const sortDirection = ref("asc");
 
 const normalizedInvoices = computed(() =>
   Array.isArray(props.invoices)
@@ -142,19 +142,23 @@ const normalizedInvoices = computed(() =>
 );
 
 const filteredInvoices = computed(() => {
-  const searchText = String(searchTerm.value ?? '').trim().toLowerCase();
+  const searchText = String(searchTerm.value ?? "")
+    .trim()
+    .toLowerCase();
   const invoices = !searchText
     ? normalizedInvoices.value
     : normalizedInvoices.value.filter((invoice) =>
-      String(invoice?.[props.documentKey] ?? '').toLowerCase().includes(searchText)
-    );
+        String(invoice?.[props.documentKey] ?? "")
+          .toLowerCase()
+          .includes(searchText)
+      );
 
   return sortInvoices(invoices);
 });
 
 function getRowKey(invoice, index) {
-  const id = invoice?.id ?? invoice?.factura_id ?? '';
-  const documentNumber = invoice?.[props.documentKey] ?? '';
+  const id = invoice?.id ?? invoice?.factura_id ?? "";
+  const documentNumber = invoice?.[props.documentKey] ?? "";
 
   return `${id}-${documentNumber}-${index}`;
 }
@@ -164,15 +168,15 @@ function getValue(invoice, key) {
 }
 
 function formatInvoiceAmount(value) {
-  if (typeof props.formatAmount === 'function') {
+  if (typeof props.formatAmount === "function") {
     return props.formatAmount(value);
   }
 
-  return formatPriceJm(value) ?? '0.00';
+  return formatPriceJm(value) ?? "0.00";
 }
 
 function getRemainingBalance(invoice) {
-  if (typeof props.remainingBalanceResolver === 'function') {
+  if (typeof props.remainingBalanceResolver === "function") {
     return props.remainingBalanceResolver(invoice);
   }
 
@@ -184,12 +188,12 @@ function getRemainingBalance(invoice) {
 
 function setSortColumn(column) {
   if (sortColumn.value === column) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+    sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
     return;
   }
 
   sortColumn.value = column;
-  sortDirection.value = 'asc';
+  sortDirection.value = "asc";
 }
 
 function isSortedBy(column) {
@@ -198,18 +202,18 @@ function isSortedBy(column) {
 
 function getAriaSort(column) {
   if (!isSortedBy(column)) {
-    return 'none';
+    return "none";
   }
 
-  return sortDirection.value === 'asc' ? 'ascending' : 'descending';
+  return sortDirection.value === "asc" ? "ascending" : "descending";
 }
 
 function getSortIcon(column) {
   if (!isSortedBy(column)) {
-    return 'fa-sort';
+    return "fa-sort";
   }
 
-  return sortDirection.value === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+  return sortDirection.value === "asc" ? "fa-sort-up" : "fa-sort-down";
 }
 
 function getSortButtonLabel(column, label) {
@@ -217,7 +221,8 @@ function getSortButtonLabel(column, label) {
     return `Ordenar por ${label}`;
   }
 
-  const nextDirection = sortDirection.value === 'asc' ? 'descendente' : 'ascendente';
+  const nextDirection =
+    sortDirection.value === "asc" ? "descendente" : "ascendente";
 
   return `Ordenar por ${label} ${nextDirection}`;
 }
@@ -229,16 +234,22 @@ function sortInvoices(invoices) {
     return invoices;
   }
 
-  const direction = sortDirection.value === 'desc' ? -1 : 1;
+  const direction = sortDirection.value === "desc" ? -1 : 1;
   const key = sortSetting.key();
 
   return [...invoices]
     .map((invoice, index) => ({ invoice, index }))
     .sort((left, right) => {
-      const leftValue = getComparableValue(getValue(left.invoice, key), sortSetting.type);
-      const rightValue = getComparableValue(getValue(right.invoice, key), sortSetting.type);
-      const leftIsEmpty = leftValue === null || leftValue === '';
-      const rightIsEmpty = rightValue === null || rightValue === '';
+      const leftValue = getComparableValue(
+        getValue(left.invoice, key),
+        sortSetting.type
+      );
+      const rightValue = getComparableValue(
+        getValue(right.invoice, key),
+        sortSetting.type
+      );
+      const leftIsEmpty = leftValue === null || leftValue === "";
+      const rightIsEmpty = rightValue === null || rightValue === "";
 
       if (leftIsEmpty && rightIsEmpty) {
         return left.index - right.index;
@@ -252,7 +263,11 @@ function sortInvoices(invoices) {
         return -1;
       }
 
-      const result = compareComparableValues(leftValue, rightValue, sortSetting.type);
+      const result = compareComparableValues(
+        leftValue,
+        rightValue,
+        sortSetting.type
+      );
 
       return result === 0 ? left.index - right.index : result * direction;
     })
@@ -260,26 +275,26 @@ function sortInvoices(invoices) {
 }
 
 function getComparableValue(value, type) {
-  if (type === 'number') {
+  if (type === "number") {
     const numericValue = toNumber(value);
 
     return Number.isFinite(numericValue) ? numericValue : null;
   }
 
-  if (type === 'date') {
+  if (type === "date") {
     return parseDateValue(value);
   }
 
-  const textValue = String(value ?? '').trim();
+  const textValue = String(value ?? "").trim();
 
   return textValue || null;
 }
 
 function compareComparableValues(leftValue, rightValue, type) {
-  if (type === 'text') {
+  if (type === "text") {
     return leftValue.localeCompare(rightValue, undefined, {
       numeric: true,
-      sensitivity: 'base'
+      sensitivity: "base",
     });
   }
 
@@ -293,7 +308,7 @@ function parseDateValue(value) {
     return Number.isNaN(timestamp) ? null : timestamp;
   }
 
-  const textValue = String(value ?? '').trim();
+  const textValue = String(value ?? "").trim();
 
   if (!textValue) {
     return null;
@@ -312,9 +327,9 @@ function parseDateValue(value) {
     const date = new Date(timestamp);
 
     if (
-      date.getUTCFullYear() === year
-      && date.getUTCMonth() === month - 1
-      && date.getUTCDate() === day
+      date.getUTCFullYear() === year &&
+      date.getUTCMonth() === month - 1 &&
+      date.getUTCDate() === day
     ) {
       return timestamp;
     }
@@ -330,41 +345,49 @@ function normalizeYear(year) {
 }
 
 function handleApplyAllChange(invoice) {
-  emit('apply-all-change', invoice);
+  emit("apply-all-change", invoice);
 }
 
 function handleAmountChange(invoice) {
-  emit('amount-change', invoice);
+  emit("amount-change", invoice);
 }
 
 function handleObservationChange(invoice) {
-  emit('observation-change', invoice);
+  emit("observation-change", invoice);
 }
 </script>
 
 <template>
   <div class="invoice-application">
     <div class="invoice-application-header">
-      <div class="min-w-0">
-        <span class="invoice-application-kicker">{{ title }}</span>
-        <h4 class="invoice-application-title mb-0">
-          {{ filteredInvoices.length }} de {{ normalizedInvoices.length }} {{ documentLabel }}
-        </h4>
-      </div>
-
       <div class="input-group input-group-sm invoice-application-search">
-        <span class="input-group-text"><i class="fa fa-magnifying-glass"></i></span>
+        <span class="input-group-text"
+          ><i class="fa fa-magnifying-glass"></i
+        ></span>
         <input
           type="text"
           class="form-control"
           v-model="searchTerm"
           :placeholder="searchPlaceholder"
-        >
+        />
+      </div>
+
+      <div class="min-w-0">
+        <span class="invoice-application-kicker">{{ title }}</span>
+        <h4 class="invoice-application-title mb-0">
+          {{ filteredInvoices.length }} de {{ normalizedInvoices.length }}
+          {{ documentLabel }}
+        </h4>
       </div>
     </div>
 
-    <div v-if="normalizedInvoices.length && filteredInvoices.length" class="invoice-application-scroll">
-      <table class="table table-sm table-vcenter mb-0 invoice-application-table">
+    <div
+      v-if="normalizedInvoices.length && filteredInvoices.length"
+      class="invoice-application-scroll"
+    >
+      <table
+        class="table table-sm table-vcenter mb-0 invoice-application-table"
+      >
         <thead>
           <tr>
             <th class="invoice-col-doc" :aria-sort="getAriaSort('document')">
@@ -376,7 +399,11 @@ function handleObservationChange(invoice) {
                 @click="setSortColumn('document')"
               >
                 <span>Factura</span>
-                <i class="fa" :class="getSortIcon('document')" aria-hidden="true"></i>
+                <i
+                  class="fa"
+                  :class="getSortIcon('document')"
+                  aria-hidden="true"
+                ></i>
               </button>
             </th>
             <th class="invoice-col-date" :aria-sort="getAriaSort('issueDate')">
@@ -388,7 +415,11 @@ function handleObservationChange(invoice) {
                 @click="setSortColumn('issueDate')"
               >
                 <span>{{ issueDateLabel }}</span>
-                <i class="fa" :class="getSortIcon('issueDate')" aria-hidden="true"></i>
+                <i
+                  class="fa"
+                  :class="getSortIcon('issueDate')"
+                  aria-hidden="true"
+                ></i>
               </button>
             </th>
             <th class="invoice-col-date" :aria-sort="getAriaSort('dueDate')">
@@ -400,22 +431,38 @@ function handleObservationChange(invoice) {
                 @click="setSortColumn('dueDate')"
               >
                 <span>{{ dueDateLabel }}</span>
-                <i class="fa" :class="getSortIcon('dueDate')" aria-hidden="true"></i>
+                <i
+                  class="fa"
+                  :class="getSortIcon('dueDate')"
+                  aria-hidden="true"
+                ></i>
               </button>
             </th>
-            <th class="text-end invoice-col-money" :aria-sort="getAriaSort('originalAmount')">
+            <th
+              class="text-end invoice-col-money"
+              :aria-sort="getAriaSort('originalAmount')"
+            >
               <button
                 type="button"
                 class="invoice-sort-button invoice-sort-button-end"
-                :aria-label="getSortButtonLabel('originalAmount', 'Monto original')"
+                :aria-label="
+                  getSortButtonLabel('originalAmount', 'Monto original')
+                "
                 :aria-pressed="isSortedBy('originalAmount')"
                 @click="setSortColumn('originalAmount')"
               >
                 <span>Monto original</span>
-                <i class="fa" :class="getSortIcon('originalAmount')" aria-hidden="true"></i>
+                <i
+                  class="fa"
+                  :class="getSortIcon('originalAmount')"
+                  aria-hidden="true"
+                ></i>
               </button>
             </th>
-            <th class="text-end invoice-col-money" :aria-sort="getAriaSort('balance')">
+            <th
+              class="text-end invoice-col-money"
+              :aria-sort="getAriaSort('balance')"
+            >
               <button
                 type="button"
                 class="invoice-sort-button invoice-sort-button-end"
@@ -424,17 +471,30 @@ function handleObservationChange(invoice) {
                 @click="setSortColumn('balance')"
               >
                 <span>{{ balanceDisplayLabel }}</span>
-                <i class="fa" :class="getSortIcon('balance')" aria-hidden="true"></i>
+                <i
+                  class="fa"
+                  :class="getSortIcon('balance')"
+                  aria-hidden="true"
+                ></i>
               </button>
             </th>
-            <th v-if="showApplyAll" class="text-center invoice-col-check">{{ applyAllLabel }}</th>
-            <th class="text-end invoice-col-amount">{{ amountDisplayLabel }}</th>
+            <th v-if="showApplyAll" class="text-center invoice-col-check">
+              {{ applyAllLabel }}
+            </th>
+            <th class="text-end invoice-col-amount">
+              {{ amountDisplayLabel }}
+            </th>
             <th class="text-end invoice-col-money">{{ remainingLabel }}</th>
-            <th v-if="showObservation" class="invoice-col-observation">{{ observationLabel }}</th>
+            <th v-if="showObservation" class="invoice-col-observation">
+              {{ observationLabel }}
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(invoice, index) in filteredInvoices" :key="getRowKey(invoice, index)">
+          <tr
+            v-for="(invoice, index) in filteredInvoices"
+            :key="getRowKey(invoice, index)"
+          >
             <td class="fw-semibold invoice-col-doc" data-label="Factura">
               {{ getValue(invoice, documentKey) }}
             </td>
@@ -447,45 +507,61 @@ function handleObservationChange(invoice) {
             <td class="text-end invoice-col-money" data-label="Monto original">
               ${{ formatInvoiceAmount(getValue(invoice, originalAmountKey)) }}
             </td>
-            <td class="text-end invoice-col-money" :data-label="balanceDisplayLabel">
+            <td
+              class="text-end invoice-col-money"
+              :data-label="balanceDisplayLabel"
+            >
               ${{ formatInvoiceAmount(getValue(invoice, balanceKey)) }}
             </td>
-            <td v-if="showApplyAll" class="text-center invoice-col-check" :data-label="applyAllLabel">
+            <td
+              v-if="showApplyAll"
+              class="text-center invoice-col-check"
+              :data-label="applyAllLabel"
+            >
               <input
                 type="checkbox"
                 class="form-check-input"
                 v-model="invoice[applyAllKey]"
                 @change="handleApplyAllChange(invoice)"
-              >
+              />
             </td>
             <td class="invoice-col-amount" :data-label="amountDisplayLabel">
-              <div class="input-group input-group-sm invoice-application-amount">
+              <div
+                class="input-group input-group-sm invoice-application-amount"
+              >
                 <span class="input-group-text">$</span>
                 <input
                   type="text"
                   class="form-control text-end"
                   v-model="invoice[amountKey]"
                   @change="handleAmountChange(invoice)"
-                >
+                />
               </div>
             </td>
             <td class="text-end invoice-col-money" :data-label="remainingLabel">
               ${{ formatInvoiceAmount(getRemainingBalance(invoice)) }}
             </td>
-            <td v-if="showObservation" class="invoice-col-observation" :data-label="observationLabel">
+            <td
+              v-if="showObservation"
+              class="invoice-col-observation"
+              :data-label="observationLabel"
+            >
               <input
                 type="text"
                 class="form-control form-control-sm"
                 v-model="invoice[observationKey]"
                 @change="handleObservationChange(invoice)"
-              >
+              />
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div v-else-if="normalizedInvoices.length" class="invoice-application-empty">
+    <div
+      v-else-if="normalizedInvoices.length"
+      class="invoice-application-empty"
+    >
       <i class="fa fa-magnifying-glass"></i>
       <span>{{ emptySearchText }}</span>
     </div>
@@ -537,7 +613,7 @@ function handleObservationChange(invoice) {
 .invoice-application-title {
   margin: 0.1rem 0 0;
   color: var(--tuval-text, var(--bs-body-color));
-  font-size: 0.60rem;
+  font-size: 0.6rem;
   font-weight: 800;
   line-height: 1.25;
 }
@@ -625,7 +701,7 @@ function handleObservationChange(invoice) {
   opacity: 0.62;
 }
 
-.invoice-sort-button[aria-pressed='true'] i {
+.invoice-sort-button[aria-pressed="true"] i {
   opacity: 1;
 }
 
