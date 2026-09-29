@@ -3,7 +3,7 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import { PROVIDER_API_ROUTES } from "@/constants/apiRoutes/ventas/proveedores/providerRoutes";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { computed, reactive, ref, unref, watch } from "vue";
+import { computed, reactive, ref, unref } from "vue";
 
 const requiredField = (message) => helpers.withMessage(message, required);
 
@@ -15,6 +15,7 @@ function initialForm() {
         identificacion: "",
         nombre: "",
         placa: "",
+        punto_venta_ids: []
     };
 }
 
@@ -22,12 +23,24 @@ export function useCarrierDriverActions(listTypeIdentify) {
     const { run } = useApiAction();
     const form = reactive(initialForm());
 
+    function buildPayload(payload = form) {
+        return {
+            proveedor_id: payload?.proveedor_id ?? null,
+            tipo_identificacion_id: payload?.tipo_identificacion_id ?? null,
+            identificacion: String(payload?.identificacion ?? "").trim(),
+            nombre: String(payload?.nombre ?? "").trim().toUpperCase(),
+            placa: String(payload?.placa ?? "").trim().toUpperCase(),
+            punto_venta_ids: payload.punto_venta_ids ?? []
+        };
+    }
+
     const selectedTypeIdentify = computed(() => {
         const types = unref(listTypeIdentify) ?? [];
 
         return (
             types.find(
-                (type) => Number(type.id) === form.tipo_identificacion_id
+                (type) =>
+                    Number(type.id) === Number(form.tipo_identificacion_id)
             ) ?? null
         );
     });
@@ -135,21 +148,47 @@ export function useCarrierDriverActions(listTypeIdentify) {
         event.target.value = value;
     }
 
-    watch(
-        () => form.tipo_identificacion_id,
-        () => {
-            form.identificacion = "";
-            v$.value.identificacion.$reset();
-        }
-    );
+    function resetForm(data = null) {
+        Object.assign(form, initialForm(), data ? {
+            id: data.id ?? null,
+            proveedor_id: data.proveedor_id ?? data.provider_id ?? data.proveedor?.id ?? null,
+            tipo_identificacion_id:
+                data.tipo_identificacion_id ?? data.tipo_identificacion?.id ?? null,
+            identificacion: data.identificacion ?? "",
+            nombre: data.nombre ?? "",
+            placa: data.placa ?? "",
+            punto_venta_ids: (data.puntos_venta ?? []).map((point) => point.id)
+        } : {});
+        v$.value.$reset();
+    }
 
+    function onIdentificationTypeChange() {
+        form.identificacion = "";
+        v$.value.identificacion.$reset();
+    }
+
+    const loadingProviderCarrier = ref(false);
+    const providersCarriers = ref([]);
+    async function fetchListProvidersCarrier() {
+        return await run(async () => axiosClient.get(PROVIDER_API_ROUTES.PROVIDER_CARRIER), {
+            loadingRef: loadingProviderCarrier,
+            onSuccess: (info) => {
+                providersCarriers.value = Array.isArray(info) ? info : [];
+            },
+            onError: (backend, error) => {
+                console.log(backend, error);
+            }
+        });
+    }
+
+    // creacion de registro
     const loadingSaved = ref(false);
-    async function savedCarrierDriver(payload) {
+    async function savedCarrierDriver() {
         return run(
             () =>
                 axiosClient.post(
                     PROVIDER_API_ROUTES.CARRIER_DRIVER.CREATE_REGISTER,
-                    { payload }
+                    { form: buildPayload() }
                 ),
             {
                 loadingRef: loadingSaved,
@@ -160,9 +199,61 @@ export function useCarrierDriverActions(listTypeIdentify) {
         );
     }
 
+    // actualizacion de registro
+    const loadingUpdated = ref(false);
+    async function updatedCarrierDriver() {
+        return run(() => {
+            if (form.id == null) {
+                throw new Error("El ID del chofer transportista es obligatorio.");
+            }
+
+            return axiosClient.put(
+                `${PROVIDER_API_ROUTES.CARRIER_DRIVER.UPDATE_REGISTER}/${encodeURIComponent(form.id)}`,
+                { form: buildPayload() }
+            );
+        }, {
+            loadingRef: loadingUpdated,
+        });
+    }
+
+    const loadingUpdateStatusCarrierDriver = ref(false);
+    async function updatedStatusCarrierDriver(id) {
+        return run(() => {
+            if (id == null) {
+                throw new Error("El ID del chofer transportista es obligatorio.");
+            }
+
+            return axiosClient.put(
+                `${PROVIDER_API_ROUTES.CARRIER_DRIVER.UPDATE_STATUS}/${encodeURIComponent(id)}`
+            );
+        }, {
+            loadingRef: loadingUpdateStatusCarrierDriver,
+        });
+    }
+
+    const loadingDetail = ref(false);
+    async function getDetailCarrierDriver(id) {
+        return run(() => {
+            if (id == null) {
+                throw new Error("El ID del chofer transportista es obligatorio.");
+            }
+
+            return axiosClient.post(
+                PROVIDER_API_ROUTES.CARRIER_DRIVER.GET_DETAIL,
+                { id: id }
+            );
+        }, {
+            loadingRef: loadingDetail,
+        });
+    }
+
+
+
+
     return {
         form,
         v$,
+        resetForm,
         //validacion para tipo de identificacion
         selectedTypeIdentify,
         identifyName,
@@ -170,7 +261,22 @@ export function useCarrierDriverActions(listTypeIdentify) {
         identifyLengthMessage,
         identifyInputMode,
         onIdentificationInput,
+        onIdentificationTypeChange,
         loadingSaved,
         savedCarrierDriver,
+
+        loadingUpdated,
+        updatedCarrierDriver,
+
+        loadingUpdateStatusCarrierDriver,
+        updatedStatusCarrierDriver,
+
+        loadingDetail,
+        getDetailCarrierDriver,
+
+        //lista de proveedoress transportistas
+        loadingProviderCarrier,
+        providersCarriers,
+        fetchListProvidersCarrier
     };
 }

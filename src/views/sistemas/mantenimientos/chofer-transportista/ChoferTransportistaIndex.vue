@@ -1,28 +1,38 @@
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import BaseTable from "@/components/BaseTable.vue";
 import ChoferTransportistaModal from "@/views/sistemas/mantenimientos/chofer-transportista/modals/verModalChoferTransportista.vue";
 
 //composables
 import { useCarrierDriverTable } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverTable";
+import { useDispatchTypeActions } from "@/composables/sistemas/mantenimientos/tipo-despachos/useDispatchTypeActions";
 
 // Modal de creación y edición. El formulario se incorporará en este espacio.
 const carrierDriverModal = ref(null);
 const selectedCarrierDriver = ref(null);
-
-function openCreateModal() {
+const typeOpenModal = ref("create");
+async function openCreateModal() {
   selectedCarrierDriver.value = null;
-  carrierDriverModal.value?.show();
+  typeOpenModal.value = "create";
+  await nextTick();
+  await carrierDriverModal.value?.show();
 }
 
-function openEditModal(row) {
+async function openEditModal(row) {
   selectedCarrierDriver.value = row;
-  carrierDriverModal.value?.show();
+  typeOpenModal.value = "edit";
+  await nextTick();
+  await carrierDriverModal.value?.show();
 }
 
 function clearModalData() {
   selectedCarrierDriver.value = null;
+  typeOpenModal.value = "create";
+}
+
+async function handleSaved() {
+  await fetchList(table.currentPage);
 }
 
 const {
@@ -35,8 +45,15 @@ const {
   statusBooleanClass,
 } = useCarrierDriverTable();
 
-onMounted(() => {
-  fetchList(1);
+const {
+  loadingPointSales,
+  listPointSales,
+  fetchListPointSales,
+} = useDispatchTypeActions();
+
+onMounted(async () => {
+  await fetchList(1);
+  await fetchListPointSales();
 });
 </script>
 
@@ -127,9 +144,22 @@ onMounted(() => {
         @onSearch="table.searchTerm"
       >
         <template #cell-id="{ row }">
-          <span class="badge bg-body-secondary text-muted border" style="font-size: 12px">
+          <span
+            class="badge bg-body-secondary text-muted border"
+            style="font-size: 12px"
+          >
             #{{ row.id }}
           </span>
+        </template>
+        <template #cell-ruc_proveedor="{ row }">
+          <div class="d-flex flex-column lh-sm">
+            <span class="fw-semibold text-body">
+              {{ row.razon_social_proveedor || "Sin razón social" }}
+            </span>
+            <small class="text-muted mt-1">
+              RUC: {{ row.ruc_proveedor || "N/A" }}
+            </small>
+          </div>
         </template>
         <template #cell-estado="{ value }">
           <span :class="statusBooleanClass(value)" style="font-size: 12px">
@@ -165,7 +195,11 @@ onMounted(() => {
   <ChoferTransportistaModal
     ref="carrierDriverModal"
     :carrier-driver="selectedCarrierDriver"
+    :type-modal="typeOpenModal"
+    :loading-point-sales="loadingPointSales"
+    :point-sales="listPointSales"
     @hidden="clearModalData"
+    @saved="handleSaved"
   />
 </template>
 
