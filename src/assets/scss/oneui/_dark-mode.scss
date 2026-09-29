@@ -3,18 +3,22 @@
 // --------------------------------------------------
 
 // Default Dark mode
-@include color-theme-dark(
-  $primary,
-  $primary-light,
-  $primary-lighter,
-  $primary-dark,
-  $primary-darker,
-  $body-bg,
-  $body-bg-dark,
-  $body-bg-light,
-  $body-color,
-  $body-color-dark,
-  $body-color-light,
-  $link-color,
-  $link-hover-color
-);
+// The wrapper gives the mixin a parent selector so it can also target the
+// centralized `html.dark-mode` root.
+:root {
+  @include color-theme-dark(
+    $primary,
+    $primary-light,
+    $primary-lighter,
+    $primary-dark,
+    $primary-darker,
+    $body-bg,
+    $body-bg-dark,
+    $body-bg-light,
+    $body-color,
+    $body-color-dark,
+    $body-color-light,
+    $link-color,
+    $link-hover-color
+  );
+}

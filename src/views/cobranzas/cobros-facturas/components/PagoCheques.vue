@@ -370,8 +370,11 @@ function handleCheckAmountInput(field, event) {
             >
           </div>
 
-          <div class="check-summary-item">
-            <span>Facturas</span>
+          <div class="check-summary-item check-summary-count">
+            <span>
+              <i class="fa fa-file-invoice" aria-hidden="true"></i>
+              Facturas
+            </span>
             <strong>{{ checkPayload.facturas.length }}</strong>
           </div>
         </div>
@@ -605,6 +608,27 @@ function handleCheckAmountInput(field, event) {
   font-size: 1rem;
 }
 
+.check-summary-count {
+  color: var(--bs-primary, var(--tuval-primary));
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+}
+
+.check-summary-count span,
+.check-summary-count strong {
+  color: inherit;
+}
+
+.check-summary-count span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.check-summary-count strong {
+  font-size: 1rem;
+}
+
 .check-register-actions {
   display: flex;
   justify-content: flex-end;
@@ -656,9 +680,12 @@ function handleCheckAmountInput(field, event) {
     align-items: flex-start;
   }
 
-  .check-grid,
-  .check-summary-grid {
+  .check-grid {
     grid-template-columns: 1fr;
+  }
+
+  .check-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .check-action {
@@ -671,6 +698,12 @@ function handleCheckAmountInput(field, event) {
 
   .check-register-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .check-summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

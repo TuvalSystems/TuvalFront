@@ -194,3 +194,12 @@ th.sort {
 #datasetLengthPedidos label {
   display: none;
 }
+
+// Theme classes change atomically; suppress component color transitions during
+// the two paint frames needed for the browser to apply the new palette.
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}

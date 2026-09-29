@@ -373,17 +373,17 @@ watch(
   }
 }
 
-:global(#page-container.dark-mode .permission-empty) {
+:global(.dark-mode #page-container .permission-empty) {
   background: rgba(0, 0, 0, 0.16) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: rgba(255, 255, 255, 0.62) !important;
 }
 
-:global(#page-container.dark-mode .permission-tree-scroll::-webkit-scrollbar-thumb) {
+:global(.dark-mode #page-container .permission-tree-scroll::-webkit-scrollbar-thumb) {
   background: rgba(255, 255, 255, 0.18) !important;
 }
 
-:global(#page-container.dark-mode .permission-tree-scroll::-webkit-scrollbar-thumb:hover) {
+:global(.dark-mode #page-container .permission-tree-scroll::-webkit-scrollbar-thumb:hover) {
   background: rgba(var(--bs-primary-rgb), 0.70) !important;
 }
 
@@ -566,7 +566,7 @@ watch(
   }
 }
 
-:global(#page-container.dark-mode .profile-access-panel) {
+:global(.dark-mode #page-container .profile-access-panel) {
   background:
     linear-gradient(
       135deg,
@@ -576,23 +576,23 @@ watch(
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-:global(#page-container.dark-mode .profile-stat-card),
-:global(#page-container.dark-mode .permission-tree-summary) {
+:global(.dark-mode #page-container .profile-stat-card),
+:global(.dark-mode #page-container .permission-tree-summary) {
   background: rgba(0, 0, 0, 0.18) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-:global(#page-container.dark-mode .profile-access-title) {
+:global(.dark-mode #page-container .profile-access-title) {
   color: #f4f7fb !important;
 }
 
-:global(#page-container.dark-mode .profile-access-subtitle),
-:global(#page-container.dark-mode .profile-stat-label),
-:global(#page-container.dark-mode .permission-tree-summary) {
+:global(.dark-mode #page-container .profile-access-subtitle),
+:global(.dark-mode #page-container .profile-stat-label),
+:global(.dark-mode #page-container .permission-tree-summary) {
   color: rgba(255, 255, 255, 0.62) !important;
 }
 
-:global(#page-container.dark-mode .permission-save-bar) {
+:global(.dark-mode #page-container .permission-save-bar) {
   border-top-color: rgba(255, 255, 255, 0.12) !important;
 }
 </style>

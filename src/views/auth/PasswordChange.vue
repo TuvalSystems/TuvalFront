@@ -1,15 +1,13 @@
 <script setup>
-import { computed, onBeforeUnmount, reactive, ref, watchEffect } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import axios from "../../axios";
 import actions from "@/store";
-import { useTemplateStore } from "@/stores/template";
 import useVuelidate from "@vuelidate/core";
 import { minLength, required } from "@vuelidate/validators";
 import { swalSuccess } from "@/functions/swal-alert.js";
 
 const router = useRouter();
-const templateStore = useTemplateStore();
 const form = reactive({
   password: "",
 });
@@ -23,50 +21,6 @@ const rules = {
 };
 
 const v$ = useVuelidate(rules, form);
-const darkModeMediaQuery =
-  typeof window !== "undefined" && window.matchMedia
-    ? window.matchMedia("(prefers-color-scheme: dark)")
-    : null;
-
-const syncDarkModeWithSystem = (matches) => {
-  if (!templateStore.settings.darkModeSystem) {
-    return;
-  }
-
-  templateStore.darkMode({ mode: matches ? "on" : "off" });
-};
-
-templateStore.setColorTheme({
-  theme: templateStore.settings.colorTheme,
-});
-
-if (darkModeMediaQuery) {
-  syncDarkModeWithSystem(darkModeMediaQuery.matches);
-}
-
-const handleSystemThemeChange = (event) => {
-  syncDarkModeWithSystem(event.matches);
-};
-
-darkModeMediaQuery?.addEventListener("change", handleSystemThemeChange);
-
-onBeforeUnmount(() => {
-  darkModeMediaQuery?.removeEventListener("change", handleSystemThemeChange);
-});
-
-watchEffect(() => {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  document.body.classList.toggle("dark-mode", templateStore.settings.darkMode);
-  document.documentElement.dataset.bsTheme = templateStore.settings.darkMode
-    ? "dark"
-    : "light";
-  document.documentElement.dataset.colorTheme =
-    templateStore.settings.colorTheme || "default";
-});
-
 const hasPasswordError = computed(() => {
   return v$.value.password.$error || Boolean(errors.password?.length);
 });

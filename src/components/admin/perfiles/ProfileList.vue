@@ -469,7 +469,7 @@ function clearSearch() {
   }
 }
 
-:global(#page-container.dark-mode .profile-list-panel) {
+:global(.dark-mode #page-container .profile-list-panel) {
   background:
     linear-gradient(
       135deg,
@@ -479,42 +479,42 @@ function clearSearch() {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-:global(#page-container.dark-mode .profile-stat-card) {
+:global(.dark-mode #page-container .profile-stat-card) {
   background: rgba(0, 0, 0, 0.18) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-:global(#page-container.dark-mode .profile-list-title) {
+:global(.dark-mode #page-container .profile-list-title) {
   color: #f4f7fb !important;
 }
 
-:global(#page-container.dark-mode .profile-list-subtitle),
-:global(#page-container.dark-mode .profile-stat-label),
-:global(#page-container.dark-mode .profile-list-footer) {
+:global(.dark-mode #page-container .profile-list-subtitle),
+:global(.dark-mode #page-container .profile-stat-label),
+:global(.dark-mode #page-container .profile-list-footer) {
   color: rgba(255, 255, 255, 0.62) !important;
 }
 
-:global(#page-container.dark-mode .profile-selected-summary) {
+:global(.dark-mode #page-container .profile-selected-summary) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   border-color: rgba(var(--bs-primary-rgb), 0.34) !important;
   color: var(--bs-primary) !important;
 }
 
-:global(#page-container.dark-mode .profile-empty-state) {
+:global(.dark-mode #page-container .profile-empty-state) {
   background: rgba(0, 0, 0, 0.16) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: rgba(255, 255, 255, 0.62) !important;
 }
 
-:global(#page-container.dark-mode .profile-list-footer) {
+:global(.dark-mode #page-container .profile-list-footer) {
   border-top-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-:global(#page-container.dark-mode .profile-list-scroll::-webkit-scrollbar-thumb) {
+:global(.dark-mode #page-container .profile-list-scroll::-webkit-scrollbar-thumb) {
   background: rgba(255, 255, 255, 0.18) !important;
 }
 
-:global(#page-container.dark-mode .profile-list-scroll::-webkit-scrollbar-thumb:hover) {
+:global(.dark-mode #page-container .profile-list-scroll::-webkit-scrollbar-thumb:hover) {
   background: rgba(var(--bs-primary-rgb), 0.70) !important;
 }
 </style>

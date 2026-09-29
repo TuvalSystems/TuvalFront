@@ -2,15 +2,14 @@
 // Minimal UI refinements
 // --------------------------------------------------
 
-html {
+html.theme-minimal {
   text-rendering: optimizeLegibility;
-}
 
-body {
-  background: var(--tuval-bg);
-  color: var(--tuval-text);
-  letter-spacing: 0;
-}
+  body {
+    background: var(--tuval-bg);
+    color: var(--tuval-text);
+    letter-spacing: 0;
+  }
 
 #page-container,
 #main-container {
@@ -54,6 +53,7 @@ body {
 .block {
   border: 1px solid var(--tuval-border);
   margin-bottom: 1rem;
+  box-shadow: none;
 }
 
 .block-header,
@@ -116,7 +116,7 @@ a.block.block-link-pop:hover {
 
 .table {
   --bs-table-border-color: var(--tuval-border);
-  --bs-table-hover-bg: rgba(37, 99, 235, 0.045);
+  --bs-table-hover-bg: rgba(var(--bs-primary-rgb), 0.045);
 
   border-color: var(--tuval-border);
 }
@@ -150,11 +150,48 @@ a.block.block-link-pop:hover {
 }
 
 .sidebar-dark #sidebar {
-  --tuval-sidebar-icon: #cbd5e1;
+  --tuval-sidebar-icon: var(--tuval-text-muted);
+  --tuval-sidebar-icon-active: var(--tuval-text);
+  --tuval-sidebar-control-bg: var(--tuval-surface-muted);
+  --tuval-sidebar-control-bg-hover: var(--tuval-primary-soft);
+  --tuval-sidebar-control-border: var(--tuval-border);
+}
+
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar {
+  color: var(--tuval-text);
+  background-color: var(--tuval-sidebar);
+  border-color: var(--tuval-border);
+}
+
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar .content-header {
+  background-color: transparent;
+}
+
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar .text-dual {
+  color: var(--tuval-text) !important;
+}
+
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar .nav-main-heading {
+  color: var(--tuval-text-muted);
+}
+
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar .nav-main-submenu {
+  background-color: var(--tuval-surface-muted);
+}
+
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar .nav-main-link:hover,
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar .nav-main-link:focus,
+&:not(.dark-mode) #page-container.sidebar-dark #sidebar .nav-main-link.active {
+  color: var(--tuval-text);
+  background-color: var(--tuval-primary-soft);
+}
+
+&.dark-mode .sidebar-dark #sidebar {
+  --tuval-sidebar-icon: #c7cbd3;
   --tuval-sidebar-icon-active: #ffffff;
-  --tuval-sidebar-control-bg: rgba(255, 255, 255, 0.08);
-  --tuval-sidebar-control-bg-hover: rgba(255, 255, 255, 0.14);
-  --tuval-sidebar-control-border: rgba(255, 255, 255, 0.1);
+  --tuval-sidebar-control-bg: rgba(255, 255, 255, 0.06);
+  --tuval-sidebar-control-bg-hover: rgba(255, 255, 255, 0.11);
+  --tuval-sidebar-control-border: rgba(255, 255, 255, 0.09);
 }
 
 .sidebar-dark #sidebar .btn-alt-secondary {
@@ -231,14 +268,15 @@ a.block.block-link-pop:hover {
   line-height: 1.45;
 }
 
-.dark-mode .tuval-notification-toast {
+&.dark-mode .tuval-notification-toast {
   color: var(--tuval-text);
   background-color: var(--tuval-surface);
   border-color: var(--tuval-border);
 }
 
-.dark-mode .tuval-notification-toast-header {
+&.dark-mode .tuval-notification-toast-header {
   color: var(--tuval-text);
   background-color: var(--tuval-surface-muted);
   border-bottom-color: var(--tuval-border);
+}
 }
