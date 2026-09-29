@@ -174,7 +174,7 @@ onMounted(() => { });
       <!-- detalle del efectivo -->
       <div v-if="showTableInvoices" class="cash-detail">
         <div class="cash-summary-grid">
-          <div class="cash-summary-item">
+          <!-- <div class="cash-summary-item">
             <span>Recibido</span>
             <strong>${{ formatCashAmount(cashPayload.montoRecibido) }}</strong>
           </div>
@@ -187,7 +187,7 @@ onMounted(() => { });
           <div class="cash-summary-item">
             <span>Vuelto</span>
             <strong>${{ formatCashAmount(cashPayload.montoDevuelto) }}</strong>
-          </div>
+          </div> -->
 
           <div class="cash-summary-item">
             <span>Aplicado</span>
@@ -195,7 +195,10 @@ onMounted(() => { });
           </div>
 
           <div class="cash-summary-item cash-summary-warning">
-            <span>No Aplicado</span>
+            <span>
+              <i class="fa fa-circle-exclamation" aria-hidden="true"></i>
+              Monto no aplicado
+            </span>
             <strong>${{ formatCashAmount(cashPayload.montoNoAplicado) }}</strong>
           </div>
         </div>
@@ -358,7 +361,7 @@ onMounted(() => { });
 
 .cash-summary-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
@@ -389,14 +392,25 @@ onMounted(() => { });
 }
 
 .cash-summary-warning {
-  color: var(--bs-warning-text-emphasis, var(--bs-body-color));
-  border-color: var(--bs-warning-border-subtle, rgba(var(--bs-warning-rgb), 0.35));
-  background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
+  color: var(--bs-danger-text-emphasis, var(--bs-danger));
+  border: 2px solid var(--bs-danger-border-subtle, rgba(var(--bs-danger-rgb), 0.55));
+  background: var(--bs-danger-bg-subtle, rgba(var(--bs-danger-rgb), 0.14));
+  box-shadow: 0 0 0 0.18rem rgba(var(--bs-danger-rgb), 0.1);
 }
 
 .cash-summary-warning span,
 .cash-summary-warning strong {
   color: inherit;
+}
+
+.cash-summary-warning span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cash-summary-warning strong {
+  font-size: 1rem;
 }
 
 .cash-entry :deep(.form-control),
@@ -422,7 +436,7 @@ onMounted(() => { });
   }
 
   .cash-summary-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -468,15 +482,6 @@ onMounted(() => { });
     padding: 0.45rem;
   }
 
-  .cash-summary-warning {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .cash-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 380px) {
