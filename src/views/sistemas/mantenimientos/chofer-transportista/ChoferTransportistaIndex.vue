@@ -1,12 +1,29 @@
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import BaseTable from "@/components/BaseTable.vue";
+import ChoferTransportistaModal from "@/views/sistemas/mantenimientos/chofer-transportista/modals/verModalChoferTransportista.vue";
 
 //composables
 import { useCarrierDriverTable } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverTable";
 
-//modals
+// Modal de creación y edición. El formulario se incorporará en este espacio.
+const carrierDriverModal = ref(null);
+const selectedCarrierDriver = ref(null);
+
+function openCreateModal() {
+  selectedCarrierDriver.value = null;
+  carrierDriverModal.value?.show();
+}
+
+function openEditModal(row) {
+  selectedCarrierDriver.value = row;
+  carrierDriverModal.value?.show();
+}
+
+function clearModalData() {
+  selectedCarrierDriver.value = null;
+}
 
 const {
   table,
@@ -18,11 +35,13 @@ const {
   statusBooleanClass,
 } = useCarrierDriverTable();
 
-onMounted(() => {});
+onMounted(() => {
+  fetchList(1);
+});
 </script>
 
 <template>
-  <BasePageHeading title="Gestión de Choferes Transportitas">
+  <BasePageHeading title="Gestión de Choferes Transportistas">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
@@ -43,8 +62,17 @@ onMounted(() => {});
     <BaseBlock title="Lista de Choferes Transportistas" class="mb-2" rounded>
       <!-- boton de refrescar -->
       <template #options>
-        <div class="block-options-item">
+        <div class="block-options-item d-flex gap-2">
           <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            @click="openCreateModal"
+          >
+            <i class="fa fa-plus me-1"></i>
+            Nuevo chofer
+          </button>
+          <button
+            type="button"
             class="btn btn-outline-primary btn-sm"
             @click="refresh"
             :disabled="table.loading"
@@ -99,14 +127,26 @@ onMounted(() => {});
         @onSearch="table.searchTerm"
       >
         <template #cell-id="{ row }">
-          <span class="badge bg-body-secondary  text-muted  border" style="font-size:12px">
+          <span class="badge bg-body-secondary text-muted border" style="font-size: 12px">
             #{{ row.id }}
           </span>
         </template>
-         <template #cell-status="{ value }">
-          <span :class="statusBooleanClass(value)" style="font-size:12px">
-            {{ value ? 'Activo' : 'Inactivo' }}
+        <template #cell-estado="{ value }">
+          <span :class="statusBooleanClass(value)" style="font-size: 12px">
+            {{ value ? "Activo" : "Inactivo" }}
           </span>
+        </template>
+
+        <template #actions="{ row }">
+          <button
+            type="button"
+            class="btn btn-sm btn-alt-secondary"
+            title="Editar chofer transportista"
+            aria-label="Editar chofer transportista"
+            @click="openEditModal(row)"
+          >
+            <i class="fa fa-pencil-alt"></i>
+          </button>
         </template>
         <!-- Slot de vacío -->
         <template #empty>
@@ -121,6 +161,12 @@ onMounted(() => {});
       <!-- end table -->
     </BaseBlock>
   </div>
+
+  <ChoferTransportistaModal
+    ref="carrierDriverModal"
+    :carrier-driver="selectedCarrierDriver"
+    @hidden="clearModalData"
+  />
 </template>
 
 <style lang="css" scoped>
