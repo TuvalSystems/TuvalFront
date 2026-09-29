@@ -1365,7 +1365,7 @@ onMounted(async () => {
         ></ConfiguracionSegmentacionCard>
       </div>
       <!-- seccion de seleccion de articulos  -->
-      <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-0">
+      <BaseBlock v-if="showInfoClient && form.cliente?.id" class="mb-2">
         <template #title>
           <div
             class="d-flex flex-wrap align-items-center justify-content-between w-100"
