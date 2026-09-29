@@ -330,8 +330,11 @@ function handleDepositAmountInput(field, event) {
             >
           </div>
 
-          <div class="deposit-summary-item">
-            <span>Facturas</span>
+          <div class="deposit-summary-item deposit-summary-count">
+            <span>
+              <i class="fa fa-file-invoice" aria-hidden="true"></i>
+              Facturas
+            </span>
             <strong>{{ depositPayload.facturas.length }}</strong>
           </div>
         </div>
@@ -520,7 +523,8 @@ function handleDepositAmountInput(field, event) {
 
 .deposit-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0.35rem;
 }
 
@@ -565,6 +569,27 @@ function handleDepositAmountInput(field, event) {
   font-size: 1rem;
 }
 
+.deposit-summary-count {
+  color: var(--bs-primary, var(--tuval-primary));
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+}
+
+.deposit-summary-count span,
+.deposit-summary-count strong {
+  color: inherit;
+}
+
+.deposit-summary-count span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.deposit-summary-count strong {
+  font-size: 1rem;
+}
+
 .deposit-register-actions {
   display: flex;
   justify-content: flex-end;
@@ -598,7 +623,7 @@ function handleDepositAmountInput(field, event) {
   }
 
   .deposit-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -616,9 +641,12 @@ function handleDepositAmountInput(field, event) {
     align-items: flex-start;
   }
 
-  .deposit-grid,
-  .deposit-summary-grid {
+  .deposit-grid {
     grid-template-columns: 1fr;
+  }
+
+  .deposit-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .deposit-action {
@@ -632,5 +660,12 @@ function handleDepositAmountInput(field, event) {
   .deposit-register-button {
     width: 100%;
   }
+}
+
+@media (max-width: 380px) {
+  .deposit-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
 }
 </style>

@@ -331,8 +331,11 @@ function hasRegisteredCard() {
             >
           </div>
 
-          <div class="cards-summary-item">
-            <span>Facturas</span>
+          <div class="cards-summary-item cards-summary-count">
+            <span>
+              <i class="fa fa-file-invoice" aria-hidden="true"></i>
+              Facturas
+            </span>
             <strong>{{ cardPayload.facturas.length }}</strong>
           </div>
         </div>
@@ -563,6 +566,27 @@ function hasRegisteredCard() {
   font-size: 1rem;
 }
 
+.cards-summary-count {
+  color: var(--bs-primary, var(--tuval-primary));
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+}
+
+.cards-summary-count span,
+.cards-summary-count strong {
+  color: inherit;
+}
+
+.cards-summary-count span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cards-summary-count strong {
+  font-size: 1rem;
+}
+
 .cards-register-actions {
   display: flex;
   justify-content: flex-end;
@@ -614,9 +638,12 @@ function hasRegisteredCard() {
     align-items: flex-start;
   }
 
-  .cards-grid,
-  .cards-summary-grid {
+  .cards-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cards-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .cards-action {
@@ -629,6 +656,12 @@ function hasRegisteredCard() {
 
   .cards-register-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .cards-summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -249,12 +249,26 @@ function handleApplicationCommentInput(event) {
             v-if="showTableInvoices"
             class="application-document-card application-document-pending"
           >
-            <span>Monto no aplicado</span>
+            <span>
+              <i class="fa fa-circle-exclamation" aria-hidden="true"></i>
+              Monto no aplicado
+            </span>
             <strong
               >${{
                 formatPriceJm(applicationPayload.montoNoAplicado) || "0.00"
               }}</strong
             >
+          </div>
+
+          <div
+            v-if="showTableInvoices"
+            class="application-document-card application-document-count"
+          >
+            <span>
+              <i class="fa fa-file-invoice" aria-hidden="true"></i>
+              Facturas
+            </span>
+            <strong>{{ applicationPayload.facturas.length }}</strong>
           </div>
         </div>
       </div>
@@ -465,12 +479,13 @@ function handleApplicationCommentInput(event) {
 }
 
 .application-document-pending {
-  color: var(--bs-warning-text-emphasis, var(--bs-body-color));
-  border-color: var(
-    --bs-warning-border-subtle,
-    rgba(var(--bs-warning-rgb), 0.35)
+  color: var(--bs-danger-text-emphasis, var(--bs-danger));
+  border: 2px solid var(
+    --bs-danger-border-subtle,
+    rgba(var(--bs-danger-rgb), 0.55)
   );
-  background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
+  background: var(--bs-danger-bg-subtle, rgba(var(--bs-danger-rgb), 0.14));
+  box-shadow: 0 0 0 0.18rem rgba(var(--bs-danger-rgb), 0.1);
 }
 
 .application-document-applied span,
@@ -478,6 +493,37 @@ function handleApplicationCommentInput(event) {
 .application-document-pending span,
 .application-document-pending strong {
   color: inherit;
+}
+
+.application-document-pending span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.application-document-pending strong {
+  font-size: 1rem;
+}
+
+.application-document-count {
+  color: var(--bs-primary, var(--tuval-primary));
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+}
+
+.application-document-count span,
+.application-document-count strong {
+  color: inherit;
+}
+
+.application-document-count span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.application-document-count strong {
+  font-size: 1rem;
 }
 
 .application-apply-button,
