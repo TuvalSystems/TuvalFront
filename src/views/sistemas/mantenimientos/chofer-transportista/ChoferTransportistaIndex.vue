@@ -7,6 +7,14 @@ import ChoferTransportistaModal from "@/views/sistemas/mantenimientos/chofer-tra
 //composables
 import { useCarrierDriverTable } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverTable";
 import { useDispatchTypeActions } from "@/composables/sistemas/mantenimientos/tipo-despachos/useDispatchTypeActions";
+import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
+
+import {
+  swalError,
+  swalSuccess,
+  swalWarning,
+  toast,
+} from "@/functions/swal-alert";
 
 // Modal de creación y edición. El formulario se incorporará en este espacio.
 const carrierDriverModal = ref(null);
@@ -35,6 +43,56 @@ async function handleSaved() {
   await fetchList(table.currentPage);
 }
 
+async function openAlertChangeStatus(row) {
+  const isActive = Number(row.estado) === 1;
+  const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
+  const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
+  const dispatchType = row.nombre ? `«${row.nombre}»` : "este chofer";
+  const message = isActive
+    ? `El chofer ${dispatchType} dejará de estar disponible para seleccionar en las cotizaciones.`
+    : `El chofer ${dispatchType} volverá a estar disponible para seleccionar en las cotizaciones.`;
+  toast
+    .fire({
+      title: isActive ? "¿Desactivar el Chofer?" : "¿Activar el Chofer?",
+      text: message,
+      icon: "warning",
+      showCancelButton: true,
+      customClass: {
+        confirmButton: confirmClass,
+        cancelButton: "btn btn-secondary m-1",
+      },
+      confirmButtonText: confirmText,
+      cancelButtonText: "Cancelar",
+      html: false,
+      preConfirm: () => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 50);
+        });
+      },
+    })
+    .then((result) => {
+      if (result.isConfirmed || result.value) {
+        changeStatusCarrierDriver(row);
+      }
+    });
+}
+
+async function changeStatusCarrierDriver(row) {
+  const resp = await updatedStatusCarrierDriver(row.id);
+  if (!resp?.ok) {
+    const msg =
+      resp?.message ||
+      "No se pudo obtener el detalle del chofer transportista.";
+    (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
+    return false;
+  }
+  refresh();
+  swalSuccess(resp?.message);
+  return;
+}
+
 const {
   table,
   listPerpage,
@@ -45,11 +103,10 @@ const {
   statusBooleanClass,
 } = useCarrierDriverTable();
 
-const {
-  loadingPointSales,
-  listPointSales,
-  fetchListPointSales,
-} = useDispatchTypeActions();
+const { loadingPointSales, listPointSales, fetchListPointSales } =
+  useDispatchTypeActions();
+
+const { updatedStatusCarrierDriver } = useCarrierDriverActions({});
 
 onMounted(async () => {
   await fetchList(1);
@@ -161,8 +218,12 @@ onMounted(async () => {
             </small>
           </div>
         </template>
-        <template #cell-estado="{ value }">
-          <span :class="statusBooleanClass(value)" style="font-size: 12px">
+        <template #cell-estado="{ row, value }">
+          <span
+            :class="statusBooleanClass(value)"
+            style="font-size: 12px"
+            @click="openAlertChangeStatus(row)"
+          >
             {{ value ? "Activo" : "Inactivo" }}
           </span>
         </template>

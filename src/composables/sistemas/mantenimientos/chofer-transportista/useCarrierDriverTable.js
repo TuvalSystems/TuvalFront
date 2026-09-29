@@ -61,7 +61,7 @@ export function useCarrierDriverTable() {
 
     async function refresh() {
         Object.assign(table.filters, {
-            search: "",
+            // search: "",
             perpage: "10",
             sortField: "created_at",
             sortOrder: "desc",

@@ -27,6 +27,7 @@ const listTypeIdentify = computed(() => typeIdentifyStore.list);
 const loadingIdentify = computed(() => typeIdentifyStore.loading);
 const typeOpenModal = computed(() => props.typeModal);
 const pointSalesOptions = computed(() => props.pointSales);
+const loadingPointSales = computed(() => props.loadingPointSales);
 const {
   form,
   v$,
@@ -203,7 +204,7 @@ onMounted(async () => {
               class="text-label-muted mb-1"
               for="carrier-driver-identification-type"
             >
-              Tipo de identificación
+              Tipo de identificación *
             </label>
             <select
               id="carrier-driver-identification-type"
@@ -241,7 +242,7 @@ onMounted(async () => {
               class="text-label-muted mb-1"
               for="carrier-driver-identification"
             >
-              Identificación
+              Identificación *
             </label>
             <input
               id="carrier-driver-identification"
@@ -289,7 +290,7 @@ onMounted(async () => {
           </div>
           <div class="col-12 col-md-12">
             <label class="text-label-muted mb-1" for="carrier-driver-nombre">
-              Nombre
+              Nombre *
             </label>
             <input
               id="carrier-driver-nombre"
@@ -322,7 +323,7 @@ onMounted(async () => {
               v-model="form.punto_venta_ids"
               multiple
               size="5"
-              :disabled="saving"
+              :disabled="loadingPointSales"
             >
               <option
                 v-for="point in pointSalesOptions"
