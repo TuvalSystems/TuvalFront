@@ -28,7 +28,7 @@ export function useCarrierDriverTable() {
     const columns = reactive([
         { label: "id", key: "id", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "80px" },
         { label: "proveedor", key: "ruc_proveedor", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
-        { label: "identificacion", key: "identificacion", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
+        { label: "identificación", key: "identificacion", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "nombre", key: "nombre", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "placa", key: "placa", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "estado", key: "estado", sortable: true, clickable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
