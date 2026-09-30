@@ -45,6 +45,10 @@ const {
   loadingUpdated,
   updatedCarrierDriver,
 
+  //validar identificacion
+  loadingValidateIdentity,
+  validateIdentity,
+
   //lista de proveedoress transportistas
   loadingProviderCarrier,
   providersCarriers,
@@ -68,7 +72,8 @@ const textButton = computed(() =>
 );
 
 const loadingHandleUpdateCreate = computed(
-  () => loadingSaved.value || loadingUpdated.value
+  () =>
+    loadingSaved.value || loadingUpdated.value || loadingValidateIdentity.value
 );
 
 async function show() {
@@ -116,6 +121,9 @@ async function handleSaveUpdate() {
   const valid = await v$.value.$validate();
   if (!valid) return;
 
+  const validIdentity = await validateDocumentIdentity();
+  if (!validIdentity) return;
+
   const resp =
     typeOpenModal.value === "edit"
       ? await updatedCarrierDriver()
@@ -130,6 +138,23 @@ async function handleSaveUpdate() {
   swalSuccess(resp?.message);
   emit("saved");
   hide();
+}
+async function validateDocumentIdentity() {
+  if (loadingValidateIdentity.value) return false;
+
+  const validIdentity = await v$.value.identificacion.$validate();
+  if (!validIdentity) return false;
+
+  const resp = await validateIdentity();
+  if (!resp?.ok) {
+    const msg =
+      resp?.message ||
+      "El documento ya se encuentra almacenado con anterioridad.";
+    await swalWarning(msg);
+    return false;
+  }
+
+  return true;
 }
 
 onMounted(async () => {
@@ -256,6 +281,8 @@ onMounted(async () => {
               :class="{ 'is-invalid': v$.identificacion.$errors.length }"
               @input="onIdentificationInput"
               @blur="v$.identificacion.$touch"
+              :disabled="loadingValidateIdentity"
+              @change="validateDocumentIdentity"
             />
             <div
               v-if="v$.identificacion.$errors.length"

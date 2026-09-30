@@ -247,6 +247,28 @@ export function useCarrierDriverActions(listTypeIdentify) {
         });
     }
 
+    const loadingValidateIdentity = ref(false);
+    async function validateIdentity() {
+        const payload = {
+            id: form.id,
+            identificacion: form.identificacion,
+        };
+
+        return await run(
+            async () =>
+                axiosClient.post(
+                    PROVIDER_API_ROUTES.CARRIER_DRIVER.VALIDATE_IDENTITY,
+                    payload
+                ),
+            {
+                loadingRef: loadingValidateIdentity,
+                onError: (backend, error) => {
+                    console.log(backend, error);
+                },
+            }
+        );
+    }
+
 
 
 
@@ -273,6 +295,10 @@ export function useCarrierDriverActions(listTypeIdentify) {
 
         loadingDetail,
         getDetailCarrierDriver,
+
+        // validar identificación
+        loadingValidateIdentity,
+        validateIdentity,
 
         //lista de proveedoress transportistas
         loadingProviderCarrier,

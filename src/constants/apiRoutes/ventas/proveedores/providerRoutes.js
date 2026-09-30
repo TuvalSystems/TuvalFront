@@ -10,6 +10,7 @@ export const PROVIDER_API_ROUTES = {
         GET_DETAIL: 'ventas/proveedores/choferes-transportista/obtener-detalle',
         UPDATE_REGISTER: 'ventas/proveedores/choferes-transportista/actualizar-registro',
         UPDATE_STATUS: 'ventas/proveedores/choferes-transportista/actualizar-estado',
+        VALIDATE_IDENTITY: 'ventas/proveedores/choferes-transportista/validar-identificacion',
     }
 
 };
