@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { swalError , swalSuccess, swalWarning} from "@/functions/swal-alert.js";
-import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
+import { useGetSegmentClients } from "@/composables/venta/cliente/useGetSegmentClients";
 import { useUpdateSegmentClient } from "@/composables/venta/cotizaciones/useUpdateSegmentClient";
 
 const props = defineProps({

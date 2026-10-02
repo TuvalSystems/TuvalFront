@@ -41,9 +41,8 @@ export function useClientSearch() {
     const loadingAvailableCredit = ref(false);
     const infoClient = ref({});
     const infoSegmento = ref({});
-    const apiAvailableCreditCustomer = '/consultas/cliente/cupo-disponible/';
     async function fetchAvailableCreditCustomer(ruc) {
-        return  run(() => axiosClient.get(apiAvailableCreditCustomer + ruc), {
+        return  run(() => axiosClient.get(CLIENT_API_ROUTES.ACTIONS.AVAILABLE_CREDIT + '/'+ ruc), {
             loadingRef: loadingAvailableCredit,
             onSuccess: (res) => {
                 infoClient.value = res.cliente
@@ -56,10 +55,9 @@ export function useClientSearch() {
 
     const loadingSucursales = ref(false);
     const sucursales = ref([]);
-    const apiCustomerBranches = '/consultas/cliente/sucursales';
 
     async function fetchCustomerBranches(ruc, type) {
-        return  run(() => axiosClient.post(apiCustomerBranches, { ruc: ruc , tipo: type }), {
+        return  run(() => axiosClient.post(CLIENT_API_ROUTES.ACTIONS.BRANCHES, { ruc: ruc , tipo: type }), {
             loadingRef: loadingSucursales,
             onSuccess: (res) => {
                 sucursales.value = res;
@@ -82,18 +80,6 @@ export function useClientSearch() {
             successMessage: 'Proceso realizado exitosamente',
         })
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -12,7 +12,7 @@ const VentasReservas = () =>
   import("@/views/ventas/reservas/ReservasIndex.vue");
 const VentasConsultas = () => import("@/views/ventas/ConsultasView.vue");
 const VentasCrearCliente = () =>
-  import("@/views/ventas/cotizaciones/CrearClienteView.vue");
+  import("@/views/ventas/cliente/CrearClienteView.vue");
 
 const routes = [
   {

@@ -11,7 +11,7 @@ import { useRouter } from "vue-router";
 import { useTemplateStore } from "@/stores/template";
 import { useStore } from "vuex";
 import { swalInfo, swalWarning, swalError } from "@/functions/swal-alert.js";
-import { useGetSegmentClients } from "@/composables/venta/cotizaciones/useGetSegmentClients";
+import { useGetSegmentClients } from "@/composables/venta/cliente/useGetSegmentClients";
 import useVuelidate from "@vuelidate/core";
 import { required, maxLength, email, helpers } from "@vuelidate/validators";
 import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
