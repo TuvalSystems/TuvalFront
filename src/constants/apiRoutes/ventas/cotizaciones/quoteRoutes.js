@@ -8,6 +8,7 @@ export const QUOTE_API_ROUTES = {
     PROSPECTS: {
         UPDATE: 'cotizaciones/prospecto/actualizar',
         GET_DEFAULT_PRICE_LIST: 'cotizaciones/prospecto/obtener-lista-precio-defecto',
+        RESTORE: 'cotizaciones/prospecto/recuperar'
     },
 
     REMINDERS: {
@@ -35,5 +36,5 @@ export const QUOTE_API_ROUTES = {
         LIST_SELLERS: 'cotizaciones/obtener-lista-proyectos',
     },
 
-    
+
 };

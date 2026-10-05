@@ -242,28 +242,14 @@
       </div>
       <div class="row" v-if="cotizacion.data.length > 0">
         <div class="col-md-12">
-          <div class="row">
+          <div class="row g-3 mb-3">
             <div class="col-md-4">
-              <label for="select-condicion-pago" class="col-auto col-form-label text-right">Condición de pago:</label>
-              <div class="col-auto">
-                <select class="form-select" id="select-condicion-pago" name="select-condicion-pago"
-                  v-model="condiciondepago_id" @change="selectcondicionpago($event)" :disabled="1">
-                  <option v-for="(condicion, index) in condiciondepago" :key="index" :value="condicion.COND_ID">
-                    {{ condicion.COND_ID }}
-                  </option>
-                </select>
-              </div>
+              <label for="prospect-condicion-pago" class="form-label">Condición de pago</label>
+              <input id="prospect-condicion-pago" class="form-control" :value="condiciondepago_id" disabled />
             </div>
             <div class="col-md-4">
-              <label for="select-forma-pago" class="col-auto col-form-label text-right">Forma de pago:</label>
-              <div class="col-auto">
-                <select disabled class="form-select" id="select-forma-pago" name="select-forma-pago"
-                  v-model="formadepago_id" @change="selectformapago($event)">
-                  <option v-for="(pago, index) in formadepago" :key="index" :value="pago.DESC_FORMA_PAGO_CODIGO">
-                    {{ pago.DESC_FORMA_PAGO_TIPO_CREDITO }}
-                  </option>
-                </select>
-              </div>
+              <label for="prospect-forma-pago" class="form-label">Forma de pago</label>
+              <input id="prospect-forma-pago" class="form-control" value="CONTADO-EFECTIVO" disabled />
             </div>
           </div>
           <div class="row mb-4">
@@ -324,22 +310,23 @@
   <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, watch } from "vue";
 
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useTemplateStore } from "@/stores/template";
 import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
 import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchConditionPayment";
+import { useCustomerCreate } from "@/composables/venta/cliente/useCustomerCreate";
+import {  swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import verModalBuscarArticulos from "./crear-cotizacion/modals/verModalBuscarArticulos.vue";
-import VueSelect from "vue-select";
 import draggable from "vuedraggable";
 import VueEasyLightbox from "vue-easy-lightbox";
 
 import useVuelidate from "@vuelidate/core";
-import { required, maxLength, email } from "@vuelidate/validators";
-import { formatPrice, format, formatPrice4 } from "@/functions";
+import { required, maxLength } from "@vuelidate/validators";
+import {  format, } from "@/functions";
 
 const gallery = reactive({
   visible: false,
@@ -364,7 +351,6 @@ const router = useRouter();
 
 limpiarCotizacion();
 
-let errorMsg = ref("");
 
 const nuevoProspecto = computed(() => store.state.nuevoProspecto);
 const despacho = ref(store.state.despacho);
@@ -372,12 +358,19 @@ const bodegas = computed(() => store.state.bodegas);
 const bodega_selected = ref(bodegas.value[0]);
 const bodegaFacturacion = ref(bodegas.value[0].PTO_VTA_BOD_REL_BODEGA); //bodegas.value[0].PTO_VTA_BOD_REL_BODEGA
 const cotizacion = computed(() => store.state.cotizacion);
-const descuentoarticulo = ref(store.state.descuentoarticulo);
-const descuentooriginal = ref(store.state.descuentooriginal);
-const formadepago_id = ref(store.state.formadepago_id);
-const formadepago = computed(() => store.state.formadepago);
-const condiciondepago_id = ref(store.state.condiciondepago_id);
-const condiciondepago = ref(store.state.condiciondepago);
+const COMMERCIAL_DISCOUNT = 25;
+const condiciondepago_id = "CONTADO";
+const { fetchMethodPayment, methodPayment } = useSearchConditionPayment();
+const cashPayment = computed(() => (methodPayment.value || []).find(payment =>
+  ["CONTADOEFECTIVO", "EFECTIVO"].includes(
+    String(payment.tipo).toUpperCase().replace(/[\s-]+/g, "")
+  )
+));
+const formadepago_id = computed(() => cashPayment.value?.codigo);
+const descuentoarticulo = computed(() => COMMERCIAL_DISCOUNT +
+  Number(cashPayment.value?.porcentaje_rebaja || 0));
+let pendingPaymentRequest = null;
+const descuentooriginal = descuentoarticulo;
 const subtotal = ref(store.state.subtotal);
 const peso = ref(store.state.peso);
 const descuento = ref(store.state.descuento);
@@ -394,7 +387,16 @@ const articuloModalObj = useBootstrapModal(articuloModal, {
     dataSearchItem.value = null;
   },
 });
-const { fetchDefaultPriceListBySalesPoint } = useQuoteProspectActions();
+const { fetchDefaultPriceListBySalesPoint, restoreProspect } = useQuoteProspectActions();
+const { validateIdentification, validateProspectIdentification } = useCustomerCreate();
+let documentCheckSequence = 0;
+let checkedDocument = null;
+let pendingDocumentCheck = null;
+watch(() => nuevoProspecto.value.CLI_RUC, () => {
+  checkedDocument = null;
+  pendingDocumentCheck = null;
+  documentCheckSequence++;
+}, { flush: "sync" });
 const max_length = ref(20);
 
 store.commit('resetCurrentcliente');
@@ -403,42 +405,68 @@ function isInt(value) {
   var x = parseFloat(value);
   return !isNaN(value) && (x | 0) === x;
 }
-function isLetter(str) {
-  return str.length === 1 && str.match(/[a-z]/i);
+
+async function checkRuc() {
+  const documento = String(nuevoProspecto.value.CLI_RUC).trim();
+  if (checkedDocument === documento) return true;
+  if (pendingDocumentCheck?.documento === documento) {
+    return pendingDocumentCheck.promise;
+  }
+  const sequence = ++documentCheckSequence;
+  const promise = validateDocumentForQuotation(documento, sequence);
+  pendingDocumentCheck = { documento, promise };
+  try {
+    const valid = await promise;
+    if (valid && sequence === documentCheckSequence) checkedDocument = documento;
+    return valid;
+  } finally {
+    if (pendingDocumentCheck?.promise === promise) pendingDocumentCheck = null;
+  }
 }
 
+async function validateDocumentForQuotation(documento, sequence) {
+  const isCurrent = () => sequence === documentCheckSequence &&
+    documento === String(nuevoProspecto.value.CLI_RUC).trim();
+  if (!await v$.value.CLI_RUC.$validate() || !documento) return;
 
-function checkRuc() {
-  store
-    .dispatch("checkRucProspecto", nuevoProspecto.value)
-    .then((res) => {
-      if (res.prospecto) {
-        nuevoProspecto.value.CLI_RAZON_SOCIAL = res.prospecto.CLI_RAZON_SOCIAL;
-        nuevoProspecto.value.CLI_CORREO_ELECT_SRI = res.prospecto.CLI_CORREO_ELECT_SRI;
-        nuevoProspecto.value.CLI_DIRECCION = res.prospecto.CLI_DIRECCION;
-        nuevoProspecto.value.CLI_TELEFONO_1 = res.prospecto.CLI_TELEFONO_1;
-      } else if (res.cliente) {
-        confirmCliente(res.cliente);
-      } else {
-        return;
-      }
-    })
-    .catch((err) => {
-      swalError(err.response.data.error);
+  const clientResponse = await validateIdentification(documento);
+  if (!isCurrent()) return;
+  if (!clientResponse.ok) {
+    // Los errores de transporte no confirman la existencia de un cliente.
+    if (clientResponse.raw?.isAxiosError || clientResponse.canceled) {
+      swalWarning(clientResponse.message);
+      return;
+    }
+    swalWarning(clientResponse.message);
+    await router.push({
+      name: "ventas-crearcotizacion",
+      query: { cliente_nuevo: documento },
     });
-}
+    return;
+  }
 
-function confirmCliente(cliente) {
-  swalInfo('El cliente ' + cliente.CLI_RAZON_SOCIAL + ' ya existe, se ha cargado la ventana de pedido regular')
-  cargarCliente(cliente);
-}
+  const prospectValidation = await validateProspectIdentification(documento, { showError: false });
+  if (!isCurrent()) return;
+  // true permite crear uno nuevo; false indica que el prospecto ya existe.
+  if (prospectValidation.ok) return true;
+  if (prospectValidation.raw?.isAxiosError || prospectValidation.canceled) {
+    swalWarning(prospectValidation.message);
+    return;
+  }
 
-function cargarCliente(cliente) {
-  store.commit("setCurrentcliente", cliente);
-  store.commit("setCurrentSucursal", cliente.sucursales[0].id)
-  router.push({
-    name: "ventas-crearcotizacion",
-  });
+  const response = await restoreProspect(documento);
+  if (!isCurrent()) return;
+  if (!response.ok) {
+    swalWarning(response.message);
+    return;
+  }
+  const prospect = response.data;
+  if (!prospect?.identificacion) return;
+  nuevoProspecto.value.CLI_RAZON_SOCIAL = prospect.razon_social;
+  nuevoProspecto.value.CLI_CORREO_ELECT_SRI = prospect.correo_sri;
+  nuevoProspecto.value.CLI_TELEFONO_1 = prospect.telefono1;
+  nuevoProspecto.value.CLI_DIRECCION = prospect.direcciones[0]?.direccion ?? "";
+  return true;
 }
 
 function updateCantidad(event, articulo, index) {
@@ -493,21 +521,15 @@ async function eliminarArticulo(index) {
   cotizacion.value.data.splice(index, 1);
   calcTotales();
 }
-store.commit('setDescuentoArticulo', nuevoProspecto.value.CLI_DSTO_COMERCIAL);
-store.commit('setDescuentoOriginal', nuevoProspecto.value.CLI_DSTO_COMERCIAL);
-condiciondepago_id.value = nuevoProspecto.value.CLI_CONDICION_PAGO;
-store.commit("llenaformadepago", condiciondepago_id);
-
-formadepago_id.value = formadepago.value[0].DESC_FORMA_PAGO_CODIGO;
 function changebodega() {
   bodega_selected.value = bodegas.value.find(
     (item) => item.PTO_VTA_BOD_REL_BODEGA === bodegaFacturacion.value
   );
 }
 
-let errorbuscararticulo = ref(false);
 
 async function buscararticulo() {
+  if (!await validateCashPayment()) return;
   const resp = await fetchDefaultPriceListBySalesPoint();
   if (!resp?.ok) {
     const message = resp?.message || "No se pudo obtener la lista de precio por defecto";
@@ -519,7 +541,7 @@ async function buscararticulo() {
     cliente: {
       id: null,
       CLI_NIVEL_PRECIO: resp.data?.listaPrecio || "",
-      CLI_DSTO_COMERCIAL: nuevoProspecto.value.CLI_DSTO_COMERCIAL || 0,
+      CLI_DSTO_COMERCIAL: COMMERCIAL_DISCOUNT,
     },
     direccion_facturacion_id: null,
   };
@@ -531,6 +553,7 @@ function closeModalSearchItem() {
 }
 
 async function handleItemSelected(articulo) {
+  if (!await validateCashPayment()) return;
   if (articulo.ART_TIPO_COMPRA === "L") {
     articulo.ART_STOCK = 0;
     articulo.stock = [];
@@ -540,6 +563,7 @@ async function handleItemSelected(articulo) {
 
   try {
     await store.dispatch("addCotizacion", { articulo });
+    applyDefaultDiscount();
     calcTotales();
     verificarProveedores();
     verificarStock();
@@ -548,37 +572,34 @@ async function handleItemSelected(articulo) {
   }
 }
 
-function selectcondicionpago(event) {
-  store.commit('setDescuentoArticulo', nuevoProspecto.value.CLI_DSTO_COMERCIAL);
-  store.commit('setDescuentoOriginal', nuevoProspecto.value.CLI_DSTO_COMERCIAL);
-  store.commit("llenaformadepago", condiciondepago_id);
-  formadepago_id.value = formadepago.value[0].DESC_FORMA_PAGO_CODIGO;
+async function validateCashPayment() {
+  if (!cashPayment.value) {
+    if (!pendingPaymentRequest) {
+      pendingPaymentRequest = fetchMethodPayment(condiciondepago_id)
+        .finally(() => { pendingPaymentRequest = null; });
+    }
+    const response = await pendingPaymentRequest;
+    if (!response.ok) {
+      swalWarning(response.message || "No se pudieron cargar las formas de pago.");
+      return false;
+    }
+  }
+  if (formadepago_id.value == null || String(formadepago_id.value).trim() === "") {
+    swalWarning("No se encontró la forma de pago Contado-Efectivo en el catálogo.");
+    return false;
+  }
+  return true;
 }
 
-function selectformapago() {
-  store.commit('setDescuentoArticulo', nuevoProspecto.value.CLI_DSTO_COMERCIAL);
-  store.commit('setDescuentoOriginal', nuevoProspecto.value.CLI_DSTO_COMERCIAL);
-
-  const restardescuento = formadepago.value.find(
-    (item) => item.DESC_FORMA_PAGO_CODIGO === formadepago_id.value
-  ).DESC_FORMA_PAGO_PORCENTAJE_REBAJAR;
-  formadepago_id.value = formadepago.value.find(
-    (item) => item.DESC_FORMA_PAGO_CODIGO === formadepago_id.value
-  ).DESC_FORMA_PAGO_CODIGO;
-  store.commit('setDescuentoArticulo', parseFloat(descuentoarticulo.value) + parseFloat(restardescuento));
-  store.commit('setDescuentoOriginal', parseFloat(descuentooriginal.value) + parseFloat(restardescuento));
-  cotizacion.value.data.map((articulo) => {
-    articulo.descuento_original =
-      parseFloat(nuevoProspecto.value.CLI_DSTO_COMERCIAL) + parseFloat(restardescuento);
-    articulo.descuento =
-      parseFloat(nuevoProspecto.value.CLI_DSTO_COMERCIAL) + parseFloat(restardescuento);
+function applyDefaultDiscount() {
+  nuevoProspecto.value.CLI_DSTO_COMERCIAL = COMMERCIAL_DISCOUNT;
+  nuevoProspecto.value.CLI_CONDICION_PAGO = condiciondepago_id;
+  store.commit('setDescuentoArticulo', descuentoarticulo.value);
+  store.commit('setDescuentoOriginal', descuentooriginal.value);
+  cotizacion.value.data.forEach(articulo => {
+    articulo.descuento_original = descuentooriginal.value;
+    articulo.descuento = descuentoarticulo.value;
   });
-
-  if (descuentoarticulo.value < 0) {
-    swalWarning("Descuento menor que cero");
-    return;
-  }
-  calcTotales();
 }
 
 let validaCantidad = ref(true);
@@ -704,6 +725,9 @@ const rules = computed(() => {
 const v$ = useVuelidate(rules, nuevoProspecto);
 
 async function guardarCotizacion() {
+  if (!await validateCashPayment()) return;
+  applyDefaultDiscount();
+  calcTotales();
   const result = await v$.value.$validate();
 
   if (!result) {
@@ -726,7 +750,7 @@ async function guardarCotizacion() {
     porcentage_descuento: descuentoarticulo.value,
     DESC_FORMA_PAGO_CODIGO: formadepago_id.value,
     CLI_RUC: nuevoProspecto.value.CLI_RUC,
-    COND_ID: condiciondepago_id.value,
+    COND_ID: condiciondepago_id,
     COND_ID_ORIGINAL: nuevoProspecto.value.CLI_CONDICION_PAGO,
     CLI_RAZON_SOCIAL: nuevoProspecto.value.CLI_RAZON_SOCIAL,
     CLI_CORREO_ELECT_SRI: nuevoProspecto.value.CLI_CORREO_ELECT_SRI,
@@ -801,43 +825,7 @@ const cols = reactive([
   },
 ]);
 
-// Sort by functionality
-const sortBy = computed(() => {
-  return cols.reduce((acc, o) => {
-    if (o.sort) {
-      o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
-    }
-    return acc;
-  }, []);
-});
 
-// On sort th click
-function onSort(event, i) {
-  let toset;
-  const sortEl = cols[i];
-
-  if (!event.shiftKey) {
-    cols.forEach((o) => {
-      if (o.field !== sortEl.field) {
-        o.sort = "";
-      }
-    });
-  }
-
-  if (!sortEl.sort) {
-    toset = "asc";
-  }
-
-  if (sortEl.sort === "desc") {
-    toset = event.shiftKey ? "" : "asc";
-  }
-
-  if (sortEl.sort === "asc") {
-    toset = "desc";
-  }
-
-  sortEl.sort = toset;
-}
 
 </script>
 

@@ -24,8 +24,23 @@ export function useQuoteProspectActions() {
         });
     }
 
+    const loadingRestoreProspect = ref(false);
+    async function restoreProspect(documento){
+    return run(() => axiosClient.post(QUOTE_API_ROUTES.PROSPECTS.RESTORE, {
+       documento : documento
+    }),{
+        loadingRef: loadingRestoreProspect
+
+    });
+            
+    }
+
+
     return {
         loadingDefault,
-        fetchDefaultPriceListBySalesPoint
+        fetchDefaultPriceListBySalesPoint,
+        //carga de prospecto 
+        loadingRestoreProspect,
+        restoreProspect,
     }
 }

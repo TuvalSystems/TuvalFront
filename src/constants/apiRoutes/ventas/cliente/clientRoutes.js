@@ -11,6 +11,7 @@ export const CLIENT_API_ROUTES = {
         VALIDATE_IDENTIFICATION: 'ventas/clientes/validar-identificacion',
         VALIDATE_PROSPECT_IDENTIFICATION: 'ventas/clientes/validar-identificacion-prospecto',
         LIST_GROUPS: 'ventas/clientes/lista-grupos',
+        CREATE_CUSTOMER: 'ventas/clientes/crear',
 
     },
 };

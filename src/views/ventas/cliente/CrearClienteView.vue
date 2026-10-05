@@ -1,6 +1,10 @@
 
 <script setup>
-import { onMounted, computed } from "vue";
+import { onMounted, computed, ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useStore } from "vuex";
+import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
+import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions";
 
 //store
 import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
@@ -11,6 +15,16 @@ import { useGetSegmentClients } from "@/composables/venta/cliente/useGetSegmentC
 import { useAdminLocation } from "@/composables/sistemas/useAdminLocation";
 import { swalError, swalWarning } from "@/functions/swal-alert";
 
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
+const { updateQuoteProspect, loadingUpdateQuoteProspect } = useProcessCreateQuote();
+const { restoreProspect } = useQuoteProspectActions();
+const isProspect = computed(() => route.query.tipo === "prospecto");
+const loadingProspect = ref(false);
+const prospectReady = ref(false);
+const prospectIdentification = ref("");
+const createdProspectCustomer = ref(null);
 const typeIdentifyStore = useTypeIdentifyStore();
 const listTypeIdentify = computed(() => typeIdentifyStore.list);
 const loadingIdentify = computed(() => typeIdentifyStore.loading);
@@ -85,15 +99,41 @@ const loadingChangeValidation = computed(
 );
 
 const loadingCustomerProcess = computed(
-  () => loadingChangeValidation.value || loadingSaveCustomer.value
+  () => loadingChangeValidation.value || loadingSaveCustomer.value ||
+    loadingProspect.value || loadingUpdateQuoteProspect.value
 );
 
 const addressListError = computed(
   () =>
-    v$.value.direcciones.$errors.find(
-      (error) => error.$validator !== "$each"
-    )?.$message ?? ""
+    v$.value.direcciones.$errors.find((error) => error.$validator !== "$each")
+      ?.$message ?? ""
 );
+
+async function redirectToQuotation(identification = form.identificacion) {
+  await router.push({
+    name: "ventas-crearcotizacion",
+    query: isProspect.value
+      ? { id: route.query.cotizacion_id, mode: "restore_quote" }
+      : { cliente_nuevo: identification },
+  });
+}
+
+async function linkProspectQuotation(customer) {
+  if (!customer?.id) {
+    swalWarning("El cliente fue creado, pero la respuesta no contiene su ID para vincular la cotización.");
+    return;
+  }
+  const response = await updateQuoteProspect({
+    cliente_id: customer.id,
+    PTO_VTA_ID: store.state.puntodeventaselect,
+    id: route.query.cotizacion_id,
+  });
+  if (!response?.ok) {
+    swalWarning(response?.message || "No se pudo vincular el cliente. Puede reintentar sin volver a crearlo.");
+    return;
+  }
+  await redirectToQuotation();
+}
 
 async function validateDocumentIdentity() {
   if (loadingChangeValidation.value) return false;
@@ -105,9 +145,11 @@ async function validateDocumentIdentity() {
   if (!response?.ok) {
     const message =
       response?.message || "No se pudo validar la existencia del documento.";
-    (response?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
+    swalWarning(message);
+    await redirectToQuotation(form.identificacion);
     return false;
   }
+
   return true;
 }
 
@@ -129,6 +171,14 @@ async function validateProspectDocumentIdentity() {
 
 async function handleSaveCustomer() {
   if (loadingCustomerProcess.value) return;
+  if (isProspect.value && !prospectReady.value) {
+    swalWarning("No se ha podido cargar el prospecto. Vuelva a recuperar la cotización.");
+    return;
+  }
+  if (createdProspectCustomer.value) {
+    await linkProspectQuotation(createdProspectCustomer.value);
+    return;
+  }
 
   const validForm = await v$.value.$validate();
   if (!validForm) {
@@ -139,21 +189,35 @@ async function handleSaveCustomer() {
   const validIdentification = await validateDocumentIdentity();
   if (!validIdentification) return;
 
-  const validProspectIdentification = await validateProspectDocumentIdentity();
-  if (!validProspectIdentification) return;
+  // El documento del prospecto de origen ya está registrado como prospecto.
+  if (!isProspect.value || form.identificacion !== prospectIdentification.value) {
+    const validProspectIdentification = await validateProspectDocumentIdentity();
+    if (!validProspectIdentification) return;
+  }
 
   const response = await saveCustomer();
   if (!response?.ok && !response?.busy) {
     swalWarning(response?.message || "No se pudo procesar el cliente.");
+    return;
   }
+
+  if (!response?.ok) return;
+
+  const createdCustomer = response.data?.cliente ?? response.data;
+  if (isProspect.value) {
+    createdProspectCustomer.value = createdCustomer;
+    await linkProspectQuotation(createdCustomer);
+    return;
+  }
+  const identification = createdCustomer?.CLI_RUC ?? form.identificacion;
+
+  await redirectToQuotation(identification);
 }
 
 function getAddressErrors(index, field) {
   if (!v$.value.direcciones.$dirty) return [];
 
-  return (
-    v$.value.direcciones.$each.$response?.$errors?.[index]?.[field] ?? []
-  );
+  return v$.value.direcciones.$each.$response?.$errors?.[index]?.[field] ?? [];
 }
 
 async function handleAddressRegionChange(address) {
@@ -165,9 +229,8 @@ async function handleAddressRegionChange(address) {
   if (address.region_id == null) return;
 
   const response = await fetchProvinces(address.region_id);
-  address.provinces = response?.ok && Array.isArray(response.data)
-    ? response.data
-    : [];
+  address.provinces =
+    response?.ok && Array.isArray(response.data) ? response.data : [];
 }
 
 async function handleAddressProvinceChange(address) {
@@ -177,9 +240,8 @@ async function handleAddressProvinceChange(address) {
   if (address.provincia_id == null) return;
 
   const response = await fetchCantons(address.provincia_id);
-  address.cantons = response?.ok && Array.isArray(response.data)
-    ? response.data
-    : [];
+  address.cantons =
+    response?.ok && Array.isArray(response.data) ? response.data : [];
 }
 
 async function getFetchsPromises() {
@@ -187,13 +249,71 @@ async function getFetchsPromises() {
 }
 
 onMounted(async () => {
-  typeIdentifyStore.fetchAll();
-  getFetchsPromises();
+  loadingProspect.value = true;
+  try {
+    await Promise.all([typeIdentifyStore.fetchAll(), getFetchsPromises()]);
+    if (!isProspect.value) return;
+    if (!route.query.documento || !route.query.cotizacion_id) {
+      swalWarning("Falta la referencia del prospecto o de la cotización.");
+      return;
+    }
+    const context = window.history.state?.infoProspecto;
+    let payload = String(context?.cotizacion_id) === String(route.query.cotizacion_id)
+      ? context.prospecto : null;
+    if (!payload) {
+      const response = await restoreProspect(route.query.documento);
+      if (!response?.ok) {
+        swalWarning(response?.message || "No se pudo cargar el prospecto.");
+        return;
+      }
+      payload = response.data;
+    }
+    const prospect = payload;
+    if (!prospect?.identificacion) {
+      swalWarning("El prospecto recibido no contiene identificación.");
+      return;
+    }
+    // Copiar únicamente campos del formulario; el ID pertenece al prospecto.
+    for (const field of Object.keys(form)) {
+      if (Object.prototype.hasOwnProperty.call(prospect, field)) {
+        form[field] = prospect[field];
+      }
+    }
+    const identification = String(form.identificacion).trim();
+    const documentCode = /^\d{10}$/.test(identification)
+      ? "05" // Cédula
+      : /^\d{13}$/.test(identification)
+        ? "04" // RUC
+        : "06"; // Pasaporte
+    const documentType = listTypeIdentify.value.find(
+      type => String(type.codigo).padStart(2, "0") === documentCode
+    );
+    if (documentType) {
+      // Asignar directamente evita borrar la identificación con el evento change.
+      form.tipo_identificacion_id = documentType.id;
+    }
+    for (const address of form.direcciones) {
+      if (address.region_id) {
+        const result = await fetchProvinces(address.region_id);
+        address.provinces = result?.ok ? result.data : [];
+      }
+      if (address.provincia_id) {
+        const result = await fetchCantons(address.provincia_id);
+        address.cantons = result?.ok ? result.data : [];
+      }
+    }
+    if (form.segmento_id) await fetchSubSegmentos(form.segmento_id);
+    prospectIdentification.value = form.identificacion;
+    prospectReady.value = true;
+    v$.value.$reset();
+  } finally {
+    loadingProspect.value = false;
+  }
 });
 </script>
 
 <template>
-  <BasePageHeading title="Crear cliente">
+  <BasePageHeading :title="isProspect ? 'Crear cliente desde prospecto' : 'Crear cliente'">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt mb-0">
@@ -210,6 +330,11 @@ onMounted(async () => {
   </BasePageHeading>
 
   <div class="content">
+    <div v-if="isProspect" class="alert alert-info">
+      Cliente del prospecto de la cotización #{{ route.query.cotizacion }}.
+      Complete los datos requeridos para continuar con esta cotización.
+      <span v-if="createdProspectCustomer">El cliente ya fue creado; puede reintentar la vinculación.</span>
+    </div>
     <form class="client-form" @submit.prevent="handleSaveCustomer">
       <BaseBlock class="client-form__block" content-full>
         <div class="client-form__section">
@@ -410,7 +535,9 @@ onMounted(async () => {
               :key="index"
               class="client-form__address"
             >
-              <div class="d-flex align-items-center justify-content-between mb-3">
+              <div
+                class="d-flex align-items-center justify-content-between mb-3"
+              >
                 <span class="fw-semibold fs-sm">Dirección {{ index + 1 }}</span>
                 <button
                   type="button"
@@ -425,7 +552,10 @@ onMounted(async () => {
 
               <div class="row g-3">
                 <div class="col-md-4">
-                  <label class="text-label-muted mb-1" :for="`select-region-${index}`">
+                  <label
+                    class="text-label-muted mb-1"
+                    :for="`select-region-${index}`"
+                  >
                     Región <span class="text-danger">*</span>
                   </label>
                   <select
@@ -433,21 +563,35 @@ onMounted(async () => {
                     v-model="address.region_id"
                     class="form-select form-select-sm"
                     :disabled="loadingRegions"
-                    :class="{ 'is-invalid': getAddressErrors(index, 'region_id').length }"
+                    :class="{
+                      'is-invalid': getAddressErrors(index, 'region_id').length,
+                    }"
                     @change="handleAddressRegionChange(address)"
                   >
-                    <option :value="null" disabled>Selecciona una región</option>
-                    <option v-for="region in regions" :key="region.id" :value="region.id">
+                    <option :value="null" disabled>
+                      Selecciona una región
+                    </option>
+                    <option
+                      v-for="region in regions"
+                      :key="region.id"
+                      :value="region.id"
+                    >
                       {{ region.nombre }}
                     </option>
                   </select>
-                  <div v-if="getAddressErrors(index, 'region_id').length" class="invalid-feedback">
+                  <div
+                    v-if="getAddressErrors(index, 'region_id').length"
+                    class="invalid-feedback"
+                  >
                     {{ getAddressErrors(index, "region_id")[0].$message }}
                   </div>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="text-label-muted mb-1" :for="`select-provincia-${index}`">
+                  <label
+                    class="text-label-muted mb-1"
+                    :for="`select-provincia-${index}`"
+                  >
                     Provincia <span class="text-danger">*</span>
                   </label>
                   <select
@@ -455,10 +599,15 @@ onMounted(async () => {
                     v-model="address.provincia_id"
                     class="form-select form-select-sm"
                     :disabled="loadingProvinces || address.region_id == null"
-                    :class="{ 'is-invalid': getAddressErrors(index, 'provincia_id').length }"
+                    :class="{
+                      'is-invalid': getAddressErrors(index, 'provincia_id')
+                        .length,
+                    }"
                     @change="handleAddressProvinceChange(address)"
                   >
-                    <option :value="null" disabled>Selecciona una provincia</option>
+                    <option :value="null" disabled>
+                      Selecciona una provincia
+                    </option>
                     <option
                       v-for="province in address.provinces"
                       :key="province.id"
@@ -467,13 +616,19 @@ onMounted(async () => {
                       {{ province.nombre }}
                     </option>
                   </select>
-                  <div v-if="getAddressErrors(index, 'provincia_id').length" class="invalid-feedback">
+                  <div
+                    v-if="getAddressErrors(index, 'provincia_id').length"
+                    class="invalid-feedback"
+                  >
                     {{ getAddressErrors(index, "provincia_id")[0].$message }}
                   </div>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="text-label-muted mb-1" :for="`select-canton-${index}`">
+                  <label
+                    class="text-label-muted mb-1"
+                    :for="`select-canton-${index}`"
+                  >
                     Ciudad <span class="text-danger">*</span>
                   </label>
                   <select
@@ -481,20 +636,34 @@ onMounted(async () => {
                     v-model="address.canton_id"
                     class="form-select form-select-sm"
                     :disabled="loadingCantons || address.provincia_id == null"
-                    :class="{ 'is-invalid': getAddressErrors(index, 'canton_id').length }"
+                    :class="{
+                      'is-invalid': getAddressErrors(index, 'canton_id').length,
+                    }"
                   >
-                    <option :value="null" disabled>Selecciona una ciudad</option>
-                    <option v-for="canton in address.cantons" :key="canton.id" :value="canton.id">
+                    <option :value="null" disabled>
+                      Selecciona una ciudad
+                    </option>
+                    <option
+                      v-for="canton in address.cantons"
+                      :key="canton.id"
+                      :value="canton.id"
+                    >
                       {{ canton.nombre }}
                     </option>
                   </select>
-                  <div v-if="getAddressErrors(index, 'canton_id').length" class="invalid-feedback">
+                  <div
+                    v-if="getAddressErrors(index, 'canton_id').length"
+                    class="invalid-feedback"
+                  >
                     {{ getAddressErrors(index, "canton_id")[0].$message }}
                   </div>
                 </div>
 
                 <div class="col-12">
-                  <label class="text-label-muted mb-1" :for="`input-direccion-${index}`">
+                  <label
+                    class="text-label-muted mb-1"
+                    :for="`input-direccion-${index}`"
+                  >
                     Dirección <span class="text-danger">*</span>
                   </label>
                   <textarea
@@ -504,10 +673,15 @@ onMounted(async () => {
                     placeholder="Calle principal, numeración, intersección y referencia"
                     maxlength="122"
                     rows="2"
-                    :class="{ 'is-invalid': getAddressErrors(index, 'direccion').length }"
+                    :class="{
+                      'is-invalid': getAddressErrors(index, 'direccion').length,
+                    }"
                     @input="sanitizeAddressText($event, index)"
                   ></textarea>
-                  <div v-if="getAddressErrors(index, 'direccion').length" class="invalid-feedback">
+                  <div
+                    v-if="getAddressErrors(index, 'direccion').length"
+                    class="invalid-feedback"
+                  >
                     {{ getAddressErrors(index, "direccion")[0].$message }}
                   </div>
                 </div>
@@ -784,7 +958,7 @@ onMounted(async () => {
             <button
               type="button"
               class="btn btn-alt-secondary px-4"
-              :disabled="loadingCustomerProcess"
+              :disabled="loadingCustomerProcess || !!createdProspectCustomer"
               @click="resetForm"
             >
               <i class="fa fa-xmark me-2"></i>Cancelar
@@ -800,7 +974,7 @@ onMounted(async () => {
                   loadingCustomerProcess ? 'fa-spinner fa-spin' : 'fa-check'
                 "
               ></i>
-              {{ loadingCustomerProcess ? "Validando..." : "Guardar cliente" }}
+              {{ loadingCustomerProcess ? "Procesando..." : createdProspectCustomer ? "Continuar cotización" : "Guardar cliente" }}
             </button>
           </div>
         </div>

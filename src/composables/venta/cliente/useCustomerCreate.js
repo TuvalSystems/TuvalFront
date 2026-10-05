@@ -10,7 +10,7 @@ const requiredField = (message) => helpers.withMessage(message, required);
 const maxLengthField = (limit) =>
     helpers.withMessage(`Máximo ${limit} caracteres`, maxLength(limit));
 
-const MAX_ADDRESSES = 5;
+const MAX_ADDRESSES = 2;
 
 function initialAddress() {
     return {
@@ -46,7 +46,9 @@ function initialForm() {
         grupo_id: null,
         // subgrupo_id: null,
         segmento_id: null,
-        subsegmento_id: null
+        subsegmento_id: null,
+        codigo_vendedor: 9
+
     };
 }
 
@@ -334,21 +336,17 @@ export function useCustomerCreate(listTypeIdentify) {
         return run(() => axiosClient.post(CLIENT_API_ROUTES.ACTIONS.VALIDATE_IDENTIFICATION, { documento: identification }), {
             loadingRef: loadingValidateIdentification,
             onError: (backend, error) => {
-                swalError(
-                    backend?.error ||
-                    backend?.message ||
-                    error?.message ||
-                    "Error al validar la identificación"
-                );
+               console.log(backend, error);
             }
         });
     }
 
     const loadingValidateProspectIdentification = ref(false);
-    async function validateProspectIdentification(identification) {
+    async function validateProspectIdentification(identification, { showError = true } = {}) {
         return run(() => axiosClient.post(CLIENT_API_ROUTES.ACTIONS.VALIDATE_PROSPECT_IDENTIFICATION, { documento: identification }), {
             loadingRef: loadingValidateProspectIdentification,
             onError: (backend, error) => {
+                if (!showError) return;
                 swalError(
                     backend?.error ||
                     backend?.message ||
@@ -394,31 +392,27 @@ export function useCustomerCreate(listTypeIdentify) {
             };
         }
 
-        loadingSaveCustomer.value = true;
-
-        try {
-            const { direcciones, ...customerData } = form;
-            const payload = {
-                ...customerData,
-                direcciones: direcciones.map((address) => ({
-                    direccion: address.direccion.trim(),
-                    provincia_id: address.provincia_id,
-                    canton_id: address.canton_id,
-                    region_id: address.region_id,
-                })),
-            };
-
-            // TODO: reemplazar este retorno por la llamada al API de creación.
-            console.log("customer payload", payload);
-
-            return {
-                ok: true,
-                pendingApi: true,
-                data: payload,
-            };
-        } finally {
-            loadingSaveCustomer.value = false;
-        }
+        const { direcciones, ...customerData } = form;
+        const payload = {
+            ...customerData,
+            direcciones: direcciones.map((address) => ({
+                direccion: address.direccion.trim(),
+                provincia_id: address.provincia_id,
+                canton_id: address.canton_id,
+                region_id: address.region_id,
+            })),
+        };
+        return run(() => axiosClient.post(CLIENT_API_ROUTES.ACTIONS.CREATE_CUSTOMER, { payload: payload }), {
+            loadingRef: loadingSaveCustomer,
+            onError: (backend, error) => {
+                swalError(
+                    backend?.error ||
+                    backend?.message ||
+                    error?.message ||
+                    "Error al crear el cliente"
+                );
+            }
+        });
     }
 
 

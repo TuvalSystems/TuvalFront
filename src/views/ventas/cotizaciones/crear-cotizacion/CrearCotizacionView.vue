@@ -360,10 +360,10 @@ async function processSelectClient(client) {
   }
 
   form.value.descuento_articulo = Number.parseFloat(
-    client.CLI_DSTO_COMERCIAL || 0
+    infoClient.value.CLI_DSTO_COMERCIAL || 0
   );
   form.value.descuento_original = Number.parseFloat(
-    client.CLI_DSTO_COMERCIAL || 0
+    infoClient.value.CLI_DSTO_COMERCIAL || 0
   );
 
   form.value.punto_venta_id = ptoVtaSelect.value;
@@ -1208,6 +1208,14 @@ onMounted(async () => {
   await fetchListProyectSellers();
   setDefaultProject();
   await Promise.all([fetchWarehouseByPtoVtaUser(), fetchConditionPayment()]);
+
+  const newCustomerIdentification = String(
+    route.query.cliente_nuevo ?? ""
+  ).trim();
+  if (newCustomerIdentification) {
+    await processSelectClient({ CLI_RUC: newCustomerIdentification });
+  }
+
   //logica para recuperar datos en memoria
   if (form.value.cliente && form.value.cliente.CLI_RUC) {
     loadingSearch.value = false;
