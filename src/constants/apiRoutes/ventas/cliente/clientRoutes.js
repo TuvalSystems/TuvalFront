@@ -14,4 +14,7 @@ export const CLIENT_API_ROUTES = {
         CREATE_CUSTOMER: 'ventas/clientes/crear',
 
     },
+    BRANCHES: {
+            CREATE : 'ventas/clientes/sucursales/crear',
+    }
 };

@@ -202,7 +202,7 @@ const triggerPdfInput = () => {
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 //variables de modales
 const verModalActualizarSegmento = ref(null);
-const verModalCrearDireccionModal = ref(null);
+const newAddressModal = ref(null);
 const verSearchItemModal = ref(null);
 const verItemAltRef = ref(null);
 const verSeleccionStockBodegasRef = ref(null);
@@ -214,9 +214,7 @@ const verModalConfiguracionItemLRef = ref(null);
 const verModalActualizarSegmentoObj = useBootstrapModal(
   verModalActualizarSegmento
 );
-const verModalCrearDireccionModalObj = useBootstrapModal(
-  verModalCrearDireccionModal
-);
+
 const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
   onHidden: () => {
     dataSearchItem.value = null;
@@ -370,23 +368,26 @@ async function processSelectClient(client) {
 }
 
 // proceso de crear direccion nueva para un cliente
-let dataClient = ref({});
+const dataClient = ref(null);
 async function openModalCreateAddress() {
   dataClient.value = form.value.cliente;
   await nextTick();
-  verModalCrearDireccionModalObj.show();
+  newAddressModal.value?.show();
 }
 
 function updateClientInfoField({ field, value }) {
   form.value[field] = value;
 }
 
-async function closeModalCreateAddress(client) {
-  verModalCrearDireccionModalObj.hide();
-  if (client && client.CLI_RUC) {
-    await fetchCustomerBranches(client.CLI_RUC, "cotizacion");
+async function closeModalCreateAddress() {
+  dataClient.value = null;
+}
+
+async function handleSavedAddress() {
+  if (form.value.cliente && form.value.cliente.CLI_RUC) {
+    await fetchCustomerBranches(form.value.cliente.CLI_RUC, "cotizacion");
   }
-  dataClient.value = {};
+  newAddressModal.value?.hide();
 }
 
 const asigmentWarehouse = (nuevoPuntoVenta) => {
@@ -2370,24 +2371,15 @@ onMounted(async () => {
   </div>
 
   <!-- modal para la creacion de una nueva direccion -->
-  <div
-    class="modal"
-    id="modal-crear-direccion"
-    tabindex="-1"
-    aria-hidden="true"
-    ref="verModalCrearDireccionModal"
+
+  <verModalCrearNuevaDireccion
+    v-if="dataClient"
+    ref="newAddressModal"
+    :cliente="dataClient"
+    @hidden="closeModalCreateAddress"
+    @updated="handleSavedAddress"
   >
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <verModalCrearNuevaDireccion
-          v-if="dataClient"
-          :cliente="dataClient"
-          @closeModal="closeModalCreateAddress"
-        >
-        </verModalCrearNuevaDireccion>
-      </div>
-    </div>
-  </div>
+  </verModalCrearNuevaDireccion>
 
   <!-- modal de busqueda de articulos -->
   <div class="modal" id="modal-cliente" tabindex="-1" ref="verSearchItemModal">
