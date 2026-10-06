@@ -211,18 +211,22 @@ let guiaRemisionModalObj = null;
 
 async function imprimirGuia(guia) {
   templateStore.pageLoader({ mode: "on" });
-  store.dispatch('imprimir', '/bodegas/guiasderemision/imprimirguia/' + guia.id)
-    .then((response) => {
-      if (response.status == 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'guia-' + guia.GUI_REM_GUIA_REMISION + '.pdf');
-        document.body.appendChild(link);
-        link.click();
-      }
-      templateStore.pageLoader({ mode: "off" });
-    });
+  try {
+    const response = await store.dispatch('imprimir', '/bodegas/guiasderemision/imprimirguia/' + guia.id);
+    if (response.status == 200) {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'guia-' + guia.GUI_REM_GUIA_REMISION + '.pdf');
+      document.body.appendChild(link);
+      link.click();
+    }
+  } catch (error) {
+    console.error('Error al descargar la guía de remisión:', error);
+    swalError('No se pudo descargar la guía de remisión.');
+  } finally {
+    templateStore.pageLoader({ mode: "off" });
+  }
 }
 
 function encerar() {

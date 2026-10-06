@@ -285,20 +285,7 @@ export const useTemplateStore = defineStore({
     },
     // Sets active color theme
     setColorTheme(payload) {
-      // Matches all classes which start with 'theme-'
-      let regx = new RegExp("\\btheme-[^ ]*[ ]?\\b", "g");
-
-      // Set new theme
       this.settings.colorTheme = payload.theme || "";
-
-      // Remove all classes which start with 'theme-' from body element
-      document.body.className = document.body.className.replace(regx, "");
-
-      // If theme is set, add the theme class to body element
-      if (payload.theme) {
-        document.body.classList.add("theme-" + payload.theme);
-      }
-
       persistTemplatePreferences(this.settings);
     },
     // Sets side transitions

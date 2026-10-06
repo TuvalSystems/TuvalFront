@@ -7,6 +7,10 @@ const props = defineProps({
     type: String,
     default: "Buscar cliente",
   },
+  searchValue: {
+    type: String,
+    default: undefined,
+  },
   clients: {
     type: Array,
     default: () => [],
@@ -25,7 +29,7 @@ const props = defineProps({
   },
 });
 const clientsRef = computed(() => props.clients);
-const searchTerm = ref("");
+const searchTerm = ref(props.searchValue ?? "");
 const emit = defineEmits([
   "search-term-change",
   "search-customers",
@@ -35,6 +39,12 @@ const emit = defineEmits([
 watch(searchTerm, (value) => {
   emit("search-term-change", value ?? "");
 }, { flush: "sync" });
+
+watch(() => props.searchValue, (value) => {
+  if (value !== undefined && searchTerm.value !== value) {
+    searchTerm.value = value ?? "";
+  }
+});
 
 function requestCustomerSearch() {
   if (props.loading) return;
@@ -78,6 +88,7 @@ function selectCustomer(client) {
           </div>
         </div>
       </div>
+      <slot name="actions"></slot>
     </div>
 
     <div v-if="loading" class="text-center py-4">

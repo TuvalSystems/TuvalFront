@@ -1,11 +1,11 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref, reactive, watch, computed, unref } from "vue";
+import { ref, reactive, watch, computed } from "vue";
 import { INVENTORY_ARTICLES_API_ROUTES } from "@/constants/apiRoutes/inventario/articleRoutes";
 
 
 
-export function useArticleSegmentClassification(articles = ref([])) {
+export function useArticleSegmentClassification() {
     const { run } = useApiAction();
     const loadingConfig = ref(false);
     const classificationConfigList = ref([]);

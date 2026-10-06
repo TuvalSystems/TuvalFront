@@ -17,6 +17,7 @@ const props = defineProps({
       documentosVencidos: [],
       documentosSinSoporte: [],
       pendiente_aprobacion_comercial: false,
+      cliente : {}
     }),
   }
 });
@@ -41,6 +42,7 @@ const orderHeader = computed(() => props.info?.pedido ?? {});
 const availableCredit = computed(() => props.info?.cupoDisponible ?? {});
 const expiredDocuments = computed(() => props.info?.documentosVencidos ?? []);
 const unsupportedDocuments = computed(() => props.info?.documentosSinSoporte ?? []);
+const customer = computed(() => props.info?.cliente ?? {});
 const isPendingCommercialApproval = computed(() => {
   return Boolean(props.info?.pendiente_aprobacion_comercial);
 });
@@ -150,6 +152,16 @@ onMounted(() => { });
               <div class="fw-semibold">
                 <span>
                   {{ orderHeader.COND_ID }}
+                </span>
+              </div>
+            </div>
+          </div>
+           <div class="order-header-item">
+            <div class="kv">
+              <small class="label-small">días de gracia</small>
+              <div class="fw-semibold text-center">
+                <span>
+                {{ customer?.CLI_DIA_GRACIA_CHEQUE_A_FECHA }}
                 </span>
               </div>
             </div>
@@ -480,7 +492,8 @@ onMounted(() => { });
     minmax(180px, 1.7fr)
     minmax(145px, 1.25fr)
     minmax(78px, 0.75fr)
-    minmax(86px, 0.8fr)
+    minmax(66px, 0.7fr)
+    minmax(86px, 0.5fr)
     minmax(108px, max-content);
   gap: 0.45rem 0.65rem;
   margin-bottom: 0.55rem;

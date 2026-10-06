@@ -9,6 +9,73 @@
     <link rel="mask-icon" href="/assets/favicon/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
+    <script>
+      (() => {
+        const preferencesKey = "tuval.template.preferences";
+        const allowedThemes = [
+          "",
+          "minimal",
+          "amethyst",
+          "city",
+          "flat",
+          "modern",
+          "smooth",
+        ];
+        let preferences = {};
+
+        try {
+          preferences = JSON.parse(localStorage.getItem(preferencesKey)) || {};
+        } catch (error) {
+          preferences = {};
+        }
+
+        const followsSystem = preferences.darkModeSystem !== false;
+        const prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const darkMode = followsSystem
+          ? Boolean(prefersDark)
+          : Boolean(preferences.darkMode);
+        const requestedTheme =
+          typeof preferences.colorTheme === "string"
+            ? preferences.colorTheme
+            : "minimal";
+        const colorTheme = allowedThemes.includes(requestedTheme)
+          ? requestedTheme
+          : "minimal";
+        const root = document.documentElement;
+
+        root.classList.add("theme-switching");
+        root.classList.toggle("dark-mode", darkMode);
+
+        if (colorTheme) {
+          root.classList.add(`theme-${colorTheme}`);
+        }
+
+        root.dataset.colorTheme = colorTheme || "default";
+        root.style.colorScheme = darkMode ? "dark" : "light";
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+
+        if (themeColor) {
+          themeColor.setAttribute(
+            "content",
+            darkMode ? "#0f172a" : "#ffffff"
+          );
+        }
+
+        window.addEventListener(
+          "DOMContentLoaded",
+          () => {
+            window.requestAnimationFrame(() => {
+              window.requestAnimationFrame(() => {
+                root.classList.remove("theme-switching");
+              });
+            });
+          },
+          { once: true }
+        );
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Web Transaccional TUVAL</title>
   </head>

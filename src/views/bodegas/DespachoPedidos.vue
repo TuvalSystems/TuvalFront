@@ -385,7 +385,6 @@ function verOrdenDespacho(orden) {
 }
 function generarGuia() {
   guiaremisionModalObj.hide();
-  templateStore.pageLoader({ mode: "off" });
   refrescarDespacho();
 }
 
@@ -405,14 +404,21 @@ function refrescar(imprimir = false) {
   });
 }
 
-function refrescarDespacho() {
+async function refrescarDespacho() {
   templateStore.pageLoader({ mode: "on" });
-  store.dispatch("getUltimaGuia").then(() => {
-    imprimirGuia(ultimaguia.value);
-    despacharguiaGuia(ultimaguia.value);
-  }).catch((error) => {
-    console.log("error" + error);
-  });
+  try {
+    await store.dispatch("getUltimaGuia");
+    const guia = ultimaguia.value;
+    if (!guia) {
+      throw new Error("No se encontró la última guía de remisión.");
+    }
+    await Promise.allSettled([imprimirGuia(guia), despacharguiaGuia(guia)]);
+  } catch (error) {
+    console.error("Error al actualizar el despacho:", error);
+    swalError("No se pudo actualizar el despacho.");
+  } finally {
+    templateStore.pageLoader({ mode: "off" });
+  }
 }
 
 function getDescripcion(orden) {
@@ -443,7 +449,7 @@ function getDescripcionTodas() {
 }
 
 async function imprimirGuia(guia) {
-  store
+  return store
     .dispatch("imprimir", "/bodegas/guiasderemision/imprimirguia/" + guia.id)
     .then((response) => {
       if (response.status == 200) {

@@ -15,89 +15,107 @@
   <div class="content">
     <BaseBlock title="Datos Cliente" content-full>
       <form @submit.prevent="onSubmit">
-        <div class="block-content fs-sm pb-4 space-y-2">
-          <div class="row mb-4">
-            <div class="col-sm-6">
-              <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_RUC">Cédula / RUC</label>
-                <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_RUC" v-model="nuevoProspecto.CLI_RUC"
-                    placeholder="Cédula / RUC" :class="{
-                      'is-invalid': v$.CLI_RUC.$errors.length,
-                    }" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
-                </div>
+        <div class="prospect-form block-content fs-sm pt-2 pb-3">
+          <div class="row g-2">
+            <div class="col-md-5">
+              <label class="form-label prospect-form__label" for="input-CLI_RUC">
+                Cédula / RUC <span class="text-danger">*</span>
+              </label>
+              <div class="input-group input-group-sm prospect-form__control">
+                <span class="input-group-text"><i class="fa fa-id-card"></i></span>
+                <input type="text" class="form-control" id="input-CLI_RUC" v-model="nuevoProspecto.CLI_RUC"
+                  placeholder="Ingrese la identificación" :class="{
+                    'is-invalid': v$.CLI_RUC.$errors.length,
+                  }" @blur="v$.CLI_RUC.$touch" @change="checkRuc" />
               </div>
             </div>
-            <div class="col-sm-6">
-              <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_RAZON_SOCIAL">Razón Social</label>
-                <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_RAZON_SOCIAL"
-                    v-model="nuevoProspecto.CLI_RAZON_SOCIAL" placeholder="Apellidos y Nombres" :class="{
-                      'is-invalid': v$.CLI_RAZON_SOCIAL.$errors.length,
-                    }" @blur="v$.CLI_RAZON_SOCIAL.$touch" />
-                </div>
+
+            <div class="col-md-7">
+              <label class="form-label prospect-form__label" for="input-CLI_RAZON_SOCIAL">
+                Razón social <span class="text-danger">*</span>
+              </label>
+              <div class="input-group input-group-sm prospect-form__control">
+                <span class="input-group-text"><i class="fa fa-user"></i></span>
+                <input type="text" class="form-control" id="input-CLI_RAZON_SOCIAL"
+                  v-model="nuevoProspecto.CLI_RAZON_SOCIAL" placeholder="Apellidos y nombres" :class="{
+                    'is-invalid': v$.CLI_RAZON_SOCIAL.$errors.length,
+                  }" @blur="v$.CLI_RAZON_SOCIAL.$touch" />
               </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label prospect-form__label" for="input-CLI_CORREO_ELECT_SRI">
+                Correo electrónico
+              </label>
+              <div class="input-group input-group-sm prospect-form__control">
+                <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_SRI"
+                  placeholder="correo@ejemplo.com" v-model="nuevoProspecto.CLI_CORREO_ELECT_SRI" />
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label prospect-form__label" for="input-CLI_TELEFONO_1">
+                Teléfono <span class="text-danger">*</span>
+              </label>
+              <div class="input-group input-group-sm prospect-form__control">
+                <span class="input-group-text"><i class="fa fa-phone"></i></span>
+                <input type="text" class="form-control" id="input-CLI_TELEFONO_1" placeholder="Número de contacto"
+                  :class="{
+                    'is-invalid': v$.CLI_TELEFONO_1.$errors.length,
+                  }" @blur="v$.CLI_TELEFONO_1.$touch" v-model="nuevoProspecto.CLI_TELEFONO_1" />
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label prospect-form__label" for="input-CLI_DIRECCION">Dirección</label>
+              <textarea class="form-control form-control-sm prospect-form__textarea" id="input-CLI_DIRECCION"
+                v-model="nuevoProspecto.CLI_DIRECCION" placeholder="Ingrese la dirección completa"
+                :maxlength="122"></textarea>
+              <div class="text-end mt-1">
+                <small class="text-muted">{{ nuevoProspecto.CLI_DIRECCION.length }}/122</small>
+              </div>
+              <p v-if="122 - nuevoProspecto.CLI_DIRECCION.length == 0"
+                class="text-danger fs-sm bg-danger-light rounded p-2 mt-2 mb-0">
+                Máximo 122 caracteres
+              </p>
             </div>
           </div>
 
-          <div class="row mb-4">
-            <div class="col-sm-6">
-              <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_CORREO_ELECT_SRI">Correo
-                  electrónico</label>
-                <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_CORREO_ELECT_SRI"
-                    placeholder="Correo electrónico..." v-model="nuevoProspecto.CLI_CORREO_ELECT_SRI" />
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_TELEFONO_1">Teléfono</label>
-                <div class="col-sm-9">
-                  <input type="text" class="form-control" id="input-CLI_TELEFONO_1" placeholder="Teléfono" :class="{
-                    'is-invalid': v$.CLI_TELEFONO_1.$errors.length,
-                  }" @blur="v$.CLI_TELEFONO_1.$touch" v-model="nuevoProspecto.CLI_TELEFONO_1" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row mb-4">
-            <div class="col-sm-6">
-              <div class="row">
-                <label class="col-sm-3 col-form-label text-end" for="input-CLI_DIRECCION">Dirección</label>
-                <div class="col-sm-9">
-                  <textarea class="form-control" id="input-CLI_DIRECCION" v-model="nuevoProspecto.CLI_DIRECCION"
-                    placeholder="Dirección completa..." :maxlength="122"></textarea>
-                  <p v-if="122 - nuevoProspecto.CLI_DIRECCION.length == 0"
-                    class="text-danger fs-sm bg-danger-light rounded p-2 mt-2 mb-0">
-                    máximo 122 caracteres
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row mb-4">
-            <label for="select-bodega-despacho" class="col-sm-1 col-form-label text-left">Bodega:</label>
-            <div class="col-sm-4">
-              <select class="form-select" id="select-bodega-despacho" name="select-bodega-despacho"
+          <div class="prospect-form__delivery mt-3">
+            <div class="row g-2 align-items-end">
+              <div class="col-lg-5">
+                <label for="select-bodega-despacho" class="form-label prospect-form__label">
+                  <i class="fa fa-warehouse me-1"></i> Bodega
+                </label>
+              <select class="form-select form-select-sm" id="select-bodega-despacho" name="select-bodega-despacho"
                 v-model="bodegaFacturacion" @change="changebodega()">
                 <option v-for="(bodega, index) in bodegas" :key="index" :value="bodega.PTO_VTA_BOD_REL_BODEGA">
                   {{ bodega.PTO_VTA_BOD_REL_BODEGA }}
                 </option>
               </select>
-            </div>
-            <div class="col-sm-7 text-end">
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="despacho-punto" value="Retiro en bodega"
-                  v-model="despacho" />
-                <label class="form-check-label" for="despacho-punto">Retiro en bodega</label>
               </div>
-              <div v-if="bodega_selected.PERMITE_DESPACHO" class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" id="despacho-ruta" value="Despacho en ruta"
-                  v-model="despacho" />
-                <label class="form-check-label" for="despacho-ruta">Despacho en ruta</label>
+
+              <div class="col-lg-7">
+                <span class="form-label prospect-form__label d-block">Tipo de entrega</span>
+                <div class="prospect-form__dispatch-options">
+                  <label class="prospect-form__dispatch-option" :class="{
+                    'prospect-form__dispatch-option--active': despacho === 'Retiro en bodega',
+                  }" for="despacho-punto">
+                    <input class="form-check-input" type="radio" id="despacho-punto" value="Retiro en bodega"
+                      v-model="despacho" />
+                    <i class="fa fa-box me-1"></i>
+                    <span>Retiro en bodega</span>
+                  </label>
+                  <label v-if="bodega_selected.PERMITE_DESPACHO" class="prospect-form__dispatch-option" :class="{
+                    'prospect-form__dispatch-option--active': despacho === 'Despacho en ruta',
+                  }" for="despacho-ruta">
+                    <input class="form-check-input" type="radio" id="despacho-ruta" value="Despacho en ruta"
+                      v-model="despacho" />
+                    <i class="fa fa-truck me-1"></i>
+                    <span>Despacho en ruta</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -291,32 +309,30 @@
       </div>
     </BaseBlock>
   </div>
-  <div class="modal" id="modal-articulo" tabindex="-1" role="dialog" aria-labelledby="modal-articulo" aria-hidden="true"
-    ref="articuloModal">
+  <div class="modal" id="modal-articulo" tabindex="-1" aria-hidden="true" ref="articuloModal">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 90vw;">
       <div class="modal-content">
-
-        <ArticulosModal @verificarProveedores="verificarProveedores()" @verificarStock="verificarStock()"
-          @calcTotales="calcTotales()"></ArticulosModal>
-        <div class="block-content block-content-full text-end bg-body">
-          <button type="button" class="btn btn-sm btn-alt-secondary me-1" data-bs-dismiss="modal">
-            Cerrar
-          </button>
-        </div>
+        <verModalBuscarArticulos
+          v-if="dataSearchItem"
+          :form="dataSearchItem"
+          @closeModal="closeModalSearchItem"
+          @select-item="handleItemSelected"
+        ></verModalBuscarArticulos>
       </div>
     </div>
   </div>
   <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed } from "vue";
 
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { Modal } from "bootstrap";
 import { useTemplateStore } from "@/stores/template";
+import { useBootstrapModal } from "@/composables/core/useBootstrapModal";
+import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import ArticulosModal from "../modals/ArticulosModal.vue";
+import verModalBuscarArticulos from "./crear-cotizacion/modals/verModalBuscarArticulos.vue";
 import VueSelect from "vue-select";
 import draggable from "vuedraggable";
 import VueEasyLightbox from "vue-easy-lightbox";
@@ -372,7 +388,13 @@ const nota_interna = ref(store.state.nota_interna);
 const nota_cliente = ref(store.state.nota_cliente);
 const verbodegas = ref(false);
 let articuloModal = ref(null);
-let articuloModalObj = null;
+const dataSearchItem = ref(null);
+const articuloModalObj = useBootstrapModal(articuloModal, {
+  onHidden: () => {
+    dataSearchItem.value = null;
+  },
+});
+const { fetchDefaultPriceListBySalesPoint } = useQuoteProspectActions();
 const max_length = ref(20);
 
 store.commit('resetCurrentcliente');
@@ -485,10 +507,45 @@ function changebodega() {
 
 let errorbuscararticulo = ref(false);
 
-function buscararticulo() {
-  store.commit('resetArticulo');
-  store.commit('limpiarBusqueda');
+async function buscararticulo() {
+  const resp = await fetchDefaultPriceListBySalesPoint();
+  if (!resp?.ok) {
+    const message = resp?.message || "No se pudo obtener la lista de precio por defecto";
+    (resp?.status ?? 0) >= 500 ? swalError(message) : swalWarning(message);
+    return;
+  }
+
+  dataSearchItem.value = {
+    cliente: {
+      id: null,
+      CLI_NIVEL_PRECIO: resp.data?.listaPrecio || "",
+      CLI_DSTO_COMERCIAL: nuevoProspecto.value.CLI_DSTO_COMERCIAL || 0,
+    },
+    direccion_facturacion_id: null,
+  };
   articuloModalObj.show();
+}
+
+function closeModalSearchItem() {
+  articuloModalObj.hide();
+}
+
+async function handleItemSelected(articulo) {
+  if (articulo.ART_TIPO_COMPRA === "L") {
+    articulo.ART_STOCK = 0;
+    articulo.stock = [];
+  }
+
+  articulo.ART_CANTIDAD = 0;
+
+  try {
+    await store.dispatch("addCotizacion", { articulo });
+    calcTotales();
+    verificarProveedores();
+    verificarStock();
+  } catch (error) {
+    swalError(error.response?.data?.error || "No se pudo agregar el artículo a la cotización");
+  }
 }
 
 function selectcondicionpago(event) {
@@ -782,7 +839,98 @@ function onSort(event, i) {
   sortEl.sort = toset;
 }
 
-onMounted(() => {
-  articuloModalObj = new Modal(articuloModal.value);
-});
 </script>
+
+<style scoped>
+.prospect-form {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.prospect-form__label {
+  margin-bottom: 0.2rem;
+  color: var(--tuval-text, var(--bs-body-color));
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.prospect-form__control .input-group-text {
+  width: 2.25rem;
+  justify-content: center;
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
+  background-color: var(--tuval-surface-muted, var(--bs-body-bg));
+}
+
+.prospect-form__control .form-control,
+.prospect-form__textarea,
+.prospect-form__delivery .form-select {
+  border-color: var(--tuval-border, var(--bs-border-color));
+}
+
+.prospect-form__control:focus-within .input-group-text {
+  color: var(--tuval-primary, var(--bs-primary));
+  border-color: var(--tuval-primary, var(--bs-primary));
+}
+
+.prospect-form__textarea {
+  min-height: 58px;
+  resize: vertical;
+}
+
+.prospect-form__delivery {
+  padding: 0.65rem 0.75rem;
+  background-color: var(--tuval-surface-muted, var(--bs-body-bg));
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
+  border-radius: 0.5rem;
+}
+
+.prospect-form__dispatch-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.prospect-form__dispatch-option {
+  display: inline-flex;
+  flex: 1 1 11rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 31px;
+  padding: 0.3rem 0.6rem;
+  margin: 0;
+  color: var(--tuval-text, var(--bs-body-color));
+  background-color: var(--tuval-surface, var(--bs-body-bg));
+  border: 1px solid var(--tuval-border, var(--bs-border-color));
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition:
+    color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+
+.prospect-form__dispatch-option:hover,
+.prospect-form__dispatch-option--active {
+  color: var(--tuval-primary, var(--bs-primary));
+  background-color: var(--tuval-primary-soft, var(--bs-body-bg));
+  border-color: var(--tuval-primary, var(--bs-primary));
+}
+
+.prospect-form__dispatch-option .form-check-input {
+  flex: 0 0 auto;
+  margin: 0 0.5rem 0 0;
+}
+
+@media (max-width: 575.98px) {
+  .prospect-form__delivery {
+    padding: 0.65rem;
+  }
+
+  .prospect-form__dispatch-option {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}
+</style>

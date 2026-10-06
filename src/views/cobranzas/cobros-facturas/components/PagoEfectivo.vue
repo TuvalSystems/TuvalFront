@@ -1,49 +1,44 @@
 <script setup>
-import flatPickr from 'vue-flatpickr-component';
+import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { useInvoiceCollectionCash } from '@/composables/cobranzas/cobros-facturas/useInvoiceCollectionCash';
-import { onMounted, toRefs } from 'vue';
-import TablaFacturasDisponibles from './TablaFacturasDisponibles.vue';
+import { useInvoiceCollectionCash } from "@/composables/cobranzas/cobros-facturas/useInvoiceCollectionCash";
+import { onMounted, toRefs } from "vue";
+import TablaFacturasDisponibles from "./TablaFacturasDisponibles.vue";
 import {
   PAYMENT_AMOUNT_MAX_LENGTH,
   handlePaymentAmountInput,
-} from '@/utils/cobros/paymentAmountInput';
-
+} from "@/utils/cobros/paymentAmountInput";
 
 const emits = defineEmits(["add-cash", "remove-cash"]);
 const props = defineProps({
   facturas: {
     type: Array,
     required: true,
-    default: () => []
+    default: () => [],
   },
   efectivo: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   cliente: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
-  loadingDocs : {
-    type : Boolean,
-    default : () => false
+  loadingDocs: {
+    type: Boolean,
+    default: () => false,
   },
   invoiceDataVersion: {
     type: Number,
-    default: 0
+    default: 0,
   },
   refreshBeforeApply: {
     type: Function,
-    default: null
-  }
+    default: null,
+  },
 });
 
-const {
-  facturas,
-  efectivo,
-  invoiceDataVersion,
-} = toRefs(props);
+const { facturas, efectivo, invoiceDataVersion } = toRefs(props);
 
 const {
   cashPayload,
@@ -57,7 +52,7 @@ const {
   formatCashAmount,
   updateInvoiceCashAmount,
   applyFullCashToInvoice,
-  getInvoiceRemainingBalance
+  getInvoiceRemainingBalance,
 } = useInvoiceCollectionCash({
   facturas,
   invoiceDataVersion,
@@ -102,7 +97,7 @@ function handleCashAmountInput(field, event) {
   updateCashChangeAmount();
 }
 
-onMounted(() => { });
+onMounted(() => {});
 </script>
 
 <template>
@@ -123,11 +118,21 @@ onMounted(() => { });
           <small class="label-small">Efectivo recibido</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" :value="cashPayload.montoRecibido"
-              :maxlength="PAYMENT_AMOUNT_MAX_LENGTH" inputmode="decimal" autocomplete="off"
-              @input="handleCashAmountInput('montoRecibido', $event)" :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
-              @blur="v$.montoRecibido.$touch">
-            <div v-if="v$.montoRecibido.$error" class="invalid-feedback d-block">
+            <input
+              type="text"
+              class="form-control text-end"
+              :value="cashPayload.montoRecibido"
+              :maxlength="PAYMENT_AMOUNT_MAX_LENGTH"
+              inputmode="decimal"
+              autocomplete="off"
+              @input="handleCashAmountInput('montoRecibido', $event)"
+              :class="{ 'is-invalid': v$.montoRecibido.$errors.length }"
+              @blur="v$.montoRecibido.$touch"
+            />
+            <div
+              v-if="v$.montoRecibido.$error"
+              class="invalid-feedback d-block"
+            >
               {{ validationMessage(v$.montoRecibido) }}
             </div>
           </div>
@@ -137,10 +142,17 @@ onMounted(() => { });
           <small class="label-small">Monto a cobrar</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" :value="cashPayload.montoACobrar"
-              :maxlength="PAYMENT_AMOUNT_MAX_LENGTH" inputmode="decimal" autocomplete="off"
-              @input="handleCashAmountInput('montoACobrar', $event)" :class="{ 'is-invalid': v$.montoACobrar.$errors.length }"
-              @blur="v$.montoACobrar.$touch" />
+            <input
+              type="text"
+              class="form-control text-end"
+              :value="cashPayload.montoACobrar"
+              :maxlength="PAYMENT_AMOUNT_MAX_LENGTH"
+              inputmode="decimal"
+              autocomplete="off"
+              @input="handleCashAmountInput('montoACobrar', $event)"
+              :class="{ 'is-invalid': v$.montoACobrar.$errors.length }"
+              @blur="v$.montoACobrar.$touch"
+            />
             <div v-if="v$.montoACobrar.$error" class="invalid-feedback d-block">
               {{ validationMessage(v$.montoACobrar) }}
             </div>
@@ -151,21 +163,37 @@ onMounted(() => { });
           <small class="label-small">vuelto</small>
           <div class="input-group input-group-sm">
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control text-end" v-model="cashPayload.montoDevuelto" readonly>
+            <input
+              type="text"
+              class="form-control text-end"
+              v-model="cashPayload.montoDevuelto"
+              readonly
+            />
           </div>
         </div>
 
         <div class="cash-field">
           <small class="label-small">Fecha efectivo</small>
-          <div class="input-group input-group-sm  text-muted">
-            <span class="input-group-text"><i class="far fa-calendar"></i></span>
-            <flat-pickr class="form-control fs-sm" placeholder="Y-m-d" :disabled="true"
-              v-model="cashPayload.fechaEfectivo" :config="cashDateConfig" />
+          <div class="input-group input-group-sm text-muted">
+            <span class="input-group-text"
+              ><i class="far fa-calendar"></i
+            ></span>
+            <flat-pickr
+              class="form-control fs-sm"
+              placeholder="Y-m-d"
+              :disabled="true"
+              v-model="cashPayload.fechaEfectivo"
+              :config="cashDateConfig"
+            />
           </div>
         </div>
 
         <div class="cash-action">
-          <button type="button" class="btn btn-outline-primary btn-sm cash-apply-button" @click="handleApplyCash()">
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm cash-apply-button"
+            @click="handleApplyCash()"
+          >
             <i class="fa fa-check"></i> APLICAR
           </button>
         </div>
@@ -174,7 +202,7 @@ onMounted(() => { });
       <!-- detalle del efectivo -->
       <div v-if="showTableInvoices" class="cash-detail">
         <div class="cash-summary-grid">
-          <div class="cash-summary-item">
+          <!-- <div class="cash-summary-item">
             <span>Recibido</span>
             <strong>${{ formatCashAmount(cashPayload.montoRecibido) }}</strong>
           </div>
@@ -187,7 +215,7 @@ onMounted(() => { });
           <div class="cash-summary-item">
             <span>Vuelto</span>
             <strong>${{ formatCashAmount(cashPayload.montoDevuelto) }}</strong>
-          </div>
+          </div> -->
 
           <div class="cash-summary-item">
             <span>Aplicado</span>
@@ -195,21 +223,44 @@ onMounted(() => { });
           </div>
 
           <div class="cash-summary-item cash-summary-warning">
-            <span>No Aplicado</span>
-            <strong>${{ formatCashAmount(cashPayload.montoNoAplicado) }}</strong>
+            <span>
+              <i class="fa fa-circle-exclamation" aria-hidden="true"></i>
+              Monto no aplicado
+            </span>
+            <strong
+              >${{ formatCashAmount(cashPayload.montoNoAplicado) }}</strong
+            >
+          </div>
+          <div class="cash-summary-item cash-summary-count">
+            <span>
+              <i class="fa fa-file-invoice" aria-hidden="true"></i>
+              Facturas
+            </span>
+            <strong>{{ cashPayload.facturas.length }}</strong>
           </div>
         </div>
       </div>
 
       <!-- tabla de facturas -->
-      <TablaFacturasDisponibles v-if="showTableInvoices && !loadingDocs" :invoices="cashInvoices" apply-all-key="aplicarTodoEfectivo"
-        amount-key="aplicarMontoEfectivo" observation-key="observacionEfectivo"
-        empty-text="Sin facturas disponibles para aplicar efectivo" :format-amount="formatCashAmount"
-        :remaining-balance-resolver="getInvoiceRemainingBalance" @apply-all-change="applyFullCashToInvoice"
-        @amount-change="updateInvoiceCashAmount" />
+      <TablaFacturasDisponibles
+        v-if="showTableInvoices && !loadingDocs"
+        :invoices="cashInvoices"
+        apply-all-key="aplicarTodoEfectivo"
+        amount-key="aplicarMontoEfectivo"
+        observation-key="observacionEfectivo"
+        empty-text="Sin facturas disponibles para aplicar efectivo"
+        :format-amount="formatCashAmount"
+        :remaining-balance-resolver="getInvoiceRemainingBalance"
+        @apply-all-change="applyFullCashToInvoice"
+        @amount-change="updateInvoiceCashAmount"
+      />
     </div>
     <div v-if="showTableInvoices" class="cash-register-actions">
-      <button type="button" class="btn btn-primary btn-sm cash-register-button" @click="registerCash()">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm cash-register-button"
+        @click="registerCash()"
+      >
         <i class="fa fa-money-bill-wave"></i> Registrar Efectivo
       </button>
     </div>
@@ -358,7 +409,7 @@ onMounted(() => { });
 
 .cash-summary-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
@@ -389,14 +440,47 @@ onMounted(() => { });
 }
 
 .cash-summary-warning {
-  color: var(--bs-warning-text-emphasis, var(--bs-body-color));
-  border-color: var(--bs-warning-border-subtle, rgba(var(--bs-warning-rgb), 0.35));
-  background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
+  color: var(--bs-danger-text-emphasis, var(--bs-danger));
+  border: 2px solid
+    var(--bs-danger-border-subtle, rgba(var(--bs-danger-rgb), 0.55));
+  background: var(--bs-danger-bg-subtle, rgba(var(--bs-danger-rgb), 0.14));
+  box-shadow: 0 0 0 0.18rem rgba(var(--bs-danger-rgb), 0.1);
 }
 
 .cash-summary-warning span,
 .cash-summary-warning strong {
   color: inherit;
+}
+
+.cash-summary-warning span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cash-summary-warning strong {
+  font-size: 1rem;
+}
+
+.cash-summary-count {
+  color: var(--bs-primary, var(--tuval-primary));
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+}
+
+.cash-summary-count span,
+.cash-summary-count strong {
+  color: inherit;
+}
+
+.cash-summary-count span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cash-summary-count strong {
+  font-size: 1rem;
 }
 
 .cash-entry :deep(.form-control),
@@ -468,20 +552,22 @@ onMounted(() => { });
     padding: 0.45rem;
   }
 
-  .cash-summary-warning {
+  .cash-summary-count {
+    display: flex;
     grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .cash-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    justify-content: space-between;
   }
 }
 
 @media (max-width: 380px) {
   .cash-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cash-summary-count {
+    display: block;
+    grid-column: auto;
   }
 }
 </style>

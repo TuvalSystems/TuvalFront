@@ -55,7 +55,6 @@ const {
   cardDateConfig,
   showTableInvoices,
   cardInvoices,
-  selectedBankName,
   v$,
   resetCardPayload,
   resetCardApplicationState,
@@ -292,7 +291,7 @@ function hasRegisteredCard() {
 
       <div v-if="showTableInvoices" class="cards-detail">
         <div class="cards-summary-grid">
-          <div class="cards-summary-item cards-summary-bank">
+          <!-- <div class="cards-summary-item cards-summary-bank">
             <span>Emisor</span>
             <strong>{{ selectedBankName }}</strong>
           </div>
@@ -310,7 +309,7 @@ function hasRegisteredCard() {
           <div class="cards-summary-item">
             <span>Lote ref</span>
             <strong>{{ cardPayload.comentario }}</strong>
-          </div>
+          </div> -->
 
           <div class="cards-summary-item">
             <span>Monto tarjeta</span>
@@ -323,14 +322,20 @@ function hasRegisteredCard() {
           </div>
 
           <div class="cards-summary-item cards-summary-warning">
-            <span>No aplicado</span>
+            <span>
+              <i class="fa fa-circle-exclamation" aria-hidden="true"></i>
+              Monto no aplicado
+            </span>
             <strong
               >${{ formatCardAmount(cardPayload.montoNoAplicado) }}</strong
             >
           </div>
 
-          <div class="cards-summary-item">
-            <span>Facturas</span>
+          <div class="cards-summary-item cards-summary-count">
+            <span>
+              <i class="fa fa-file-invoice" aria-hidden="true"></i>
+              Facturas
+            </span>
             <strong>{{ cardPayload.facturas.length }}</strong>
           </div>
         </div>
@@ -537,17 +542,49 @@ function hasRegisteredCard() {
 }
 
 .cards-summary-warning {
-  color: var(--bs-warning-text-emphasis, var(--bs-body-color));
-  border-color: var(
-    --bs-warning-border-subtle,
-    rgba(var(--bs-warning-rgb), 0.35)
+  color: var(--bs-danger-text-emphasis, var(--bs-danger));
+  border: 2px solid var(
+    --bs-danger-border-subtle,
+    rgba(var(--bs-danger-rgb), 0.55)
   );
-  background: var(--bs-warning-bg-subtle, rgba(var(--bs-warning-rgb), 0.1));
+  background: var(--bs-danger-bg-subtle, rgba(var(--bs-danger-rgb), 0.14));
+  box-shadow: 0 0 0 0.18rem rgba(var(--bs-danger-rgb), 0.1);
 }
 
 .cards-summary-warning span,
 .cards-summary-warning strong {
   color: inherit;
+}
+
+.cards-summary-warning span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cards-summary-warning strong {
+  font-size: 1rem;
+}
+
+.cards-summary-count {
+  color: var(--bs-primary, var(--tuval-primary));
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+  background: var(--tuval-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+}
+
+.cards-summary-count span,
+.cards-summary-count strong {
+  color: inherit;
+}
+
+.cards-summary-count span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cards-summary-count strong {
+  font-size: 1rem;
 }
 
 .cards-register-actions {
@@ -601,9 +638,12 @@ function hasRegisteredCard() {
     align-items: flex-start;
   }
 
-  .cards-grid,
-  .cards-summary-grid {
+  .cards-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cards-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .cards-action {
@@ -616,6 +656,12 @@ function hasRegisteredCard() {
 
   .cards-register-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .cards-summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

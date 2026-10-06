@@ -1,6 +1,6 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 
 export function useSearchConditionPayment() {
     const { run } = useApiAction();
@@ -10,7 +10,7 @@ export function useSearchConditionPayment() {
 
 
     async function fetchConditionPayment() {
-        return  run(() => axiosClient.post(apiConditions), {
+        return run(() => axiosClient.post(apiConditions), {
             loadingRef: loadingConditionPayment,
             onSuccess: (data) => {
                 conditionPayment.value = data;
@@ -28,7 +28,7 @@ export function useSearchConditionPayment() {
     const apiMethods = 'obtener-metodos-pago';
 
     async function fetchMethodPayment(condId) {
-        return  run(() => axiosClient.post(apiMethods, { condId: condId }), {
+        return run(() => axiosClient.post(apiMethods, { condId: condId }), {
             loadingRef: loadingMethodPayment,
             onSuccess: (data) => {
                 methodPayment.value = data;
@@ -38,7 +38,7 @@ export function useSearchConditionPayment() {
             }
         });
     }
-   
+
 
     return {
         loadingConditionPayment,

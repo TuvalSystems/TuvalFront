@@ -29,13 +29,15 @@ export function useAdminLogTable() {
 
 
     const estadoClass = (st) => getStatusBadgeClass(st, 'log');
-  
+
     const columns = reactive([
-        { label: "ID", key: "id", sortable: true, align: "text-center" },
+        { label: "id", key: "id", sortable: true, align: "text-center" },
         { label: "Acción", key: "action", sortable: true, align: "text-start" },
-        { label: "Mensaje", key: "message", sortable: true, align: "text-start" },
-        {label: "Estado", key: "status", sortable: true, align: "text-center"},
-        {label: "Fecha", key: "created_at", sortable: true, align: "text-center"},
+        { label: "id local", key: "local_id", sortable: false, align: "text-start" },
+        { label: "id externo", key: "external_id", sortable: false, align: "text-start" },
+        { label: "mensaje", key: "message", sortable: true, align: "text-start" },
+        { label: "estado", key: "status", sortable: true, align: "text-center" },
+        { label: "fecha", key: "created_at", sortable: true, align: "text-center" },
     ]);
 
 
@@ -49,7 +51,7 @@ export function useAdminLogTable() {
         const payload = {
             ...table.filters,
         }
-        return run(() => axiosClient.post(ADMIN_API_ROUTES.LOGS.LIST, {filters : payload,  page: table.currentPage}, { signal: ctrl.value.signal }), {
+        return run(() => axiosClient.post(ADMIN_API_ROUTES.LOGS.LIST, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
             key: `lista-logs`,
@@ -110,7 +112,7 @@ export function useAdminLogTable() {
         table,
         columns,
         loadingRef,
-        listPerpage : LIST_PER_PAGE_OPTIONS,
+        listPerpage: LIST_PER_PAGE_OPTIONS,
         fetchList,
         refresh,
         onSort,

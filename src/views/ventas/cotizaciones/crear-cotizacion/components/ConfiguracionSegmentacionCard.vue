@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted,  watch, computed } from 'vue';
 import { useArticleSegmentClassification } from "@/composables/venta/cotizaciones/crearCotizacion/useArticleSegmentClassification";
 import { swalError, swalWarning } from '@/functions/swal-alert';
 const props = defineProps({
@@ -9,7 +9,6 @@ const props = defineProps({
   }
 });
 
-const articles = ref(null);
 const {
   loadingConfig,
   segmentFilters,
@@ -25,7 +24,7 @@ const {
   //api que me trae la configuracion
   fetchSegmentClassificationConfig,
 
-} = useArticleSegmentClassification(articles);
+} = useArticleSegmentClassification();
 
 watch(
   () => props.form?.segmento?.coAtrHijo,
@@ -164,12 +163,13 @@ onMounted(() => { });
 }
 
 .segment-option:hover .star.filled {
-  color: #ff9800;
+  color: var(--bs-warning);
   transform: scale(1.08);
 }
 
 .segment-option.active {
-  background-color: #e7f1ff;
+  color: var(--tuval-primary, var(--bs-primary));
+  background-color: var(--tuval-primary-soft, var(--bs-body-bg));
   font-weight: 600;
 }
 
@@ -184,14 +184,18 @@ onMounted(() => { });
 
 .star {
   font-size: 13px;
-  color: #cfd6df;
+  color: var(--tuval-text-muted, var(--bs-secondary-color));
+  opacity: 0.45;
   line-height: 1;
-  transition: transform 0.15s ease, color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .star.filled {
-  color: #f6b100;
-  text-shadow: 0 1px 2px rgba(246, 177, 0, 0.35);
+  color: var(--bs-warning);
+  opacity: 1;
 }
 
 .cursor-pointer {

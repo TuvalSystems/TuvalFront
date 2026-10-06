@@ -286,23 +286,23 @@ watch(
   color: var(--bs-info);
 }
 
-:global(#page-container.dark-mode .profile-form-card) {
+:global(.dark-mode #page-container .profile-form-card) {
   background: #243447 !important;
   color: #e5ecf5 !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-:global(#page-container.dark-mode .profile-info-box) {
+:global(.dark-mode #page-container .profile-info-box) {
   background: rgba(var(--bs-info-rgb), 0.16) !important;
   color: var(--bs-info) !important;
 }
 
-:global(#page-container.dark-mode .profile-current-state) {
+:global(.dark-mode #page-container .profile-current-state) {
   background: rgba(0, 0, 0, 0.18) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-:global(#page-container.dark-mode .profile-current-icon) {
+:global(.dark-mode #page-container .profile-current-icon) {
   background: rgba(var(--bs-primary-rgb), 0.18) !important;
   color: var(--bs-primary) !important;
 }

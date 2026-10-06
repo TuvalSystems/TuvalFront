@@ -12,10 +12,9 @@
 
   @at-root {
     a#{&} {
-      will-change: opacity;
-
       &:hover,
       &:focus {
+        will-change: opacity;
         opacity: 0.6;
       }
 
@@ -24,10 +23,9 @@
       }
 
       &.item-link-pop {
-        will-change: transform;
-
         &:hover,
         &:focus {
+          will-change: transform;
           opacity: 1;
           transform: scale(1.1);
         }

@@ -2,17 +2,17 @@
 // Minimal Theme
 // --------------------------------------------------
 
-$theme-minimal-primary: #2563eb !default;
+$theme-minimal-primary: #3f63b8 !default;
 $theme-minimal-light: tint-color($theme-minimal-primary, 45%) !default;
 $theme-minimal-lighter: tint-color($theme-minimal-primary, 82%) !default;
 $theme-minimal-dark: #334155 !default;
 $theme-minimal-darker: #111827 !default;
 
-$theme-minimal-body-bg: #f6f7f9 !default;
+$theme-minimal-body-bg: #f7f8fa !default;
 $theme-minimal-body-bg-dark: #e5e7eb !default;
 $theme-minimal-body-bg-light: #ffffff !default;
 
-$theme-minimal-body-color: #1e293b !default;
+$theme-minimal-body-color: #232a35 !default;
 $theme-minimal-body-color-dark: #0f172a !default;
 $theme-minimal-body-color-light: #e5e7eb !default;
 
@@ -27,7 +27,7 @@ $theme-minimal-input-btn-focus-box-shadow: 0 0 0 $input-btn-focus-width
 
 $theme-minimal-input-bg: #ffffff !default;
 $theme-minimal-input-color: $theme-minimal-body-color !default;
-$theme-minimal-input-border-color: #d8dee8 !default;
+$theme-minimal-input-border-color: #e1e4e8 !default;
 
 $theme-minimal-input-focus-bg: #ffffff !default;
 $theme-minimal-input-focus-color: $theme-minimal-body-color-dark !default;
