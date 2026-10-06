@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
+import { useDispatchTypeActions } from "@/composables/sistemas/mantenimientos/tipo-despachos/useDispatchTypeActions";
 
 const props = defineProps({
   infoCliente: {
@@ -46,6 +47,13 @@ const props = defineProps({
   },
 });
 
+const {
+  // lista de tipo de despachos por repsonsable de pago
+  loadingTypeDispatches,
+  typeDispatchesResponsible,
+  fetchTypeDispatchesResponsible,
+} = useDispatchTypeActions();
+
 const emit = defineEmits(["create-address", "update-field"]);
 const client = computed(() => props.infoCliente);
 const fieldModel = (field) =>
@@ -56,6 +64,31 @@ const fieldModel = (field) =>
 const bodegaFacturacion = fieldModel("bodega_facturacion");
 const direccionFacturacionId = fieldModel("direccion_facturacion_id");
 const tipoEntrega = fieldModel("tipo_entrega");
+// Valores provisionales para las modalidades a cargo del cliente.
+const opcionesResponsable = {
+  tuval: [
+    { id: "despacho", nombre: "Despacho en ruta" },
+    { id: "retiro", nombre: "Retiro en bodega" },
+  ],
+  cliente: [
+    { id: "paqueteria", nombre: "Paquetería" },
+    { id: "flete_al_cobro", nombre: "Flete al cobro" },
+    { id: "proveedor_entrega", nombre: "Proveedor entrega" },
+  ],
+};
+const responsable = computed({
+  get: () =>
+    opcionesResponsable.cliente.some(
+      (opcion) => opcion.id === tipoEntrega.value
+    )
+      ? "cliente"
+      : "tuval",
+  set: (value) => {
+    if (value !== responsable.value) {
+      tipoEntrega.value = value === "tuval" ? "retiro" : "paqueteria";
+    }
+  },
+});
 const direccionEntregaId = fieldModel("direccion_entrega_id");
 const fechaEntrega = fieldModel("fecha_entrega");
 const proyecto = fieldModel("proyecto");
@@ -73,8 +106,12 @@ function checkCoords(idSucursal) {
   return !!sucursal?.coordenadas;
 }
 
-const hasCoordinates = computed(() => checkCoords(props.form.direccion_facturacion_id));
-const hasCoordinates2 = computed(() => checkCoords(props.form.direccion_entrega_id));
+const hasCoordinates = computed(() =>
+  checkCoords(props.form.direccion_facturacion_id)
+);
+const hasCoordinates2 = computed(() =>
+  checkCoords(props.form.direccion_entrega_id)
+);
 const hasDispatch = computed(() => {
   const warehouse = props.warehouseByUser.find(
     (w) => w.relacion_bodega.BOD_BODEGA === props.form.bodega_facturacion
@@ -94,20 +131,18 @@ function getClientStatus(isSuspended) {
 function openModalCreateAddress() {
   emit("create-address");
 }
+
+
+
+/** lista de tipo de despacho por responsable */
+
+
 </script>
 
 <template>
-  <BaseBlock
-    title="Información del Cliente"
-    content-full
-    rounded
-    class="mb-2"
-  >
-    <div
-      class="content-fluid"
-      :class="{ 'opacity-50': loading }"
-    >
-      <div class="row g-1 mb-2">
+  <BaseBlock title="Información del Cliente" content-full rounded class="mb-2">
+    <div class="content-fluid" :class="{ 'opacity-50': loading }">
+      <div class="row g-1 mb-1">
         <div class="col-6 col-lg-4">
           <div class="kv">
             <small class="label-small">Ruc</small>
@@ -127,9 +162,7 @@ function openModalCreateAddress() {
         <div class="col-6 col-lg-4">
           <div class="kv">
             <small class="label-small">Descuento Comercial</small>
-            <div class="fw-semibold">
-              {{ client.CLI_DSTO_COMERCIAL }} %
-            </div>
+            <div class="fw-semibold">{{ client.CLI_DSTO_COMERCIAL }} %</div>
           </div>
         </div>
         <div class="col-6 col-lg-4">
@@ -149,15 +182,17 @@ function openModalCreateAddress() {
         <div class="col-6 col-lg-4">
           <div class="kv">
             <small class="label-small">Condición de Pago</small>
-            <div class="fw-semibold">
-              {{ client.CLI_CONDICION_PAGO }}
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="fw-semibold">
+                {{ client.CLI_CONDICION_PAGO }}
+              </span>
+              <span
+                v-if="client.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0"
+                class="badge bg-info"
+              >
+                {{ client.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia
+              </span>
             </div>
-            <span
-              class="badge bg-info"
-              v-if="client.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0"
-              >{{ client.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de
-              gracia</span
-            >
           </div>
         </div>
         <div class="col-6 col-lg-4">
@@ -183,9 +218,7 @@ function openModalCreateAddress() {
             <div
               class="fw-semibold"
               :class="
-                parseFloat(client.cupo_disponible) < 0
-                  ? 'text-danger'
-                  : ''
+                parseFloat(client.cupo_disponible) < 0 ? 'text-danger' : ''
               "
             >
               ${{ client.cupo_disponible }}
@@ -223,7 +256,7 @@ function openModalCreateAddress() {
           </div>
         </div>
 
-        <div class="col-12 col-lg-8">
+        <div class="col-12">
           <div class="kv space-y-2">
             <small class="label-small">Dirección de Facturación</small>
             <div class="input-group input-group-sm">
@@ -277,124 +310,160 @@ function openModalCreateAddress() {
             </div>
           </div>
         </div>
-        <div class="col-12 col-lg-4">
-          <div class="kv space-y-2">
-            <small class="label-small">Modalidad de Entrega</small>
-            <div class="btn-group btn-group-sm" role="group">
-              <input
-                type="radio"
-                class="btn-check"
-                name="tipoEntrega"
-                id="retiro"
-                value="retiro"
-                v-model="tipoEntrega"
-                autocomplete="off"
-              />
-              <label class="btn btn-outline-primary" for="retiro">
-                <i class="fa fa-box me-2"></i>Retiro en Bodega
-              </label>
-
-              <input
-                v-if="hasDispatch"
-                type="radio"
-                class="btn-check"
-                name="tipoEntrega"
-                id="despacho"
-                value="despacho"
-                v-model="tipoEntrega"
-                autocomplete="off"
-              />
-              <label
-                v-if="hasDispatch"
-                class="btn btn-outline-primary"
-                for="despacho"
-              >
-                <i class="fa fa-truck me-2"></i>Despacho en Ruta
-              </label>
-            </div>
-          </div>
-        </div>
-        <div v-show="form.tipo_entrega === 'retiro'"></div>
-        <div v-show="form.tipo_entrega === 'despacho'" class="row g-1 mb-2">
-          <div class="col-12 col-lg-6">
-            <div class="kv space-y-2">
-              <small class="label-small">Dirección de Entrega</small>
-              <div class="input-group input-group-sm">
+        <div class="col-12 commercial-controls">
+          <div class="row g-2">
+            <div class="col-12 col-lg-4">
+              <div class="kv space-y-2">
+                <label class="label-small" for="lista-proyectos">
+                  Tipo de Venta
+                </label>
                 <select
+                  id="lista-proyectos"
+                  v-model="proyecto"
                   class="form-select form-select-sm"
-                  v-model="direccionEntregaId"
+                  :disabled="
+                    loadingProyectSellers || dataProyectSellers.length === 0
+                  "
                 >
                   <option
-                    v-for="(suc, index) in sucursales"
-                    :key="index"
-                    :value="suc.id"
+                    v-for="proyect in dataProyectSellers"
+                    :key="proyect.coMotproven"
+                    :value="proyect.coMotproven"
                   >
-                    {{ suc.CLI_SUC_ID_DIRECCION }} -
-                    {{ suc.CLI_SUC_DIRECCION }}
+                    {{ proyect.txDeslar }}
                   </option>
                 </select>
-                <button
-                  class="btn btn-outline-secondary btn-sm"
-                  type="button"
-                  :title="
-                    hasCoordinates2
-                      ? 'Ver ubicación en mapa'
-                      : 'Dirección sin coordenadas'
-                  "
-                  :class="{ 'opacity-50': !hasCoordinates2 }"
-                >
-                  <img
-                    v-if="hasCoordinates2"
-                    src="/assets/images/earth.png"
-                    alt="Tiene coordenadas"
-                    class="img-fluid"
-                    style="max-width: 18px"
-                  />
-                  <img
-                    v-else
-                    src="/assets/images/earth2.png"
-                    alt="No tiene coordenadas"
-                    class="img-fluid"
-                    style="max-width: 18px"
-                  />
-                </button>
+              </div>
+            </div>
+            <div class="col-12 col-lg-8">
+              <div class="kv space-y-2">
+                <small class="label-small">Responsable</small>
+                <div class="responsible-controls">
+                  <div
+                    class="btn-group btn-group-sm responsible-options"
+                    role="group"
+                    aria-label="Responsable"
+                  >
+                    <input
+                      type="radio"
+                      class="btn-check"
+                      name="responsable"
+                      id="responsable-tuval"
+                      value="tuval"
+                      v-model="responsable"
+                      autocomplete="off"
+                      @click="fetchTypeDispatchesResponsible($event)"
+                    />
+                    <label
+                      class="btn btn-outline-primary"
+                      for="responsable-tuval"
+                    >
+                      <i class="fa fa-box me-2"></i>TUVAL
+                    </label>
+
+                    <input
+                      type="radio"
+                      class="btn-check"
+                      name="responsable"
+                      id="responsable-cliente"
+                      value="cliente"
+                      v-model="responsable"
+                      autocomplete="off"
+                      @click="fetchTypeDispatchesResponsible()"
+                    />
+                    <label
+                      class="btn btn-outline-primary"
+                      for="responsable-cliente"
+                    >
+                      <i class="fa fa-truck me-2"></i>CLIENTE
+                    </label>
+                  </div>
+                  <select
+                   :disabled="loadingTypeDispatches"
+                    v-model="tipoEntrega"
+                    class="form-select form-select-sm responsible-select"
+                    :aria-label="`Tipo de entrega a cargo de ${
+                      responsable === 'tuval' ? 'Tuval' : 'Cliente'
+                    }`"
+                  >
+                    <option
+                      v-for="opcion in opcionesResponsable[responsable]"
+                      :key="opcion.id"
+                      :value="opcion.id"
+                      :disabled="opcion.id === 'despacho' && !hasDispatch"
+                    >
+                      {{ opcion.nombre }}
+                    </option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
-          <div class="col-12 col-lg-6">
-            <div class="kv space-y-2">
-              <small class="label-small">Fecha de Entrega</small>
-              <flat-pickr
-                id="fecha_entrega"
-                class="form-control form-control-sm"
-                v-model="fechaEntrega"
-                :config="flatPickrState"
-              />
-            </div>
-          </div>
         </div>
-        <div class="col-12 col-lg-8">
-          <div class="kv space-y-2">
-            <label class="label-small" for="lista-proyectos">
-              Tipo de Venta
-            </label>
-            <select
-              id="lista-proyectos"
-              v-model="proyecto"
-              class="form-select form-select-sm project-select"
-              :disabled="
-                loadingProyectSellers || dataProyectSellers.length === 0
-              "
-            >
-              <option
-                v-for="proyect in dataProyectSellers"
-                :key="proyect.coMotproven"
-                :value="proyect.coMotproven"
-              >
-                {{ proyect.txDeslar }}
-              </option>
-            </select>
-          </div>
+        <div v-show="form.tipo_entrega === 'despacho'" class="col-12">
+          <section class="delivery-section" aria-labelledby="delivery-heading">
+            <h3 id="delivery-heading" class="delivery-heading">
+              Datos de entrega
+            </h3>
+            <div class="row g-2">
+              <div class="col-12 col-lg-8">
+                <div class="kv space-y-2">
+                  <small class="label-small">Dirección de Entrega</small>
+                  <div class="input-group input-group-sm">
+                    <select
+                      class="form-select form-select-sm"
+                      v-model="direccionEntregaId"
+                    >
+                      <option
+                        v-for="(suc, index) in sucursales"
+                        :key="index"
+                        :value="suc.id"
+                      >
+                        {{ suc.CLI_SUC_ID_DIRECCION }} -
+                        {{ suc.CLI_SUC_DIRECCION }}
+                      </option>
+                    </select>
+                    <button
+                      class="btn btn-outline-secondary btn-sm"
+                      type="button"
+                      :title="
+                        hasCoordinates2
+                          ? 'Ver ubicación en mapa'
+                          : 'Dirección sin coordenadas'
+                      "
+                      :class="{ 'opacity-50': !hasCoordinates2 }"
+                    >
+                      <img
+                        v-if="hasCoordinates2"
+                        src="/assets/images/earth.png"
+                        alt="Tiene coordenadas"
+                        class="img-fluid"
+                        style="max-width: 18px"
+                      />
+                      <img
+                        v-else
+                        src="/assets/images/earth2.png"
+                        alt="No tiene coordenadas"
+                        class="img-fluid"
+                        style="max-width: 18px"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-lg-4">
+                <div class="kv space-y-2">
+                  <small class="label-small">Fecha de Entrega</small>
+                  <flat-pickr
+                    id="fecha_entrega"
+                    class="form-control form-control-sm"
+                    v-model="fechaEntrega"
+                    :config="flatPickrState"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -402,6 +471,50 @@ function openModalCreateAddress() {
 </template>
 
 <style lang="css" scoped>
+.delivery-section {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--tuval-border, #dfe3e8);
+  border-radius: 0.375rem;
+  background: var(--tuval-surface-muted, #f4f5f7);
+}
+
+.delivery-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.commercial-controls {
+  margin-top: 0.75rem;
+}
+
+.responsible-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.responsible-select {
+  min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+  .responsible-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.responsible-options {
+  display: flex;
+  width: 100%;
+}
+
+.responsible-options .btn {
+  flex: 1 1 0;
+  padding-inline: 0.75rem;
+}
+
 .label-small {
   display: block;
   margin-bottom: 0.18rem;
@@ -416,10 +529,6 @@ function openModalCreateAddress() {
 .kv > small:not(.label-small) {
   display: block;
   line-height: 1;
-}
-
-.project-select {
-  max-width: 22rem;
 }
 
 .kv .badge2 {

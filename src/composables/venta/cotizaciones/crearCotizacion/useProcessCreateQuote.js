@@ -137,7 +137,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             }
             const currentId = newVal.draft_id;
             if (!currentId || currentId === 'undefined') return;
-            const { imagenesoperaciones, documentos_pdf, ...cleanData } = newVal;
+            const {  ...cleanData } = newVal;
             return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, {
                 draft_id: currentId,
                 pto_vta_id: ptoVtaSelect.value,
@@ -524,7 +524,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             if (item.ART_TIPO_COMPRA === 'L') {
                 item.stockRowLoading = false;
                 return;
-            };
+            }
             form.value.items[index].stockRowLoading = true;
             form.value.items[index].disableOpenModalStock = true;
             form.value.items[index].stockListo = false;
