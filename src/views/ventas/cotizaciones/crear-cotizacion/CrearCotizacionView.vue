@@ -1579,14 +1579,14 @@ onMounted(async () => {
                       >
                         <i class="fa fa-people-arrows-left-right"></i>
                       </button>
-                      <button
+                      <!-- <button
                         type="button"
                         class="btn btn-sm btn-warning"
                         title="Configuración de ítem L"
                         @click="openModalSegmentationItemL(element, index)"
                       >
                         <i class="fa fa-gear"></i>
-                      </button>
+                      </button> -->
                     </div>
                   </td>
                   <!-- cantidad -->
