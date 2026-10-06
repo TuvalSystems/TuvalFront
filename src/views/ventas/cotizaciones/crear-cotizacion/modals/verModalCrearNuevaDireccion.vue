@@ -292,7 +292,7 @@ onMounted(() => {
               <small class="text-muted">Región</small>
               <div class="fw-semibold">
                 <select
-                  v-if="!loadingRegions"
+                  :disabled="loadingRegions"
                   id="select-territorio"
                   v-model="form.region_id"
                   class="form-select form-select-sm"
@@ -323,7 +323,7 @@ onMounted(() => {
 
               <div class="fw-semibold">
                 <select
-                  v-if="!loadingProvinces"
+                  :disabled="loadingProvinces"
                   id="select-provincia_id"
                   v-model="form.provincia_id"
                   class="form-select form-select-sm"
@@ -354,7 +354,7 @@ onMounted(() => {
 
               <div class="fw-semibold">
                 <select
-                  v-if="!loadingParishes"
+                  :disabled="loadingParishes"
                   id="select-ciudad"
                   v-model="form.canton_id"
                   class="form-select form-select-sm"
@@ -472,5 +472,4 @@ onMounted(() => {
 .kv .fw-semibold {
   line-height: 1.2;
 }
-
 </style>
