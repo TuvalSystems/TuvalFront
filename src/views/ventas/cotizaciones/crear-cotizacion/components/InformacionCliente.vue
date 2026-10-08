@@ -83,8 +83,25 @@ const providerOptions = computed(() =>
   }))
 );
 
-const freightPayer = fieldModel("responsable_flete");
-const typeDispatchId = fieldModel("tipo_despacho_id");
+// Restablecer logística solo ante cambios del usuario, no al recuperar datos.
+const freightPayer = computed({
+  get: () => props.form.responsable_flete,
+  set: (value) => {
+    if (value === props.form.responsable_flete) return;
+    emit("update-field", { field: "responsable_flete", value });
+    typeDispatchId.value = null;
+  },
+});
+const typeDispatchId = computed({
+  get: () => props.form.tipo_despacho_id,
+  set: (value) => {
+    if (Number(value) === Number(props.form.tipo_despacho_id)) return;
+    emit("update-field", { field: "tipo_despacho_id", value });
+    emit("update-field", { field: "proveedor_despacho_id", value: null });
+    emit("update-field", { field: "monto_flete", value: 0 });
+    if (Number(value) !== 2) direccionEntregaId.value = direccionFacturacionId.value;
+  },
+});
 const dispatchProviderId = fieldModel("proveedor_despacho_id");
 const freightAmount = fieldModel("monto_flete");
 // Valores provisionales para las modalidades a cargo del cliente.
@@ -132,7 +149,6 @@ watch(
   () => freightPayer.value,
   async (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
-      typeDispatchId.value = null;
       await handleResponsibleChange(newVal);
     }
   },
@@ -141,26 +157,6 @@ watch(
 async function handleResponsibleChange(type) {
   await fetchTypeDispatchesResponsible(type);
 }
-
-/** actualizar direccion de entrega a null si cambia  */
-watch(
-  () => typeDispatchId.value,
-  async (newVal, oldVal) => {
-    if (newVal && newVal !== oldVal && newVal !== 2) {
-      direccionEntregaId.value = direccionFacturacionId.value;
-    }
-  }
-);
-
-watch(
-  () => typeDispatchId.value,
-  async (newVal, oldVal) => {
-    if (newVal && newVal !== oldVal) {
-      dispatchProviderId.value = null;
-      freightAmount.value = 0;
-    }
-  }
-);
 
 onMounted(async () => {
   await fetchListProvidersCarrier();
@@ -425,7 +421,7 @@ onMounted(async () => {
           </div>
         </div>
         <!-- para despacho en ruta -->
-        <div v-show="typeDispatchId === 2" class="col-12">
+        <div v-show="Number(typeDispatchId) === 2" class="col-12">
           <section class="delivery-section" aria-labelledby="delivery-heading">
             <h3 id="delivery-heading" class="delivery-heading">
               Datos de entrega
@@ -520,7 +516,7 @@ onMounted(async () => {
                       type="number"
                       min="0"
                       step="0.01"
-                      v-model="freightAmount"
+                      v-model.number="freightAmount"
                       class="form-control form-control-sm text-end"
                     />
                   </div>

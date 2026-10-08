@@ -23,6 +23,7 @@ const getInitialState = () => ({
     bodega_facturacion: null,
     cliente: null,
     segmento: null,
+    pv_id: null, //id del punto de venta 
     punto_venta_id: null,
     //variables de fecha y direccion de facturacion
     tipo_entrega: 'retiro',  //despacho
@@ -86,7 +87,6 @@ const getInitialState = () => ({
     tipo_despacho_id: null,
     proveedor_despacho_id: null,
     monto_flete: 0,
-    pv_id: null,
 
 });
 export function useProcessCreateQuote(draftId = 'default') {
@@ -208,6 +208,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         }
         if (selectedPointSaleCode.value) {
             form.value.punto_venta_id = selectedPointSaleCode.value;
+            form.value.pv_id = selectedPointSaleId.value;
         }
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
@@ -334,7 +335,11 @@ export function useProcessCreateQuote(draftId = 'default') {
             cod_categoria: rawItem.cod_categoria || "",
             cod_linea: rawItem.cod_linea || "",
             cod_clase: rawItem.cod_clase || "",
-            resultado_configuracion_item_l: rawItem.resultado_configuracion_item_l || ""
+            resultado_configuracion_item_l: rawItem.resultado_configuracion_item_l || "",
+
+            //campos para paqueteria
+            monto_flete: 0,
+            errorMontoFlete: false
         }
         form.value.items.push(itemEstandarizado);
         calculateTotals();
@@ -643,8 +648,6 @@ export function useProcessCreateQuote(draftId = 'default') {
     // proceso para apertura de modal de proveedores
 
     const isItemL = (row) => row.ART_TIPO_COMPRA === 'L'
-
-
     const initialDataModalProvider = () => ({
         proveedores: [],
         index: 0,
@@ -1035,7 +1038,64 @@ export function useProcessCreateQuote(draftId = 'default') {
     }
 
 
+    /* 
+     * proceso de monto de flete para detalle 
+     * 
+     */
 
+    // Solo el despacho 4 distribuye el flete entre los artículos.
+    const isActivePricefreight = () => Number(form.value.tipo_despacho_id) === 4;
+
+    watch(
+        () => form.value.tipo_despacho_id,
+        (newVal, oldVal) => {
+            if (!isRecoveringQuote.value && Number(newVal) !== Number(oldVal)) {
+                cleanFreightPrice();
+            }
+        },
+        { flush: 'sync' }
+    );
+
+    function cleanFreightPrice() {
+        form.value.items.forEach((item) => {
+            item.monto_flete = 0;
+            item.errorMontoFlete = false;
+        });
+    }
+
+    const toFreightCents = (value) => {
+        if (value === null || value === undefined || value === '') return 0;
+        const amount = Number(value);
+        if (!Number.isFinite(amount) || amount < 0) return null;
+        const cents = Math.round(amount * 100);
+        // No admitir fracciones de centavo que no se puedan guardar como moneda.
+        return Number.isSafeInteger(cents) && Math.abs(amount * 100 - cents) < 0.000001
+            ? cents : null;
+    };
+
+    // Esta consulta es pura: también se usa desde los computed de los botones.
+    function validateFreightTotal() {
+        const dispatchId = Number(form.value.tipo_despacho_id);
+        if (![4, 5].includes(dispatchId)) return true;
+        const amountHeader = toFreightCents(form.value.monto_flete);
+        if (amountHeader === null) return false;
+        if (!isActivePricefreight()) return true;
+        const amounts = form.value.items.map((item) => toFreightCents(item.monto_flete));
+        return amounts.every((amount) => amount !== null)
+            && amounts.reduce((total, amount) => total + amount, 0) === amountHeader;
+    }
+
+    watch(
+        () => [form.value.tipo_despacho_id, form.value.monto_flete,
+            form.value.items.map((item) => item.monto_flete)],
+        () => {
+            const hasError = isActivePricefreight() && !validateFreightTotal();
+            form.value.items.forEach((item) => {
+                item.errorMontoFlete = hasError;
+            });
+        },
+        { immediate: true }
+    );
 
     /*** 
      * 
@@ -1053,6 +1113,10 @@ export function useProcessCreateQuote(draftId = 'default') {
         }
         if (!form.value.items.length) {
             swalWarning('Debe agregar al menos un artículo.');
+            return;
+        }
+        if (!validateFreightTotal()) {
+            swalWarning("Ingrese montos de flete válidos; para paquetería, la suma del detalle debe coincidir con la cabecera.");
             return;
         }
         const formData = new FormData();
@@ -1073,6 +1137,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
         //variables de punto de venta y bodega de facturacion
         formData.append('punto_venta_id', form.value.punto_venta_id);
+        formData.append('pv_id', form.value.pv_id);
         formData.append('bodega_facturacion', form.value.bodega_facturacion);
 
         //variables de fecha y direccion de facturacion
@@ -1163,6 +1228,14 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
+
+        //paqueteria
+        formData.append('responsable_flete', form.value.responsable_flete);
+        formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
+        formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
+        formData.append('monto_flete', form.value.monto_flete);
+
+
         return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
@@ -1228,8 +1301,6 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.imagenesoperaciones = [];
                 const { cotizacion, cliente, items, segmento, imagenesOperaciones, documentosPdf, mode } = res;
 
-                // clearForm(uploadedFilesRef);
-
                 //cargamos el cliente y los datos de identificacion 
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
@@ -1260,12 +1331,15 @@ export function useProcessCreateQuote(draftId = 'default') {
                     cod_categoria: item.cod_categoria || "",
                     cod_linea: item.cod_linea || "",
                     cod_clase: item.cod_clase || "",
-                    resultado_configuracion_item_l: item.resultado_configuracion_item_l || ""
+                    resultado_configuracion_item_l: item.resultado_configuracion_item_l || "",
+                    monto_flete: item.monto_flete ?? 0,
+                    errorMontoFlete: false
                 }));
 
 
                 // 4. Configuración de Cabecera y Logística
                 form.value.punto_venta_id = cotizacion.PTO_VTA_ID;
+                form.value.pv_id = cotizacion.pv_id;
                 form.value.bodega_facturacion = cotizacion.BOD_BODEGA;
                 form.value.direccion_facturacion_id = cotizacion.sucursal_facturacion_id;
                 form.value.direccion_entrega_id = cotizacion.sucursal_id;
@@ -1328,10 +1402,12 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
-                // setTimeout(() => {
-                //     isRecoveringQuote.value = false;
 
-                // }, 500);
+                //paqueteria
+                form.value.responsable_flete = cotizacion.responsable_flete ?? 'tuval';
+                form.value.tipo_despacho_id = cotizacion.tipo_despacho_id;
+                form.value.proveedor_despacho_id = cotizacion.proveedor_despacho_id ?? null;
+                form.value.monto_flete = cotizacion.monto_flete ?? 0;
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
@@ -1372,6 +1448,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.segmento = segmento;
 
                 form.value.punto_venta_id = cotizacion.PTO_VTA_ID;
+                form.value.pv_id = cotizacion.pv_id;
                 form.value.bodega_facturacion = cotizacion.BOD_BODEGA;
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
@@ -1416,7 +1493,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                     stockRowLoading: false,
                     disableOpenModalStock: false,
                     proveedores: item.proveedores || [],
-                    imagenes: item.imagenes || []
+                    imagenes: item.imagenes || [],
+                    monto_flete: 0
 
                 }));
 
@@ -1439,7 +1517,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //documentos pdf
                 if (documentosPdf && documentosPdf.length > 0) {
                     if (uploadedPdfsRef) {
-                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                        uploadedPdfsRef.value = documentosPdf.map((doc) => ({
                             id: doc.id,
                             preview: doc.url,
                             name: doc.nombre,
@@ -1453,6 +1531,13 @@ export function useProcessCreateQuote(draftId = 'default') {
                     if (uploadedPdfsRef) uploadedPdfsRef.value = [];
                     form.value.documentos_pdf = [];
                 }
+
+                //paqueteria
+                form.value.responsable_flete = 'tuval';
+                form.value.tipo_despacho_id = null;
+                form.value.proveedor_despacho_id = null;
+                form.value.monto_flete = 0;
+
                 validateBillingRules();
                 calculateTotals();
             },
@@ -1492,6 +1577,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.segmento = segmento;
 
                 form.value.punto_venta_id = selectedPointSaleCode.value;
+                form.value.pv_id = selectedPointSaleId.value;
                 form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
                 form.value.direccion_facturacion_id = sucursal_id;
                 form.value.direccion_entrega_id = sucursal_id;
@@ -1526,7 +1612,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                     stockRowLoading: false,
                     disableOpenModalStock: false,
                     proveedores: [],
-                    imagenes: item.imagenes || []
+                    imagenes: item.imagenes || [],
+                    monto_flete: 0
 
                 }));
 
@@ -1549,7 +1636,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //documentos pdf
                 if (documentosPdf && documentosPdf.length > 0) {
                     if (uploadedPdfsRef) {
-                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                        uploadedPdfsRef.value = documentosPdf.map((doc) => ({
                             id: doc.id,
                             preview: doc.url,
                             name: doc.nombre,
@@ -1563,6 +1650,12 @@ export function useProcessCreateQuote(draftId = 'default') {
                     if (uploadedPdfsRef) uploadedPdfsRef.value = [];
                     form.value.documentos_pdf = [];
                 }
+
+                //paqueteria
+                form.value.responsable_flete = 'tuval';
+                form.value.tipo_despacho_id = null;
+                form.value.proveedor_despacho_id = null;
+                form.value.monto_flete = 0;
 
                 validateBillingRules();
                 calculateTotals();
@@ -1600,6 +1693,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.segmento = segmento;
 
                 form.value.punto_venta_id = pedido.PTO_VTA_ID;
+                form.value.pv_id = pedido.pv_id;
+
                 form.value.bodega_facturacion = pedido.BOD_BODEGA;
                 form.value.condicion_pago_id = pedido.COND_ID;
                 form.value.forma_pago_id = pedido.DESC_FORMA_PAGO_CODIGO;
@@ -1668,6 +1763,14 @@ export function useProcessCreateQuote(draftId = 'default') {
                     if (uploadedPdfsRef) uploadedPdfsRef.value = [];
                     form.value.documentos_pdf = [];
                 }
+
+                //paqueteria
+                form.value.responsable_flete = 'tuval';
+                form.value.tipo_despacho_id = null;
+                form.value.proveedor_despacho_id = null;
+                form.value.monto_flete = 0;
+
+
                 validateBillingRules();
                 calculateTotals();
             },
@@ -1695,6 +1798,10 @@ export function useProcessCreateQuote(draftId = 'default') {
             swalWarning('Debe agregar al menos un artículo.');
             return;
         }
+        if (!validateFreightTotal()) {
+            swalWarning('Ingrese montos de flete válidos; para paquetería, la suma del detalle debe coincidir con la cabecera.');
+            return;
+        }
         const formData = new FormData();
         formData.append('mode', 'crear_pedido');
         formData.append('cotizacion_id', form.value.cotizacion_id);
@@ -1709,6 +1816,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
         //variables de punto de venta y bodega de facturacion
         formData.append('punto_venta_id', form.value.punto_venta_id);
+        formData.append('pv_id', form.value.pv_id);
         formData.append('bodega_facturacion', form.value.bodega_facturacion);
 
         //variables de fecha y direccion de facturacion
@@ -1800,6 +1908,14 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
+
+        //paqueteria
+        formData.append('responsable_flete', form.value.responsable_flete);
+        formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
+        formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
+        formData.append('monto_flete', form.value.monto_flete);
+
+
         return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.CREATE, formData), {
             loadingRef: loadingSaveOrder,
             onError: (error) => {
@@ -1960,7 +2076,12 @@ export function useProcessCreateQuote(draftId = 'default') {
         //lista de proyectos
         loadingProyectSellers,
         dataProyectSellers,
-        fetchListProyectSellers
+        fetchListProyectSellers,
+
+        //monto flete
+        isActivePricefreight,
+        cleanFreightPrice,
+        validateFreightTotal
     };
 
 

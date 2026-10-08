@@ -83,6 +83,12 @@ const routes = [
             name: "sistemas-mantenimientos-lista-chofer-transportista",
             component: () => import("@/views/sistemas/mantenimientos/chofer-transportista/ChoferTransportistaIndex.vue"),
             meta: { title: "Choferes Transportistas" }
+          },
+           {
+            path: "lista-articulos",
+            name: "sistemas-mantenimientos-lista-articulos",
+            component: () => import("@/views/sistemas/mantenimientos/articulos/ArticulosIndex.vue"),
+            meta: { title: "Articulos" }
           }
         ]
       }

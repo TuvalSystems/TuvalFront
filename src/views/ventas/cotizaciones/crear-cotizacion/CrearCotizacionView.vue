@@ -159,6 +159,10 @@ const {
   loadingProyectSellers,
   dataProyectSellers,
   fetchListProyectSellers,
+
+  //monto flete
+  isActivePricefreight,
+  validateFreightTotal,
 } = useProcessCreateQuote(currentDraftId.value);
 
 const {
@@ -254,9 +258,9 @@ const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
   keyboard: false,
 });
 
-const verModalConfiguracionItemLObj = useBootstrapModal(
-  verModalConfiguracionItemLRef
-);
+// const verModalConfiguracionItemLObj = useBootstrapModal(
+//   verModalConfiguracionItemLRef
+// );
 
 // variables para mostrar las busquedas
 const showResultClients = ref(false);
@@ -675,11 +679,11 @@ const dataItemLClasification = ref({
   item: {},
   index: 0,
 });
-async function openModalSegmentationItemL(item, i) {
-  dataItemLClasification.value.item = item;
-  dataItemLClasification.value.index = i;
-  verModalConfiguracionItemLObj.show();
-}
+// async function openModalSegmentationItemL(item, i) {
+//   dataItemLClasification.value.item = item;
+//   dataItemLClasification.value.index = i;
+//   verModalConfiguracionItemLObj.show();
+// }
 
 function updateItemLClassification({ index, categoria, linea, clase }) {
   const item = form.value.items[index];
@@ -942,6 +946,8 @@ const btnDisabledStore = computed(() => {
   if (!isQuoteValid.value) return true;
   if (!form.value.cliente) return true;
   if (!form.value.condicion_pago_id) return true;
+  if (!form.value.items.length) return true;
+  if (!validateFreightTotal()) return true;
   return false;
 });
 
@@ -951,6 +957,7 @@ const btnDisableStoreQuotation = computed(() => {
   if (loadingSaveOrder.value) return true;
   if (!form.value.cliente) return true;
   if (!form.value.condicion_pago_id) return true;
+  if (!validateFreightTotal()) return true;
   return false;
 });
 
@@ -1499,7 +1506,9 @@ onMounted(async () => {
                 <th scope="col" class="text-end" style="width: 100px">
                   Precio
                 </th>
-                <th scope="col" class="text-end" style="width: 60px"></th>
+                <th scope="col" class="text-end" style="width: 50px">
+                  Monto flete
+                </th>
                 <th scope="col" class="text-end" style="width: 80px">
                   % Desc.
                 </th>
@@ -1720,6 +1729,28 @@ onMounted(async () => {
                       @blur="saveModifyPrice(element, index)"
                       @keyup.enter="$event.target.blur()"
                       @keyup.esc="exitEditPrice(element)"
+                    />
+                  </td>
+                  <!-- precio flete -->
+                  <td class="fs-sm text-center col-1">
+                    <span
+                      v-if="!isActivePricefreight()"
+                      class="text-muted"
+                      style="text-align: center"
+                      title="No aplica flete por artículo"
+                    >
+                      &mdash;
+                    </span>
+                    <input
+                      v-else
+                      :id="`input-monto-flete-${index}`"
+                      :class="{ 'is-invalid': element.errorMontoFlete }"
+                      type="number"
+                      class="form-control text-end no-spinners p-1"
+                      placeholder="0"
+                      v-model.number="element.monto_flete"
+                      min="0"
+                      step="0.01"
                     />
                   </td>
                   <!-- descuento con opcion de cambiar descuento-->
@@ -2313,6 +2344,9 @@ onMounted(async () => {
               >
                 Limpiar cotización
               </button>
+              <p v-if="!validateFreightTotal()" class="text-danger fs-sm mb-0" role="alert">
+                Ingrese montos de flete válidos. Para paquetería, la suma del detalle debe coincidir con el valor del flete.
+              </p>
               <div
                 class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2"
               >
