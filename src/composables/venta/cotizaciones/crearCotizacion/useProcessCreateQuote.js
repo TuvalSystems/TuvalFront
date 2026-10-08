@@ -78,12 +78,22 @@ const getInitialState = () => ({
     documentos_pdf: [],
 
     //seleccion de tipo de proyecto 
-    proyecto: null
+    proyecto: null,
+
+
+    //parte de fletes 
+    responsable_flete: 'tuval',
+    tipo_despacho_id: null,
+    proveedor_despacho_id: null,
+    monto_flete: 0,
+    pv_id: null,
 
 });
 export function useProcessCreateQuote(draftId = 'default') {
     const store = useStore();
-    const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
+    const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
+    const selectedPointSaleCode = computed(() => store.state.puntodeventaselect);
+
     const { run } = useApiAction();
     const today = new Date();
     const route = useRoute();
@@ -137,10 +147,10 @@ export function useProcessCreateQuote(draftId = 'default') {
             }
             const currentId = newVal.draft_id;
             if (!currentId || currentId === 'undefined') return;
-            const {  ...cleanData } = newVal;
+            const { ...cleanData } = newVal;
             return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, {
                 draft_id: currentId,
-                pto_vta_id: ptoVtaSelect.value,
+                pto_vta_id: selectedPointSaleCode.value,
                 data: {
                     ...cleanData,
                     imagenesoperaciones: [], // Aseguramos que viajen vacíos
@@ -154,7 +164,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingListDrafts = ref(false);
     async function getActiveDrafts() {
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pto_vta_id: ptoVtaSelect.value }), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pto_vta_id: selectedPointSaleCode.value }), {
             loadingRef: loadingListDrafts
         });
     }
@@ -196,8 +206,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         } else {
             form.value.draft_id = route.query.draft || null;
         }
-        if (ptoVtaSelect.value) {
-            form.value.punto_venta_id = ptoVtaSelect.value;
+        if (selectedPointSaleCode.value) {
+            form.value.punto_venta_id = selectedPointSaleCode.value;
         }
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
@@ -554,7 +564,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     async function updateStockItemsByBatch(item, tipo, cotizacionId) {
         const payloadBatch = {
             'articulo': item,
-            'bodega': ptoVtaSelect.value,
+            'bodega': selectedPointSaleCode.value,
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
@@ -613,7 +623,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     async function updateStockItemsBatchAPI(item, tipo, cotizacionId) {
         const payloadBatch = {
             'articulos': item,
-            'bodega': ptoVtaSelect.value,
+            'bodega': selectedPointSaleCode.value,
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
@@ -1481,7 +1491,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
 
-                form.value.punto_venta_id = ptoVtaSelect.value;
+                form.value.punto_venta_id = selectedPointSaleCode.value;
                 form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
                 form.value.direccion_facturacion_id = sucursal_id;
                 form.value.direccion_entrega_id = sucursal_id;
@@ -1833,7 +1843,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         clearForm,
         addItems,
         removeItem,
-        ptoVtaSelect,
+        selectedPointSaleCode,
         //limitadores 
         maxOrder,
         maxLength,

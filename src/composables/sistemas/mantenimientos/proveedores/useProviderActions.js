@@ -10,7 +10,7 @@ export function useProviderActions() {
     async function updateStatusCarrierProvider(id) {
         return await run(() => axiosClient.put(`${PROVIDER_API_ROUTES.UPDATED_CARRIER}/${encodeURIComponent(id)}`), {
             loadingRef: loadingCarrierProvider,
-              onError: (backend, error) => {
+            onError: (backend, error) => {
                 console.error(backend, error);
             },
         });
@@ -26,11 +26,27 @@ export function useProviderActions() {
         });
     }
 
+    const loadingActiveProviders = ref(false);
+    const activeProviders = ref([]);
+    async function fetchActiveProviders() {
+        return await run(() => axiosClient.get(PROVIDER_API_ROUTES.LIST_PROVIDER_ACTIVE), {
+            loadingRef: loadingActiveProviders,
+            onSuccess: (info) => {
+                activeProviders.value = Array.isArray(info) ? info : [];
+            }
+        });
+    }
+
 
     return {
         loadingCarrierProvider,
         updateStatusCarrierProvider,
         loadingStatusProvider,
-        updateStatusProvider
+        updateStatusProvider,
+
+        //lista proveedores activos para cotizacion-detalle-proveedores
+        loadingActiveProviders,
+        fetchActiveProviders,
+        activeProviders
     }
 }

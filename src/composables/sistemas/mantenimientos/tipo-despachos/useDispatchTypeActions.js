@@ -69,7 +69,7 @@ export function useDispatchTypeActions() {
     const loadingTypeDispatches = ref(false);
     const typeDispatchesResponsible = ref([]);
     async function fetchTypeDispatchesResponsible(type) {
-        return run(() => axiosClient.get(DISPATCH_TYPES_API.TYPE_DISPATCHES_RESPONSIBLE, { tipo: type }), {
+        return run(() => axiosClient.post(DISPATCH_TYPES_API.TYPE_DISPATCHES_RESPONSIBLE, { tipo: type }), {
             loadingRef: loadingTypeDispatches,
             onSuccess: (info) => {
                 typeDispatchesResponsible.value = Array.isArray(info) ? info : [];

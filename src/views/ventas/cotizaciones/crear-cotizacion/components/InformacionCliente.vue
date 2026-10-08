@@ -1,8 +1,10 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, watch } from "vue";
+import BaseSearchSelect from "@/components/BaseSearchSelect.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useDispatchTypeActions } from "@/composables/sistemas/mantenimientos/tipo-despachos/useDispatchTypeActions";
+import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
 
 const props = defineProps({
   infoCliente: {
@@ -53,9 +55,16 @@ const {
   typeDispatchesResponsible,
   fetchTypeDispatchesResponsible,
 } = useDispatchTypeActions();
-
+const {
+  //lista de proveedoress transportistas
+  loadingProviderCarrier,
+  providersCarriers,
+  fetchListProvidersCarrier,
+} = useCarrierDriverActions({});
 const emit = defineEmits(["create-address", "update-field"]);
 const client = computed(() => props.infoCliente);
+const formRef = computed(() => props.form);
+
 const fieldModel = (field) =>
   computed({
     get: () => props.form[field],
@@ -63,36 +72,23 @@ const fieldModel = (field) =>
   });
 const bodegaFacturacion = fieldModel("bodega_facturacion");
 const direccionFacturacionId = fieldModel("direccion_facturacion_id");
-const tipoEntrega = fieldModel("tipo_entrega");
-// Valores provisionales para las modalidades a cargo del cliente.
-const opcionesResponsable = {
-  tuval: [
-    { id: "despacho", nombre: "Despacho en ruta" },
-    { id: "retiro", nombre: "Retiro en bodega" },
-  ],
-  cliente: [
-    { id: "paqueteria", nombre: "Paquetería" },
-    { id: "flete_al_cobro", nombre: "Flete al cobro" },
-    { id: "proveedor_entrega", nombre: "Proveedor entrega" },
-  ],
-};
-const responsable = computed({
-  get: () =>
-    opcionesResponsable.cliente.some(
-      (opcion) => opcion.id === tipoEntrega.value
-    )
-      ? "cliente"
-      : "tuval",
-  set: (value) => {
-    if (value !== responsable.value) {
-      tipoEntrega.value = value === "tuval" ? "retiro" : "paqueteria";
-    }
-  },
-});
 const direccionEntregaId = fieldModel("direccion_entrega_id");
 const fechaEntrega = fieldModel("fecha_entrega");
 const proyecto = fieldModel("proyecto");
-const formRef = computed(() => props.form);
+
+const providerOptions = computed(() =>
+  providersCarriers.value.map((item) => ({
+    value: item.id,
+    label: item.razon_social,
+  }))
+);
+
+const freightPayer = fieldModel("responsable_flete");
+const typeDispatchId = fieldModel("tipo_despacho_id");
+const dispatchProviderId = fieldModel("proveedor_despacho_id");
+const freightAmount = fieldModel("monto_flete");
+// Valores provisionales para las modalidades a cargo del cliente.
+
 const flatPickrState = {
   minDate: "today",
   monthSelectorType: "static",
@@ -112,12 +108,7 @@ const hasCoordinates = computed(() =>
 const hasCoordinates2 = computed(() =>
   checkCoords(props.form.direccion_entrega_id)
 );
-const hasDispatch = computed(() => {
-  const warehouse = props.warehouseByUser.find(
-    (w) => w.relacion_bodega.BOD_BODEGA === props.form.bodega_facturacion
-  );
-  return !!warehouse?.relacion_bodega.PERMITE_DESPACHO;
-});
+
 const isWarehouseSelectionDisabled = computed(
   () => props.loadingWarehouseByUser || props.form.origen === "reserva"
 );
@@ -128,15 +119,52 @@ function getClientStatus(isSuspended) {
     : { text: "SI", class: "bg-danger-light text-danger" };
 }
 
+function getAvailableCreditClass() {
+  return parseFloat(client.value.cupo_disponible) < 0 ? "text-danger" : "";
+}
+
 function openModalCreateAddress() {
   emit("create-address");
 }
 
-
-
 /** lista de tipo de despacho por responsable */
+watch(
+  () => freightPayer.value,
+  async (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      typeDispatchId.value = null;
+      await handleResponsibleChange(newVal);
+    }
+  },
+  { immediate: true }
+);
+async function handleResponsibleChange(type) {
+  await fetchTypeDispatchesResponsible(type);
+}
 
+/** actualizar direccion de entrega a null si cambia  */
+watch(
+  () => typeDispatchId.value,
+  async (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal && newVal !== 2) {
+      direccionEntregaId.value = direccionFacturacionId.value;
+    }
+  }
+);
 
+watch(
+  () => typeDispatchId.value,
+  async (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      dispatchProviderId.value = null;
+      freightAmount.value = 0;
+    }
+  }
+);
+
+onMounted(async () => {
+  await fetchListProvidersCarrier();
+});
 </script>
 
 <template>
@@ -215,12 +243,7 @@ function openModalCreateAddress() {
         <div class="col-6 col-lg-4">
           <div class="kv">
             <small class="label-small">Cupo Disponible</small>
-            <div
-              class="fw-semibold"
-              :class="
-                parseFloat(client.cupo_disponible) < 0 ? 'text-danger' : ''
-              "
-            >
+            <div class="fw-semibold" :class="getAvailableCreditClass">
               ${{ client.cupo_disponible }}
             </div>
           </div>
@@ -350,9 +373,8 @@ function openModalCreateAddress() {
                       name="responsable"
                       id="responsable-tuval"
                       value="tuval"
-                      v-model="responsable"
+                      v-model="freightPayer"
                       autocomplete="off"
-                      @click="fetchTypeDispatchesResponsible($event)"
                     />
                     <label
                       class="btn btn-outline-primary"
@@ -367,9 +389,8 @@ function openModalCreateAddress() {
                       name="responsable"
                       id="responsable-cliente"
                       value="cliente"
-                      v-model="responsable"
+                      v-model="freightPayer"
                       autocomplete="off"
-                      @click="fetchTypeDispatchesResponsible()"
                     />
                     <label
                       class="btn btn-outline-primary"
@@ -379,20 +400,23 @@ function openModalCreateAddress() {
                     </label>
                   </div>
                   <select
-                   :disabled="loadingTypeDispatches"
-                    v-model="tipoEntrega"
+                    :disabled="loadingTypeDispatches"
+                    v-model="typeDispatchId"
                     class="form-select form-select-sm responsible-select"
                     :aria-label="`Tipo de entrega a cargo de ${
-                      responsable === 'tuval' ? 'Tuval' : 'Cliente'
+                      freightPayer === 'tuval' ? 'Tuval' : 'Cliente'
                     }`"
                   >
+                    <option :value="null" disabled>
+                      Seleccione una opción
+                    </option>
                     <option
-                      v-for="opcion in opcionesResponsable[responsable]"
+                      v-for="opcion in typeDispatchesResponsible"
                       :key="opcion.id"
                       :value="opcion.id"
-                      :disabled="opcion.id === 'despacho' && !hasDispatch"
+                      :disabled="loadingTypeDispatches"
                     >
-                      {{ opcion.nombre }}
+                      {{ opcion.descripcion }}
                     </option>
                   </select>
                 </div>
@@ -400,7 +424,8 @@ function openModalCreateAddress() {
             </div>
           </div>
         </div>
-        <div v-show="form.tipo_entrega === 'despacho'" class="col-12">
+        <!-- para despacho en ruta -->
+        <div v-show="typeDispatchId === 2" class="col-12">
           <section class="delivery-section" aria-labelledby="delivery-heading">
             <h3 id="delivery-heading" class="delivery-heading">
               Datos de entrega
@@ -460,6 +485,45 @@ function openModalCreateAddress() {
                     v-model="fechaEntrega"
                     :config="flatPickrState"
                   />
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <!-- para flete al cobro y proveedores  -->
+        <div v-show="[4, 5].includes(Number(typeDispatchId))" class="col-12">
+          <section class="delivery-section" aria-labelledby="delivery-heading">
+            <h3 id="delivery-heading" class="delivery-heading">
+              Flete al Cobro
+            </h3>
+            <div class="row g-2">
+              <div class="col-12 col-lg-8">
+                <div class="kv space-y-2">
+                  <small class="label-small"> Proveedor</small>
+                  <BaseSearchSelect
+                    v-model="dispatchProviderId"
+                    :options="providerOptions"
+                    aria-label="Proveedor"
+                    input-id="select-proveedor-responsable-id"
+                    :loading="loadingProviderCarrier"
+                  />
+                </div>
+              </div>
+              <div class="col-12 col-lg-4">
+                <div class="kv space-y-2">
+                  <small class="label-small">Valor del flete</small>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">
+                      <i class="fa fa-dollar"></i>
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      v-model="freightAmount"
+                      class="form-control form-control-sm text-end"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

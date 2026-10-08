@@ -2,8 +2,10 @@ export const PROVIDER_API_ROUTES = {
     LIST: 'ventas/proveedores/lista',
     UPDATED_CARRIER: 'ventas/proveedores/actualizar-estado-transportista',
     UPDATED_STATUS: 'ventas/proveedores/actualizar-estado',
-    PROVIDER_CARRIER : 'ventas/proveedores/lista-proveedores-transportista',
+    PROVIDER_CARRIER: 'ventas/proveedores/lista-proveedores-transportista',
+    LIST_PROVIDER_ACTIVE: 'ventas/proveedores/lista-proveedores-activos',
 
+    
     CARRIER_DRIVER: {
         LIST: 'ventas/proveedores/choferes-transportista/lista',
         CREATE_REGISTER: 'ventas/proveedores/choferes-transportista/crear-registro',

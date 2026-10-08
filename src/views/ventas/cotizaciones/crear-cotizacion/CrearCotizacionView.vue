@@ -15,6 +15,7 @@ import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crea
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import { useImageUpload } from "@/composables/core/useImageUpload";
 import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle.js";
+import { useProviderActions } from "@/composables/sistemas/mantenimientos/proveedores/useProviderActions.js";
 
 import draggable from "vuedraggable";
 import {
@@ -78,7 +79,7 @@ const {
   clearForm,
   addItems,
   removeItem,
-  ptoVtaSelect,
+  selectedPointSaleCode,
   //limitadores
   maxOrder,
   maxLengthNote,
@@ -200,6 +201,9 @@ const triggerPdfInput = () => {
 };
 
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
+const { loadingActiveProviders, fetchActiveProviders, activeProviders } =
+  useProviderActions();
+
 //variables de modales
 const verModalActualizarSegmento = ref(null);
 const newAddressModal = ref(null);
@@ -364,7 +368,7 @@ async function processSelectClient(client) {
     infoClient.value.CLI_DSTO_COMERCIAL || 0
   );
 
-  form.value.punto_venta_id = ptoVtaSelect.value;
+  form.value.punto_venta_id = selectedPointSaleCode.value;
 }
 
 // proceso de crear direccion nueva para un cliente
@@ -411,7 +415,7 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
 
 //limpieza de form cuando cambia de punto de venta
 watch(
-  () => ptoVtaSelect.value,
+  () => selectedPointSaleCode.value,
   async (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
       isRecoveringQuote.value = true;
@@ -429,7 +433,7 @@ watch(
 );
 
 watch(
-  () => ptoVtaSelect.value,
+  () => selectedPointSaleCode.value,
   (nuevoPuntoVenta) => {
     if (nuevoPuntoVenta) {
       asigmentWarehouse(nuevoPuntoVenta);
@@ -441,8 +445,8 @@ watch(
   () => warehouseByUser.value,
   (nuevasBodegas) => {
     // Solo intentamos asignar si ya tenemos un punto de venta seleccionado
-    if (nuevasBodegas && nuevasBodegas.length > 0 && ptoVtaSelect) {
-      asigmentWarehouse(ptoVtaSelect.value);
+    if (nuevasBodegas && nuevasBodegas.length > 0 && selectedPointSaleCode) {
+      asigmentWarehouse(selectedPointSaleCode.value);
     }
   }
 );
@@ -811,6 +815,10 @@ const saveModifyPrice = async (element) => {
   calculateTotals();
 };
 
+function isApplyModifyPriceStyle(item) {
+  return applyModifyPrice(item) ? "text-danger" : "text-primary";
+}
+
 /**
  *  proceso de modificacion de descuento
  */
@@ -823,6 +831,10 @@ const saveModifyDiscount = async (element) => {
   element.cambiar_descuento = false;
   calculateTotals();
 };
+
+function isApplyModifyDiscountStyle(item) {
+  return applyModifyDiscount(item) ? "text-danger" : "text-primary";
+}
 
 /** proceso de eliminacion de registro de item  */
 
@@ -1166,6 +1178,7 @@ watch(
 );
 
 onMounted(async () => {
+  await fetchActiveProviders();
   const mode = route.query.mode;
   const idDoc = route.query.id;
   if (mode && idDoc) {
@@ -1486,6 +1499,7 @@ onMounted(async () => {
                 <th scope="col" class="text-end" style="width: 100px">
                   Precio
                 </th>
+                <th scope="col" class="text-end" style="width: 60px"></th>
                 <th scope="col" class="text-end" style="width: 80px">
                   % Desc.
                 </th>
@@ -1689,13 +1703,7 @@ onMounted(async () => {
                       class="cursor-pointer"
                       title="Clic para editar"
                     >
-                      <span
-                        :class="
-                          applyModifyPrice(element)
-                            ? 'text-danger'
-                            : 'text-primary'
-                        "
-                      >
+                      <span :class="isApplyModifyPriceStyle(element)">
                         ${{ formatPrice4(parseFloat(element.ART_VALOR)) }}
                       </span>
                     </div>
@@ -1722,13 +1730,7 @@ onMounted(async () => {
                       class="cursor-pointer"
                       title="Clic para editar"
                     >
-                      <span
-                        :class="
-                          applyModifyDiscount(element)
-                            ? 'text-danger'
-                            : 'text-primary'
-                        "
-                      >
+                      <span :class="isApplyModifyDiscountStyle(element)">
                         {{ format(parseFloat(element.descuento)) }}%
                       </span>
                     </div>
@@ -2050,14 +2052,14 @@ onMounted(async () => {
                 </div>
               </div>
             </BaseBlock>
-            <BaseBlock class="mb-4">
+            <BaseBlock class="mb-2">
               <template #title>
                 <div class="d-flex align-items-center gap-2">
                   <i class="fa fa-sticky-note text-body-secondary"></i>
                   <span class="fw-semibold">Notas</span>
                 </div>
               </template>
-              <div class="row g-4">
+              <div class="row g-4 mb-2">
                 <div class="col-md-4">
                   <div class="d-flex justify-content-between mb-1">
                     <label
@@ -2496,6 +2498,8 @@ onMounted(async () => {
           :providers="dataModalProviders.proveedores"
           :index="dataModalProviders.index"
           :item="dataModalProviders.item"
+          :loading-list-providers="loadingActiveProviders"
+          :list-providers="activeProviders"
           @update:providers="handleSaveProviders"
           class="h-100"
         >
