@@ -52,8 +52,8 @@ const listaProviders = computed(() =>
   }))
 );
 const loadingListProviders = computed(() => props.loadingListProviders);
+const article = computed(() => props.item);
 const precioSugeridoProveedor = ref(props.item.ART_VALOR);
-
 watch(
   () => props.providers,
   (newVal) => {
@@ -68,17 +68,17 @@ watch(
 );
 
 watch(
-  () => props.item.ART_CODIGO,
-  (newVal) => {
+  () => article.value.ART_CODIGO,
+  async (newVal) => {
     if (newVal) {
-      getMargenFotItemL(newVal);
+      await getMargenFotItemL(newVal);
     }
   },
   { immediate: true, deep: true }
 );
 
 watch(
-  () => props.item.ART_VALOR,
+  () => article.value.ART_VALOR,
   (newVal) => {
     precioSugeridoProveedor.value = newVal;
   },
@@ -88,7 +88,7 @@ watch(
 const addProvider = async () => {
   const newProveedor = {
     ID_PROVEEDOR: null,
-    DESCRIPCION_ARTICULO: props.item.ART_DESCRIPCION,
+    DESCRIPCION_ARTICULO: article.value.ART_DESCRIPCION,
     FECHA_ENTREGA: "",
     CANTIDAD: 0,
     COSTO_UNITARIO: "",
@@ -118,8 +118,8 @@ function calculaTotalProveedor(index) {
   }
   const margen = Number.parseFloat(row.MARGEN) || 0;
 
-  const impuestoPorcentaje = Number.parseFloat(props.item.ART_IMP_VTA) || 0;
-  const descuentoItem = Number.parseFloat(props.item.descuento) || 0;
+  const impuestoPorcentaje = Number.parseFloat(article.value.ART_IMP_VTA) || 0;
+  const descuentoItem = Number.parseFloat(article.value.descuento) || 0;
 
   const totalNeto = costo * cantidad;
 
@@ -181,7 +181,7 @@ onMounted(async () => {});
           <div class="fs-xs text-muted">
             Item:
             <span class="fw-semibold text-dark">{{
-              props.item.ART_DESCRIPCION
+              article.ART_DESCRIPCION
             }}</span>
             <span class="mx-1">|</span>
             Ref:
@@ -196,10 +196,10 @@ onMounted(async () => {});
       >
         <span class="fs-xs fw-bold text-muted me-2">REQUERIDO:</span>
         <span class="fs-6 fw-bold text-dark">{{
-          props.item.ART_CANTIDAD || 0
+         article.ART_CANTIDAD || 0
         }}</span>
         <span class="fs-xs text-muted ms-1">{{
-          props.item.ART_PLAN_UMEDIDA
+          article.ART_PLAN_UMEDIDA
         }}</span>
       </div>
     </template>
