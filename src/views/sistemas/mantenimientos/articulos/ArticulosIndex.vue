@@ -103,7 +103,7 @@ onMounted(async () => {
 
   <!-- contenido -->
   <div class="content">
-    <BaseBlock title="Lista de Proveedores" class="mb-2" rounded>
+    <BaseBlock title="Lista de Artículos" class="mb-2" rounded>
       <template #options>
         <div class="block-options-item">
           <button

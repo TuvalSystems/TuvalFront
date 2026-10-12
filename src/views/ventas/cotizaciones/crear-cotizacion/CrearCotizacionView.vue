@@ -16,6 +16,7 @@ import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheck
 import { useImageUpload } from "@/composables/core/useImageUpload";
 import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle.js";
 import { useProviderActions } from "@/composables/sistemas/mantenimientos/proveedores/useProviderActions.js";
+import { useArticleActions } from "@/composables/sistemas/mantenimientos/articulos/useArticleActions.js";
 
 import draggable from "vuedraggable";
 import {
@@ -208,6 +209,11 @@ const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
 const { loadingActiveProviders, fetchActiveProviders, activeProviders } =
   useProviderActions();
 
+const {
+  //articulo logistico
+  fetchArticleLogistic,
+  // loadingArticleLogistic,
+} = useArticleActions();
 //variables de modales
 const verModalActualizarSegmento = ref(null);
 const newAddressModal = ref(null);
@@ -785,7 +791,7 @@ async function applyGeneraModifier() {
 
   const updatePromises = form.value.items.map(async (item) => {
     const tipoCompra = (item.ART_TIPO_COMPRA || "").trim().toUpperCase();
-    if (tipoCompra === "L") return;
+    if (tipoCompra === "L" || Number(item.es_servicio_logistico) === 1) return;
     item.modificador = globalModifier;
     return applyModifyRow(item);
   });
@@ -801,12 +807,18 @@ async function applyGeneraModifier() {
 
 const saveModifyPrice = async (element) => {
   const valorFijo = formatCleanPrice4(element.ART_VALOR, 4);
+
   if (valorFijo === element.valor_temporal) {
     element.cambiar_valor = false;
     return;
   }
   element.ART_VALOR = valorFijo;
-  if (element.ART_TIPO_COMPRA === "L") {
+  if (Number(element.es_servicio_logistico) === 1) {
+    element.valor_temporal = valorFijo;
+    element.ART_VALOR_ORIGINAL = valorFijo;
+    form.value.monto_flete = valorFijo;
+    element.modificador = 0;
+  } else if (element.ART_TIPO_COMPRA === "L") {
     element.ART_VALOR_ORIGINAL = element.ART_VALOR;
   } else {
     const original = Number.parseFloat(element.ART_VALOR_ORIGINAL || 0);
@@ -843,6 +855,16 @@ function isApplyModifyDiscountStyle(item) {
 /** proceso de eliminacion de registro de item  */
 
 async function confirmarEliminarArticulo(item, i) {
+  const isParcelDispatch = Number(form.value.tipo_despacho_id) === 3;
+  const isLogisticService = Number(item.es_servicio_logistico) === 1;
+
+  if (isParcelDispatch && isLogisticService) {
+    swalWarning(
+      "No puede eliminar este artículo porque el servicio logístico es obligatorio para el tipo de despacho Paquetería."
+    );
+    return;
+  }
+
   toast
     .fire({
       title: "Estás seguro?",
@@ -1183,6 +1205,64 @@ watch(
   () => [form.value.proyecto, dataProyectSellers.value.length],
   () => setDefaultProject()
 );
+
+/** proceso para asignación de item logistico de servicio */
+
+watch(
+  () => form.value.monto_flete,
+  (montoFlete) => {
+    const valorFijo = formatCleanPrice4(montoFlete, 4);
+    let updated = false;
+    form.value.items.forEach((item) => {
+      if (Number(item.es_servicio_logistico) !== 1) return;
+      item.ART_VALOR = valorFijo;
+      item.ART_VALOR_ORIGINAL = valorFijo;
+      item.valor_temporal = valorFijo;
+      item.modificador = 0;
+      updated = true;
+    });
+    if (updated) calculateTotals();
+  }
+);
+
+watch(
+  () => form.value.tipo_despacho_id,
+  async (newVal) => {
+    if (newVal === 3) {
+      await searchLogisticArticle();
+    }
+    if (newVal !== 3) {
+      await removeLogisticServiceArticle();
+    }
+  }
+);
+
+async function searchLogisticArticle() {
+  const hasLogisticService = form.value.items.some(
+    (item) => item.es_servicio_logistico === true
+  );
+  if (hasLogisticService) {
+    return;
+  }
+  const resp = await fetchArticleLogistic();
+  let row = resp?.data;
+  row.ART_VALOR = form.value.monto_flete;
+  row.ART_VALOR_ORIGINAL = form.value.monto_flete;
+  addItems(row);
+}
+
+async function removeLogisticServiceArticle() {
+  const index = form.value.items.findIndex(
+    (item) => Number(item.es_servicio_logistico) === 1
+  );
+  if (index !== -1) {
+    removeItem(index);
+  }
+}
+
+function isDisableLogisticServiceArticle(item) {
+  return item.es_servicio_logistico;
+}
 
 onMounted(async () => {
   await fetchActiveProviders();
@@ -1570,6 +1650,7 @@ onMounted(async () => {
                   <!-- obtener listado de descripciones -->
                   <td class="fs-sm text-center">
                     <button
+                      v-if="!isDisableLogisticServiceArticle(element)"
                       type="button"
                       class="btn btn-sm btn-info"
                       @click="openModalListItemAlternatives(element, index)"
@@ -1580,6 +1661,7 @@ onMounted(async () => {
                   <!-- check alternativo -->
                   <td class="fs-sm text-center">
                     <input
+                      v-if="!isDisableLogisticServiceArticle(element)"
                       type="checkbox"
                       class="form-check-input"
                       :id="`checkAlternativo-${element.id}`"
@@ -1630,6 +1712,7 @@ onMounted(async () => {
                       :class="{ 'is-invalid': element.errorCantidad }"
                       placeholder="0"
                       min="0"
+                      :disabled="isDisableLogisticServiceArticle(element)"
                       :value="element.ART_CANTIDAD"
                       @change="changeQuantityItem($event, element, index)"
                       :tablindex="index + 1"
@@ -1658,7 +1741,7 @@ onMounted(async () => {
 
                     <!-- boton peso -->
                     <button
-                      v-else
+                      v-else-if="!isDisableLogisticServiceArticle(element)"
                       class="btn btn-sm btn-info"
                       title="Peso de artículo"
                       @click="openModalPesoRowItem(element, index)"
@@ -1684,7 +1767,10 @@ onMounted(async () => {
                   <!-- modificador -->
                   <td class="fs-sm text-end">
                     <input
-                      v-if="element.ART_TIPO_COMPRA !== 'L'"
+                      v-if="
+                        element.ART_TIPO_COMPRA !== 'L' &&
+                        !isDisableLogisticServiceArticle(element)
+                      "
                       type="number"
                       class="form-control text-end no-spinners"
                       step="0.01"
@@ -1694,6 +1780,7 @@ onMounted(async () => {
                       @focus="$event.target.select()"
                       @change="applyModifyRow(element)"
                       @keydown.enter="$event.target.blur()"
+                      :disabled="isDisableLogisticServiceArticle(element)"
                     />
                     <span
                       v-else
@@ -1778,6 +1865,7 @@ onMounted(async () => {
                       @blur="saveModifyDiscount(element, index)"
                       @keyup.enter="$event.target.blur()"
                       @keyup.esc="exitEditDiscount(element)"
+                      :disabled="isDisableLogisticServiceArticle(element)"
                     />
                   </td>
                   <!-- total con descuento -->
@@ -2344,8 +2432,13 @@ onMounted(async () => {
               >
                 Limpiar cotización
               </button>
-              <p v-if="!validateFreightTotal()" class="text-danger fs-sm mb-0" role="alert">
-                Ingrese montos de flete válidos. Para paquetería, la suma del detalle debe coincidir con el valor del flete.
+              <p
+                v-if="!validateFreightTotal()"
+                class="text-danger fs-sm mb-0"
+                role="alert"
+              >
+                Ingrese montos de flete válidos. Para paquetería, la suma del
+                detalle debe coincidir con el valor del flete.
               </p>
               <div
                 class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2"

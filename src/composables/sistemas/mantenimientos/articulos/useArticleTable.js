@@ -33,7 +33,7 @@ export function useArticuleTable() {
     };
     const columns = reactive([
         { label: "id", key: "id", sortable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "80px" },
-        { label: "códiog", key: "codigo", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold text-end" },
+        { label: "código", key: "codigo", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "código zafiro", key: "codigo_zafiro", sortable: true, align: "text-center", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "descripción", key: "descripcion", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "servicio logístico", key: "es_servicio_logistico", sortable: true, clickable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },

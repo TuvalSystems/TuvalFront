@@ -12,8 +12,21 @@ export function useArticleActions() {
             loadingRef: loadingUpdateLogisticService,
         });
     }
+
+
+    /** busqueda de item logistico */
+    const loadingArticleLogistic = ref(false);
+    async function fetchArticleLogistic(){
+        return await run(()=> axiosClient.get(ARTICLES_API_ROUTES.SEARCH_LOGISTIC_ARTICLE), {
+            loadingRef : loadingArticleLogistic
+        })
+    }
     return {
         loadingUpdateLogisticService,
-        updateStatusLogisticService
+        updateStatusLogisticService,
+        //articulo logistico 
+        fetchArticleLogistic,
+        loadingArticleLogistic
+
     }
 }

@@ -304,7 +304,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         const itemEstandarizado = {
             ...rawItem,
             id_temp: `temp-${Date.now()}-${Math.floor(Math.random() * 1000)}`, //id temporal  
-            ART_CANTIDAD: 0,
+            ART_CANTIDAD: Number(rawItem?.es_servicio_logistico) === 1 ? 1 : 0,
             ART_VALOR: artValor,
             ART_VALOR_ORIGINAL: artValorOriginal,
             ART_IVA: 0,
@@ -339,7 +339,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
             //campos para paqueteria
             monto_flete: 0,
-            errorMontoFlete: false
+            errorMontoFlete: false,
         }
         form.value.items.push(itemEstandarizado);
         calculateTotals();
@@ -369,7 +369,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     }
 
     const isDescriptionEditable = (i) => {
-        return form.value.items[i].cambiar_descripcion === true
+        return form.value.items[i].cambiar_descripcion === true && Number(form.value.items[i].es_servicio_logistico) !== 1
     }
 
     const enableEditModeDescription = (i) => {
@@ -479,6 +479,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         return !excludeTypes.includes(row.ART_TIPO_COMPRA);
     };
 
+
+
     //proceso de modal stock y peso 
     const dataStockItem = ref({
         items: [],
@@ -587,7 +589,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     async function updateStockByBatchV2() {
         if (!form.value.items || form.value.items.length === 0) return;
 
-        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L');
+        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L' && !item.es_servicio_logistico);
         if (itemsParaProcesar.length === 0) return;
         loadingStockMasivo.value = true;
 
@@ -738,7 +740,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 art.errorDescripcion = true;
                 isDescriptionLValid.value = false;
             }
-            if (tipoCompra === 'L') {
+            if (tipoCompra === 'L' || Number(art.es_servicio_logistico) === 1) {
                 art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
 
             } else {
@@ -746,9 +748,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 const modificador = Number.parseFloat(art.modificador || 0);
                 let precioCalculado = valorUnitario + ((valorUnitario * modificador) / 100);
                 const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
-                if (art.cambiar_valor) {
-
-                } else {
+                if (!art.cambiar_valor) {
                     if (diferencia < 0.001) {
                         art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
                     } else {
@@ -976,7 +976,7 @@ export function useProcessCreateQuote(draftId = 'default') {
      */
 
     const isEditDiscount = (row) => {
-        return row.cambiar_descuento === true;
+        return row.cambiar_descuento === true && !row.es_servicio_logistico;
     }
 
     const enableEditDiscount = async (element, i) => {
@@ -1087,7 +1087,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     watch(
         () => [form.value.tipo_despacho_id, form.value.monto_flete,
-            form.value.items.map((item) => item.monto_flete)],
+        form.value.items.map((item) => item.monto_flete)],
         () => {
             const hasError = isActivePricefreight() && !validateFreightTotal();
             form.value.items.forEach((item) => {
@@ -1379,7 +1379,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //documentos pdf
                 if (documentosPdf && documentosPdf.length > 0) {
                     if (uploadedPdfsRef) {
-                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                        uploadedPdfsRef.value = documentosPdf.map((doc) => ({
                             id: doc.id,
                             preview: doc.url,
                             name: doc.nombre,
