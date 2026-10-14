@@ -96,10 +96,16 @@ const typeDispatchId = computed({
   get: () => props.form.tipo_despacho_id,
   set: (value) => {
     if (Number(value) === Number(props.form.tipo_despacho_id)) return;
+    const leavingRouteDispatch = Number(props.form.tipo_despacho_id) === 2;
     emit("update-field", { field: "tipo_despacho_id", value });
     emit("update-field", { field: "proveedor_despacho_id", value: null });
     emit("update-field", { field: "monto_flete", value: 0 });
-    if (Number(value) !== 2) direccionEntregaId.value = direccionFacturacionId.value;
+    if (leavingRouteDispatch) {
+      fechaEntrega.value = null;
+    }
+    if (Number(value) !== 2) {
+      direccionEntregaId.value = direccionFacturacionId.value;
+    }
   },
 });
 const dispatchProviderId = fieldModel("proveedor_despacho_id");

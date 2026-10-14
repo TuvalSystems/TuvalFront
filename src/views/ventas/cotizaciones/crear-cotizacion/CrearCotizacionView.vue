@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
+import { freightUnitPrice } from "@/functions/freightPrice";
 import {
   swalError,
   toast,
@@ -646,6 +647,7 @@ const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
     Number(nuevoPrecio) !== Number(item.valor_original_l)
   ) {
     item.ART_VALOR = nuevoPrecio;
+    item.precio_sin_flete = nuevoPrecio;
     item.ART_VALOR_ORIGINAL = nuevoPrecio;
     item.valor_original_l = nuevoPrecio;
   }
@@ -813,17 +815,20 @@ const saveModifyPrice = async (element) => {
     return;
   }
   element.ART_VALOR = valorFijo;
+  element.precio_sin_flete = formatCleanPrice4(
+    Number(valorFijo) - (freightUnitPrice(element) ?? 0), 4
+  );
   if (Number(element.es_servicio_logistico) === 1) {
     element.valor_temporal = valorFijo;
-    element.ART_VALOR_ORIGINAL = valorFijo;
+    element.ART_VALOR_ORIGINAL = element.precio_sin_flete;
     form.value.monto_flete = valorFijo;
     element.modificador = 0;
   } else if (element.ART_TIPO_COMPRA === "L") {
-    element.ART_VALOR_ORIGINAL = element.ART_VALOR;
+    element.ART_VALOR_ORIGINAL = element.precio_sin_flete;
   } else {
     const original = Number.parseFloat(element.ART_VALOR_ORIGINAL || 0);
     if (original > 0) {
-      let nuevoModificar = (Number(element.ART_VALOR) / original - 1) * 100;
+      let nuevoModificar = (Number(element.precio_sin_flete) / original - 1) * 100;
       element.modificador = formatClean(nuevoModificar, 4);
     }
   }
@@ -834,6 +839,22 @@ const saveModifyPrice = async (element) => {
 function isApplyModifyPriceStyle(item) {
   return applyModifyPrice(item) ? "text-danger" : "text-primary";
 }
+
+const enableEditFreight = async (element, index) => {
+  element.monto_flete_temporal = element.monto_flete;
+  element.cambiar_flete = true;
+  await nextTick();
+  document.getElementById(`input-monto-flete-${index}`)?.focus();
+};
+
+const saveModifyFreight = (element) => {
+  element.cambiar_flete = false;
+};
+
+const exitEditFreight = (element) => {
+  element.monto_flete = element.monto_flete_temporal;
+  element.cambiar_flete = false;
+};
 
 /**
  *  proceso de modificacion de descuento
@@ -1168,10 +1189,6 @@ watch(
       if (form.value.items && form.value.items.length > 0) {
         setTimeout(() => {
           updateStockByBatchV2();
-          console.log(
-            "cargar precios de articulos",
-            form.value.cliente.CLI_NIVEL_PRECIO
-          );
         }, 300);
       }
     } else if (!newDraftId && oldDraftId) {
@@ -1216,6 +1233,7 @@ watch(
     form.value.items.forEach((item) => {
       if (Number(item.es_servicio_logistico) !== 1) return;
       item.ART_VALOR = valorFijo;
+      item.precio_sin_flete = valorFijo;
       item.ART_VALOR_ORIGINAL = valorFijo;
       item.valor_temporal = valorFijo;
       item.modificador = 0;
@@ -1248,6 +1266,7 @@ async function searchLogisticArticle() {
   let row = resp?.data;
   row.ART_VALOR = form.value.monto_flete;
   row.ART_VALOR_ORIGINAL = form.value.monto_flete;
+  row.valor_temporal = form.value.monto_flete;
   addItems(row);
 }
 
@@ -1819,7 +1838,7 @@ onMounted(async () => {
                     />
                   </td>
                   <!-- precio flete -->
-                  <td class="fs-sm text-center col-1">
+                  <td class="fs-sm text-end col-1">
                     <span
                       v-if="!isActivePricefreight()"
                       class="text-muted"
@@ -1828,6 +1847,16 @@ onMounted(async () => {
                     >
                       &mdash;
                     </span>
+                    <div
+                      v-else-if="!element.cambiar_flete"
+                      @click="enableEditFreight(element, index)"
+                      class="cursor-pointer"
+                      title="Clic para editar"
+                    >
+                      <span :class="element.errorMontoFlete ? 'text-danger' : 'text-primary'">
+                        ${{ format(Number(element.monto_flete || 0)) }}
+                      </span>
+                    </div>
                     <input
                       v-else
                       :id="`input-monto-flete-${index}`"
@@ -1838,6 +1867,10 @@ onMounted(async () => {
                       v-model.number="element.monto_flete"
                       min="0"
                       step="0.01"
+                      @focus="$event.target.select()"
+                      @blur="saveModifyFreight(element)"
+                      @keyup.enter="$event.target.blur()"
+                      @keyup.esc="exitEditFreight(element)"
                     />
                   </td>
                   <!-- descuento con opcion de cambiar descuento-->

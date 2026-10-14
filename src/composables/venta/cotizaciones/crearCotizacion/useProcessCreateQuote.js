@@ -1,4 +1,5 @@
 import axiosClient from "@/axios";
+import { freightUnitPrice } from "@/functions/freightPrice";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
@@ -26,7 +27,7 @@ const getInitialState = () => ({
     pv_id: null, //id del punto de venta 
     punto_venta_id: null,
     //variables de fecha y direccion de facturacion
-    tipo_entrega: 'retiro',  //despacho
+    // tipo_entrega: 'retiro',  //despacho
     fecha_entrega: null,
     direccion_facturacion_id: null,
     direccion_entrega_id: null,
@@ -87,6 +88,7 @@ const getInitialState = () => ({
     tipo_despacho_id: null,
     proveedor_despacho_id: null,
     monto_flete: 0,
+    peso_flete: 0
 
 });
 export function useProcessCreateQuote(draftId = 'default') {
@@ -151,6 +153,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, {
                 draft_id: currentId,
                 pto_vta_id: selectedPointSaleCode.value,
+                pv_id : selectedPointSaleId.value,
                 data: {
                     ...cleanData,
                     imagenesoperaciones: [], // Aseguramos que viajen vacíos
@@ -164,7 +167,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingListDrafts = ref(false);
     async function getActiveDrafts() {
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pto_vta_id: selectedPointSaleCode.value }), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pv_id: selectedPointSaleId.value }), {
             loadingRef: loadingListDrafts
         });
     }
@@ -340,6 +343,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             //campos para paqueteria
             monto_flete: 0,
             errorMontoFlete: false,
+            precio_sin_flete: artValor,
         }
         form.value.items.push(itemEstandarizado);
         calculateTotals();
@@ -727,6 +731,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         let tempDescuento = 0;
         let tempIva = 0;
         let tempPeso = 0;
+        let tempPesoFlete = 0;
 
 
         //se reinician las variables
@@ -735,27 +740,24 @@ export function useProcessCreateQuote(draftId = 'default') {
         isDescriptionLValid.value = true;
 
         form.value.items.forEach((art) => {
+            const montoFleteUnitario = freightUnitPrice(art);
             const tipoCompra = (art.ART_TIPO_COMPRA || '').trim().toUpperCase();
             if (tipoCompra === 'L' && (art.ART_DESCRIPCION == art.ART_DESCRIPCION_ORIGINAL)) {
                 art.errorDescripcion = true;
                 isDescriptionLValid.value = false;
             }
-            if (tipoCompra === 'L' || Number(art.es_servicio_logistico) === 1) {
-                art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
-
-            } else {
-                let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
-                const modificador = Number.parseFloat(art.modificador || 0);
-                let precioCalculado = valorUnitario + ((valorUnitario * modificador) / 100);
-                const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
-                if (!art.cambiar_valor) {
-                    if (diferencia < 0.001) {
-                        art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
-                    } else {
-                        art.ART_VALOR = redondear(precioCalculado, 4);
-                    }
-                }
-
+            // El precio base nunca se obtiene del valor que ya incluye flete.
+            if (art.precio_sin_flete == null) {
+                art.precio_sin_flete = (Number.parseFloat(art.ART_VALOR) || 0) - (montoFleteUnitario ?? 0);
+            }
+            if (tipoCompra !== 'L' && Number(art.es_servicio_logistico) !== 1 && !art.cambiar_valor) {
+                const valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL) || 0;
+                const modificador = Number.parseFloat(art.modificador) || 0;
+                art.precio_sin_flete = valorUnitario * (1 + modificador / 100);
+            }
+            art.precio_sin_flete = redondear((Number.parseFloat(art.precio_sin_flete) || 0) + 0.000001, 4);
+            if (!art.cambiar_valor) {
+                art.ART_VALOR = redondear(art.precio_sin_flete + (montoFleteUnitario ?? 0), 4);
             }
 
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
@@ -766,10 +768,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 art.errorCantidad = false;
             }
 
-            if (art.ART_VALOR === 0) {
-                art.errorPrecio = true;
-                isPriceValid.value = false;
-            }
+            art.errorPrecio = art.ART_VALOR <= 0 || montoFleteUnitario === null;
+            if (art.errorPrecio) isPriceValid.value = false;
             // --- Cálculos Matemáticos (Todo Numérico) ---
             const precioParaCalculo = art.ART_VALOR;
             const descuentoPorcentaje = Number.parseFloat(art.descuento) || 0;
@@ -797,19 +797,29 @@ export function useProcessCreateQuote(draftId = 'default') {
             art.ART_IVA = redondear(ivaLinea + 0.000001, 2); //se aplico por bloque de seguridad
             tempIva += ivaLinea;
             //calculo del peso
-            tempPeso += (Number.parseFloat(art.ART_PESO) || 0) * cantidad;
+            const pesoLinea = (Number.parseFloat(art.ART_PESO) || 0) * cantidad;
+            tempPeso += pesoLinea;
+            if (Number(art.monto_flete) > 0) tempPesoFlete += pesoLinea;
         });
         form.value.subtotal = redondear(tempSubtotal + 0.000001, 2);
         form.value.descuento = redondear(tempDescuento + 0.000001, 2);
         form.value.iva = redondear(tempIva + 0.000001, 2);
         form.value.peso = redondear(tempPeso, 2);
-
+        form.value.peso_flete = Number(form.value.tipo_despacho_id) === 4
+            ? redondear(tempPesoFlete, 2)
+            : form.value.peso;
         // Total General = Subtotal + IVA
         form.value.total = redondear((form.value.subtotal + form.value.iva) + 0.000001, 2);
         validateAllProvidersStock();
         verifyStockConsistency();
     }
 
+    watch(
+        () => [form.value.tipo_despacho_id,
+        form.value.items.map((item) => [item.monto_flete, item.ART_PESO, item.ART_CANTIDAD, item.descuento])],
+        () => calculateTotals(),
+        { deep: true }
+    );
 
     const verifyStockConsistency = (silent = false) => {
         let isValid = true;
@@ -968,6 +978,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             row.ART_VALOR_ORIGINAL = row.valor_temporal
         }
         row.cambiar_valor = false;
+        calculateTotals();
     }
 
 
@@ -1081,7 +1092,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         if (amountHeader === null) return false;
         if (!isActivePricefreight()) return true;
         const amounts = form.value.items.map((item) => toFreightCents(item.monto_flete));
-        return amounts.every((amount) => amount !== null)
+        return form.value.items.every((item) => freightUnitPrice(item) !== null)
+            && amounts.every((amount) => amount !== null)
             && amounts.reduce((total, amount) => total + amount, 0) === amountHeader;
     }
 
@@ -1128,12 +1140,12 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('mode', mode);
         //datos del cliente
         formData.append('cliente_id', form.value.cliente.id);
-        formData.append('ruc', form.value.cliente.CLI_RUC);
-        formData.append('razon_social', form.value.cliente.CLI_RAZON_SOCIAL);
+        // formData.append('ruc', form.value.cliente.CLI_RUC);
+        // formData.append('razon_social', form.value.cliente.CLI_RAZON_SOCIAL);
         formData.append('correo_electronico_sri', form.value.cliente.CLI_CORREO_ELECT_SRI);
-        formData.append('vendedor_id', form.value.cliente.gpvendedor.VEND_ID);
-        formData.append('vendedor_nombres', form.value.cliente.gpvendedor.VEND_NOMBRES);
-        formData.append('vendedor_apellidos', form.value.cliente.gpvendedor.VEND_APELLIDOS);
+        // formData.append('vendedor_id', form.value.cliente.gpvendedor.VEND_ID);
+        // formData.append('vendedor_nombres', form.value.cliente.gpvendedor.VEND_NOMBRES);
+        // formData.append('vendedor_apellidos', form.value.cliente.gpvendedor.VEND_APELLIDOS);
 
         //variables de punto de venta y bodega de facturacion
         formData.append('punto_venta_id', form.value.punto_venta_id);
@@ -1141,7 +1153,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('bodega_facturacion', form.value.bodega_facturacion);
 
         //variables de fecha y direccion de facturacion
-        formData.append('tipo_entrega', form.value.tipo_entrega); //despacho o retiro
+        // formData.append('tipo_entrega', form.value.tipo_entrega); //despacho o retiro
         formData.append('fecha_entrega', form.value.fecha_entrega);
         formData.append('direccion_facturacion_id', form.value.direccion_facturacion_id);
         formData.append('direccion_entrega_id', form.value.direccion_entrega_id);
@@ -1234,6 +1246,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
         formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
         formData.append('monto_flete', form.value.monto_flete);
+        formData.append('peso_flete', form.value.peso_flete);
 
 
         return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE, formData), {
@@ -1408,6 +1421,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.tipo_despacho_id = cotizacion.tipo_despacho_id;
                 form.value.proveedor_despacho_id = cotizacion.proveedor_despacho_id ?? null;
                 form.value.monto_flete = cotizacion.monto_flete ?? 0;
+                form.value.peso_flete = cotizacion.peso_flete ?? 0;
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
@@ -1853,6 +1867,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         //calculos
         formData.append('subtotal', form.value.subtotal);
         formData.append('peso', form.value.peso);
+        formData.append('peso_flete', form.value.peso_flete);
         formData.append('descuento', form.value.descuento);
         formData.append('iva', form.value.iva);
         formData.append('total', form.value.total);
