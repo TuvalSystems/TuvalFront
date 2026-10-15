@@ -260,10 +260,6 @@ const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef, {
     calculateTotals();
   },
 });
-const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
-  backdrop: "static",
-  keyboard: false,
-});
 
 // const verModalConfiguracionItemLObj = useBootstrapModal(
 //   verModalConfiguracionItemLRef
@@ -634,12 +630,19 @@ async function openModalProviders(item, i) {
     item: item,
   };
   await nextTick();
-  verProveedoresObj.show();
+  verProveedoresRef.value?.show();
 }
 
 const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   const item = form.value.items[index];
   item.proveedores = providers;
+  if (!isActivePricefreight(item)) {
+    // Conservar la base antes de retirar el flete del valor mostrado.
+    item.precio_sin_flete ??= Number(item.ART_VALOR || 0) - (freightUnitPrice(item) ?? 0);
+    item.monto_flete = 0;
+    item.monto_flete_temporal = 0;
+    item.cambiar_flete = false;
+  }
   if (
     nuevoPrecio !== null &&
     nuevoPrecio !== undefined &&
@@ -652,7 +655,7 @@ const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
     item.valor_original_l = nuevoPrecio;
   }
   calculateTotals();
-  verProveedoresObj.hide();
+  verProveedoresRef.value?.hide();
 };
 
 /** logica para seleccion y asignación de item L  */
@@ -841,6 +844,7 @@ function isApplyModifyPriceStyle(item) {
 }
 
 const enableEditFreight = async (element, index) => {
+  if (!isActivePricefreight(element)) return;
   element.monto_flete_temporal = element.monto_flete;
   element.cambiar_flete = true;
   await nextTick();
@@ -983,6 +987,7 @@ watch(
 //validacion de antes de crear una cotizacion o pedido
 
 const btnDisabledStore = computed(() => {
+  if (!(Number(form.value.tipo_despacho_id) > 0)) return true;
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
   if (loadingSaveOrder.value) return true;
@@ -995,6 +1000,7 @@ const btnDisabledStore = computed(() => {
 });
 
 const btnDisableStoreQuotation = computed(() => {
+  if (!(Number(form.value.tipo_despacho_id) > 0)) return true;
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
   if (loadingSaveOrder.value) return true;
@@ -1840,7 +1846,7 @@ onMounted(async () => {
                   <!-- precio flete -->
                   <td class="fs-sm text-end col-1">
                     <span
-                      v-if="!isActivePricefreight()"
+                      v-if="!isActivePricefreight(element)"
                       class="text-muted"
                       style="text-align: center"
                       title="No aplica flete por artículo"
@@ -2043,15 +2049,16 @@ onMounted(async () => {
                       class="form-check-input"
                       type="checkbox"
                       id="switch-facturar"
-                      :true-value="0"
-                      :false-value="1"
-                      v-model="form.factura_siguiente_mes"
+                      :true-value="true"
+                      :false-value="false"
+                      v-model="form.facturar_ahora"
                     />
                     <label
                       class="form-check-label fw-bold text-dark"
                       for="switch-facturar"
                     >
                       Facturar ahora
+                      {{  form.facturar_ahora }}
                     </label>
                   </div>
                 </div>
@@ -2642,31 +2649,15 @@ onMounted(async () => {
   </div>
 
   <!-- modal de seleccion de proveedores para items L  -->
-  <div
-    class="modal fade"
-    id="modal-block-proveedor"
-    tabindex="-1"
+  <verModalProveedores
     ref="verProveedoresRef"
-  >
-    <div
-      class="modal-dialog modal-xl modal-dialog-centered"
-      style="max-width: 90vw"
-    >
-      <div class="modal-content" style="height: 90vh">
-        <verModalProveedores
-          v-if="dataModalProviders.proveedores"
-          :providers="dataModalProviders.proveedores"
-          :index="dataModalProviders.index"
-          :item="dataModalProviders.item"
-          :loading-list-providers="loadingActiveProviders"
-          :list-providers="activeProviders"
-          @update:providers="handleSaveProviders"
-          class="h-100"
-        >
-        </verModalProveedores>
-      </div>
-    </div>
-  </div>
+    :providers="dataModalProviders.proveedores"
+    :index="dataModalProviders.index"
+    :item="dataModalProviders.item"
+    :loading-list-providers="loadingActiveProviders"
+    :list-providers="activeProviders"
+    @update:providers="handleSaveProviders"
+  />
 
   <!-- modal de borradores -->
   <div

@@ -88,7 +88,9 @@ const getInitialState = () => ({
     tipo_despacho_id: null,
     proveedor_despacho_id: null,
     monto_flete: 0,
-    peso_flete: 0
+    peso_flete: 0,
+
+    //campo para la facturación forzada a pesar de que tenga limite por fecha de facturacion
 
 });
 export function useProcessCreateQuote(draftId = 'default') {
@@ -1055,7 +1057,31 @@ export function useProcessCreateQuote(draftId = 'default') {
      */
 
     // Solo el despacho 4 distribuye el flete entre los artículos.
-    const isActivePricefreight = () => Number(form.value.tipo_despacho_id) === 4;
+    const isActivePricefreight = (item) => {
+        if (Number(form.value.tipo_despacho_id) !== 4) return false;
+        if (!item || !isItemL(item)) return true;
+        return (item.proveedores || []).some((provider) =>
+            provider.proveedor_entrega != null
+            && ![true, 1, '1'].includes(provider.proveedor_entrega)
+        );
+    };
+
+    watch(
+        () => form.value.items.map((item) => isActivePricefreight(item)),
+        () => {
+            if (isRecoveringQuote.value) return;
+            let changed = false;
+            form.value.items.forEach((item) => {
+                if (isItemL(item) && !isActivePricefreight(item)) {
+                    changed = changed || Number(item.monto_flete || 0) !== 0;
+                    item.monto_flete = 0;
+                    item.monto_flete_temporal = 0;
+                    item.cambiar_flete = false;
+                }
+            });
+            if (changed) calculateTotals();
+        }
+    );
 
     watch(
         () => form.value.tipo_despacho_id,
@@ -1119,6 +1145,9 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingCreateQuotation = ref(false);
     async function createQuote(mode) {
+        if (!(Number(form.value.tipo_despacho_id) > 0)) {
+            return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
+        }
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
             return;
@@ -1162,6 +1191,11 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('factura_a_demanda', form.value.factura_a_demanda);
         formData.append('factura_siguiente_mes', form.value.factura_siguiente_mes);
 
+        /**
+         * condicion para que se genere la factura sin considerar las factura a demanda
+         * factura posterior despacho y factura a siguiente mes
+         */
+        formData.append('facturar_ahora', form.value.facturar_ahora)
 
         //condiciones y formas de pago 
         formData.append('condicion_pago_id', form.value.condicion_pago_id);
@@ -1422,6 +1456,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.proveedor_despacho_id = cotizacion.proveedor_despacho_id ?? null;
                 form.value.monto_flete = cotizacion.monto_flete ?? 0;
                 form.value.peso_flete = cotizacion.peso_flete ?? 0;
+                form.value.facturar_ahora = cotizacion.facturar_ahora ?? false;
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
@@ -1551,6 +1586,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.tipo_despacho_id = null;
                 form.value.proveedor_despacho_id = null;
                 form.value.monto_flete = 0;
+                form.value.facturar_ahora = false;
+                
 
                 validateBillingRules();
                 calculateTotals();
@@ -1670,6 +1707,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.tipo_despacho_id = null;
                 form.value.proveedor_despacho_id = null;
                 form.value.monto_flete = 0;
+                form.value.facturar_ahora = false;
 
                 validateBillingRules();
                 calculateTotals();
@@ -1804,6 +1842,9 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingSaveOrder = ref(false);
     async function saveOrder() {
+        if (!(Number(form.value.tipo_despacho_id) > 0)) {
+            return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
+        }
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
             return;
@@ -1929,7 +1970,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
         formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
         formData.append('monto_flete', form.value.monto_flete);
-
+        formData.append('facturar_ahora', form.value.facturar_ahora);
 
         return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.CREATE, formData), {
             loadingRef: loadingSaveOrder,
