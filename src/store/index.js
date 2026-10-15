@@ -896,13 +896,6 @@ const store = createStore({
           return res.data;
         });
     },
-    checkRucProspecto(_, prospecto) {
-      return axiosClient
-        .post("/cotizaciones/checkrucprospecto", prospecto)
-        .then((res) => {
-          return res.data;
-        });
-    },
     puntodeventacaja({ commit }) {
       return axiosClient.get("/consultas/puntodeventacaja").then((res) => {
         commit("setPuntodeventaCaja", res.data);
