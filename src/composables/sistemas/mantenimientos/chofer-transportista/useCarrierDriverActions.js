@@ -4,6 +4,7 @@ import { PROVIDER_API_ROUTES } from "@/constants/apiRoutes/ventas/proveedores/pr
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { computed, reactive, ref, unref } from "vue";
+import { useStore } from 'vuex'
 
 const requiredField = (message) => helpers.withMessage(message, required);
 
@@ -14,14 +15,16 @@ function initialForm() {
         tipo_identificacion_id: null,
         identificacion: "",
         nombre: "",
-        placa: "",
-        punto_venta_ids: []
+        placa: ""
     };
 }
 
 export function useCarrierDriverActions(listTypeIdentify) {
     const { run } = useApiAction();
     const form = reactive(initialForm());
+    const store = useStore();
+    const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
+
 
     function buildPayload(payload = form) {
         return {
@@ -29,8 +32,7 @@ export function useCarrierDriverActions(listTypeIdentify) {
             tipo_identificacion_id: payload?.tipo_identificacion_id ?? null,
             identificacion: String(payload?.identificacion ?? "").trim(),
             nombre: String(payload?.nombre ?? "").trim().toUpperCase(),
-            placa: String(payload?.placa ?? "").trim().toUpperCase(),
-            punto_venta_ids: payload.punto_venta_ids ?? []
+            placa: String(payload?.placa ?? "").trim().toUpperCase()
         };
     }
 
@@ -156,8 +158,7 @@ export function useCarrierDriverActions(listTypeIdentify) {
                 data.tipo_identificacion_id ?? data.tipo_identificacion?.id ?? null,
             identificacion: data.identificacion ?? "",
             nombre: data.nombre ?? "",
-            placa: data.placa ?? "",
-            punto_venta_ids: (data.puntos_venta ?? []).map((point) => point.id)
+            placa: data.placa ?? ""
         } : {});
         v$.value.$reset();
     }
@@ -170,7 +171,9 @@ export function useCarrierDriverActions(listTypeIdentify) {
     const loadingProviderCarrier = ref(false);
     const providersCarriers = ref([]);
     async function fetchListProvidersCarrier() {
-        return await run(async () => axiosClient.get(PROVIDER_API_ROUTES.PROVIDER_CARRIER), {
+        return await run(async () => axiosClient.post(PROVIDER_API_ROUTES.PROVIDER_CARRIER, {
+            pv_id: selectedPointSaleId.value
+        }), {
             loadingRef: loadingProviderCarrier,
             onSuccess: (info) => {
                 providersCarriers.value = Array.isArray(info) ? info : [];

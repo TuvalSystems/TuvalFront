@@ -6,7 +6,6 @@ import ChoferTransportistaModal from "@/views/sistemas/mantenimientos/chofer-tra
 
 //composables
 import { useCarrierDriverTable } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverTable";
-import { useDispatchTypeActions } from "@/composables/sistemas/mantenimientos/tipo-despachos/useDispatchTypeActions";
 import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
 
 import {
@@ -103,14 +102,10 @@ const {
   statusBooleanClass,
 } = useCarrierDriverTable();
 
-const { loadingPointSales, listPointSales, fetchListPointSales } =
-  useDispatchTypeActions();
-
 const { updatedStatusCarrierDriver } = useCarrierDriverActions({});
 
 onMounted(async () => {
   await fetchList(1);
-  await fetchListPointSales();
 });
 </script>
 
@@ -257,8 +252,6 @@ onMounted(async () => {
     ref="carrierDriverModal"
     :carrier-driver="selectedCarrierDriver"
     :type-modal="typeOpenModal"
-    :loading-point-sales="loadingPointSales"
-    :point-sales="listPointSales"
     @hidden="clearModalData"
     @saved="handleSaved"
   />

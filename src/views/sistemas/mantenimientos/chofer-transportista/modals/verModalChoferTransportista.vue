@@ -14,11 +14,6 @@ const props = defineProps({
     required: true,
     validator: (value) => ["create", "edit"].includes(value),
   },
-  loadingPointSales: {
-    type: Boolean,
-    default: false,
-  },
-  pointSales: { type: Array, default: () => [] },
 });
 
 // Tipo de identificaciones
@@ -26,8 +21,6 @@ const typeIdentifyStore = useTypeIdentifyStore();
 const listTypeIdentify = computed(() => typeIdentifyStore.list);
 const loadingIdentify = computed(() => typeIdentifyStore.loading);
 const typeOpenModal = computed(() => props.typeModal);
-const pointSalesOptions = computed(() => props.pointSales);
-const loadingPointSales = computed(() => props.loadingPointSales);
 const {
   form,
   v$,
@@ -335,31 +328,6 @@ onMounted(async () => {
             >
               {{ v$.nombre.$errors[0].$message }}
             </div>
-          </div>
-
-          <div class="col-12 col-md-12">
-            <label
-              class="text-label-muted mb-1"
-              for="carrier-driver-point-sales"
-            >
-              Puntos de Venta
-            </label>
-            <select
-              class="form form-select form-select-sm"
-              id="dispatch-type-puntos-venta"
-              v-model="form.punto_venta_ids"
-              multiple
-              size="5"
-              :disabled="loadingPointSales"
-            >
-              <option
-                v-for="point in pointSalesOptions"
-                :key="point.id"
-                :value="point.id"
-              >
-                {{ point.codigo }} - {{ point.descripcion }}
-              </option>
-            </select>
           </div>
 
           <!-- Los siguientes campos se incorporarán dentro de esta cuadrícula responsive. -->

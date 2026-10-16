@@ -1,11 +1,14 @@
 import axiosClient from "@/axios";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { DISPATCH_TYPES_API } from "@/constants/apiRoutes/ventas/tipo-despachos/dispatchTypesRoutes";
+import { useStore } from 'vuex'
 
 export function useDispatchTypeActions() {
     const { run } = useApiAction();
     const saving = ref(false);
+    const store = useStore();
+    const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
 
     function buildPayload(payload) {
         return {
@@ -69,7 +72,11 @@ export function useDispatchTypeActions() {
     const loadingTypeDispatches = ref(false);
     const typeDispatchesResponsible = ref([]);
     async function fetchTypeDispatchesResponsible(type) {
-        return run(() => axiosClient.post(DISPATCH_TYPES_API.TYPE_DISPATCHES_RESPONSIBLE, { tipo: type }), {
+        return run(() => axiosClient.post(DISPATCH_TYPES_API.TYPE_DISPATCHES_RESPONSIBLE,
+            {
+                tipo: type,
+                pv_id: selectedPointSaleId.value
+            }), {
             loadingRef: loadingTypeDispatches,
             onSuccess: (info) => {
                 typeDispatchesResponsible.value = Array.isArray(info) ? info : [];

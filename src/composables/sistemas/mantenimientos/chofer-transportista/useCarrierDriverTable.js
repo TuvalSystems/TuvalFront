@@ -4,9 +4,15 @@ import { useApiAction } from "@/composables/core/useApiAction";
 import { getStatusBadgeClass } from "@/helpers/statusBadge";
 import { LIST_PER_PAGE_OPTIONS } from "@/constants/tableOptions";
 import { PROVIDER_API_ROUTES } from "@/constants/apiRoutes/ventas/proveedores/providerRoutes";
+import { useStore } from 'vuex'
+import { computed } from "vue";
+
 export function useCarrierDriverTable() {
 
     const { run } = useApiAction();
+    const store = useStore();
+    const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
+
     const ctrl = ref(null);
     let debounceId;
     const table = reactive({
@@ -19,6 +25,7 @@ export function useCarrierDriverTable() {
             perpage: "10",
             sortField: "created_at",
             sortOrder: "desc",
+            pv_id : selectedPointSaleId.value
         },
         loading: false,
     });
