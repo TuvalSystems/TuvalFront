@@ -165,6 +165,7 @@ const {
   //monto flete
   isActivePricefreight,
   validateFreightTotal,
+  validateDispatchFields,
 } = useProcessCreateQuote(currentDraftId.value);
 
 const {
@@ -995,7 +996,7 @@ const btnDisabledStore = computed(() => {
   if (!form.value.cliente) return true;
   if (!form.value.condicion_pago_id) return true;
   if (!form.value.items.length) return true;
-  if (!validateFreightTotal()) return true;
+  if (validateDispatchFields() || !validateFreightTotal()) return true;
   return false;
 });
 
@@ -1006,7 +1007,7 @@ const btnDisableStoreQuotation = computed(() => {
   if (loadingSaveOrder.value) return true;
   if (!form.value.cliente) return true;
   if (!form.value.condicion_pago_id) return true;
-  if (!validateFreightTotal()) return true;
+  if (validateDispatchFields() || !validateFreightTotal()) return true;
   return false;
 });
 
@@ -1946,7 +1947,7 @@ onMounted(async () => {
             <!-- fotter -->
             <tfoot v-if="form.items.length > 0">
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   Subtotal sin Descuento
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1955,7 +1956,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   Descuento
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1964,7 +1965,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   Subtotal Neto
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1973,7 +1974,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   IVA
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1982,7 +1983,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr class="table-active">
-                <th scope="col" colspan="15" class="fs-sm text-end fw-bold">
+                <th scope="col" colspan="16" class="fs-sm text-end fw-bold">
                   TOTAL
                 </th>
                 <th scope="col" class="fs-sm text-end fw-bold text-nowrap">
@@ -1991,12 +1992,12 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <td colspan="16" class="border-0 p-1"></td>
+                <td colspan="17" class="border-0 p-1"></td>
               </tr>
               <tr>
                 <th
                   scope="col"
-                  colspan="15"
+                  colspan="16"
                   class="fs-sm text-end text-muted fst-italic border-0"
                 >
                   Peso total aprox.
@@ -2473,7 +2474,14 @@ onMounted(async () => {
                 Limpiar cotización
               </button>
               <p
-                v-if="!validateFreightTotal()"
+                v-if="validateDispatchFields()"
+                class="text-danger fs-sm mb-0"
+                role="alert"
+              >
+                {{ validateDispatchFields() }}
+              </p>
+              <p
+                v-else-if="!validateFreightTotal()"
                 class="text-danger fs-sm mb-0"
                 role="alert"
               >

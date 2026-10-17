@@ -1110,6 +1110,19 @@ export function useProcessCreateQuote(draftId = 'default') {
             ? cents : null;
     };
 
+    function validateDispatchFields() {
+        if (![3, 4, 5].includes(Number(form.value.tipo_despacho_id))) return '';
+        const providerId = Number(form.value.proveedor_despacho_id);
+        if (!Number.isSafeInteger(providerId) || providerId <= 0) {
+            return 'Debe seleccionar un proveedor de despacho.';
+        }
+        const amount = toFreightCents(form.value.monto_flete);
+        if (amount === null || amount <= 0) {
+            return 'Debe ingresar un monto de flete válido mayor a cero.';
+        }
+        return '';
+    }
+
     // Esta consulta es pura: también se usa desde los computed de los botones.
     function validateFreightTotal() {
         const dispatchId = Number(form.value.tipo_despacho_id);
@@ -1145,6 +1158,8 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingCreateQuotation = ref(false);
     async function createQuote(mode) {
+        const dispatchError = validateDispatchFields();
+        if (dispatchError) return { ok: false, message: dispatchError };
         if (!(Number(form.value.tipo_despacho_id) > 0)) {
             return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
         }
@@ -1842,6 +1857,8 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingSaveOrder = ref(false);
     async function saveOrder() {
+        const dispatchError = validateDispatchFields();
+        if (dispatchError) return { ok: false, message: dispatchError };
         if (!(Number(form.value.tipo_despacho_id) > 0)) {
             return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
         }
@@ -2137,7 +2154,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         //monto flete
         isActivePricefreight,
         cleanFreightPrice,
-        validateFreightTotal
+        validateFreightTotal,
+        validateDispatchFields
     };
 
 
