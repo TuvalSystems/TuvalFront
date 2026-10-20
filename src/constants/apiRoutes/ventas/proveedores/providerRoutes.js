@@ -14,6 +14,7 @@ export const PROVIDER_API_ROUTES = {
         UPDATE_REGISTER: 'ventas/proveedores/choferes-transportista/actualizar-registro',
         UPDATE_STATUS: 'ventas/proveedores/choferes-transportista/actualizar-estado',
         VALIDATE_IDENTITY: 'ventas/proveedores/choferes-transportista/validar-identificacion',
+        LIST_BY_PROVIDER_SALES_POINT : 'ventas/proveedores/choferes-transportista/lista-por-proveedor-punto-venta'
     }
 
 };

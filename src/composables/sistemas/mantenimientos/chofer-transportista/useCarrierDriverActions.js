@@ -272,6 +272,21 @@ export function useCarrierDriverActions(listTypeIdentify) {
         );
     }
 
+    const loadingCarrierByProvider = ref(false);
+    const carrierDriversByProvider = ref([]);
+    async function fetchListCarrierByProviderSalesPoints(provId) {
+        return run(() => axiosClient.post(PROVIDER_API_ROUTES.CARRIER_DRIVER.LIST_BY_PROVIDER_SALES_POINT, {
+            prov_id: provId,
+            pv_id: selectedPointSaleId.value
+
+        }), {
+            loadingRef: loadingCarrierByProvider,
+            onSuccess: (info) => {
+                carrierDriversByProvider.value = Array.isArray(info) ? info : []
+            }
+        });
+    }
+
 
 
 
@@ -306,6 +321,12 @@ export function useCarrierDriverActions(listTypeIdentify) {
         //lista de proveedoress transportistas
         loadingProviderCarrier,
         providersCarriers,
-        fetchListProvidersCarrier
+        fetchListProvidersCarrier,
+
+        //lista choferes por proveedor para guias de despacho
+        loadingCarrierByProvider,
+        carrierDriversByProvider,
+        fetchListCarrierByProviderSalesPoints
+
     };
 }
