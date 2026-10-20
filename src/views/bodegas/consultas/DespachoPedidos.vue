@@ -1,4 +1,5 @@
 <script setup>
+import GuiaArchivosConsulta from './GuiaArchivosConsulta.vue';
 import BaseTable from "@/components/BaseTable.vue";
 import { useDespachoPedidosPagination } from "@/composables/bodegas/consultas/useDespachoPedidosPagination";
 import { onMounted, reactive, ref } from "vue";
@@ -369,13 +370,7 @@ onMounted(() => {
           @onKeyDown="handleClick"
         >
           <template #actions="{ row }">
-            <button
-              type="button"
-              class="btn btn-outline-primary btn-sm mx-2"
-              @click="imprimirGuia(row)"
-            >
-              <i class="fa fa-print"></i>
-            </button>
+            <GuiaArchivosConsulta :guide="row" type="despacho" @print="imprimirGuia(row)" />
           </template>
           <!-- Slot de vacío -->
           <template #empty>

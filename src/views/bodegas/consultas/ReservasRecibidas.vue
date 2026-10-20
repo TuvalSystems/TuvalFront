@@ -1,4 +1,5 @@
 <script setup>
+import GuiaArchivosConsulta from './GuiaArchivosConsulta.vue';
 import { onMounted, reactive, ref, onBeforeUnmount, nextTick } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -196,12 +197,7 @@ onMounted(() => {
           @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled" @onKeyDown="handleClick">
 
           <template #actions="{ row }">
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" title="Reprogramar Fecha Factura"
-              @click="printPdfGuiaRemision(row.id)" :disabled="isTestLocked(row)">
-              <span v-if="isTestLocked(row)" class="spinner-border spinner-border-sm" 
-                aria-hidden="true"></span>
-              <i v-else class="fa fa-print mx-1"></i>
-            </button>
+            <GuiaArchivosConsulta :guide="row" type="reserva" :print-disabled="isTestLocked(row)" @print="printPdfGuiaRemision(row.id)" />
           </template>
           <!-- Slot de vacío -->
           <template #empty>
