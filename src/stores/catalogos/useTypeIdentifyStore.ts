@@ -2,8 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-
-const apiIdentify = "/cotizaciones/lista-tipo-identificaciones";
+import { CLIENT_API_ROUTES } from "@/constants/apiRoutes/ventas/cliente/clientRoutes";
 
 export interface TypeIdentify {
   id?: number;
@@ -26,7 +25,7 @@ export const useTypeIdentifyStore = defineStore("typeIdentify", () => {
     list.value.map((tipo) => ({
       label: tipo.nombre,
       value: tipo.codigo,
-    }))
+    })),
   );
 
   const selectedByCode = computed(() => {
@@ -47,19 +46,22 @@ export const useTypeIdentifyStore = defineStore("typeIdentify", () => {
       return list.value;
     }
 
-    const result = await run(() => axiosClient.get(apiIdentify), {
-      loadingRef: loading,
+    const result = await run(
+      () => axiosClient.get(CLIENT_API_ROUTES.ACTIONS.TYPE_IDENTITY),
+      {
+        loadingRef: loading,
 
-      onSuccess: (data: TypeIdentify[]) => {
-        list.value = Array.isArray(data) ? data : [];
-        error.value = null;
-      },
+        onSuccess: (data: TypeIdentify[]) => {
+          list.value = Array.isArray(data) ? data : [];
+          error.value = null;
+        },
 
-      onError: (backend: any, apiError: any) => {
-        error.value = backend || apiError;
-        list.value = [];
+        onError: (backend: any, apiError: any) => {
+          error.value = backend || apiError;
+          list.value = [];
+        },
       },
-    });
+    );
 
     return result?.ok ? list.value : [];
   }

@@ -692,14 +692,6 @@ const store = createStore({
         return res;
       });
     },
-    guardarDireccion(_, direccion) {
-      direccion.CLI_DIR_PUNTO_VENTA = this.state.puntodeventaselect;
-      return axiosClient
-        .post("/cotizaciones/guardardireccion", direccion)
-        .then((res) => {
-          return res;
-        });
-    },
     guardarCliente({ commit }, direccion) {
       direccion.CLI_PUNTO_VENTA = this.state.puntodeventaselect;
       return axiosClient
@@ -900,13 +892,6 @@ const store = createStore({
     consultacobroscliente(_, consulta) {
       return axiosClient
         .post("/cobranzas/consultacobroscliente", consulta)
-        .then((res) => {
-          return res.data;
-        });
-    },
-    checkRucProspecto(_, prospecto) {
-      return axiosClient
-        .post("/cotizaciones/checkrucprospecto", prospecto)
         .then((res) => {
           return res.data;
         });

@@ -1,53 +1,99 @@
 <script setup>
-import { computed, ref, reactive, onMounted, watch } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useStore } from "vuex";
 import { useTemplateStore } from "@/stores/template";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import flatPickr from 'vue-flatpickr-component';
-import { useDispatchGuideProcess } from '@/composables/bodegas/despachos/useDispatchGuideProcess';
+import { swalWarning, swalError } from "@/functions/swal-alert.js";
+import flatPickr from "vue-flatpickr-component";
+import { useDispatchGuideProcess } from "@/composables/bodegas/despachos/useDispatchGuideProcess";
 import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
+
+import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
 
 import { formatPrice } from "../../../functions";
 const typeIdentifyStore = useTypeIdentifyStore();
 const listTypeIdentify = computed(() => typeIdentifyStore.list);
 const loadingIdentify = computed(() => typeIdentifyStore.loading);
-const {
-  tipoIdentificacion,
-  loading,
-  createGuideDispatch
-} = useDispatchGuideProcess();
-function addMinutes(numOfMinutes, date = new Date()) {
-  date.setMinutes(date.getMinutes() + numOfMinutes);
-
-  return date;
-}
-function addDays(days, date = new Date()) {
-  date.setDate(date.getDate() + days);
-  return date;
-}
+const { loading, createGuideDispatch } = useDispatchGuideProcess();
 
 const store = useStore();
 const templateStore = useTemplateStore();
-const detalle_orden_despacho = computed(() => store.state.detalle_orden_despacho);
+const detalle_orden_despacho = computed(
+  () => store.state.detalle_orden_despacho
+);
 const transportistas = computed(() => store.state.transportistas);
 const vehiculos = computed(() => store.state.vehiculos);
 const transportista = computed(() => store.state.transportista);
 const vehiculo = computed(() => store.state.vehiculo);
 const flatPickrState = computed(() => store.state.flatPickrState);
 const observacion = ref("");
-const generar = computed(() => store.state.generar);
 const pesototal = ref(0);
 const maxLengthPlaca = 10;
-const { verpedido } = defineProps({
+const props = defineProps({
   verpedido: Object,
 });
+
+const verpedido = computed(() => props.verpedido);
+const { loadingCarrierByProvider, fetchListCarrierByProviderSalesPoints } =
+  useCarrierDriverActions(listTypeIdentify);
+const providerDrivers = ref([]);
+const selectedDriverId = ref("");
+const providerDriverError = ref("");
+const usesProviderDriver = computed(() => {
+  const dispatch = String(
+    verpedido.value?.pedido?.despacho ?? ""
+  ).toLowerCase();
+  return dispatch.includes("flete") || dispatch.includes("proveedor");
+});
+const selectedProviderDriver = computed(() =>
+  providerDrivers.value.find((driver) => driver.id === selectedDriverId.value)
+);
+
+watch(
+  [
+    () => props.verpedido,
+    () => verpedido.value?.pedido?.id,
+    () => verpedido.value?.pedido?.despacho,
+    () => verpedido.value?.pedido?.proveedor_despacho_id,
+    () => store.state.puntoventaselectid,
+  ],
+  async (_, __, onCleanup) => {
+    let active = true;
+    onCleanup(() => {
+      active = false;
+    });
+    providerDrivers.value = [];
+    selectedDriverId.value = "";
+    providerDriverError.value = "";
+    if (!usesProviderDriver.value) return;
+    const providerId = verpedido.value?.pedido?.proveedor_despacho_id;
+    if (!providerId || !store.state.puntoventaselectid) return;
+    const result = await fetchListCarrierByProviderSalesPoints(providerId);
+    if (!active) return;
+    if (!result.ok) {
+      providerDriverError.value = result.message;
+      return;
+    }
+    providerDrivers.value = Array.isArray(result.data) ? result.data : [];
+    if (providerDrivers.value.length === 1) {
+      selectedDriverId.value = providerDrivers.value[0].id;
+    }
+  },
+  { immediate: true }
+);
 
 const emit = defineEmits(["generarGuia", "cerrarGuia"]);
 
 function changeVehiculo() {
-  if (vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id) {
-    const id = vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id).transportista_id;
-    transportista.value.transportista_id = transportistas.value.find((item) => item.id === id).id;
+  if (
+    vehiculos.value.find((item) => item.id === vehiculo.value.vehiculo_id)
+      .transportista_id
+  ) {
+    const id = vehiculos.value.find(
+      (item) => item.id === vehiculo.value.vehiculo_id
+    ).transportista_id;
+    transportista.value.transportista_id = transportistas.value.find(
+      (item) => item.id === id
+    ).id;
   }
 }
 
@@ -91,12 +137,11 @@ function isInt(value) {
 }
 
 function aplicartraslado(traslado) {
-
   if (!isInt(traslado.seleccionado) && traslado.ART_DECIMAL_CANTIDAD === 0) {
     traslado.seleccionado = 0;
     checkgenerarguia();
     traslado.aplicar_todo = false;
-    return swalWarning('Ingresar un número entero');
+    return swalWarning("Ingresar un número entero");
   }
 
   if (Number.isNaN(traslado.seleccionado)) {
@@ -112,9 +157,15 @@ function aplicartraslado(traslado) {
     traslado.aplicar_todo = false;
     traslado.seleccionado = 0;
     return swalWarning("No se puede ingresar números negativos");
-  } else if (Number.parseFloat(traslado.seleccionado) <= Number.parseFloat(traslado.pendiente)) {
+  } else if (
+    Number.parseFloat(traslado.seleccionado) <=
+    Number.parseFloat(traslado.pendiente)
+  ) {
     traslado.aplicar_todo = true;
-  } else if (Number.parseFloat(traslado.seleccionado) > Number.parseFloat(traslado.pendiente)) {
+  } else if (
+    Number.parseFloat(traslado.seleccionado) >
+    Number.parseFloat(traslado.pendiente)
+  ) {
     traslado.seleccionado = traslado.pendiente;
     traslado.aplicar_todo = true;
     return swalWarning("El número ingresado es mayor a la cantidad pendiente");
@@ -125,12 +176,12 @@ function aplicartraslado(traslado) {
 }
 
 async function generarGuia(verpedido) {
-  let itemsDespacho = detalle_orden_despacho.value.filter((item) => item.seleccionado > 0);
+  let itemsDespacho = detalle_orden_despacho.value.filter(
+    (item) => item.seleccionado > 0
+  );
   if (itemsDespacho.length === 0) {
-    return swalWarning('Seleccionar al menos un item para generar la guia');
+    return swalWarning("Seleccionar al menos un item para generar la guia");
   }
-  // evita doble click
-  // if (disabledGenerarGuia.value) return;
 
   // 1. Validaciones
   const esRetiro = verpedido.pedido.despacho === "Retiro en bodega";
@@ -148,20 +199,29 @@ async function generarGuia(verpedido) {
     if (!validateTransportIdentification(true)) {
       return;
     }
-
-
+  } else if (usesProviderDriver.value) {
+    if (loadingCarrierByProvider.value || !selectedProviderDriver.value) {
+      return swalWarning("Seleccione un chofer del proveedor de despacho");
+    }
   } else {
     if (!transportista.value.transportista_id) {
       swalWarning("Seleccionar transportista");
       return;
     }
   }
-
   // 2. Armar transportista / vehículo
   let trans, vehi;
   if (esRetiro) {
     trans = transportista.value;
     vehi = vehiculo.value;
+  } else if (usesProviderDriver.value) {
+    const driver = selectedProviderDriver.value;
+    trans = {
+      nombre: driver.nombre,
+      identificacion: driver.identificacion,
+      tipo_identificacion: driver.tipo_identificacion?.codigo,
+    };
+    vehi = { placa: driver.placa };
   } else {
     trans = transportistas.value.find(
       (item) => item.id === transportista.value.transportista_id
@@ -174,26 +234,27 @@ async function generarGuia(verpedido) {
   // 3. bloquear UI
   // disabledGenerarGuia.value = true;
   // templateStore.pageLoader({ mode: "on" });
-
   // 4. payload (objeto plano, no reactive)
   const data = {
     orden: verpedido,
     transportista: trans,
     vehiculo: vehi,
+    ...(usesProviderDriver.value
+      ? { chofer_transportista_id: selectedDriverId.value }
+      : {}),
     fecha_inicio: flatPickrState.value.horaInicio,
     fecha_fin: flatPickrState.value.horaFin,
     items: itemsDespacho,
     observacion: observacion.value,
     // si el vehículo no tiene ruta, que no reviente:
     ruta: vehiculo.value?.ruta ?? null,
-    mode: mode.value
+    mode: mode.value,
   };
-
   const resp = await createGuideDispatch(data);
   if (!resp.ok) {
     if (resp?.status >= 400 && resp?.status < 500) {
       swalWarning(resp?.message);
-      return
+      return;
     }
     if (resp?.status >= 500) {
       swalError(resp?.message);
@@ -204,24 +265,22 @@ async function generarGuia(verpedido) {
   templateStore.pageLoader({ mode: "off" });
 }
 
-
 /**nuevas funciones  */
-const mode = ref('');
+const mode = ref("");
 async function updateAnotherVariable(event) {
-  if (event.target.value == 'Retiro en bodega') {
-    mode.value = 'externo';
+  if (event.target.value == "Retiro en bodega") {
+    mode.value = "externo";
   } else {
-    mode.value = 'local';
+    mode.value = "local";
   }
 }
-
 
 /** Validación tipo identificación transportista externo */
 
 const transportIdentifyError = ref("");
 
 const isExternalMode = computed(() => {
-  return verpedido?.pedido?.despacho === "Retiro en bodega";
+  return verpedido.value?.pedido?.despacho === "Retiro en bodega";
 });
 
 const selectedTransportTypeIdentify = computed(() => {
@@ -404,7 +463,7 @@ watch(
 );
 
 watch(
-  () => verpedido?.pedido?.despacho,
+  () => verpedido.value?.pedido?.despacho,
   () => {
     transportIdentifyError.value = "";
   }
@@ -412,15 +471,22 @@ watch(
 
 onMounted(() => {
   typeIdentifyStore.fetchAll();
-
 });
-
 </script>
 
 <template>
-  <BaseBlock title="Generar guía de remisión" class="mb-0" v-if="verpedido.pedido">
+  <BaseBlock
+    title="Generar guía de remisión"
+    class="mb-0"
+    v-if="verpedido.pedido"
+  >
     <template #options>
-      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+      <button
+        type="button"
+        class="btn-block-option"
+        data-bs-dismiss="modal"
+        aria-label="Close"
+      >
         <i class="fa fa-fw fa-times"></i>
       </button>
     </template>
@@ -437,11 +503,17 @@ onMounted(() => {
           <tr v-if="verpedido.pedido.factura !== ''">
             <th scope class="fs-sm">Factura</th>
             <td class="fs-sm">{{ verpedido.pedido.factura }}</td>
-            <th scope v-if="verpedido.pedido.cotizacion" class="fs-sm">Cotización Origen</th>
+            <th scope v-if="verpedido.pedido.cotizacion" class="fs-sm">
+              Cotización Origen
+            </th>
             <td v-if="verpedido.pedido.cotizacion" class="fs-sm" colspan="3">
               {{ verpedido.pedido.cotizacion }}
             </td>
-            <td v-if="!verpedido.pedido.cotizacion" class="fs-sm" colspan="4"></td>
+            <td
+              v-if="!verpedido.pedido.cotizacion"
+              class="fs-sm"
+              colspan="4"
+            ></td>
           </tr>
           <tr>
             <th scope class="fs-sm">Pedido</th>
@@ -484,31 +556,95 @@ onMounted(() => {
       <table class="table table-sm table-vcenter fs-sm">
         <tbody>
           <tr>
-            <td class="text-end">{{ verpedido.pedido.despacho }} Transporte:</td>
-            <td>
-              <select class="form-select" id="example-select-floating" name="example-select-floating"
-                aria-label="Estado" v-model="verpedido.pedido.despacho" @change="updateAnotherVariable($event)">
+            <td class="text-end">
+              {{ verpedido.pedido.despacho }} Transporte:
+            </td>
+            <td v-if="!usesProviderDriver">
+              <select
+                class="form-select"
+                id="example-select-floating"
+                name="example-select-floating"
+                aria-label="Estado"
+                v-model="verpedido.pedido.despacho"
+                @change="updateAnotherVariable($event)"
+              >
                 <option value="Retiro en bodega">Externo</option>
                 <option value="Despacho en ruta">Local</option>
               </select>
             </td>
           </tr>
+          <tr v-if="usesProviderDriver">
+            <td class="text-end">Chofer transportista:</td>
+            <td>
+              <select
+                class="form-select"
+                v-model="selectedDriverId"
+                :disabled="loadingCarrierByProvider"
+              >
+                <option value="">
+                  {{
+                    loadingCarrierByProvider
+                      ? "Cargando..."
+                      : "Seleccione un chofer"
+                  }}
+                </option>
+                <option
+                  v-for="driver in providerDrivers"
+                  :key="driver.id"
+                  :value="driver.id"
+                >
+                  {{ driver.nombre }} - {{ driver.identificacion }}
+                </option>
+              </select>
+              <div v-if="providerDriverError" class="text-danger">
+                {{ providerDriverError }}
+              </div>
+              <div
+                v-else-if="!loadingCarrierByProvider && !providerDrivers.length"
+                class="form-text"
+              >
+                No hay choferes disponibles para el proveedor y punto de venta.
+              </div>
+            </td>
+            <td class="text-end">Placa de vehículo:</td>
+            <td>{{ selectedProviderDriver?.placa ?? "" }}</td>
+          </tr>
           <tr v-if="verpedido.pedido.despacho === 'Despacho en ruta'">
             <td class="text-end">Vehículo:</td>
             <td>
-              <select class="form-select" id="example-select-floating2" name="example-select-floating2"
-                aria-label="Estado" v-model="vehiculo.vehiculo_id" @change="changeVehiculo()">
-                <option v-for="(vehiculo, index) in vehiculos" :key="index" :value="vehiculo.id">
+              <select
+                class="form-select"
+                id="example-select-floating2"
+                name="example-select-floating2"
+                aria-label="Estado"
+                v-model="vehiculo.vehiculo_id"
+                @change="changeVehiculo()"
+              >
+                <option
+                  v-for="(vehiculo, index) in vehiculos"
+                  :key="index"
+                  :value="vehiculo.id"
+                >
                   {{ vehiculo.nombre }} - {{ vehiculo.placa }}
                 </option>
               </select>
             </td>
             <td class="text-end">Transportista:</td>
             <td>
-              <select class="form-select" id="example-select-floating1" name="example-select-floating1"
-                aria-label="Estado" v-model="transportista.transportista_id">
-                <option v-for="(transportista, index) in transportistas" :key="index" :value="transportista.id">
-                  {{ transportista.nombre }} - {{ transportista.identificacion }}
+              <select
+                class="form-select"
+                id="example-select-floating1"
+                name="example-select-floating1"
+                aria-label="Estado"
+                v-model="transportista.transportista_id"
+              >
+                <option
+                  v-for="(transportista, index) in transportistas"
+                  :key="index"
+                  :value="transportista.id"
+                >
+                  {{ transportista.nombre }} -
+                  {{ transportista.identificacion }}
                 </option>
               </select>
             </td>
@@ -517,14 +653,27 @@ onMounted(() => {
             <tr>
               <td class="text-end">Nombre Transportista:</td>
               <td>
-                <input type="text" class="form-control" id="nombre" v-model="transportista.nombre" />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="nombre"
+                  v-model="transportista.nombre"
+                />
               </td>
               <td class="text-end">Tipo identificacion:</td>
               <td>
-                <select class="form-select" :required="verpedido.pedido.despacho === 'Retiro en bodega'"
-                  :disabled="loadingIdentify" v-model="transportista.tipo_identificacion">
+                <select
+                  class="form-select"
+                  :required="verpedido.pedido.despacho === 'Retiro en bodega'"
+                  :disabled="loadingIdentify"
+                  v-model="transportista.tipo_identificacion"
+                >
                   <option value="">Seleccione...</option>
-                  <option v-for="t in listTypeIdentify" :key="t.codigo" :value="t.codigo">
+                  <option
+                    v-for="t in listTypeIdentify"
+                    :key="t.codigo"
+                    :value="t.codigo"
+                  >
                     {{ t.nombre }}
                   </option>
                 </select>
@@ -534,15 +683,28 @@ onMounted(() => {
               <td class="text-end"># Identificacion:</td>
               <td>
                 <div class="input-group">
-                  <input type="text" class="form-control" id="identificacion" placeholder="Identificación"
-                    v-model.trim="transportista.identificacion" :maxlength="transportIdentifyMaxAllowed"
-                    :inputmode="transportIdentifyInputMode" :class="{ 'is-invalid': transportIdentifyError }"
-                    autocomplete="off" @input="onTransportIdentificationInput"
-                    @blur="validateTransportIdentification(false)" />
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="identificacion"
+                    placeholder="Identificación"
+                    v-model.trim="transportista.identificacion"
+                    :maxlength="transportIdentifyMaxAllowed"
+                    :inputmode="transportIdentifyInputMode"
+                    :class="{ 'is-invalid': transportIdentifyError }"
+                    autocomplete="off"
+                    @input="onTransportIdentificationInput"
+                    @blur="validateTransportIdentification(false)"
+                  />
 
-                  <span class="input-group-text fw-semibold" :class="transportIdentifyCounterClass"
-                    style="min-width: 58px; justify-content: center;">
-                    {{ transportIdentifyCurrentLength }}/{{ transportIdentifyMaxAllowed }}
+                  <span
+                    class="input-group-text fw-semibold"
+                    :class="transportIdentifyCounterClass"
+                    style="min-width: 58px; justify-content: center"
+                  >
+                    {{ transportIdentifyCurrentLength }}/{{
+                      transportIdentifyMaxAllowed
+                    }}
                   </span>
 
                   <div v-if="transportIdentifyError" class="invalid-feedback">
@@ -550,19 +712,29 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <div v-if="!transportIdentifyError && selectedTransportTypeIdentify" class="form-text">
+                <div
+                  v-if="
+                    !transportIdentifyError && selectedTransportTypeIdentify
+                  "
+                  class="form-text"
+                >
                   {{ transportIdentifyLengthMessage }}
                 </div>
               </td>
               <td class="text-end">Placa de vehículo:</td>
               <td>
                 <div class="position-relative">
-                  <input type="text" class="form-control form-control" placeholder="ABC-1234" v-model="vehiculo.placa"
-                    :maxlength="maxLengthPlaca">
-                  <span class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small">
-                    {{ maxLengthPlaca -
-                      (vehiculo.placa?.length ?? 0)
-                    }}
+                  <input
+                    type="text"
+                    class="form-control form-control"
+                    placeholder="ABC-1234"
+                    v-model="vehiculo.placa"
+                    :maxlength="maxLengthPlaca"
+                  />
+                  <span
+                    class="position-absolute top-50 end-0 translate-middle-y me-2 badge bg-dark opacity-50 small"
+                  >
+                    {{ maxLengthPlaca - (vehiculo.placa?.length ?? 0) }}
                   </span>
                 </div>
               </td>
@@ -571,38 +743,62 @@ onMounted(() => {
           <tr>
             <td class="text-end">Fecha / Hora salida:</td>
             <td>
-              <flat-pickr id="example-flatpickr-datetime24" class="form-control" v-model="flatPickrState.horaInicio"
-                :config="flatPickrState.configDateTime24" />
+              <flat-pickr
+                id="example-flatpickr-datetime24"
+                class="form-control"
+                v-model="flatPickrState.horaInicio"
+                :config="flatPickrState.configDateTime24"
+              />
             </td>
             <td class="text-end">Fecha / Hora llegada:</td>
             <td>
-              <flat-pickr id="example-flatpickr-datetime25" class="form-control" v-model="flatPickrState.horaFin"
-                :config="flatPickrState.configDateTime24" />
+              <flat-pickr
+                id="example-flatpickr-datetime25"
+                class="form-control"
+                v-model="flatPickrState.horaFin"
+                :config="flatPickrState.configDateTime24"
+              />
             </td>
           </tr>
           <tr>
             <td class="text-end">Observación:</td>
             <td colspan="3">
-              <textarea class="form-control" id="telefono" v-model="observacion"></textarea>
+              <textarea
+                class="form-control"
+                id="telefono"
+                v-model="observacion"
+              ></textarea>
             </td>
           </tr>
           <tr>
             <td class="text-end">Ruta:</td>
             <td colspan="3">
-              <input type="text" class="form-control" id="ruta" placeholder="Ej: Guayaquil – Ambato"
-                v-model="vehiculo.ruta" />
+              <input
+                type="text"
+                class="form-control"
+                id="ruta"
+                placeholder="Ej: Guayaquil – Ambato"
+                v-model="vehiculo.ruta"
+              />
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="col-sm-12 text-end">
-      <button type="button" class="btn btn-sm btn-primary" @click="seleccionartodos()">
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        @click="seleccionartodos()"
+      >
         <i class="fa fa-hand-pointer"></i> Seleccionar todos
       </button>
     </div>
     <div class="table-responsive">
-      <table v-if="detalle_orden_despacho.length" class="table table-striped table-sm table-vcenter">
+      <table
+        v-if="detalle_orden_despacho.length"
+        class="table table-striped table-sm table-vcenter"
+      >
         <thead>
           <tr>
             <th scope="col">CTL</th>
@@ -616,15 +812,24 @@ onMounted(() => {
           </tr>
         </thead>
         <tbody>
-          <template v-for="(articulo, index) in detalle_orden_despacho" :key="index">
-            <tr :class="(articulo.reservado > 0 && articulo.reservado === articulo.ART_CANTIDAD
-              ? 'table-success'
-              : '') ||
-              (articulo.reservado > 0 && articulo.pendiente === 0
-                ? 'table-success'
-                : '') ||
-              (articulo.reservado > 0 && articulo.pendiente > 0 ? 'table-warning' : '')
-              ">
+          <template
+            v-for="(articulo, index) in detalle_orden_despacho"
+            :key="index"
+          >
+            <tr
+              :class="
+                (articulo.reservado > 0 &&
+                articulo.reservado === articulo.ART_CANTIDAD
+                  ? 'table-success'
+                  : '') ||
+                (articulo.reservado > 0 && articulo.pendiente === 0
+                  ? 'table-success'
+                  : '') ||
+                (articulo.reservado > 0 && articulo.pendiente > 0
+                  ? 'table-warning'
+                  : '')
+              "
+            >
               <td class="fs-sm">
                 {{ articulo.ART_CODIGO_TRES_LETRAS }}
               </td>
@@ -647,12 +852,22 @@ onMounted(() => {
                 {{ articulo.pendiente }}
               </td>
               <td style="width: 31px" class="text-center">
-                <input v-if="articulo.pendiente > 0" type="checkbox" class="form-check-input"
-                  v-model="articulo.aplicar_todo" @change="aplicatodo(articulo)" />
+                <input
+                  v-if="articulo.pendiente > 0"
+                  type="checkbox"
+                  class="form-check-input"
+                  v-model="articulo.aplicar_todo"
+                  @change="aplicatodo(articulo)"
+                />
               </td>
               <td style="width: 80px">
-                <input v-if="articulo.pendiente > 0" type="text" class="form-control text-end"
-                  v-model="articulo.seleccionado" @change="aplicartraslado(articulo)" />
+                <input
+                  v-if="articulo.pendiente > 0"
+                  type="text"
+                  class="form-control text-end"
+                  v-model="articulo.seleccionado"
+                  @change="aplicartraslado(articulo)"
+                />
               </td>
             </tr>
           </template>
@@ -660,18 +875,31 @@ onMounted(() => {
             <th scope="col" colspan="9">&nbsp;</th>
           </tr>
           <tr>
-            <th scope="col" colspan="8" class="fs-sm text-end">Peso total del despacho</th>
-            <th scope="col" class="fs-sm text-end">{{ formatPrice(pesototal) }}</th>
+            <th scope="col" colspan="8" class="fs-sm text-end">
+              Peso total del despacho
+            </th>
+            <th scope="col" class="fs-sm text-end">
+              {{ formatPrice(pesototal) }}
+            </th>
           </tr>
         </tbody>
       </table>
     </div>
   </BaseBlock>
   <div class="block-content block-content-full text-end bg-body">
-    <button :disabled="loading" type="button" class="btn btn-sm btn-success mx-2" @click="generarGuia(verpedido)">
+    <button
+      :disabled="loading || (usesProviderDriver && loadingCarrierByProvider)"
+      type="button"
+      class="btn btn-sm btn-success mx-2"
+      @click="generarGuia(verpedido)"
+    >
       <i class="fa fa-file-lines"></i> Generar
     </button>
-    <button type="button" class="btn btn-primary btn-sm mx-2" data-bs-dismiss="modal">
+    <button
+      type="button"
+      class="btn btn-primary btn-sm mx-2"
+      data-bs-dismiss="modal"
+    >
       Cerrar
     </button>
   </div>

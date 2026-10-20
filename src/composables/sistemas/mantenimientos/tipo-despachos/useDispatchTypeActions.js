@@ -1,0 +1,107 @@
+import axiosClient from "@/axios";
+import { ref, computed } from "vue";
+import { useApiAction } from "@/composables/core/useApiAction";
+import { DISPATCH_TYPES_API } from "@/constants/apiRoutes/ventas/tipo-despachos/dispatchTypesRoutes";
+import { useStore } from 'vuex'
+
+export function useDispatchTypeActions() {
+    const { run } = useApiAction();
+    const saving = ref(false);
+    const store = useStore();
+    const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
+
+    function buildPayload(payload) {
+        return {
+            descripcion: payload?.descripcion,
+            observacion: payload?.observacion,
+            responsable_pago: payload?.responsable_pago,
+            punto_venta_ids: payload?.punto_venta_ids
+        }
+    }
+
+    async function saveDispatchType(payload) {
+        return run(() => axiosClient.post(DISPATCH_TYPES_API.CREATED, { payload: buildPayload(payload) }), {
+            loadingRef: saving
+        });
+    }
+
+    async function updateDispatchType(payload) {
+        return run(() => {
+            if (payload?.id == null) throw new Error("El ID del tipo de despacho es obligatorio.");
+            return axiosClient.put(`${DISPATCH_TYPES_API.UPDATED}/${encodeURIComponent(payload.id)}`, {
+                payload: buildPayload(payload)
+            });
+        }, {
+            loadingRef: saving
+        });
+    }
+
+    const loadingDetail = ref(false);
+    const detail = ref(null);
+    async function getDetailDispatchType(id) {
+        detail.value = null;
+        return run(() => axiosClient.post(DISPATCH_TYPES_API.GET_DETAIL, { id: id }), {
+            loadingRef: loadingDetail,
+            onSuccess: (info) => {
+                const record = Array.isArray(info) ? info[0] : info;
+                detail.value = record && typeof record === 'object'
+                    ? { ...record, id: record.id ?? id }
+                    : null;
+            }
+        });
+    }
+
+
+    async function updateStatusDispatchType(id) {
+        return run(() => axiosClient.post(DISPATCH_TYPES_API.UPDATED_STATUS, { id: id }), {
+            loadingRef: saving
+        });
+    }
+
+    const loadingPointSales = ref(false);
+    const listPointSales = ref([]);
+    async function fetchListPointSales() {
+        return run(() => axiosClient.get(DISPATCH_TYPES_API.LIST_POINT_SALES), {
+            loadingRef: loadingPointSales,
+            onSuccess: (info) => {
+                listPointSales.value = Array.isArray(info) ? info : [];
+            }
+        });
+    }
+
+    const loadingTypeDispatches = ref(false);
+    const typeDispatchesResponsible = ref([]);
+    async function fetchTypeDispatchesResponsible(type) {
+        return run(() => axiosClient.post(DISPATCH_TYPES_API.TYPE_DISPATCHES_RESPONSIBLE,
+            {
+                tipo: type,
+                pv_id: selectedPointSaleId.value
+            }), {
+            loadingRef: loadingTypeDispatches,
+            onSuccess: (info) => {
+                typeDispatchesResponsible.value = Array.isArray(info) ? info : [];
+            }
+        });
+    }
+
+    return {
+        saving,
+        saveDispatchType,
+        updateDispatchType,
+        updateStatusDispatchType,
+        listPointSales,
+        loadingPointSales,
+        fetchListPointSales,
+
+        //detail 
+        loadingDetail,
+        detail,
+        getDetailDispatchType,
+
+        // lista de tipo de despachos por repsonsable de pago 
+        loadingTypeDispatches,
+        typeDispatchesResponsible,
+        fetchTypeDispatchesResponsible
+
+    }
+}

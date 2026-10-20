@@ -1,4 +1,5 @@
 import axiosClient from "@/axios";
+import { freightUnitPrice } from "@/functions/freightPrice";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
@@ -23,9 +24,10 @@ const getInitialState = () => ({
     bodega_facturacion: null,
     cliente: null,
     segmento: null,
+    pv_id: null, //id del punto de venta 
     punto_venta_id: null,
     //variables de fecha y direccion de facturacion
-    tipo_entrega: 'retiro',  //despacho
+    // tipo_entrega: 'retiro',  //despacho
     fecha_entrega: null,
     direccion_facturacion_id: null,
     direccion_entrega_id: null,
@@ -78,12 +80,24 @@ const getInitialState = () => ({
     documentos_pdf: [],
 
     //seleccion de tipo de proyecto 
-    proyecto: null
+    proyecto: null,
+
+
+    //parte de fletes 
+    responsable_flete: 'tuval',
+    tipo_despacho_id: null,
+    proveedor_despacho_id: null,
+    monto_flete: 0,
+    peso_flete: 0,
+
+    //campo para la facturación forzada a pesar de que tenga limite por fecha de facturacion
 
 });
 export function useProcessCreateQuote(draftId = 'default') {
     const store = useStore();
-    const ptoVtaSelect = computed(() => store.state.puntodeventaselect);
+    const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
+    const selectedPointSaleCode = computed(() => store.state.puntodeventaselect);
+
     const { run } = useApiAction();
     const today = new Date();
     const route = useRoute();
@@ -137,10 +151,11 @@ export function useProcessCreateQuote(draftId = 'default') {
             }
             const currentId = newVal.draft_id;
             if (!currentId || currentId === 'undefined') return;
-            const { imagenesoperaciones, documentos_pdf, ...cleanData } = newVal;
+            const { ...cleanData } = newVal;
             return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, {
                 draft_id: currentId,
-                pto_vta_id: ptoVtaSelect.value,
+                pto_vta_id: selectedPointSaleCode.value,
+                pv_id : selectedPointSaleId.value,
                 data: {
                     ...cleanData,
                     imagenesoperaciones: [], // Aseguramos que viajen vacíos
@@ -154,7 +169,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingListDrafts = ref(false);
     async function getActiveDrafts() {
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pto_vta_id: ptoVtaSelect.value }), {
+        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pv_id: selectedPointSaleId.value }), {
             loadingRef: loadingListDrafts
         });
     }
@@ -196,8 +211,9 @@ export function useProcessCreateQuote(draftId = 'default') {
         } else {
             form.value.draft_id = route.query.draft || null;
         }
-        if (ptoVtaSelect.value) {
-            form.value.punto_venta_id = ptoVtaSelect.value;
+        if (selectedPointSaleCode.value) {
+            form.value.punto_venta_id = selectedPointSaleCode.value;
+            form.value.pv_id = selectedPointSaleId.value;
         }
         if (uploadedFilesRef) {
             uploadedFilesRef.value = [];
@@ -293,7 +309,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         const itemEstandarizado = {
             ...rawItem,
             id_temp: `temp-${Date.now()}-${Math.floor(Math.random() * 1000)}`, //id temporal  
-            ART_CANTIDAD: 0,
+            ART_CANTIDAD: Number(rawItem?.es_servicio_logistico) === 1 ? 1 : 0,
             ART_VALOR: artValor,
             ART_VALOR_ORIGINAL: artValorOriginal,
             ART_IVA: 0,
@@ -324,7 +340,12 @@ export function useProcessCreateQuote(draftId = 'default') {
             cod_categoria: rawItem.cod_categoria || "",
             cod_linea: rawItem.cod_linea || "",
             cod_clase: rawItem.cod_clase || "",
-            resultado_configuracion_item_l: rawItem.resultado_configuracion_item_l || ""
+            resultado_configuracion_item_l: rawItem.resultado_configuracion_item_l || "",
+
+            //campos para paqueteria
+            monto_flete: 0,
+            errorMontoFlete: false,
+            precio_sin_flete: artValor,
         }
         form.value.items.push(itemEstandarizado);
         calculateTotals();
@@ -354,7 +375,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     }
 
     const isDescriptionEditable = (i) => {
-        return form.value.items[i].cambiar_descripcion === true
+        return form.value.items[i].cambiar_descripcion === true && Number(form.value.items[i].es_servicio_logistico) !== 1
     }
 
     const enableEditModeDescription = (i) => {
@@ -464,6 +485,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         return !excludeTypes.includes(row.ART_TIPO_COMPRA);
     };
 
+
+
     //proceso de modal stock y peso 
     const dataStockItem = ref({
         items: [],
@@ -524,7 +547,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             if (item.ART_TIPO_COMPRA === 'L') {
                 item.stockRowLoading = false;
                 return;
-            };
+            }
             form.value.items[index].stockRowLoading = true;
             form.value.items[index].disableOpenModalStock = true;
             form.value.items[index].stockListo = false;
@@ -554,7 +577,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     async function updateStockItemsByBatch(item, tipo, cotizacionId) {
         const payloadBatch = {
             'articulo': item,
-            'bodega': ptoVtaSelect.value,
+            'bodega': selectedPointSaleCode.value,
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
@@ -572,7 +595,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     async function updateStockByBatchV2() {
         if (!form.value.items || form.value.items.length === 0) return;
 
-        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L');
+        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L' && !item.es_servicio_logistico);
         if (itemsParaProcesar.length === 0) return;
         loadingStockMasivo.value = true;
 
@@ -613,7 +636,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     async function updateStockItemsBatchAPI(item, tipo, cotizacionId) {
         const payloadBatch = {
             'articulos': item,
-            'bodega': ptoVtaSelect.value,
+            'bodega': selectedPointSaleCode.value,
             'tipo': tipo,
             'cotizacion_id': cotizacionId,
         }
@@ -633,8 +656,6 @@ export function useProcessCreateQuote(draftId = 'default') {
     // proceso para apertura de modal de proveedores
 
     const isItemL = (row) => row.ART_TIPO_COMPRA === 'L'
-
-
     const initialDataModalProvider = () => ({
         proveedores: [],
         index: 0,
@@ -712,6 +733,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         let tempDescuento = 0;
         let tempIva = 0;
         let tempPeso = 0;
+        let tempPesoFlete = 0;
 
 
         //se reinician las variables
@@ -720,29 +742,24 @@ export function useProcessCreateQuote(draftId = 'default') {
         isDescriptionLValid.value = true;
 
         form.value.items.forEach((art) => {
+            const montoFleteUnitario = freightUnitPrice(art);
             const tipoCompra = (art.ART_TIPO_COMPRA || '').trim().toUpperCase();
             if (tipoCompra === 'L' && (art.ART_DESCRIPCION == art.ART_DESCRIPCION_ORIGINAL)) {
                 art.errorDescripcion = true;
                 isDescriptionLValid.value = false;
             }
-            if (tipoCompra === 'L') {
-                art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR) + 0.000001, 4);
-
-            } else {
-                let valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL || 0);
-                const modificador = Number.parseFloat(art.modificador || 0);
-                let precioCalculado = valorUnitario + ((valorUnitario * modificador) / 100);
-                const diferencia = Math.abs(precioCalculado - Number.parseFloat(art.ART_VALOR || 0));
-                if (art.cambiar_valor) {
-
-                } else {
-                    if (diferencia < 0.001) {
-                        art.ART_VALOR = redondear(Number.parseFloat(art.ART_VALOR), 4);
-                    } else {
-                        art.ART_VALOR = redondear(precioCalculado, 4);
-                    }
-                }
-
+            // El precio base nunca se obtiene del valor que ya incluye flete.
+            if (art.precio_sin_flete == null) {
+                art.precio_sin_flete = (Number.parseFloat(art.ART_VALOR) || 0) - (montoFleteUnitario ?? 0);
+            }
+            if (tipoCompra !== 'L' && Number(art.es_servicio_logistico) !== 1 && !art.cambiar_valor) {
+                const valorUnitario = Number.parseFloat(art.ART_VALOR_ORIGINAL) || 0;
+                const modificador = Number.parseFloat(art.modificador) || 0;
+                art.precio_sin_flete = valorUnitario * (1 + modificador / 100);
+            }
+            art.precio_sin_flete = redondear((Number.parseFloat(art.precio_sin_flete) || 0) + 0.000001, 4);
+            if (!art.cambiar_valor) {
+                art.ART_VALOR = redondear(art.precio_sin_flete + (montoFleteUnitario ?? 0), 4);
             }
 
             const cantidad = Number.parseFloat(art.ART_CANTIDAD) || 0;
@@ -753,10 +770,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 art.errorCantidad = false;
             }
 
-            if (art.ART_VALOR === 0) {
-                art.errorPrecio = true;
-                isPriceValid.value = false;
-            }
+            art.errorPrecio = art.ART_VALOR <= 0 || montoFleteUnitario === null;
+            if (art.errorPrecio) isPriceValid.value = false;
             // --- Cálculos Matemáticos (Todo Numérico) ---
             const precioParaCalculo = art.ART_VALOR;
             const descuentoPorcentaje = Number.parseFloat(art.descuento) || 0;
@@ -784,19 +799,29 @@ export function useProcessCreateQuote(draftId = 'default') {
             art.ART_IVA = redondear(ivaLinea + 0.000001, 2); //se aplico por bloque de seguridad
             tempIva += ivaLinea;
             //calculo del peso
-            tempPeso += (Number.parseFloat(art.ART_PESO) || 0) * cantidad;
+            const pesoLinea = (Number.parseFloat(art.ART_PESO) || 0) * cantidad;
+            tempPeso += pesoLinea;
+            if (Number(art.monto_flete) > 0) tempPesoFlete += pesoLinea;
         });
         form.value.subtotal = redondear(tempSubtotal + 0.000001, 2);
         form.value.descuento = redondear(tempDescuento + 0.000001, 2);
         form.value.iva = redondear(tempIva + 0.000001, 2);
         form.value.peso = redondear(tempPeso, 2);
-
+        form.value.peso_flete = Number(form.value.tipo_despacho_id) === 4
+            ? redondear(tempPesoFlete, 2)
+            : form.value.peso;
         // Total General = Subtotal + IVA
         form.value.total = redondear((form.value.subtotal + form.value.iva) + 0.000001, 2);
         validateAllProvidersStock();
         verifyStockConsistency();
     }
 
+    watch(
+        () => [form.value.tipo_despacho_id,
+        form.value.items.map((item) => [item.monto_flete, item.ART_PESO, item.ART_CANTIDAD, item.descuento])],
+        () => calculateTotals(),
+        { deep: true }
+    );
 
     const verifyStockConsistency = (silent = false) => {
         let isValid = true;
@@ -955,6 +980,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             row.ART_VALOR_ORIGINAL = row.valor_temporal
         }
         row.cambiar_valor = false;
+        calculateTotals();
     }
 
 
@@ -963,7 +989,7 @@ export function useProcessCreateQuote(draftId = 'default') {
      */
 
     const isEditDiscount = (row) => {
-        return row.cambiar_descuento === true;
+        return row.cambiar_descuento === true && !row.es_servicio_logistico;
     }
 
     const enableEditDiscount = async (element, i) => {
@@ -1025,7 +1051,102 @@ export function useProcessCreateQuote(draftId = 'default') {
     }
 
 
+    /* 
+     * proceso de monto de flete para detalle 
+     * 
+     */
 
+    // Solo el despacho 4 distribuye el flete entre los artículos.
+    const isActivePricefreight = (item) => {
+        if (Number(form.value.tipo_despacho_id) !== 4) return false;
+        if (!item || !isItemL(item)) return true;
+        return (item.proveedores || []).some((provider) =>
+            provider.proveedor_entrega != null
+            && ![true, 1, '1'].includes(provider.proveedor_entrega)
+        );
+    };
+
+    watch(
+        () => form.value.items.map((item) => isActivePricefreight(item)),
+        () => {
+            if (isRecoveringQuote.value) return;
+            let changed = false;
+            form.value.items.forEach((item) => {
+                if (isItemL(item) && !isActivePricefreight(item)) {
+                    changed = changed || Number(item.monto_flete || 0) !== 0;
+                    item.monto_flete = 0;
+                    item.monto_flete_temporal = 0;
+                    item.cambiar_flete = false;
+                }
+            });
+            if (changed) calculateTotals();
+        }
+    );
+
+    watch(
+        () => form.value.tipo_despacho_id,
+        (newVal, oldVal) => {
+            if (!isRecoveringQuote.value && Number(newVal) !== Number(oldVal)) {
+                cleanFreightPrice();
+            }
+        },
+        { flush: 'sync' }
+    );
+
+    function cleanFreightPrice() {
+        form.value.items.forEach((item) => {
+            item.monto_flete = 0;
+            item.errorMontoFlete = false;
+        });
+    }
+
+    const toFreightCents = (value) => {
+        if (value === null || value === undefined || value === '') return 0;
+        const amount = Number(value);
+        if (!Number.isFinite(amount) || amount < 0) return null;
+        const cents = Math.round(amount * 100);
+        // No admitir fracciones de centavo que no se puedan guardar como moneda.
+        return Number.isSafeInteger(cents) && Math.abs(amount * 100 - cents) < 0.000001
+            ? cents : null;
+    };
+
+    function validateDispatchFields() {
+        if (![3, 4, 5].includes(Number(form.value.tipo_despacho_id))) return '';
+        const providerId = Number(form.value.proveedor_despacho_id);
+        if (!Number.isSafeInteger(providerId) || providerId <= 0) {
+            return 'Debe seleccionar un proveedor de despacho.';
+        }
+        const amount = toFreightCents(form.value.monto_flete);
+        if (amount === null || amount <= 0) {
+            return 'Debe ingresar un monto de flete válido mayor a cero.';
+        }
+        return '';
+    }
+
+    // Esta consulta es pura: también se usa desde los computed de los botones.
+    function validateFreightTotal() {
+        const dispatchId = Number(form.value.tipo_despacho_id);
+        if (![4, 5].includes(dispatchId)) return true;
+        const amountHeader = toFreightCents(form.value.monto_flete);
+        if (amountHeader === null) return false;
+        if (!isActivePricefreight()) return true;
+        const amounts = form.value.items.map((item) => toFreightCents(item.monto_flete));
+        return form.value.items.every((item) => freightUnitPrice(item) !== null)
+            && amounts.every((amount) => amount !== null)
+            && amounts.reduce((total, amount) => total + amount, 0) === amountHeader;
+    }
+
+    watch(
+        () => [form.value.tipo_despacho_id, form.value.monto_flete,
+        form.value.items.map((item) => item.monto_flete)],
+        () => {
+            const hasError = isActivePricefreight() && !validateFreightTotal();
+            form.value.items.forEach((item) => {
+                item.errorMontoFlete = hasError;
+            });
+        },
+        { immediate: true }
+    );
 
     /*** 
      * 
@@ -1037,12 +1158,21 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingCreateQuotation = ref(false);
     async function createQuote(mode) {
+        const dispatchError = validateDispatchFields();
+        if (dispatchError) return { ok: false, message: dispatchError };
+        if (!(Number(form.value.tipo_despacho_id) > 0)) {
+            return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
+        }
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
             return;
         }
         if (!form.value.items.length) {
             swalWarning('Debe agregar al menos un artículo.');
+            return;
+        }
+        if (!validateFreightTotal()) {
+            swalWarning("Ingrese montos de flete válidos; para paquetería, la suma del detalle debe coincidir con la cabecera.");
             return;
         }
         const formData = new FormData();
@@ -1054,19 +1184,20 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('mode', mode);
         //datos del cliente
         formData.append('cliente_id', form.value.cliente.id);
-        formData.append('ruc', form.value.cliente.CLI_RUC);
-        formData.append('razon_social', form.value.cliente.CLI_RAZON_SOCIAL);
+        // formData.append('ruc', form.value.cliente.CLI_RUC);
+        // formData.append('razon_social', form.value.cliente.CLI_RAZON_SOCIAL);
         formData.append('correo_electronico_sri', form.value.cliente.CLI_CORREO_ELECT_SRI);
-        formData.append('vendedor_id', form.value.cliente.gpvendedor.VEND_ID);
-        formData.append('vendedor_nombres', form.value.cliente.gpvendedor.VEND_NOMBRES);
-        formData.append('vendedor_apellidos', form.value.cliente.gpvendedor.VEND_APELLIDOS);
+        // formData.append('vendedor_id', form.value.cliente.gpvendedor.VEND_ID);
+        // formData.append('vendedor_nombres', form.value.cliente.gpvendedor.VEND_NOMBRES);
+        // formData.append('vendedor_apellidos', form.value.cliente.gpvendedor.VEND_APELLIDOS);
 
         //variables de punto de venta y bodega de facturacion
         formData.append('punto_venta_id', form.value.punto_venta_id);
+        formData.append('pv_id', form.value.pv_id);
         formData.append('bodega_facturacion', form.value.bodega_facturacion);
 
         //variables de fecha y direccion de facturacion
-        formData.append('tipo_entrega', form.value.tipo_entrega); //despacho o retiro
+        // formData.append('tipo_entrega', form.value.tipo_entrega); //despacho o retiro
         formData.append('fecha_entrega', form.value.fecha_entrega);
         formData.append('direccion_facturacion_id', form.value.direccion_facturacion_id);
         formData.append('direccion_entrega_id', form.value.direccion_entrega_id);
@@ -1075,6 +1206,11 @@ export function useProcessCreateQuote(draftId = 'default') {
         formData.append('factura_a_demanda', form.value.factura_a_demanda);
         formData.append('factura_siguiente_mes', form.value.factura_siguiente_mes);
 
+        /**
+         * condicion para que se genere la factura sin considerar las factura a demanda
+         * factura posterior despacho y factura a siguiente mes
+         */
+        formData.append('facturar_ahora', form.value.facturar_ahora)
 
         //condiciones y formas de pago 
         formData.append('condicion_pago_id', form.value.condicion_pago_id);
@@ -1153,6 +1289,15 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
+
+        //paqueteria
+        formData.append('responsable_flete', form.value.responsable_flete);
+        formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
+        formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
+        formData.append('monto_flete', form.value.monto_flete);
+        formData.append('peso_flete', form.value.peso_flete);
+
+
         return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE, formData), {
             loadingRef: loadingCreateQuotation,
             onError: (error) => {
@@ -1218,8 +1363,6 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.imagenesoperaciones = [];
                 const { cotizacion, cliente, items, segmento, imagenesOperaciones, documentosPdf, mode } = res;
 
-                // clearForm(uploadedFilesRef);
-
                 //cargamos el cliente y los datos de identificacion 
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
@@ -1250,12 +1393,15 @@ export function useProcessCreateQuote(draftId = 'default') {
                     cod_categoria: item.cod_categoria || "",
                     cod_linea: item.cod_linea || "",
                     cod_clase: item.cod_clase || "",
-                    resultado_configuracion_item_l: item.resultado_configuracion_item_l || ""
+                    resultado_configuracion_item_l: item.resultado_configuracion_item_l || "",
+                    monto_flete: item.monto_flete ?? 0,
+                    errorMontoFlete: false
                 }));
 
 
                 // 4. Configuración de Cabecera y Logística
                 form.value.punto_venta_id = cotizacion.PTO_VTA_ID;
+                form.value.pv_id = cotizacion.pv_id;
                 form.value.bodega_facturacion = cotizacion.BOD_BODEGA;
                 form.value.direccion_facturacion_id = cotizacion.sucursal_facturacion_id;
                 form.value.direccion_entrega_id = cotizacion.sucursal_id;
@@ -1295,7 +1441,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //documentos pdf
                 if (documentosPdf && documentosPdf.length > 0) {
                     if (uploadedPdfsRef) {
-                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                        uploadedPdfsRef.value = documentosPdf.map((doc) => ({
                             id: doc.id,
                             preview: doc.url,
                             name: doc.nombre,
@@ -1318,10 +1464,14 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
                 form.value.condicion_pago_original_id = cliente.CLI_CONDICION_PAGO;
-                // setTimeout(() => {
-                //     isRecoveringQuote.value = false;
 
-                // }, 500);
+                //paqueteria
+                form.value.responsable_flete = cotizacion.responsable_flete ?? 'tuval';
+                form.value.tipo_despacho_id = cotizacion.tipo_despacho_id;
+                form.value.proveedor_despacho_id = cotizacion.proveedor_despacho_id ?? null;
+                form.value.monto_flete = cotizacion.monto_flete ?? 0;
+                form.value.peso_flete = cotizacion.peso_flete ?? 0;
+                form.value.facturar_ahora = cotizacion.facturar_ahora ?? false;
             },
             onError: (err) => {
                 console.error("Error recuperando cotización:", err);
@@ -1362,6 +1512,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.segmento = segmento;
 
                 form.value.punto_venta_id = cotizacion.PTO_VTA_ID;
+                form.value.pv_id = cotizacion.pv_id;
                 form.value.bodega_facturacion = cotizacion.BOD_BODEGA;
                 form.value.condicion_pago_id = cotizacion.COND_ID;
                 form.value.forma_pago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
@@ -1406,7 +1557,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                     stockRowLoading: false,
                     disableOpenModalStock: false,
                     proveedores: item.proveedores || [],
-                    imagenes: item.imagenes || []
+                    imagenes: item.imagenes || [],
+                    monto_flete: 0
 
                 }));
 
@@ -1429,7 +1581,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //documentos pdf
                 if (documentosPdf && documentosPdf.length > 0) {
                     if (uploadedPdfsRef) {
-                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                        uploadedPdfsRef.value = documentosPdf.map((doc) => ({
                             id: doc.id,
                             preview: doc.url,
                             name: doc.nombre,
@@ -1443,6 +1595,15 @@ export function useProcessCreateQuote(draftId = 'default') {
                     if (uploadedPdfsRef) uploadedPdfsRef.value = [];
                     form.value.documentos_pdf = [];
                 }
+
+                //paqueteria
+                form.value.responsable_flete = 'tuval';
+                form.value.tipo_despacho_id = null;
+                form.value.proveedor_despacho_id = null;
+                form.value.monto_flete = 0;
+                form.value.facturar_ahora = false;
+                
+
                 validateBillingRules();
                 calculateTotals();
             },
@@ -1481,7 +1642,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.cliente = cliente;
                 form.value.segmento = segmento;
 
-                form.value.punto_venta_id = ptoVtaSelect.value;
+                form.value.punto_venta_id = selectedPointSaleCode.value;
+                form.value.pv_id = selectedPointSaleId.value;
                 form.value.bodega_facturacion = null;           //se carga automaticamente basado en el punto de venta
                 form.value.direccion_facturacion_id = sucursal_id;
                 form.value.direccion_entrega_id = sucursal_id;
@@ -1516,7 +1678,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                     stockRowLoading: false,
                     disableOpenModalStock: false,
                     proveedores: [],
-                    imagenes: item.imagenes || []
+                    imagenes: item.imagenes || [],
+                    monto_flete: 0
 
                 }));
 
@@ -1539,7 +1702,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //documentos pdf
                 if (documentosPdf && documentosPdf.length > 0) {
                     if (uploadedPdfsRef) {
-                        uploadedPdfsRef.value = documentosPdf.map((doc, index) => ({
+                        uploadedPdfsRef.value = documentosPdf.map((doc) => ({
                             id: doc.id,
                             preview: doc.url,
                             name: doc.nombre,
@@ -1553,6 +1716,13 @@ export function useProcessCreateQuote(draftId = 'default') {
                     if (uploadedPdfsRef) uploadedPdfsRef.value = [];
                     form.value.documentos_pdf = [];
                 }
+
+                //paqueteria
+                form.value.responsable_flete = 'tuval';
+                form.value.tipo_despacho_id = null;
+                form.value.proveedor_despacho_id = null;
+                form.value.monto_flete = 0;
+                form.value.facturar_ahora = false;
 
                 validateBillingRules();
                 calculateTotals();
@@ -1590,6 +1760,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 form.value.segmento = segmento;
 
                 form.value.punto_venta_id = pedido.PTO_VTA_ID;
+                form.value.pv_id = pedido.pv_id;
+
                 form.value.bodega_facturacion = pedido.BOD_BODEGA;
                 form.value.condicion_pago_id = pedido.COND_ID;
                 form.value.forma_pago_id = pedido.DESC_FORMA_PAGO_CODIGO;
@@ -1658,6 +1830,14 @@ export function useProcessCreateQuote(draftId = 'default') {
                     if (uploadedPdfsRef) uploadedPdfsRef.value = [];
                     form.value.documentos_pdf = [];
                 }
+
+                //paqueteria
+                form.value.responsable_flete = 'tuval';
+                form.value.tipo_despacho_id = null;
+                form.value.proveedor_despacho_id = null;
+                form.value.monto_flete = 0;
+
+
                 validateBillingRules();
                 calculateTotals();
             },
@@ -1677,12 +1857,21 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingSaveOrder = ref(false);
     async function saveOrder() {
+        const dispatchError = validateDispatchFields();
+        if (dispatchError) return { ok: false, message: dispatchError };
+        if (!(Number(form.value.tipo_despacho_id) > 0)) {
+            return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
+        }
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
             return;
         }
         if (!form.value.items.length) {
             swalWarning('Debe agregar al menos un artículo.');
+            return;
+        }
+        if (!validateFreightTotal()) {
+            swalWarning('Ingrese montos de flete válidos; para paquetería, la suma del detalle debe coincidir con la cabecera.');
             return;
         }
         const formData = new FormData();
@@ -1699,6 +1888,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
         //variables de punto de venta y bodega de facturacion
         formData.append('punto_venta_id', form.value.punto_venta_id);
+        formData.append('pv_id', form.value.pv_id);
         formData.append('bodega_facturacion', form.value.bodega_facturacion);
 
         //variables de fecha y direccion de facturacion
@@ -1735,6 +1925,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         //calculos
         formData.append('subtotal', form.value.subtotal);
         formData.append('peso', form.value.peso);
+        formData.append('peso_flete', form.value.peso_flete);
         formData.append('descuento', form.value.descuento);
         formData.append('iva', form.value.iva);
         formData.append('total', form.value.total);
@@ -1790,6 +1981,14 @@ export function useProcessCreateQuote(draftId = 'default') {
                 }
             });
         }
+
+        //paqueteria
+        formData.append('responsable_flete', form.value.responsable_flete);
+        formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
+        formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
+        formData.append('monto_flete', form.value.monto_flete);
+        formData.append('facturar_ahora', form.value.facturar_ahora);
+
         return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.CREATE, formData), {
             loadingRef: loadingSaveOrder,
             onError: (error) => {
@@ -1833,7 +2032,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         clearForm,
         addItems,
         removeItem,
-        ptoVtaSelect,
+        selectedPointSaleCode,
         //limitadores 
         maxOrder,
         maxLength,
@@ -1950,7 +2149,13 @@ export function useProcessCreateQuote(draftId = 'default') {
         //lista de proyectos
         loadingProyectSellers,
         dataProyectSellers,
-        fetchListProyectSellers
+        fetchListProyectSellers,
+
+        //monto flete
+        isActivePricefreight,
+        cleanFreightPrice,
+        validateFreightTotal,
+        validateDispatchFields
     };
 
 

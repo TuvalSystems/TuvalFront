@@ -84,7 +84,10 @@ const STATUS_MAPS = {
         iniciado: "danger",
         rechazado: "danger",
         no_enviado: "warning"
-
+    },
+    proveedor: {
+        activo: "success",
+        inactivo: "danger",
     }
 
 };

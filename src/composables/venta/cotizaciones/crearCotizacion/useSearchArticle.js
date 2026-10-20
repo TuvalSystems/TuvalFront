@@ -172,7 +172,7 @@ export function useSearchArticle() {
 
     //function de consulta para listar todos los articulos de acuerdo a los filtros
     async function fetchSearchArticles() {
-        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.ITEMS, payload), {
+        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.ITEMS, payload), {
             loadingRef: loadingArt,
             onSuccess: (res) => {
                 articles.value = res.filter((article) => {
@@ -304,7 +304,7 @@ export function useSearchArticle() {
     /** busacar items l  */
     const loadingSearchItemL = ref(false);
     async function searchItemL(payload) {
-        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.CONSULT.ITEMS_L, payload), {
+        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.ITEMS_L, payload), {
             loadingRef: loadingSearchItemL
         });
     }

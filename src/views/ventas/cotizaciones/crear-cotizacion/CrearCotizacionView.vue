@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, watch, reactive, nextTick } from "vue";
+import { freightUnitPrice } from "@/functions/freightPrice";
 import {
   swalError,
   toast,
@@ -15,6 +16,8 @@ import { useSearchConditionPayment } from "@/composables/venta/cotizaciones/crea
 import { useCheckClientSegment } from "@/composables/venta/cotizaciones/useCheckClientSegment";
 import { useImageUpload } from "@/composables/core/useImageUpload";
 import { useSearchArticle } from "@/composables/venta/cotizaciones/crearCotizacion/useSearchArticle.js";
+import { useProviderActions } from "@/composables/sistemas/mantenimientos/proveedores/useProviderActions.js";
+import { useArticleActions } from "@/composables/sistemas/mantenimientos/articulos/useArticleActions.js";
 
 import draggable from "vuedraggable";
 import {
@@ -78,7 +81,7 @@ const {
   clearForm,
   addItems,
   removeItem,
-  ptoVtaSelect,
+  selectedPointSaleCode,
   //limitadores
   maxOrder,
   maxLengthNote,
@@ -158,6 +161,11 @@ const {
   loadingProyectSellers,
   dataProyectSellers,
   fetchListProyectSellers,
+
+  //monto flete
+  isActivePricefreight,
+  validateFreightTotal,
+  validateDispatchFields,
 } = useProcessCreateQuote(currentDraftId.value);
 
 const {
@@ -200,9 +208,17 @@ const triggerPdfInput = () => {
 };
 
 const { loadingCheck, fetchCheckSegmentoClient } = useCheckClientSegment();
+const { loadingActiveProviders, fetchActiveProviders, activeProviders } =
+  useProviderActions();
+
+const {
+  //articulo logistico
+  fetchArticleLogistic,
+  // loadingArticleLogistic,
+} = useArticleActions();
 //variables de modales
 const verModalActualizarSegmento = ref(null);
-const verModalCrearDireccionModal = ref(null);
+const newAddressModal = ref(null);
 const verSearchItemModal = ref(null);
 const verItemAltRef = ref(null);
 const verSeleccionStockBodegasRef = ref(null);
@@ -214,9 +230,7 @@ const verModalConfiguracionItemLRef = ref(null);
 const verModalActualizarSegmentoObj = useBootstrapModal(
   verModalActualizarSegmento
 );
-const verModalCrearDireccionModalObj = useBootstrapModal(
-  verModalCrearDireccionModal
-);
+
 const verSearchItemModalObj = useBootstrapModal(verSearchItemModal, {
   onHidden: () => {
     dataSearchItem.value = null;
@@ -247,14 +261,10 @@ const verModalPesoItemObj = useBootstrapModal(verModalPesoItemRef, {
     calculateTotals();
   },
 });
-const verProveedoresObj = useBootstrapModal(verProveedoresRef, {
-  backdrop: "static",
-  keyboard: false,
-});
 
-const verModalConfiguracionItemLObj = useBootstrapModal(
-  verModalConfiguracionItemLRef
-);
+// const verModalConfiguracionItemLObj = useBootstrapModal(
+//   verModalConfiguracionItemLRef
+// );
 
 // variables para mostrar las busquedas
 const showResultClients = ref(false);
@@ -360,33 +370,36 @@ async function processSelectClient(client) {
   }
 
   form.value.descuento_articulo = Number.parseFloat(
-    client.CLI_DSTO_COMERCIAL || 0
+    infoClient.value.CLI_DSTO_COMERCIAL || 0
   );
   form.value.descuento_original = Number.parseFloat(
-    client.CLI_DSTO_COMERCIAL || 0
+    infoClient.value.CLI_DSTO_COMERCIAL || 0
   );
 
-  form.value.punto_venta_id = ptoVtaSelect.value;
+  form.value.punto_venta_id = selectedPointSaleCode.value;
 }
 
 // proceso de crear direccion nueva para un cliente
-let dataClient = ref({});
+const dataClient = ref(null);
 async function openModalCreateAddress() {
   dataClient.value = form.value.cliente;
   await nextTick();
-  verModalCrearDireccionModalObj.show();
+  newAddressModal.value?.show();
 }
 
 function updateClientInfoField({ field, value }) {
   form.value[field] = value;
 }
 
-async function closeModalCreateAddress(client) {
-  verModalCrearDireccionModalObj.hide();
-  if (client && client.CLI_RUC) {
-    await fetchCustomerBranches(client.CLI_RUC, "cotizacion");
+async function closeModalCreateAddress() {
+  dataClient.value = null;
+}
+
+async function handleSavedAddress() {
+  if (form.value.cliente && form.value.cliente.CLI_RUC) {
+    await fetchCustomerBranches(form.value.cliente.CLI_RUC, "cotizacion");
   }
-  dataClient.value = {};
+  newAddressModal.value?.hide();
 }
 
 const asigmentWarehouse = (nuevoPuntoVenta) => {
@@ -410,7 +423,7 @@ const asigmentWarehouse = (nuevoPuntoVenta) => {
 
 //limpieza de form cuando cambia de punto de venta
 watch(
-  () => ptoVtaSelect.value,
+  () => selectedPointSaleCode.value,
   async (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
       isRecoveringQuote.value = true;
@@ -428,7 +441,7 @@ watch(
 );
 
 watch(
-  () => ptoVtaSelect.value,
+  () => selectedPointSaleCode.value,
   (nuevoPuntoVenta) => {
     if (nuevoPuntoVenta) {
       asigmentWarehouse(nuevoPuntoVenta);
@@ -440,8 +453,8 @@ watch(
   () => warehouseByUser.value,
   (nuevasBodegas) => {
     // Solo intentamos asignar si ya tenemos un punto de venta seleccionado
-    if (nuevasBodegas && nuevasBodegas.length > 0 && ptoVtaSelect) {
-      asigmentWarehouse(ptoVtaSelect.value);
+    if (nuevasBodegas && nuevasBodegas.length > 0 && selectedPointSaleCode) {
+      asigmentWarehouse(selectedPointSaleCode.value);
     }
   }
 );
@@ -618,12 +631,19 @@ async function openModalProviders(item, i) {
     item: item,
   };
   await nextTick();
-  verProveedoresObj.show();
+  verProveedoresRef.value?.show();
 }
 
 const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   const item = form.value.items[index];
   item.proveedores = providers;
+  if (!isActivePricefreight(item)) {
+    // Conservar la base antes de retirar el flete del valor mostrado.
+    item.precio_sin_flete ??= Number(item.ART_VALOR || 0) - (freightUnitPrice(item) ?? 0);
+    item.monto_flete = 0;
+    item.monto_flete_temporal = 0;
+    item.cambiar_flete = false;
+  }
   if (
     nuevoPrecio !== null &&
     nuevoPrecio !== undefined &&
@@ -631,11 +651,12 @@ const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
     Number(nuevoPrecio) !== Number(item.valor_original_l)
   ) {
     item.ART_VALOR = nuevoPrecio;
+    item.precio_sin_flete = nuevoPrecio;
     item.ART_VALOR_ORIGINAL = nuevoPrecio;
     item.valor_original_l = nuevoPrecio;
   }
   calculateTotals();
-  verProveedoresObj.hide();
+  verProveedoresRef.value?.hide();
 };
 
 /** logica para seleccion y asignación de item L  */
@@ -670,11 +691,11 @@ const dataItemLClasification = ref({
   item: {},
   index: 0,
 });
-async function openModalSegmentationItemL(item, i) {
-  dataItemLClasification.value.item = item;
-  dataItemLClasification.value.index = i;
-  verModalConfiguracionItemLObj.show();
-}
+// async function openModalSegmentationItemL(item, i) {
+//   dataItemLClasification.value.item = item;
+//   dataItemLClasification.value.index = i;
+//   verModalConfiguracionItemLObj.show();
+// }
 
 function updateItemLClassification({ index, categoria, linea, clase }) {
   const item = form.value.items[index];
@@ -776,7 +797,7 @@ async function applyGeneraModifier() {
 
   const updatePromises = form.value.items.map(async (item) => {
     const tipoCompra = (item.ART_TIPO_COMPRA || "").trim().toUpperCase();
-    if (tipoCompra === "L") return;
+    if (tipoCompra === "L" || Number(item.es_servicio_logistico) === 1) return;
     item.modificador = globalModifier;
     return applyModifyRow(item);
   });
@@ -792,22 +813,52 @@ async function applyGeneraModifier() {
 
 const saveModifyPrice = async (element) => {
   const valorFijo = formatCleanPrice4(element.ART_VALOR, 4);
+
   if (valorFijo === element.valor_temporal) {
     element.cambiar_valor = false;
     return;
   }
   element.ART_VALOR = valorFijo;
-  if (element.ART_TIPO_COMPRA === "L") {
-    element.ART_VALOR_ORIGINAL = element.ART_VALOR;
+  element.precio_sin_flete = formatCleanPrice4(
+    Number(valorFijo) - (freightUnitPrice(element) ?? 0), 4
+  );
+  if (Number(element.es_servicio_logistico) === 1) {
+    element.valor_temporal = valorFijo;
+    element.ART_VALOR_ORIGINAL = element.precio_sin_flete;
+    form.value.monto_flete = valorFijo;
+    element.modificador = 0;
+  } else if (element.ART_TIPO_COMPRA === "L") {
+    element.ART_VALOR_ORIGINAL = element.precio_sin_flete;
   } else {
     const original = Number.parseFloat(element.ART_VALOR_ORIGINAL || 0);
     if (original > 0) {
-      let nuevoModificar = (Number(element.ART_VALOR) / original - 1) * 100;
+      let nuevoModificar = (Number(element.precio_sin_flete) / original - 1) * 100;
       element.modificador = formatClean(nuevoModificar, 4);
     }
   }
   element.cambiar_valor = false;
   calculateTotals();
+};
+
+function isApplyModifyPriceStyle(item) {
+  return applyModifyPrice(item) ? "text-danger" : "text-primary";
+}
+
+const enableEditFreight = async (element, index) => {
+  if (!isActivePricefreight(element)) return;
+  element.monto_flete_temporal = element.monto_flete;
+  element.cambiar_flete = true;
+  await nextTick();
+  document.getElementById(`input-monto-flete-${index}`)?.focus();
+};
+
+const saveModifyFreight = (element) => {
+  element.cambiar_flete = false;
+};
+
+const exitEditFreight = (element) => {
+  element.monto_flete = element.monto_flete_temporal;
+  element.cambiar_flete = false;
 };
 
 /**
@@ -823,9 +874,23 @@ const saveModifyDiscount = async (element) => {
   calculateTotals();
 };
 
+function isApplyModifyDiscountStyle(item) {
+  return applyModifyDiscount(item) ? "text-danger" : "text-primary";
+}
+
 /** proceso de eliminacion de registro de item  */
 
 async function confirmarEliminarArticulo(item, i) {
+  const isParcelDispatch = Number(form.value.tipo_despacho_id) === 3;
+  const isLogisticService = Number(item.es_servicio_logistico) === 1;
+
+  if (isParcelDispatch && isLogisticService) {
+    swalWarning(
+      "No puede eliminar este artículo porque el servicio logístico es obligatorio para el tipo de despacho Paquetería."
+    );
+    return;
+  }
+
   toast
     .fire({
       title: "Estás seguro?",
@@ -923,21 +988,26 @@ watch(
 //validacion de antes de crear una cotizacion o pedido
 
 const btnDisabledStore = computed(() => {
+  if (!(Number(form.value.tipo_despacho_id) > 0)) return true;
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
   if (loadingSaveOrder.value) return true;
   if (!isQuoteValid.value) return true;
   if (!form.value.cliente) return true;
   if (!form.value.condicion_pago_id) return true;
+  if (!form.value.items.length) return true;
+  if (validateDispatchFields() || !validateFreightTotal()) return true;
   return false;
 });
 
 const btnDisableStoreQuotation = computed(() => {
+  if (!(Number(form.value.tipo_despacho_id) > 0)) return true;
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
   if (loadingSaveOrder.value) return true;
   if (!form.value.cliente) return true;
   if (!form.value.condicion_pago_id) return true;
+  if (validateDispatchFields() || !validateFreightTotal()) return true;
   return false;
 });
 
@@ -1126,10 +1196,6 @@ watch(
       if (form.value.items && form.value.items.length > 0) {
         setTimeout(() => {
           updateStockByBatchV2();
-          console.log(
-            "cargar precios de articulos",
-            form.value.cliente.CLI_NIVEL_PRECIO
-          );
         }, 300);
       }
     } else if (!newDraftId && oldDraftId) {
@@ -1164,7 +1230,68 @@ watch(
   () => setDefaultProject()
 );
 
+/** proceso para asignación de item logistico de servicio */
+
+watch(
+  () => form.value.monto_flete,
+  (montoFlete) => {
+    const valorFijo = formatCleanPrice4(montoFlete, 4);
+    let updated = false;
+    form.value.items.forEach((item) => {
+      if (Number(item.es_servicio_logistico) !== 1) return;
+      item.ART_VALOR = valorFijo;
+      item.precio_sin_flete = valorFijo;
+      item.ART_VALOR_ORIGINAL = valorFijo;
+      item.valor_temporal = valorFijo;
+      item.modificador = 0;
+      updated = true;
+    });
+    if (updated) calculateTotals();
+  }
+);
+
+watch(
+  () => form.value.tipo_despacho_id,
+  async (newVal) => {
+    if (newVal === 3) {
+      await searchLogisticArticle();
+    }
+    if (newVal !== 3) {
+      await removeLogisticServiceArticle();
+    }
+  }
+);
+
+async function searchLogisticArticle() {
+  const hasLogisticService = form.value.items.some(
+    (item) => item.es_servicio_logistico === true
+  );
+  if (hasLogisticService) {
+    return;
+  }
+  const resp = await fetchArticleLogistic();
+  let row = resp?.data;
+  row.ART_VALOR = form.value.monto_flete;
+  row.ART_VALOR_ORIGINAL = form.value.monto_flete;
+  row.valor_temporal = form.value.monto_flete;
+  addItems(row);
+}
+
+async function removeLogisticServiceArticle() {
+  const index = form.value.items.findIndex(
+    (item) => Number(item.es_servicio_logistico) === 1
+  );
+  if (index !== -1) {
+    removeItem(index);
+  }
+}
+
+function isDisableLogisticServiceArticle(item) {
+  return item.es_servicio_logistico;
+}
+
 onMounted(async () => {
+  await fetchActiveProviders();
   const mode = route.query.mode;
   const idDoc = route.query.id;
   if (mode && idDoc) {
@@ -1208,6 +1335,14 @@ onMounted(async () => {
   await fetchListProyectSellers();
   setDefaultProject();
   await Promise.all([fetchWarehouseByPtoVtaUser(), fetchConditionPayment()]);
+
+  const newCustomerIdentification = String(
+    route.query.cliente_nuevo ?? ""
+  ).trim();
+  if (newCustomerIdentification) {
+    await processSelectClient({ CLI_RUC: newCustomerIdentification });
+  }
+
   //logica para recuperar datos en memoria
   if (form.value.cliente && form.value.cliente.CLI_RUC) {
     loadingSearch.value = false;
@@ -1477,6 +1612,9 @@ onMounted(async () => {
                 <th scope="col" class="text-end" style="width: 100px">
                   Precio
                 </th>
+                <th scope="col" class="text-end" style="width: 50px">
+                  Monto flete
+                </th>
                 <th scope="col" class="text-end" style="width: 80px">
                   % Desc.
                 </th>
@@ -1538,6 +1676,7 @@ onMounted(async () => {
                   <!-- obtener listado de descripciones -->
                   <td class="fs-sm text-center">
                     <button
+                      v-if="!isDisableLogisticServiceArticle(element)"
                       type="button"
                       class="btn btn-sm btn-info"
                       @click="openModalListItemAlternatives(element, index)"
@@ -1548,6 +1687,7 @@ onMounted(async () => {
                   <!-- check alternativo -->
                   <td class="fs-sm text-center">
                     <input
+                      v-if="!isDisableLogisticServiceArticle(element)"
                       type="checkbox"
                       class="form-check-input"
                       :id="`checkAlternativo-${element.id}`"
@@ -1598,6 +1738,7 @@ onMounted(async () => {
                       :class="{ 'is-invalid': element.errorCantidad }"
                       placeholder="0"
                       min="0"
+                      :disabled="isDisableLogisticServiceArticle(element)"
                       :value="element.ART_CANTIDAD"
                       @change="changeQuantityItem($event, element, index)"
                       :tablindex="index + 1"
@@ -1626,7 +1767,7 @@ onMounted(async () => {
 
                     <!-- boton peso -->
                     <button
-                      v-else
+                      v-else-if="!isDisableLogisticServiceArticle(element)"
                       class="btn btn-sm btn-info"
                       title="Peso de artículo"
                       @click="openModalPesoRowItem(element, index)"
@@ -1652,7 +1793,10 @@ onMounted(async () => {
                   <!-- modificador -->
                   <td class="fs-sm text-end">
                     <input
-                      v-if="element.ART_TIPO_COMPRA !== 'L'"
+                      v-if="
+                        element.ART_TIPO_COMPRA !== 'L' &&
+                        !isDisableLogisticServiceArticle(element)
+                      "
                       type="number"
                       class="form-control text-end no-spinners"
                       step="0.01"
@@ -1662,6 +1806,7 @@ onMounted(async () => {
                       @focus="$event.target.select()"
                       @change="applyModifyRow(element)"
                       @keydown.enter="$event.target.blur()"
+                      :disabled="isDisableLogisticServiceArticle(element)"
                     />
                     <span
                       v-else
@@ -1680,13 +1825,7 @@ onMounted(async () => {
                       class="cursor-pointer"
                       title="Clic para editar"
                     >
-                      <span
-                        :class="
-                          applyModifyPrice(element)
-                            ? 'text-danger'
-                            : 'text-primary'
-                        "
-                      >
+                      <span :class="isApplyModifyPriceStyle(element)">
                         ${{ formatPrice4(parseFloat(element.ART_VALOR)) }}
                       </span>
                     </div>
@@ -1705,6 +1844,42 @@ onMounted(async () => {
                       @keyup.esc="exitEditPrice(element)"
                     />
                   </td>
+                  <!-- precio flete -->
+                  <td class="fs-sm text-end col-1">
+                    <span
+                      v-if="!isActivePricefreight(element)"
+                      class="text-muted"
+                      style="text-align: center"
+                      title="No aplica flete por artículo"
+                    >
+                      &mdash;
+                    </span>
+                    <div
+                      v-else-if="!element.cambiar_flete"
+                      @click="enableEditFreight(element, index)"
+                      class="cursor-pointer"
+                      title="Clic para editar"
+                    >
+                      <span :class="element.errorMontoFlete ? 'text-danger' : 'text-primary'">
+                        ${{ format(Number(element.monto_flete || 0)) }}
+                      </span>
+                    </div>
+                    <input
+                      v-else
+                      :id="`input-monto-flete-${index}`"
+                      :class="{ 'is-invalid': element.errorMontoFlete }"
+                      type="number"
+                      class="form-control text-end no-spinners p-1"
+                      placeholder="0"
+                      v-model.number="element.monto_flete"
+                      min="0"
+                      step="0.01"
+                      @focus="$event.target.select()"
+                      @blur="saveModifyFreight(element)"
+                      @keyup.enter="$event.target.blur()"
+                      @keyup.esc="exitEditFreight(element)"
+                    />
+                  </td>
                   <!-- descuento con opcion de cambiar descuento-->
                   <td class="fs-sm text-end col-1">
                     <div
@@ -1713,13 +1888,7 @@ onMounted(async () => {
                       class="cursor-pointer"
                       title="Clic para editar"
                     >
-                      <span
-                        :class="
-                          applyModifyDiscount(element)
-                            ? 'text-danger'
-                            : 'text-primary'
-                        "
-                      >
+                      <span :class="isApplyModifyDiscountStyle(element)">
                         {{ format(parseFloat(element.descuento)) }}%
                       </span>
                     </div>
@@ -1736,6 +1905,7 @@ onMounted(async () => {
                       @blur="saveModifyDiscount(element, index)"
                       @keyup.enter="$event.target.blur()"
                       @keyup.esc="exitEditDiscount(element)"
+                      :disabled="isDisableLogisticServiceArticle(element)"
                     />
                   </td>
                   <!-- total con descuento -->
@@ -1777,7 +1947,7 @@ onMounted(async () => {
             <!-- fotter -->
             <tfoot v-if="form.items.length > 0">
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   Subtotal sin Descuento
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1786,7 +1956,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   Descuento
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1795,7 +1965,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   Subtotal Neto
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1804,7 +1974,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <th scope="col" colspan="15" class="fs-sm text-end border-0">
+                <th scope="col" colspan="16" class="fs-sm text-end border-0">
                   IVA
                 </th>
                 <th scope="col" class="fs-sm text-end text-nowrap border-0">
@@ -1813,7 +1983,7 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr class="table-active">
-                <th scope="col" colspan="15" class="fs-sm text-end fw-bold">
+                <th scope="col" colspan="16" class="fs-sm text-end fw-bold">
                   TOTAL
                 </th>
                 <th scope="col" class="fs-sm text-end fw-bold text-nowrap">
@@ -1822,12 +1992,12 @@ onMounted(async () => {
                 <th scope="col" class="border-0"></th>
               </tr>
               <tr>
-                <td colspan="16" class="border-0 p-1"></td>
+                <td colspan="17" class="border-0 p-1"></td>
               </tr>
               <tr>
                 <th
                   scope="col"
-                  colspan="15"
+                  colspan="16"
                   class="fs-sm text-end text-muted fst-italic border-0"
                 >
                   Peso total aprox.
@@ -1880,15 +2050,16 @@ onMounted(async () => {
                       class="form-check-input"
                       type="checkbox"
                       id="switch-facturar"
-                      :true-value="0"
-                      :false-value="1"
-                      v-model="form.factura_siguiente_mes"
+                      :true-value="true"
+                      :false-value="false"
+                      v-model="form.facturar_ahora"
                     />
                     <label
                       class="form-check-label fw-bold text-dark"
                       for="switch-facturar"
                     >
                       Facturar ahora
+                      {{  form.facturar_ahora }}
                     </label>
                   </div>
                 </div>
@@ -2041,14 +2212,14 @@ onMounted(async () => {
                 </div>
               </div>
             </BaseBlock>
-            <BaseBlock class="mb-4">
+            <BaseBlock class="mb-2">
               <template #title>
                 <div class="d-flex align-items-center gap-2">
                   <i class="fa fa-sticky-note text-body-secondary"></i>
                   <span class="fw-semibold">Notas</span>
                 </div>
               </template>
-              <div class="row g-4">
+              <div class="row g-4 mb-2">
                 <div class="col-md-4">
                   <div class="d-flex justify-content-between mb-1">
                     <label
@@ -2302,6 +2473,21 @@ onMounted(async () => {
               >
                 Limpiar cotización
               </button>
+              <p
+                v-if="validateDispatchFields()"
+                class="text-danger fs-sm mb-0"
+                role="alert"
+              >
+                {{ validateDispatchFields() }}
+              </p>
+              <p
+                v-else-if="!validateFreightTotal()"
+                class="text-danger fs-sm mb-0"
+                role="alert"
+              >
+                Ingrese montos de flete válidos. Para paquetería, la suma del
+                detalle debe coincidir con el valor del flete.
+              </p>
               <div
                 class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2"
               >
@@ -2362,24 +2548,15 @@ onMounted(async () => {
   </div>
 
   <!-- modal para la creacion de una nueva direccion -->
-  <div
-    class="modal"
-    id="modal-crear-direccion"
-    tabindex="-1"
-    aria-hidden="true"
-    ref="verModalCrearDireccionModal"
+
+  <verModalCrearNuevaDireccion
+    v-if="dataClient"
+    ref="newAddressModal"
+    :cliente="dataClient"
+    @hidden="closeModalCreateAddress"
+    @updated="handleSavedAddress"
   >
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <verModalCrearNuevaDireccion
-          v-if="dataClient"
-          :cliente="dataClient"
-          @closeModal="closeModalCreateAddress"
-        >
-        </verModalCrearNuevaDireccion>
-      </div>
-    </div>
-  </div>
+  </verModalCrearNuevaDireccion>
 
   <!-- modal de busqueda de articulos -->
   <div class="modal" id="modal-cliente" tabindex="-1" ref="verSearchItemModal">
@@ -2480,29 +2657,15 @@ onMounted(async () => {
   </div>
 
   <!-- modal de seleccion de proveedores para items L  -->
-  <div
-    class="modal fade"
-    id="modal-block-proveedor"
-    tabindex="-1"
+  <verModalProveedores
     ref="verProveedoresRef"
-  >
-    <div
-      class="modal-dialog modal-xl modal-dialog-centered"
-      style="max-width: 90vw"
-    >
-      <div class="modal-content" style="height: 90vh">
-        <verModalProveedores
-          v-if="dataModalProviders.proveedores"
-          :providers="dataModalProviders.proveedores"
-          :index="dataModalProviders.index"
-          :item="dataModalProviders.item"
-          @update:providers="handleSaveProviders"
-          class="h-100"
-        >
-        </verModalProveedores>
-      </div>
-    </div>
-  </div>
+    :providers="dataModalProviders.proveedores"
+    :index="dataModalProviders.index"
+    :item="dataModalProviders.item"
+    :loading-list-providers="loadingActiveProviders"
+    :list-providers="activeProviders"
+    @update:providers="handleSaveProviders"
+  />
 
   <!-- modal de borradores -->
   <div

@@ -3,7 +3,13 @@ import { Modal } from "bootstrap";
 
 export function useBootstrapModal(elementRef, options = {}) {
 
-    const { onHidden = null, ...bootstrapOptions } = options;
+    const {
+        onShow = null,
+        onShown = null,
+        onHide = null,
+        onHidden = null,
+        ...bootstrapOptions
+    } = options;
     let modalInstance = null;
     let modalElement = null;
 
@@ -15,14 +21,29 @@ export function useBootstrapModal(elementRef, options = {}) {
         }
     };
 
-    const handleHideEvent = () => {
-        blurFocusedElement();
+    const runCallback = (callback, event) => {
+        if (typeof callback === "function") {
+            callback(event);
+        }
     };
 
-    const handleHiddenEvent = () => {
-        if (onHidden && typeof onHidden === "function") {
-            onHidden();
+    const handleShowEvent = (event) => {
+        runCallback(onShow, event);
+    };
+
+    const handleShownEvent = (event) => {
+        runCallback(onShown, event);
+    };
+
+    const handleHideEvent = (event) => {
+        runCallback(onHide, event);
+        if (!event.defaultPrevented) {
+            blurFocusedElement();
         }
+    };
+
+    const handleHiddenEvent = (event) => {
+        runCallback(onHidden, event);
     };
 
     // Inicializamos el modal cuando el componente se monta
@@ -36,12 +57,16 @@ export function useBootstrapModal(elementRef, options = {}) {
             bootstrapOptions
         );
 
+        modalElement.addEventListener("show.bs.modal", handleShowEvent);
+        modalElement.addEventListener("shown.bs.modal", handleShownEvent);
         modalElement.addEventListener("hide.bs.modal", handleHideEvent);
         modalElement.addEventListener("hidden.bs.modal", handleHiddenEvent);
     });
 
     onUnmounted(() => {
         if (modalElement) {
+            modalElement.removeEventListener("show.bs.modal", handleShowEvent);
+            modalElement.removeEventListener("shown.bs.modal", handleShownEvent);
             modalElement.removeEventListener("hide.bs.modal", handleHideEvent);
             modalElement.removeEventListener("hidden.bs.modal", handleHiddenEvent);
         }

@@ -2,11 +2,10 @@ import axiosClient from "@/axios";
 import { ref } from "vue";
 import { swalError } from "@/functions/swal-alert.js";
 import { useApiAction } from "@/composables/core/useApiAction";
+import { CLIENT_API_ROUTES } from "@/constants/apiRoutes/ventas/cliente/clientRoutes";
 
 export function useGetSegmentClients() {
   const { run } = useApiAction();
-  const apiSegments = "/cotizaciones/obtener-segmentos";
-  const apiSubSegments = "/cotizaciones/obtener-subsegmentos";
   const segmentos = ref([]);
   const subsegmentos = ref([]);
   const loadingSegmentos = ref(false);
@@ -14,7 +13,7 @@ export function useGetSegmentClients() {
 
   async function fetchSegmentos() {
 
-    return run(() => axiosClient.post(apiSegments), {
+    return run(() => axiosClient.post(CLIENT_API_ROUTES.ACTIONS.SEGMENTS), {
       loadingRef: loadingSegmentos,
       onSuccess: (data) => {
         segmentos.value = data ?? []
@@ -31,7 +30,7 @@ export function useGetSegmentClients() {
   }
 
   async function fetchSubSegmentos(segmentoTxt) {
-    return run(() => axiosClient.post(apiSubSegments, { segmento: segmentoTxt }), {
+    return run(() => axiosClient.post(CLIENT_API_ROUTES.ACTIONS.SUB_SEGMENTS, { segmento: segmentoTxt }), {
       loadingRef: loadingSubSegmentos,
       onSuccess: (data) => {
         subsegmentos.value = data ?? []

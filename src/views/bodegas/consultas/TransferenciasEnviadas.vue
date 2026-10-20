@@ -1,4 +1,5 @@
 <script setup>
+import GuiaArchivosConsulta from './GuiaArchivosConsulta.vue';
 import BaseTable from "@/components/BaseTable.vue";
 import { useTransferenciasEnviadasPagination } from "../../../composables/bodegas/consultas/useTransferenciasEnviadasPagination";
 import { onMounted, reactive, ref } from "vue";
@@ -254,9 +255,7 @@ onMounted(async () => {
           :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
           @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick">
           <template #actions="{ row }">
-            <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(row)">
-              <i class="fa fa-print"></i>
-            </button>
+            <GuiaArchivosConsulta :guide="row" type="transferencia" @print="imprimirGuia(row)" />
           </template>
 
           <!-- Slot de vacío -->
