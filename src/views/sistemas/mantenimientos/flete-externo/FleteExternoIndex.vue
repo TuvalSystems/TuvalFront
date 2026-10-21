@@ -2,11 +2,11 @@
 <script setup>
 import { nextTick, onMounted, ref } from "vue";
 import BaseTable from "@/components/BaseTable.vue";
-import ChoferTransportistaModal from "@/views/sistemas/mantenimientos/chofer-transportista/modals/verModalChoferTransportista.vue";
+import FleteExternoModal from "@/views/sistemas/mantenimientos/flete-externo/modals/verModalFleteExterno.vue";
 
 //composables
-import { useCarrierDriverTable } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverTable";
-import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
+import { useExternalFreightTable } from "@/composables/sistemas/mantenimientos/external-freight/useExternalFreightTable";
+import { useExternalFreightActions } from "@/composables/sistemas/mantenimientos/external-freight/useExternalFreightActions";
 
 import {
   swalError,
@@ -16,25 +16,25 @@ import {
 } from "@/functions/swal-alert";
 
 // Modal de creación y edición. El formulario se incorporará en este espacio.
-const carrierDriverModal = ref(null);
-const selectedCarrierDriver = ref(null);
+const fleteExternoModal = ref(null);
+const selectedFleteExterno = ref(null);
 const typeOpenModal = ref("create");
 async function openCreateModal() {
-  selectedCarrierDriver.value = null;
+  selectedFleteExterno.value = null;
   typeOpenModal.value = "create";
   await nextTick();
-  await carrierDriverModal.value?.show();
+  await fleteExternoModal.value?.show();
 }
 
 async function openEditModal(row) {
-  selectedCarrierDriver.value = row;
+  selectedFleteExterno.value = row;
   typeOpenModal.value = "edit";
   await nextTick();
-  await carrierDriverModal.value?.show();
+  await fleteExternoModal.value?.show();
 }
 
 function clearModalData() {
-  selectedCarrierDriver.value = null;
+  selectedFleteExterno.value = null;
   typeOpenModal.value = "create";
 }
 
@@ -46,13 +46,13 @@ async function openAlertChangeStatus(row) {
   const isActive = Number(row.estado) === 1;
   const confirmText = isActive ? "Sí, desactivar" : "Sí, activar";
   const confirmClass = isActive ? "btn btn-danger m-1" : "btn btn-success m-1";
-  const dispatchType = row.nombre ? `«${row.nombre}»` : "este chofer";
+  const dispatchType = row.nombre ? `«${row.nombre}»` : "este flete externo";
   const message = isActive
-    ? `El chofer ${dispatchType} dejará de estar disponible para seleccionar en las cotizaciones.`
-    : `El chofer ${dispatchType} volverá a estar disponible para seleccionar en las cotizaciones.`;
+    ? `El flete externo ${dispatchType} dejará de estar disponible para seleccionar en las cotizaciones.`
+    : `El flete externo ${dispatchType} volverá a estar disponible para seleccionar en las cotizaciones.`;
   toast
     .fire({
-      title: isActive ? "¿Desactivar el Chofer?" : "¿Activar el Chofer?",
+      title: isActive ? "¿Desactivar el flete externo?" : "¿Activar el flete externo?",
       text: message,
       icon: "warning",
       showCancelButton: true,
@@ -73,17 +73,17 @@ async function openAlertChangeStatus(row) {
     })
     .then((result) => {
       if (result.isConfirmed || result.value) {
-        changeStatusCarrierDriver(row);
+        changeStatusFleteExterno(row);
       }
     });
 }
 
-async function changeStatusCarrierDriver(row) {
-  const resp = await updatedStatusCarrierDriver(row.id);
+async function changeStatusFleteExterno(row) {
+  const resp = await updateExternalFreightStatus(row.id);
   if (!resp?.ok) {
     const msg =
       resp?.message ||
-      "No se pudo obtener el detalle del chofer transportista.";
+      "No se pudo obtener el detalle del flete externo.";
     (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
     return false;
   }
@@ -100,9 +100,9 @@ const {
   onSort,
   refresh,
   statusBooleanClass,
-} = useCarrierDriverTable();
+} = useExternalFreightTable();
 
-const { updatedStatusCarrierDriver } = useCarrierDriverActions({});
+const { updateExternalFreightStatus } = useExternalFreightActions({});
 
 onMounted(async () => {
   await fetchList(1);
@@ -110,7 +110,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <BasePageHeading title="Gestión de Choferes Transportistas">
+  <BasePageHeading title="Gestión de Fletes Externos">
     <template #extra>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-alt">
@@ -119,7 +119,7 @@ onMounted(async () => {
           </li>
           <li class="breadcrumb-item" aria-current="page">Mantenimientos</li>
           <li class="breadcrumb-item" aria-current="page">
-            Chofer Transportista
+            Flete Externo
           </li>
         </ol>
       </nav>
@@ -128,7 +128,7 @@ onMounted(async () => {
 
   <!-- contenido -->
   <div class="content">
-    <BaseBlock title="Lista de Choferes Transportistas" class="mb-2" rounded>
+    <BaseBlock title="Lista de Fletes Externos" class="mb-2" rounded>
       <!-- boton de refrescar -->
       <template #options>
         <div class="block-options-item d-flex gap-2">
@@ -138,7 +138,7 @@ onMounted(async () => {
             @click="openCreateModal"
           >
             <i class="fa fa-plus me-1"></i>
-            Nuevo chofer
+            Nuevo flete externo
           </button>
           <button
             type="button"
@@ -227,8 +227,8 @@ onMounted(async () => {
           <button
             type="button"
             class="btn btn-sm btn-alt-secondary"
-            title="Editar chofer transportista"
-            aria-label="Editar chofer transportista"
+            title="Editar flete externo"
+            aria-label="Editar flete externo"
             @click="openEditModal(row)"
           >
             <i class="fa fa-pencil-alt"></i>
@@ -248,9 +248,9 @@ onMounted(async () => {
     </BaseBlock>
   </div>
 
-  <ChoferTransportistaModal
-    ref="carrierDriverModal"
-    :carrier-driver="selectedCarrierDriver"
+  <FleteExternoModal
+    ref="fleteExternoModal"
+    :flete-externo="selectedFleteExterno"
     :type-modal="typeOpenModal"
     @hidden="clearModalData"
     @saved="handleSaved"

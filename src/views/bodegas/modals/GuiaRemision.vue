@@ -7,7 +7,7 @@ import flatPickr from "vue-flatpickr-component";
 import { useDispatchGuideProcess } from "@/composables/bodegas/despachos/useDispatchGuideProcess";
 import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
 
-import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
+import { useExternalFreightActions } from "@/composables/sistemas/mantenimientos/external-freight/useExternalFreightActions";
 
 import { formatPrice } from "../../../functions";
 const typeIdentifyStore = useTypeIdentifyStore();
@@ -34,7 +34,7 @@ const props = defineProps({
 
 const verpedido = computed(() => props.verpedido);
 const { loadingCarrierByProvider, fetchListCarrierByProviderSalesPoints } =
-  useCarrierDriverActions(listTypeIdentify);
+  useExternalFreightActions(listTypeIdentify);
 const providerDrivers = ref([]);
 const selectedDriverId = ref("");
 const providerDriverError = ref("");
@@ -53,7 +53,7 @@ watch(
     () => props.verpedido,
     () => verpedido.value?.pedido?.id,
     () => verpedido.value?.pedido?.despacho,
-    () => verpedido.value?.pedido?.proveedor_despacho_id,
+    () => verpedido.value?.pedido?.fle_proveedor_id,
     () => store.state.puntoventaselectid,
   ],
   async (_, __, onCleanup) => {
@@ -65,7 +65,7 @@ watch(
     selectedDriverId.value = "";
     providerDriverError.value = "";
     if (!usesProviderDriver.value) return;
-    const providerId = verpedido.value?.pedido?.proveedor_despacho_id;
+    const providerId = verpedido.value?.pedido?.fle_proveedor_id;
     if (!providerId || !store.state.puntoventaselectid) return;
     const result = await fetchListCarrierByProviderSalesPoints(providerId);
     if (!active) return;
@@ -240,7 +240,7 @@ async function generarGuia(verpedido) {
     transportista: trans,
     vehiculo: vehi,
     ...(usesProviderDriver.value
-      ? { chofer_transportista_id: selectedDriverId.value }
+      ? { flete_externo_id: selectedDriverId.value }
       : {}),
     fecha_inicio: flatPickrState.value.horaInicio,
     fecha_fin: flatPickrState.value.horaFin,
@@ -574,7 +574,7 @@ onMounted(() => {
             </td>
           </tr>
           <tr v-if="usesProviderDriver">
-            <td class="text-end">Chofer transportista:</td>
+            <td class="text-end">Flete externo:</td>
             <td>
               <select
                 class="form-select"

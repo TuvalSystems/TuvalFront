@@ -7,14 +7,14 @@ export const PROVIDER_API_ROUTES = {
     DETAIL: 'ventas/proveedores/detalle',
     SYNC_POINT_SALES_PROVIDER: 'ventas/proveedores/sincronizar-punto-ventas',
 
-    CARRIER_DRIVER: {
-        LIST: 'ventas/proveedores/choferes-transportista/lista',
-        CREATE_REGISTER: 'ventas/proveedores/choferes-transportista/crear-registro',
-        GET_DETAIL: 'ventas/proveedores/choferes-transportista/obtener-detalle',
-        UPDATE_REGISTER: 'ventas/proveedores/choferes-transportista/actualizar-registro',
-        UPDATE_STATUS: 'ventas/proveedores/choferes-transportista/actualizar-estado',
-        VALIDATE_IDENTITY: 'ventas/proveedores/choferes-transportista/validar-identificacion',
-        LIST_BY_PROVIDER_SALES_POINT : 'ventas/proveedores/choferes-transportista/lista-por-proveedor-punto-venta'
+    EXTERNAL_FREIGHT: {
+        LIST: 'ventas/proveedores/fletes-externos/lista',
+        CREATE_REGISTER: 'ventas/proveedores/fletes-externos/crear-registro',
+        GET_DETAIL: 'ventas/proveedores/fletes-externos/obtener-detalle',
+        UPDATE_REGISTER: 'ventas/proveedores/fletes-externos/actualizar-registro',
+        UPDATE_STATUS: 'ventas/proveedores/fletes-externos/actualizar-estado',
+        VALIDATE_IDENTITY: 'ventas/proveedores/fletes-externos/validar-identificacion',
+        LIST_BY_PROVIDER_SALES_POINT : 'ventas/proveedores/fletes-externos/lista-por-proveedor-punto-venta'
     }
 
 };

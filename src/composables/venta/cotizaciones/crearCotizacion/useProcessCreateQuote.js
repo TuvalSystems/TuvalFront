@@ -86,9 +86,9 @@ const getInitialState = () => ({
     //parte de fletes 
     responsable_flete: 'tuval',
     tipo_despacho_id: null,
-    proveedor_despacho_id: null,
-    monto_flete: 0,
-    peso_flete: 0,
+    fle_proveedor_id: null,
+    fle_valor: 0,
+    fle_peso: 0,
 
     //campo para la facturación forzada a pesar de que tenga limite por fecha de facturacion
 
@@ -343,7 +343,7 @@ export function useProcessCreateQuote(draftId = 'default') {
             resultado_configuracion_item_l: rawItem.resultado_configuracion_item_l || "",
 
             //campos para paqueteria
-            monto_flete: 0,
+            fle_valor: 0,
             errorMontoFlete: false,
             precio_sin_flete: artValor,
         }
@@ -801,13 +801,13 @@ export function useProcessCreateQuote(draftId = 'default') {
             //calculo del peso
             const pesoLinea = (Number.parseFloat(art.ART_PESO) || 0) * cantidad;
             tempPeso += pesoLinea;
-            if (Number(art.monto_flete) > 0) tempPesoFlete += pesoLinea;
+            if (Number(art.fle_valor) > 0) tempPesoFlete += pesoLinea;
         });
         form.value.subtotal = redondear(tempSubtotal + 0.000001, 2);
         form.value.descuento = redondear(tempDescuento + 0.000001, 2);
         form.value.iva = redondear(tempIva + 0.000001, 2);
         form.value.peso = redondear(tempPeso, 2);
-        form.value.peso_flete = Number(form.value.tipo_despacho_id) === 4
+        form.value.fle_peso = Number(form.value.tipo_despacho_id) === 4
             ? redondear(tempPesoFlete, 2)
             : form.value.peso;
         // Total General = Subtotal + IVA
@@ -818,7 +818,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     watch(
         () => [form.value.tipo_despacho_id,
-        form.value.items.map((item) => [item.monto_flete, item.ART_PESO, item.ART_CANTIDAD, item.descuento])],
+        form.value.items.map((item) => [item.fle_valor, item.ART_PESO, item.ART_CANTIDAD, item.descuento])],
         () => calculateTotals(),
         { deep: true }
     );
@@ -1073,9 +1073,9 @@ export function useProcessCreateQuote(draftId = 'default') {
             let changed = false;
             form.value.items.forEach((item) => {
                 if (isItemL(item) && !isActivePricefreight(item)) {
-                    changed = changed || Number(item.monto_flete || 0) !== 0;
-                    item.monto_flete = 0;
-                    item.monto_flete_temporal = 0;
+                    changed = changed || Number(item.fle_valor || 0) !== 0;
+                    item.fle_valor = 0;
+                    item.fle_valor_temporal = 0;
                     item.cambiar_flete = false;
                 }
             });
@@ -1095,7 +1095,7 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     function cleanFreightPrice() {
         form.value.items.forEach((item) => {
-            item.monto_flete = 0;
+            item.fle_valor = 0;
             item.errorMontoFlete = false;
         });
     }
@@ -1112,11 +1112,11 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     function validateDispatchFields() {
         if (![3, 4, 5].includes(Number(form.value.tipo_despacho_id))) return '';
-        const providerId = Number(form.value.proveedor_despacho_id);
+        const providerId = Number(form.value.fle_proveedor_id);
         if (!Number.isSafeInteger(providerId) || providerId <= 0) {
             return 'Debe seleccionar un proveedor de despacho.';
         }
-        const amount = toFreightCents(form.value.monto_flete);
+        const amount = toFreightCents(form.value.fle_valor);
         if (amount === null || amount <= 0) {
             return 'Debe ingresar un monto de flete válido mayor a cero.';
         }
@@ -1127,18 +1127,18 @@ export function useProcessCreateQuote(draftId = 'default') {
     function validateFreightTotal() {
         const dispatchId = Number(form.value.tipo_despacho_id);
         if (![4, 5].includes(dispatchId)) return true;
-        const amountHeader = toFreightCents(form.value.monto_flete);
+        const amountHeader = toFreightCents(form.value.fle_valor);
         if (amountHeader === null) return false;
         if (!isActivePricefreight()) return true;
-        const amounts = form.value.items.map((item) => toFreightCents(item.monto_flete));
+        const amounts = form.value.items.map((item) => toFreightCents(item.fle_valor));
         return form.value.items.every((item) => freightUnitPrice(item) !== null)
             && amounts.every((amount) => amount !== null)
             && amounts.reduce((total, amount) => total + amount, 0) === amountHeader;
     }
 
     watch(
-        () => [form.value.tipo_despacho_id, form.value.monto_flete,
-        form.value.items.map((item) => item.monto_flete)],
+        () => [form.value.tipo_despacho_id, form.value.fle_valor,
+        form.value.items.map((item) => item.fle_valor)],
         () => {
             const hasError = isActivePricefreight() && !validateFreightTotal();
             form.value.items.forEach((item) => {
@@ -1293,9 +1293,9 @@ export function useProcessCreateQuote(draftId = 'default') {
         //paqueteria
         formData.append('responsable_flete', form.value.responsable_flete);
         formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
-        formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
-        formData.append('monto_flete', form.value.monto_flete);
-        formData.append('peso_flete', form.value.peso_flete);
+        formData.append('fle_proveedor_id', form.value.fle_proveedor_id);
+        formData.append('fle_valor', form.value.fle_valor);
+        formData.append('fle_peso', form.value.fle_peso);
 
 
         return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE, formData), {
@@ -1394,7 +1394,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                     cod_linea: item.cod_linea || "",
                     cod_clase: item.cod_clase || "",
                     resultado_configuracion_item_l: item.resultado_configuracion_item_l || "",
-                    monto_flete: item.monto_flete ?? 0,
+                    fle_valor: item.fle_valor ?? 0,
                     errorMontoFlete: false
                 }));
 
@@ -1468,9 +1468,9 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //paqueteria
                 form.value.responsable_flete = cotizacion.responsable_flete ?? 'tuval';
                 form.value.tipo_despacho_id = cotizacion.tipo_despacho_id;
-                form.value.proveedor_despacho_id = cotizacion.proveedor_despacho_id ?? null;
-                form.value.monto_flete = cotizacion.monto_flete ?? 0;
-                form.value.peso_flete = cotizacion.peso_flete ?? 0;
+                form.value.fle_proveedor_id = cotizacion.fle_proveedor_id ?? null;
+                form.value.fle_valor = cotizacion.fle_valor ?? 0;
+                form.value.fle_peso = cotizacion.fle_peso ?? 0;
                 form.value.facturar_ahora = cotizacion.facturar_ahora ?? false;
             },
             onError: (err) => {
@@ -1558,7 +1558,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                     disableOpenModalStock: false,
                     proveedores: item.proveedores || [],
                     imagenes: item.imagenes || [],
-                    monto_flete: 0
+                    fle_valor: 0
 
                 }));
 
@@ -1599,8 +1599,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //paqueteria
                 form.value.responsable_flete = 'tuval';
                 form.value.tipo_despacho_id = null;
-                form.value.proveedor_despacho_id = null;
-                form.value.monto_flete = 0;
+                form.value.fle_proveedor_id = null;
+                form.value.fle_valor = 0;
                 form.value.facturar_ahora = false;
                 
 
@@ -1679,7 +1679,7 @@ export function useProcessCreateQuote(draftId = 'default') {
                     disableOpenModalStock: false,
                     proveedores: [],
                     imagenes: item.imagenes || [],
-                    monto_flete: 0
+                    fle_valor: 0
 
                 }));
 
@@ -1720,8 +1720,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //paqueteria
                 form.value.responsable_flete = 'tuval';
                 form.value.tipo_despacho_id = null;
-                form.value.proveedor_despacho_id = null;
-                form.value.monto_flete = 0;
+                form.value.fle_proveedor_id = null;
+                form.value.fle_valor = 0;
                 form.value.facturar_ahora = false;
 
                 validateBillingRules();
@@ -1834,8 +1834,8 @@ export function useProcessCreateQuote(draftId = 'default') {
                 //paqueteria
                 form.value.responsable_flete = 'tuval';
                 form.value.tipo_despacho_id = null;
-                form.value.proveedor_despacho_id = null;
-                form.value.monto_flete = 0;
+                form.value.fle_proveedor_id = null;
+                form.value.fle_valor = 0;
 
 
                 validateBillingRules();
@@ -1925,7 +1925,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         //calculos
         formData.append('subtotal', form.value.subtotal);
         formData.append('peso', form.value.peso);
-        formData.append('peso_flete', form.value.peso_flete);
+        formData.append('fle_peso', form.value.fle_peso);
         formData.append('descuento', form.value.descuento);
         formData.append('iva', form.value.iva);
         formData.append('total', form.value.total);
@@ -1985,8 +1985,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         //paqueteria
         formData.append('responsable_flete', form.value.responsable_flete);
         formData.append('tipo_despacho_id', form.value.tipo_despacho_id);
-        formData.append('proveedor_despacho_id', form.value.proveedor_despacho_id);
-        formData.append('monto_flete', form.value.monto_flete);
+        formData.append('fle_proveedor_id', form.value.fle_proveedor_id);
+        formData.append('fle_valor', form.value.fle_valor);
         formData.append('facturar_ahora', form.value.facturar_ahora);
 
         return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.CREATE, formData), {

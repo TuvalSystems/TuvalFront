@@ -640,8 +640,8 @@ const handleSaveProviders = async ({ index, providers, nuevoPrecio }) => {
   if (!isActivePricefreight(item)) {
     // Conservar la base antes de retirar el flete del valor mostrado.
     item.precio_sin_flete ??= Number(item.ART_VALOR || 0) - (freightUnitPrice(item) ?? 0);
-    item.monto_flete = 0;
-    item.monto_flete_temporal = 0;
+    item.fle_valor = 0;
+    item.fle_valor_temporal = 0;
     item.cambiar_flete = false;
   }
   if (
@@ -825,7 +825,7 @@ const saveModifyPrice = async (element) => {
   if (Number(element.es_servicio_logistico) === 1) {
     element.valor_temporal = valorFijo;
     element.ART_VALOR_ORIGINAL = element.precio_sin_flete;
-    form.value.monto_flete = valorFijo;
+    form.value.fle_valor = valorFijo;
     element.modificador = 0;
   } else if (element.ART_TIPO_COMPRA === "L") {
     element.ART_VALOR_ORIGINAL = element.precio_sin_flete;
@@ -846,7 +846,7 @@ function isApplyModifyPriceStyle(item) {
 
 const enableEditFreight = async (element, index) => {
   if (!isActivePricefreight(element)) return;
-  element.monto_flete_temporal = element.monto_flete;
+  element.fle_valor_temporal = element.fle_valor;
   element.cambiar_flete = true;
   await nextTick();
   document.getElementById(`input-monto-flete-${index}`)?.focus();
@@ -857,7 +857,7 @@ const saveModifyFreight = (element) => {
 };
 
 const exitEditFreight = (element) => {
-  element.monto_flete = element.monto_flete_temporal;
+  element.fle_valor = element.fle_valor_temporal;
   element.cambiar_flete = false;
 };
 
@@ -1233,7 +1233,7 @@ watch(
 /** proceso para asignación de item logistico de servicio */
 
 watch(
-  () => form.value.monto_flete,
+  () => form.value.fle_valor,
   (montoFlete) => {
     const valorFijo = formatCleanPrice4(montoFlete, 4);
     let updated = false;
@@ -1271,9 +1271,9 @@ async function searchLogisticArticle() {
   }
   const resp = await fetchArticleLogistic();
   let row = resp?.data;
-  row.ART_VALOR = form.value.monto_flete;
-  row.ART_VALOR_ORIGINAL = form.value.monto_flete;
-  row.valor_temporal = form.value.monto_flete;
+  row.ART_VALOR = form.value.fle_valor;
+  row.ART_VALOR_ORIGINAL = form.value.fle_valor;
+  row.valor_temporal = form.value.fle_valor;
   addItems(row);
 }
 
@@ -1861,7 +1861,7 @@ onMounted(async () => {
                       title="Clic para editar"
                     >
                       <span :class="element.errorMontoFlete ? 'text-danger' : 'text-primary'">
-                        ${{ format(Number(element.monto_flete || 0)) }}
+                        ${{ format(Number(element.fle_valor || 0)) }}
                       </span>
                     </div>
                     <input
@@ -1871,7 +1871,7 @@ onMounted(async () => {
                       type="number"
                       class="form-control text-end no-spinners p-1"
                       placeholder="0"
-                      v-model.number="element.monto_flete"
+                      v-model.number="element.fle_valor"
                       min="0"
                       step="0.01"
                       @focus="$event.target.select()"

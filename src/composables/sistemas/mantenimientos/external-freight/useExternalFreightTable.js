@@ -7,7 +7,7 @@ import { PROVIDER_API_ROUTES } from "@/constants/apiRoutes/ventas/proveedores/pr
 import { useStore } from 'vuex'
 import { computed } from "vue";
 
-export function useCarrierDriverTable() {
+export function useExternalFreightTable() {
 
     const { run } = useApiAction();
     const store = useStore();
@@ -50,12 +50,12 @@ export function useCarrierDriverTable() {
             ...table.filters,
         }
         return await run(async () => axiosClient.post(
-            PROVIDER_API_ROUTES.CARRIER_DRIVER.LIST,
+            PROVIDER_API_ROUTES.EXTERNAL_FREIGHT.LIST,
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }), {
             loadingRef,
             latestOnly: true,
-            key: `lista-chofer-transportista`,
+            key: `lista-flete-externo`,
             successMessage: "Información obtenida exitosamente.",
             onSuccess: (paginador) => {
                 const rows = paginador?.data ?? [];

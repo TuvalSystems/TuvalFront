@@ -41,6 +41,8 @@ export function useProviderTable() {
         { label: "id principal", key: "id_principal", sortable: true, align: "text-start", thClass: "text-muted text-uppercase fw-bold text-end" },
         { label: "es transportista", key: "es_transportista", sortable: true, clickable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
         { label: "estado", key: "estado", sortable: true,clickable: true, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "120px" },
+        { label: "Usuario activación", key: "fle_usuario_id", sortable: false, align: "text-center", thClass: "text-muted text-uppercase fw-bold" },
+        { label: "F. activación transportista", key: "fle_fecha", sortable: false, align: "text-center", thClass: "text-muted text-uppercase fw-bold", width: "170px" },
         { label: "F. creación", key: "created_at", sortable: false, align: "text-center", thClass: "text-muted  text-uppercase fw-bold", width: "170px" },
     ]);
 

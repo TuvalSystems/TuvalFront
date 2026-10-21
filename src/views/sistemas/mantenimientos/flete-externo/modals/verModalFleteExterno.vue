@@ -2,10 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 import BaseModal from "@/components/BaseModal.vue";
 import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
-import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
+import { useExternalFreightActions } from "@/composables/sistemas/mantenimientos/external-freight/useExternalFreightActions";
 import { swalError, swalSuccess, swalWarning } from "@/functions/swal-alert";
 const props = defineProps({
-  carrierDriver: {
+  fleteExterno: {
     type: Object,
     default: null,
   },
@@ -33,10 +33,10 @@ const {
   onIdentificationInput,
   onIdentificationTypeChange,
   loadingSaved,
-  savedCarrierDriver,
+  saveExternalFreight,
 
   loadingUpdated,
-  updatedCarrierDriver,
+  updateExternalFreight,
 
   //validar identificacion
   loadingValidateIdentity,
@@ -48,16 +48,16 @@ const {
   fetchListProvidersCarrier,
 
   loadingDetail,
-  getDetailCarrierDriver,
-} = useCarrierDriverActions(listTypeIdentify);
+  getExternalFreightDetail,
+} = useExternalFreightActions(listTypeIdentify);
 
 const emit = defineEmits(["saved", "hidden"]);
 const baseModal = ref(null);
 
 const title = computed(() =>
   typeOpenModal.value === "edit"
-    ? "Editar chofer transportista"
-    : "Nuevo chofer transportista"
+    ? "Editar flete externo"
+    : "Nuevo flete externo"
 );
 
 const textButton = computed(() =>
@@ -75,22 +75,22 @@ async function show() {
   resetForm();
 
   if (typeOpenModal.value === "edit") {
-    const resp = await getDetailCarrierDriver(props.carrierDriver?.id);
+    const resp = await getExternalFreightDetail(props.fleteExterno?.id);
     if (!resp?.ok) {
       const msg =
         resp?.message ||
-        "No se pudo obtener el detalle del chofer transportista.";
+        "No se pudo obtener el detalle del flete externo.";
       (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
       return false;
     }
 
     const detail = Array.isArray(resp.data) ? resp.data[0] : resp.data;
     if (!detail || typeof detail !== "object") {
-      swalWarning("No se encontró el detalle del chofer transportista.");
+      swalWarning("No se encontró el detalle del flete externo.");
       return false;
     }
 
-    resetForm({ ...detail, id: detail.id ?? props.carrierDriver?.id });
+    resetForm({ ...detail, id: detail.id ?? props.fleteExterno?.id });
   }
 
   baseModal.value?.show();
@@ -119,11 +119,11 @@ async function handleSaveUpdate() {
 
   const resp =
     typeOpenModal.value === "edit"
-      ? await updatedCarrierDriver()
-      : await savedCarrierDriver();
+      ? await updateExternalFreight()
+      : await saveExternalFreight();
 
   if (!resp?.ok) {
-    const msg = resp?.message || "No se pudo guardar el chofer transportista.";
+    const msg = resp?.message || "No se pudo guardar el flete externo.";
     (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
     return;
   }
@@ -158,7 +158,7 @@ onMounted(async () => {
 
 <template>
   <BaseModal
-    id="modal-chofer-transportista"
+    id="modal-flete-externo"
     ref="baseModal"
     :title="title"
     size="lg"
@@ -187,11 +187,11 @@ onMounted(async () => {
 
         <div class="row g-3">
           <div class="col-12 col-md-6">
-            <label class="text-label-muted mb-1" for="carrier-driver-provider">
+            <label class="text-label-muted mb-1" for="flete-externo-provider">
               Seleccione el Proveedor *
             </label>
             <select
-              id="carrier-driver-provider"
+              id="flete-externo-provider"
               v-model="form.proveedor_id"
               class="form-select form-select-sm"
               :disabled="loadingProviderCarrier"
@@ -220,12 +220,12 @@ onMounted(async () => {
           <div class="col-12 col-md-6">
             <label
               class="text-label-muted mb-1"
-              for="carrier-driver-identification-type"
+              for="flete-externo-identification-type"
             >
               Tipo de identificación *
             </label>
             <select
-              id="carrier-driver-identification-type"
+              id="flete-externo-identification-type"
               v-model="form.tipo_identificacion_id"
               class="form-select form-select-sm"
               :disabled="loadingIdentify"
@@ -258,12 +258,12 @@ onMounted(async () => {
           <div class="col-12 col-md-6">
             <label
               class="text-label-muted mb-1"
-              for="carrier-driver-identification"
+              for="flete-externo-identification"
             >
               Identificación *
             </label>
             <input
-              id="carrier-driver-identification"
+              id="flete-externo-identification"
               type="text"
               class="form-control form-control-sm"
               v-model.trim="form.identificacion"
@@ -288,11 +288,11 @@ onMounted(async () => {
             </div>
           </div>
           <div class="col-12 col-md-6">
-            <label class="text-label-muted mb-1" for="carrier-driver-placa">
+            <label class="text-label-muted mb-1" for="flete-externo-placa">
               Placa
             </label>
             <input
-              id="carrier-driver-placa"
+              id="flete-externo-placa"
               type="text"
               class="form-control form-control-sm"
               v-model.trim="form.placa"
@@ -309,11 +309,11 @@ onMounted(async () => {
             </div>
           </div>
           <div class="col-12 col-md-12">
-            <label class="text-label-muted mb-1" for="carrier-driver-nombre">
+            <label class="text-label-muted mb-1" for="flete-externo-nombre">
               Nombre *
             </label>
             <input
-              id="carrier-driver-nombre"
+              id="flete-externo-nombre"
               type="text"
               class="form-control form-control-sm"
               v-model.trim="form.nombre"

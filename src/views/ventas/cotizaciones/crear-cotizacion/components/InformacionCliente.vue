@@ -4,7 +4,7 @@ import BaseSearchSelect from "@/components/BaseSearchSelect.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { useDispatchTypeActions } from "@/composables/sistemas/mantenimientos/tipo-despachos/useDispatchTypeActions";
-import { useCarrierDriverActions } from "@/composables/sistemas/mantenimientos/chofer-transportista/useCarrierDriverActions";
+import { useExternalFreightActions } from "@/composables/sistemas/mantenimientos/external-freight/useExternalFreightActions";
 
 const props = defineProps({
   infoCliente: {
@@ -60,7 +60,7 @@ const {
   loadingProviderCarrier,
   providersCarriers,
   fetchListProvidersCarrier,
-} = useCarrierDriverActions({});
+} = useExternalFreightActions({});
 const emit = defineEmits(["create-address", "update-field"]);
 const client = computed(() => props.infoCliente);
 const formRef = computed(() => props.form);
@@ -98,8 +98,8 @@ const typeDispatchId = computed({
     if (Number(value) === Number(props.form.tipo_despacho_id)) return;
     const leavingRouteDispatch = Number(props.form.tipo_despacho_id) === 2;
     emit("update-field", { field: "tipo_despacho_id", value });
-    emit("update-field", { field: "proveedor_despacho_id", value: null });
-    emit("update-field", { field: "monto_flete", value: 0 });
+    emit("update-field", { field: "fle_proveedor_id", value: null });
+    emit("update-field", { field: "fle_valor", value: 0 });
     if (leavingRouteDispatch) {
       fechaEntrega.value = null;
     }
@@ -108,8 +108,8 @@ const typeDispatchId = computed({
     }
   },
 });
-const dispatchProviderId = fieldModel("proveedor_despacho_id");
-const freightAmount = fieldModel("monto_flete");
+const dispatchProviderId = fieldModel("fle_proveedor_id");
+const freightAmount = fieldModel("fle_valor");
 // Valores provisionales para las modalidades a cargo del cliente.
 
 const flatPickrState = {

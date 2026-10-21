@@ -79,10 +79,16 @@ const routes = [
             meta: { title: "Proveedores" }
           },
           {
+            // Permite abrir el menú guardado por sesiones anteriores al cambio de nombre.
             path: "lista-chofer-transportista",
             name: "sistemas-mantenimientos-lista-chofer-transportista",
-            component: () => import("@/views/sistemas/mantenimientos/chofer-transportista/ChoferTransportistaIndex.vue"),
-            meta: { title: "Choferes Transportistas" }
+            redirect: { name: "sistemas-mantenimientos-lista-flete-externo" }
+          },
+          {
+            path: "lista-flete-externo",
+            name: "sistemas-mantenimientos-lista-flete-externo",
+            component: () => import("@/views/sistemas/mantenimientos/flete-externo/FleteExternoIndex.vue"),
+            meta: { title: "Fletes Externos" }
           },
            {
             path: "lista-articulos",

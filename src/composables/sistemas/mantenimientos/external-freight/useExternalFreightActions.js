@@ -19,7 +19,7 @@ function initialForm() {
     };
 }
 
-export function useCarrierDriverActions(listTypeIdentify) {
+export function useExternalFreightActions(listTypeIdentify) {
     const { run } = useApiAction();
     const form = reactive(initialForm());
     const store = useStore();
@@ -186,11 +186,11 @@ export function useCarrierDriverActions(listTypeIdentify) {
 
     // creacion de registro
     const loadingSaved = ref(false);
-    async function savedCarrierDriver() {
+    async function saveExternalFreight() {
         return run(
             () =>
                 axiosClient.post(
-                    PROVIDER_API_ROUTES.CARRIER_DRIVER.CREATE_REGISTER,
+                    PROVIDER_API_ROUTES.EXTERNAL_FREIGHT.CREATE_REGISTER,
                     { form: buildPayload() }
                 ),
             {
@@ -204,14 +204,14 @@ export function useCarrierDriverActions(listTypeIdentify) {
 
     // actualizacion de registro
     const loadingUpdated = ref(false);
-    async function updatedCarrierDriver() {
+    async function updateExternalFreight() {
         return run(() => {
             if (form.id == null) {
-                throw new Error("El ID del chofer transportista es obligatorio.");
+                throw new Error("El ID del flete externo es obligatorio.");
             }
 
             return axiosClient.put(
-                `${PROVIDER_API_ROUTES.CARRIER_DRIVER.UPDATE_REGISTER}/${encodeURIComponent(form.id)}`,
+                `${PROVIDER_API_ROUTES.EXTERNAL_FREIGHT.UPDATE_REGISTER}/${encodeURIComponent(form.id)}`,
                 { form: buildPayload() }
             );
         }, {
@@ -219,30 +219,30 @@ export function useCarrierDriverActions(listTypeIdentify) {
         });
     }
 
-    const loadingUpdateStatusCarrierDriver = ref(false);
-    async function updatedStatusCarrierDriver(id) {
+    const loadingExternalFreightStatus = ref(false);
+    async function updateExternalFreightStatus(id) {
         return run(() => {
             if (id == null) {
-                throw new Error("El ID del chofer transportista es obligatorio.");
+                throw new Error("El ID del flete externo es obligatorio.");
             }
 
             return axiosClient.put(
-                `${PROVIDER_API_ROUTES.CARRIER_DRIVER.UPDATE_STATUS}/${encodeURIComponent(id)}`
+                `${PROVIDER_API_ROUTES.EXTERNAL_FREIGHT.UPDATE_STATUS}/${encodeURIComponent(id)}`
             );
         }, {
-            loadingRef: loadingUpdateStatusCarrierDriver,
+            loadingRef: loadingExternalFreightStatus,
         });
     }
 
     const loadingDetail = ref(false);
-    async function getDetailCarrierDriver(id) {
+    async function getExternalFreightDetail(id) {
         return run(() => {
             if (id == null) {
-                throw new Error("El ID del chofer transportista es obligatorio.");
+                throw new Error("El ID del flete externo es obligatorio.");
             }
 
             return axiosClient.post(
-                PROVIDER_API_ROUTES.CARRIER_DRIVER.GET_DETAIL,
+                PROVIDER_API_ROUTES.EXTERNAL_FREIGHT.GET_DETAIL,
                 { id: id }
             );
         }, {
@@ -260,7 +260,7 @@ export function useCarrierDriverActions(listTypeIdentify) {
         return await run(
             async () =>
                 axiosClient.post(
-                    PROVIDER_API_ROUTES.CARRIER_DRIVER.VALIDATE_IDENTITY,
+                    PROVIDER_API_ROUTES.EXTERNAL_FREIGHT.VALIDATE_IDENTITY,
                     payload
                 ),
             {
@@ -273,16 +273,16 @@ export function useCarrierDriverActions(listTypeIdentify) {
     }
 
     const loadingCarrierByProvider = ref(false);
-    const carrierDriversByProvider = ref([]);
+    const externalFreightsByProvider = ref([]);
     async function fetchListCarrierByProviderSalesPoints(provId) {
-        return run(() => axiosClient.post(PROVIDER_API_ROUTES.CARRIER_DRIVER.LIST_BY_PROVIDER_SALES_POINT, {
+        return run(() => axiosClient.post(PROVIDER_API_ROUTES.EXTERNAL_FREIGHT.LIST_BY_PROVIDER_SALES_POINT, {
             prov_id: provId,
             pv_id: selectedPointSaleId.value
 
         }), {
             loadingRef: loadingCarrierByProvider,
             onSuccess: (info) => {
-                carrierDriversByProvider.value = Array.isArray(info) ? info : []
+                externalFreightsByProvider.value = Array.isArray(info) ? info : []
             }
         });
     }
@@ -303,16 +303,16 @@ export function useCarrierDriverActions(listTypeIdentify) {
         onIdentificationInput,
         onIdentificationTypeChange,
         loadingSaved,
-        savedCarrierDriver,
+        saveExternalFreight,
 
         loadingUpdated,
-        updatedCarrierDriver,
+        updateExternalFreight,
 
-        loadingUpdateStatusCarrierDriver,
-        updatedStatusCarrierDriver,
+        loadingExternalFreightStatus,
+        updateExternalFreightStatus,
 
         loadingDetail,
-        getDetailCarrierDriver,
+        getExternalFreightDetail,
 
         // validar identificación
         loadingValidateIdentity,
@@ -325,7 +325,7 @@ export function useCarrierDriverActions(listTypeIdentify) {
 
         //lista choferes por proveedor para guias de despacho
         loadingCarrierByProvider,
-        carrierDriversByProvider,
+        externalFreightsByProvider,
         fetchListCarrierByProviderSalesPoints
 
     };
