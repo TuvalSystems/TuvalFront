@@ -138,11 +138,12 @@ function dateLabel(value) {
               </p>
               <div v-if="files.length" class="table-responsive">
                 <table class="table table-sm table-vcenter">
-                  <thead><tr><th>Archivo</th><th v-if="section === 'firmas'">Firmante</th><th>Subido por</th><th>Fecha de carga (Ecuador)</th><th></th></tr></thead>
+                  <thead><tr><th>Archivo</th><th v-if="section === 'firmas'">Firmante</th><th v-if="section === 'firmas'">Identificación</th><th>Subido por</th><th>Fecha de carga (Ecuador)</th><th></th></tr></thead>
                   <tbody>
                     <tr v-for="file in files" :key="file.id">
                       <td>{{ file.nombre }}<small class="d-block text-muted">{{ file.mime_type }} · {{ Math.ceil(file.tamano / 1024) }} KB</small></td>
                       <td v-if="section === 'firmas'">{{ file.nombre_firmante || 'No registrado' }}</td>
+                      <td v-if="section === 'firmas'">{{ file.identificacion_firmante || 'No registrada' }}</td>
                       <td>{{ file.subido_por?.nombre || file.subido_por?.usuario || 'No registrado' }}<small v-if="file.subido_por?.nombre && file.subido_por?.usuario" class="d-block text-muted">{{ file.subido_por.usuario }}</small></td>
                       <td>{{ dateLabel(file.subido_en || file.creado_en) }}</td>
                       <td><button type="button" class="btn btn-sm btn-primary" :disabled="opening" @click="showFile(file)">Visualizar</button></td>

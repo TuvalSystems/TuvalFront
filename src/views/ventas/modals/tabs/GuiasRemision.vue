@@ -11,13 +11,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(guia, index) in guias_remision" :key="index">
+        <tr v-for="guia in guias_remision" :key="guia.id">
           <td>{{ guia.GUI_REM_GUIA_REMISION }}</td>
           <td>{{ guia.GUI_REM_FECHA_INICIO }}</td>
           <td>{{ guia.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
           <td>{{ guia.GUI_REM_PLACA }}</td>
           <td class="text-end">
-            <button  type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guia)"><i class="fa fa-print"></i> Imprimir</button>
+            <GuiaArchivosConsulta :guide="guia" :type="guia.tipo" @print="imprimirGuia(guia)" />
           </td>
         </tr>
       </tbody>
@@ -26,9 +26,9 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { computed } from "vue";
+import GuiaArchivosConsulta from "@/views/bodegas/consultas/GuiaArchivosConsulta.vue";
 import { useStore} from 'vuex'
-import Swal from "sweetalert2";
 
 const store = useStore();
 const guias_remision = computed(() => store.state.guias_remision);
