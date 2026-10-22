@@ -240,7 +240,7 @@ async function generarGuia(verpedido) {
     transportista: trans,
     vehiculo: vehi,
     ...(usesProviderDriver.value
-      ? { flete_externo_id: selectedDriverId.value }
+      ? { fle_externo_id: selectedDriverId.value }
       : {}),
     fecha_inicio: flatPickrState.value.horaInicio,
     fecha_fin: flatPickrState.value.horaFin,
