@@ -37,6 +37,32 @@ const title = computed(() => section.value === 'firmas' ? 'Firma de recepción' 
 const basePath = computed(() => `/bodegas/guias-remision/${props.type}/${props.guide.id}/archivos`);
 const number = computed(() => props.guide.numero_guia || props.guide.GUI_REM_GUIA_REMISION || props.guide.id);
 
+const signatureLocation = computed(() => {
+  if (section.value !== 'firmas' || !preview.value) return null;
+  const file = preview.value.file;
+  const coordinate = (value) => {
+    if (typeof value !== 'number' && typeof value !== 'string') return NaN;
+    if (typeof value === 'string' && !value.trim()) return NaN;
+    return Number(value);
+  };
+  const latitude = coordinate(file.latitud);
+  const longitude = coordinate(file.longitud);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)
+    || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+  const accuracy = coordinate(file.precision_ubicacion);
+  const bbox = [
+    Math.max(-180, longitude - 0.005), Math.max(-90, latitude - 0.005),
+    Math.min(180, longitude + 0.005), Math.min(90, latitude + 0.005),
+  ];
+  const params = new URLSearchParams({ bbox: bbox.join(','), layer: 'mapnik', marker: `${latitude},${longitude}` });
+  return {
+    latitude, longitude,
+    accuracy: Number.isFinite(accuracy) && accuracy >= 0 ? accuracy : null,
+    embedUrl: `https://www.openstreetmap.org/export/embed.html?${params}`,
+    mapUrl: `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=17/${latitude}/${longitude}`,
+  };
+});
+
 function clearPreview() {
   if (preview.value) URL.revokeObjectURL(preview.value.url);
   preview.value = null;
@@ -129,7 +155,7 @@ function dateLabel(value) {
   </div>
   <Teleport to="body">
     <BaseModal ref="modal" :id="modalId" :title="`${title} — Guía ${number}`"
-      size="xl" scrollable @hidden="cleanup">
+      size="xl" scrollable content-class="guia-files-modal" body-class="guia-files-modal-body" @hidden="cleanup">
             <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
             <p v-if="loading" role="status"><span class="spinner-border spinner-border-sm me-2"></span>Cargando archivos...</p>
             <template v-else>
@@ -156,8 +182,23 @@ function dateLabel(value) {
             <div v-if="preview" class="border rounded p-3 text-center">
               <a class="btn btn-sm btn-outline-primary mb-3" :href="preview.url" :download="preview.file.nombre">Descargar archivo</a>
               <iframe v-if="preview.file.mime_type === 'application/pdf'" :src="preview.url" :title="preview.file.nombre" class="w-100 border-0" style="height: 65vh"></iframe>
-              <img v-else :src="preview.url" :alt="preview.file.nombre" class="img-fluid d-block mx-auto" style="max-height: 60vh; background: white">
+              <img v-else :src="preview.url" :alt="preview.file.nombre" class="img-fluid d-block mx-auto" :class="{ 'signature-preview': section === 'firmas' }" style="max-height: 60vh; background: white">
             </div>
+            <section v-if="section === 'firmas' && preview" class="border rounded p-3 mt-3" aria-label="Ubicación de la firma">
+              <h3 class="h5 mb-3">Ubicación de la firma</h3>
+              <template v-if="signatureLocation">
+                <p class="mb-2">
+                  Latitud: {{ signatureLocation.latitude }} · Longitud: {{ signatureLocation.longitude }}
+                  <span v-if="signatureLocation.accuracy !== null" class="d-block text-muted">Precisión reportada: {{ signatureLocation.accuracy }} metros</span>
+                  <span class="d-block text-muted">Fecha de firma (Ecuador): {{ dateLabel(preview.file.fecha_firma) }}</span>
+                </p>
+                <iframe :key="signatureLocation.embedUrl" :src="signatureLocation.embedUrl"
+                  title="Mapa con la ubicación registrada al firmar" class="w-100 border-0 rounded"
+                  style="height: clamp(180px, 32vh, 280px)" loading="lazy" referrerpolicy="no-referrer"></iframe>
+                <a :href="signatureLocation.mapUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary mt-2">Abrir mapa en otra pestaña</a>
+              </template>
+              <p v-else class="text-muted mb-0">Esta firma no tiene una ubicación registrada válida.</p>
+            </section>
       <template #footer="{ close }">
         <div class="text-end">
           <button type="button" class="btn btn-secondary" @click="close">Cerrar</button>
@@ -167,6 +208,33 @@ function dateLabel(value) {
   </Teleport>
 </template>
 <style scoped>
+/* BaseModal wraps its body in BaseBlock instead of Bootstrap's modal-body. */
+:global(.guia-files-modal) {
+  max-height: calc(100vh - 3.5rem);
+  max-height: calc(100dvh - 3.5rem);
+}
+:global(.guia-files-modal > .block) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+:global(.guia-files-modal > .block > .block-header),
+:global(.guia-files-modal > .block > .base-modal-footer) {
+  flex-shrink: 0;
+}
+:global(.guia-files-modal-body) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.signature-preview {
+  max-height: min(24vh, 180px) !important;
+  width: auto;
+  object-fit: contain;
+}
 .dropdown-menu .dropdown-item i {
   width: 20px;
   text-align: center;

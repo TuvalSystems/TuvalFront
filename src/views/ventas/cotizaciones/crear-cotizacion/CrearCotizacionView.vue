@@ -166,6 +166,7 @@ const {
   isActivePricefreight,
   validateFreightTotal,
   validateDispatchFields,
+  validateItemLWeights,
 } = useProcessCreateQuote(currentDraftId.value);
 
 const {
@@ -1001,6 +1002,7 @@ const btnDisabledStore = computed(() => {
 });
 
 const btnDisableStoreQuotation = computed(() => {
+  if (validateItemLWeights()) return true;
   if (!(Number(form.value.tipo_despacho_id) > 0)) return true;
   if (loadingStockMasivo.value) return true;
   if (loadingCreateQuotation.value) return true;
@@ -1769,7 +1771,8 @@ onMounted(async () => {
                     <button
                       v-else-if="!isDisableLogisticServiceArticle(element)"
                       class="btn btn-sm btn-info"
-                      title="Peso de artículo"
+                      :title="isItemL(element) ? 'Peso obligatorio (mayor a cero)' : 'Peso de artículo'"
+                      :class="{ 'btn-danger': isItemL(element) && (!Number.isFinite(Number(element.ART_PESO)) || Number(element.ART_PESO) <= 0) }"
                       @click="openModalPesoRowItem(element, index)"
                     >
                       <i class="fa-solid fa-scale-unbalanced"></i>
@@ -2474,7 +2477,14 @@ onMounted(async () => {
                 Limpiar cotización
               </button>
               <p
-                v-if="validateDispatchFields()"
+                v-if="validateItemLWeights()"
+                class="text-danger fs-sm mb-0"
+                role="alert"
+              >
+                {{ validateItemLWeights() }}
+              </p>
+              <p
+                v-else-if="validateDispatchFields()"
                 class="text-danger fs-sm mb-0"
                 role="alert"
               >

@@ -734,6 +734,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         let tempIva = 0;
         let tempPeso = 0;
         let tempPesoFlete = 0;
+        let tempPesoPaqueteria = 0;
 
 
         //se reinician las variables
@@ -801,15 +802,37 @@ export function useProcessCreateQuote(draftId = 'default') {
             //calculo del peso
             const pesoLinea = (Number.parseFloat(art.ART_PESO) || 0) * cantidad;
             tempPeso += pesoLinea;
-            if (Number(art.fle_valor) > 0) tempPesoFlete += pesoLinea;
+            const proveedores = art.proveedores || [];
+            const requiereTransporteItemL = proveedores.some((provider) =>
+                provider.proveedor_entrega != null
+                && ![true, 1, '1'].includes(provider.proveedor_entrega)
+            );
+            if (tipoCompra === 'L') {
+                const cantidadSinEntrega = proveedores.reduce((total, provider) => {
+                    if (provider.proveedor_entrega == null
+                        || [true, 1, '1'].includes(provider.proveedor_entrega)) return total;
+                    const cantidadProveedor = Number(provider.CANTIDAD);
+                    return total + (Number.isFinite(cantidadProveedor) && cantidadProveedor > 0
+                        ? cantidadProveedor : 0);
+                }, 0);
+                tempPesoFlete += (Number.parseFloat(art.ART_PESO) || 0) * cantidadSinEntrega;
+            } else if (Number(art.fle_valor) > 0) {
+                tempPesoFlete += pesoLinea;
+            }
+            if (tipoCompra !== 'L' || requiereTransporteItemL) {
+                tempPesoPaqueteria += pesoLinea;
+            }
         });
         form.value.subtotal = redondear(tempSubtotal + 0.000001, 2);
         form.value.descuento = redondear(tempDescuento + 0.000001, 2);
         form.value.iva = redondear(tempIva + 0.000001, 2);
         form.value.peso = redondear(tempPeso, 2);
-        form.value.fle_peso = Number(form.value.tipo_despacho_id) === 4
+        const tipoDespacho = Number(form.value.tipo_despacho_id);
+        form.value.fle_peso = tipoDespacho === 4
             ? redondear(tempPesoFlete, 2)
-            : form.value.peso;
+            : tipoDespacho === 3
+                ? redondear(tempPesoPaqueteria, 2)
+                : form.value.peso;
         // Total General = Subtotal + IVA
         form.value.total = redondear((form.value.subtotal + form.value.iva) + 0.000001, 2);
         validateAllProvidersStock();
@@ -818,7 +841,8 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     watch(
         () => [form.value.tipo_despacho_id,
-        form.value.items.map((item) => [item.fle_valor, item.ART_PESO, item.ART_CANTIDAD, item.descuento])],
+        form.value.items.map((item) => [item.fle_valor, item.ART_PESO, item.ART_CANTIDAD, item.descuento,
+            item.ART_TIPO_COMPRA, (item.proveedores || []).map((provider) => [provider.proveedor_entrega, provider.CANTIDAD])])],
         () => calculateTotals(),
         { deep: true }
     );
@@ -1110,6 +1134,14 @@ export function useProcessCreateQuote(draftId = 'default') {
             ? cents : null;
     };
 
+    function validateItemLWeights() {
+        const index = form.value.items.findIndex((item) =>
+            (item.ART_TIPO_COMPRA || '').trim().toUpperCase() === 'L'
+            && (!Number.isFinite(Number(item.ART_PESO)) || Number(item.ART_PESO) <= 0)
+        );
+        return index < 0 ? '' : `Debe ingresar un peso mayor a cero para el ítem L de la fila ${index + 1}.`;
+    }
+
     function validateDispatchFields() {
         if (![3, 4, 5].includes(Number(form.value.tipo_despacho_id))) return '';
         const providerId = Number(form.value.fle_proveedor_id);
@@ -1158,6 +1190,8 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingCreateQuotation = ref(false);
     async function createQuote(mode) {
+        const weightError = validateItemLWeights();
+        if (weightError) return { ok: false, message: weightError };
         const dispatchError = validateDispatchFields();
         if (dispatchError) return { ok: false, message: dispatchError };
         if (!(Number(form.value.tipo_despacho_id) > 0)) {
@@ -1313,6 +1347,7 @@ export function useProcessCreateQuote(draftId = 'default') {
     /*** proceso validador para verificar que se puede guardar esta cotizacion y pedido  */
 
     const isQuoteValid = computed(() => {
+        if (validateItemLWeights()) return false;
         if (!form.value.items || form.value.items.length === 0) return false;
 
         return form.value.items.every((item) => {
@@ -1857,6 +1892,8 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     const loadingSaveOrder = ref(false);
     async function saveOrder() {
+        const weightError = validateItemLWeights();
+        if (weightError) return { ok: false, message: weightError };
         const dispatchError = validateDispatchFields();
         if (dispatchError) return { ok: false, message: dispatchError };
         if (!(Number(form.value.tipo_despacho_id) > 0)) {
@@ -2155,7 +2192,8 @@ export function useProcessCreateQuote(draftId = 'default') {
         isActivePricefreight,
         cleanFreightPrice,
         validateFreightTotal,
-        validateDispatchFields
+        validateDispatchFields,
+        validateItemLWeights
     };
 
 
