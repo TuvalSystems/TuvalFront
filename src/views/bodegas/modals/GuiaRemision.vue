@@ -107,10 +107,21 @@ function aplicatodo(traslado) {
   checkgenerarguia();
 }
 
+const todosSeleccionados = computed(
+  () =>
+    detalle_orden_despacho.value.length > 0 &&
+    detalle_orden_despacho.value.every(
+      (traslado) =>
+        traslado.aplicar_todo &&
+        Number(traslado.seleccionado) === Number(traslado.pendiente)
+    )
+);
+
 function seleccionartodos() {
-  detalle_orden_despacho.value.map((traslado) => {
-    traslado.seleccionado = traslado.pendiente;
-    traslado.aplicar_todo = true;
+  const seleccionar = !todosSeleccionados.value;
+  detalle_orden_despacho.value.forEach((traslado) => {
+    traslado.seleccionado = seleccionar ? traslado.pendiente : "";
+    traslado.aplicar_todo = seleccionar;
   });
   checkgenerarguia();
 }
@@ -476,7 +487,7 @@ onMounted(() => {
 
 <template>
   <BaseBlock
-    title="Generar guía de remisión"
+    title="Generar guía de remisión despacho"
     class="mb-0"
     v-if="verpedido.pedido"
   >
@@ -791,7 +802,8 @@ onMounted(() => {
         class="btn btn-sm btn-primary"
         @click="seleccionartodos()"
       >
-        <i class="fa fa-hand-pointer"></i> Seleccionar todos
+        <i class="fa fa-hand-pointer"></i>
+        {{ todosSeleccionados ? "Deseleccionar todos" : "Seleccionar todos" }}
       </button>
     </div>
     <div class="table-responsive">
