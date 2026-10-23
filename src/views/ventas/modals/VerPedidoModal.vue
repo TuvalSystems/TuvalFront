@@ -109,7 +109,7 @@
 
                     <td class="fs-sm text-end">
                       <a class="text-danger"
-                        v-if="articulo.ART_TIPO_COMPRA !== 'L' && articulo.ART_VALOR != articulo.ART_VALOR_ORIGINAL"
+                        v-if="articulo.ART_TIPO_COMPRA !== 'L' && articulo.precio_sin_flete != articulo.ART_VALOR_ORIGINAL"
                         @click="verdiferenciavalor(articulo)" href="javascript:void(0);">
                         ${{ format4(parseFloat(articulo.ART_VALOR)) }}
                       </a>
@@ -329,7 +329,7 @@ function verdiferenciadescripcion(articulo) {
 
 function verdiferenciavalor(articulo) {
   let msg = 'simon';
-  swalInfo('Cambio de precio de artículo', 'de <b>$' + articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.ART_VALOR + '</b>');
+  swalInfo('Cambio de precio de artículo', 'de <b>$' + articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.precio_sin_flete + '</b>');
 }
 
 function guardarOrdenDeCompra(pedido) {

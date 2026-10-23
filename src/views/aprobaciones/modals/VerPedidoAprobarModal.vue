@@ -1,125 +1,88 @@
 <template>
-  <BaseBlock title="Pedido por aprobar" class="mb-0">
+  <div class="quotation-approval">
+  <BaseBlock title="Pedido por Aprobar" class="mb-0" transparent>
     <template #options>
-      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Cerrar pedido">
         <i class="fa fa-fw fa-times"></i>
       </button>
     </template>
     <template #content>
-      <div class="block-content fs-sm ">
-        <div class="table-responsive">
+      <div class="block-content fs-sm m-0 mb-2">
+        <section class="quotation-section" aria-label="Información del pedido">
+          <dl class="quotation-details">
+            <div><dt>Pedido</dt><dd>{{ verpedido.pedido || '—' }}</dd></div>
+            <div><dt>RUC</dt><dd>{{ verpedido.CLI_RUC || '—' }}</dd></div>
+            <div><dt>Razón social</dt><dd>{{ verpedido.CLI_RAZON_SOCIAL || '—' }}</dd></div>
+            <div><dt>Punto de venta</dt><dd>{{ verpedido.PTO_VTA_DESCRIPCION || '—' }}</dd></div>
+            <div><dt>Condición de pago</dt><dd>
+              <button v-if="verpedido.COND_ID != verpedido.COND_ID_ORIGINAL" type="button" class="quotation-change" @click="verdiferenciacondicion(verpedido)">
+                {{ verpedido.COND_ID_ORIGINAL }} → {{ verpedido.COND_ID }} <i class="fa fa-circle-info" aria-hidden="true"></i>
+              </button>
+              <span v-else>{{ verpedido.COND_ID || '—' }}</span>
+            </dd></div>
+            <div><dt>Forma de pago</dt><dd>{{ verpedido.DESC_FORMA_PAGO_TIPO_CREDITO || '—' }}</dd></div>
+            <div><dt>Fecha y hora</dt><dd>{{ verpedido.created_at || '—' }}</dd></div>
+            <div><dt>Descuento general</dt><dd>
+              <button v-if="verpedido.porcentage_descuento != verpedido.porcentage_descuentooriginal" type="button" class="quotation-change" @click="verdiferenciaporcentaje(verpedido)">
+                {{ verpedido.porcentage_descuento }}% <i class="fa fa-circle-info" aria-hidden="true"></i>
+              </button>
+              <span v-else>{{ verpedido.porcentage_descuento }}%</span>
+            </dd></div>
+            <div><dt>Usuario</dt><dd>{{ verpedido.USERID || '—' }}</dd></div>
+            <div v-if="!detallepedido.loading"><dt>Tipo de despacho</dt><dd>{{ despachoPedido.tipo_despacho || 'Sin tipo de despacho' }}</dd></div>
+            <div><dt>Bodega</dt><dd>{{ verpedido.BOD_BODEGA || '—' }}</dd></div>
+            <div><dt>Nivel de precio</dt><dd>{{ nivelPrecioCliente || '—' }}</dd></div>
+            <div class="quotation-segmentation">
+              <dt>Segmentación:</dt>
+              <dd v-if="segmentocliente?.data?.segmento || segmentocliente?.data?.subsegmento" class="d-flex flex-wrap gap-1">
+                <span v-if="segmentocliente.data.segmento" class="badge rounded-pill bg-info text-light border border-info">{{ segmentocliente.data.segmento }}</span>
+                <span v-if="segmentocliente.data.subsegmento" class="badge rounded-pill bg-primary text-light border border-primary">{{ segmentocliente.data.subsegmento }}</span>
+              </dd>
+              <dd v-else class="text-muted fst-italic"><i class="fa fa-ban me-1" aria-hidden="true"></i>Sin segmentación asignada</dd>
+            </div>
+          </dl>
+        </section>
+        <div v-if="!detallepedido.loading && despachoPedido.requiere_aprobacion_flete" class="alert alert-warning quotation-notice quotation-freight" role="status">
+          <i class="fa fa-truck" aria-hidden="true"></i>
+          <div class="quotation-freight-content">
+            <strong>Pendiente de autorización de flete</strong>
+            <span v-if="despachoPedido.motivo_aprobacion_flete">{{ despachoPedido.motivo_aprobacion_flete }}</span>
+            <strong class="quotation-freight-amount">Flete: ${{ format(Number(despachoPedido.fle_valor ?? 0)) }}</strong>
+          </div>
+        </div>
+        <div v-if="verpedido.nota_interna" class="alert alert-danger py-2 quotation-notice">
+          <i class="fa fa-note-sticky" aria-hidden="true"></i><div><strong>Nota interna</strong><div class="quotation-note">{{ verpedido.nota_interna }}</div></div>
+        </div>
+        <div class="quotation-tables">
           <p v-if="verpedido.msg_registro_copia && verpedido.msg_registro_copia.startsWith('Requiere aprobación')"
             class="alert alert-danger">{{ verpedido.msg_registro_copia }}</p>
-          <table class="table table-striped table-sm table-vcenter">
-            <tbody>
-              <tr>
-                <th class="fs-sm">Pedido</th>
-                <td class="fs-sm">{{ verpedido.pedido }}</td>
-                <th class="fs-sm">RUC</th>
-                <td class="fs-sm">{{ verpedido.CLI_RUC }}</td>
-                <th class="fs-sm">Razón Social</th>
-                <td class="fs-sm">{{ verpedido.CLI_RAZON_SOCIAL }}</td>
-              </tr>
-              <tr>
-                <th class="fs-sm">P. de venta</th>
-                <td class="fs-sm">
-                  {{ verpedido.PTO_VTA_DESCRIPCION }}
-                </td>
-
-                <th class="fs-sm">Cond. Pago</th>
-                <td class="fs-sm">
-                  <a class="text-danger" v-if="verpedido.COND_ID != verpedido.COND_ID_ORIGINAL"
-                    @click="verdiferenciacondicion(verpedido)" href="javascript:void(0);">
-                    de {{ verpedido.COND_ID_ORIGINAL }} a {{ verpedido.COND_ID }}
-                  </a>
-                  <span v-else>{{ verpedido.COND_ID }}</span>
-                </td>
-                <th class="fs-sm">Usuario</th>
-                <td class="fs-sm">{{ verpedido.USERID }}</td>
-
-              </tr>
-              <tr>
-                <th class="fs-sm">Bodega</th>
-                <td class="fs-sm">
-                  {{ verpedido.BOD_BODEGA }}
-                </td>
-                <th class="fs-sm">% Descuento</th>
-                <td class="fs-sm">
-                  <a class="text-danger" v-if="verpedido.porcentage_descuento != verpedido.porcentage_descuentooriginal"
-                    @click="verdiferenciaporcentaje(verpedido)" href="javascript:void(0);">{{
-                      verpedido.porcentage_descuento }}</a>
-                  <span v-else>{{ verpedido.porcentage_descuento }}</span>
-                </td>
-
-                <th class="fs-sm">Fecha/hora</th>
-                <td class="fs-sm">
-                  {{ verpedido.created_at }}
-                </td>
-              </tr>
-              <tr v-if="segmentocliente && segmentocliente.data &&
-                Object.keys(segmentocliente.data).length">
-                <th>Segmento</th>
-                <td>{{ segmentocliente.data.segmento }}</td>
-                <th>Subsegmento</th>
-                <td colspan="3">{{ segmentocliente.data.subsegmento }}</td>
-              </tr>
-              <tr v-else>
-                <td colspan="6" class="text-muted">
-                  Sin segmento para este cliente
-                </td>
-              </tr>
-              <tr>
-                <td>Nivel de Precio</td>
-                <td colspan="6">{{ nivelPrecioCliente }}</td>
-              </tr>
-              <tr>
-                <td>Nota Interna</td>
-                <td colspan="5">{{ verpedido.nota_interna }}</td>
-              </tr>
-
-            </tbody>
-          </table>
-
-          <table v-if="estadodecuenta.data && !estadodecuenta.loading && estadodecuenta.data.cupoDisponible"
-            class="table table-sm table-bordered">
-            <thead>
-              <tr class="table-success">
-                <th colspan="2">Cupo disponible</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Cupo Asignado</td>
-                <td class="text-end">${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoAsignado)) }}</td>
-              </tr>
-              <tr>
-                <td>Cupo Disponible GP</td>
-                <td class="text-end">
-                  <a v-if="estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total" class="text-danger"
-                    href="javascript:void(0);" @click="swalInfo('El total del pedido supera el cupo disponible')">
-                    ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
-                  </a>
-                  <span v-else>
-                    ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
-                  </span>
-
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div v-if="detallepedido.loading" class="text-center">
-            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
+          <div v-if="estadodecuenta.data && !estadodecuenta.loading && estadodecuenta.data.cupoDisponible"
+            class="quotation-credit" aria-label="Cupo del cliente">
+            <span>Cupo asignado: <strong>${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoAsignado)) }}</strong></span>
+            <span>Cupo disponible GP:
+              <button v-if="estadodecuenta.data.cupoDisponible.cupoDisponibleGp < verpedido.total"
+                type="button" class="quotation-change fw-semibold"
+                @click="swalInfo('El total del pedido supera el cupo disponible')">
+                ${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}
+              </button>
+              <strong v-else>${{ format(parseFloat(estadodecuenta.data.cupoDisponible.cupoDisponibleGp)) }}</strong>
+            </span>
+          </div>
+          <div v-if="detallepedido.loading" class="text-center py-5" role="status" aria-live="polite">
+            <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Cargando artículos...</span>
             </div>
           </div>
 
+          <div class="quotation-section-heading"><h3>Detalle de artículos</h3><span v-if="!detallepedido.loading" class="text-muted">{{ detallepedido.data.length }} artículos</span></div>
+          <p v-if="!detallepedido.loading && !detallepedido.data.length" class="text-muted text-center py-4">No hay artículos para mostrar.</p>
+          <div class="table-responsive quotation-items">
           <table v-if="detallepedido.data.length && !detallepedido.loading"
-            class="table table-hover table-sm table-vcenter mt-4">
-            <thead>
+            class="table table-sm table-borderless align-middle mb-0">
+            <thead class="table-head-sticky">
               <tr>
                 <th>#</th>
                 <th>Código</th>
-                <th>Descripción</th>
+                <th class="quotation-description">Descripción</th>
                 <th>CTL</th>
                 <th class="text-center">Clas. Tuval</th>
                 <th>UDM</th>
@@ -132,14 +95,15 @@
 
               </tr>
             </thead>
-            <tbody>
-              <template v-for="(articulo, index) in detallepedido.data" :key="index">
-                <tr>
+            <tbody v-for="(articulo, index) in detallepedido.data" :key="index"
+              class="article-group" :class="{ 'article-group-l': articulo.ART_TIPO_COMPRA === 'L' || articulo.proveedores?.length }">
+                <tr class="article-main">
                   <td class="fs-sm">{{ index + 1 }}</td>
                   <td class="fs-sm">
-                    <span v-if="hasChangePorcentil(articulo)" @click="verPorcentajesDeCambio(articulo)"
-                      class="text-danger">{{ articulo.ART_CODIGO }}</span>
+                    <button v-if="hasChangePorcentil(articulo)" @click="verPorcentajesDeCambio(articulo)"
+                      type="button" class="quotation-change">{{ articulo.ART_CODIGO }}</button>
                     <span v-else>{{ articulo.ART_CODIGO }}</span>
+                    <span v-if="articulo.ART_TIPO_COMPRA === 'L'" class="article-l-badge">L</span>
 
                   </td>
                   <td class="fs-sm">
@@ -163,7 +127,7 @@
                   </td>
 
                   <td class="fs-sm text-end">
-                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && articulo.approval_valor === true"
+                    <a class="text-danger" v-if="articulo.ART_TIPO_COMPRA != 'L' && hasPriceChangeWithoutFreight(articulo)"
                       @click="verdiferenciavalor(articulo)" href="javascript:void(0);">
                       ${{ articulo.ART_VALOR }}
                     </a>
@@ -189,76 +153,50 @@
                     ${{ format(parseFloat((articulo.ART_VALOR - articulo.ART_DESCUENTO) * articulo.ART_CANTIDAD)) }}
                   </td>
                 </tr>
-                <tr v-if="articulo.proveedores.length">
-                  <td colspan="11" style="background:#EFEFEF">
-                    <table class="table table-sm table-vcenter">
-                      <tr>
-                        <th>Descripción L</th>
-                        <th class="text-end">Cantidad</th>
-                        <th class="text-end">Precio de venta mínimo</th>
-                        <th class="text-end">Margen</th>
-                        <th class="text-end">Costo unitario</th>
-                        <th class="text-end">Proveedor</th>
-
-                      </tr>
-                      <tr v-for="(proveedor, indice) in articulo.proveedores" :key="indice">
-                        <td>{{ proveedor.DESCRIPCION_ARTICULO }}</td>
-                        <td class="text-end">{{ proveedor.CANTIDAD }}</td>
-                        <td class="text-end">${{ proveedor.margen }} </td>
-                        <td class="text-end">{{ proveedor.MARGEN }}%</td>
-                        <td class="text-end">${{ proveedor.COSTO_UNITARIO }}</td>
-                        <td class="text-end">{{ proveedor.PROV_RAZON_SOCIAL }}</td>
-
-                      </tr>
-                    </table>
+                <tr v-if="articulo.proveedores?.length">
+                  <td colspan="12" class="provider-row">
+                    <div class="provider-details" aria-label="Detalle de proveedores del artículo">
+                      <div v-for="(proveedor, indice) in articulo.proveedores" :key="indice" class="provider-entry">
+                        <div class="provider-description"><span class="provider-label">Descripción L</span><span>{{ proveedor.DESCRIPCION_ARTICULO }}</span></div>
+                        <dl class="provider-metrics">
+                          <div><dt>Cant.</dt><dd>{{ proveedor.CANTIDAD }}</dd></div>
+                          <div><dt>Venta mín.</dt><dd>${{ proveedor.margen }}</dd></div>
+                          <div><dt>Margen</dt><dd>{{ proveedor.MARGEN }}%</dd></div>
+                          <div><dt>Costo unit.</dt><dd>${{ proveedor.COSTO_UNITARIO }}</dd></div>
+                        </dl>
+                        <div class="provider-name"><span class="provider-label">Proveedor</span><span>{{ proveedor.PROV_RAZON_SOCIAL }}</span></div>
+                      </div>
+                    </div>
                   </td>
                 </tr>
-              </template>
-              <tr>
-                <th colspan="11" class="fs-sm text-end">Subtotal</th>
-                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotal)) }}</th>
-              </tr>
-              <tr>
-                <th colspan="11" class="fs-sm text-end">Descuento</th>
-                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.descuento)) }}</th>
-              </tr>
-              <tr>
-                <th colspan="11" class="fs-sm text-end">Subtotal - descuento</th>
-                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.subtotalmenosdescuento)) }}</th>
-              </tr>
-              <tr>
-                <th colspan="11" class="fs-sm text-end">IVA</th>
-                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.iva)) }}</th>
-              </tr>
-              <tr>
-                <th colspan="11" class="fs-sm text-end">Total</th>
-                <th class="fs-sm text-end">${{ format(parseFloat(verpedido.total)) }}</th>
-              </tr>
             </tbody>
+            <tfoot>
+              <tr><td colspan="11" class="fw-semibold text-end text-uppercase py-1">Subtotal</td><td class="fw-semibold text-end nums py-1">${{ format(parseFloat(verpedido.subtotal)) }}</td></tr>
+              <tr><td colspan="11" class="fw-semibold text-end text-uppercase py-1">Descuento</td><td class="fw-semibold text-end nums py-1">${{ format(parseFloat(verpedido.descuento)) }}</td></tr>
+              <tr><td colspan="11" class="fw-semibold text-end text-uppercase py-1">Sub - desc</td><td class="fw-semibold text-end nums py-1">${{ format(parseFloat(verpedido.subtotalmenosdescuento)) }}</td></tr>
+              <tr><td colspan="11" class="fw-semibold text-end text-uppercase py-1">IVA</td><td class="fw-semibold text-end nums py-1">${{ format(parseFloat(verpedido.iva)) }}</td></tr>
+              <tr><td colspan="11" class="fw-semibold text-end text-uppercase py-1">Total</td><td class="fw-semibold text-end nums py-1">${{ format(parseFloat(verpedido.total)) }}</td></tr>
+            </tfoot>
           </table>
+          </div>
         </div>
 
       </div>
     </template>
   </BaseBlock>
-  <div class="block-content block-content-full text-end bg-body">
-
-    <div class="row">
-
-      <label for="orden-de-compra" class="col-sm-2 col-form-label text-right">Mensaje:</label>
+  <div class="quotation-footer bg-body border-top">
+    <div class="row g-2 align-items-center">
+      <label for="pedido-aprobacion-mensaje" class="col-sm-2 col-form-label text-sm-end fw-semibold">Mensaje:</label>
       <div class="col-sm-7">
-        <input v-model="verpedido.aprobado_comercial_mensaje" type="text" id="orden-de-compra" class="form-control"
+        <input v-model="verpedido.aprobado_comercial_mensaje" type="text" id="pedido-aprobacion-mensaje" class="form-control form-control-sm"
           placeholder="Motivo de rechazo" @change="guardarMensaje(verpedido)" />
       </div>
-      <div class="col-sm-3 text-end">
-        <button type="button" class="btn btn-success btn-sm" @click="approveOrder"><i class="fa fa-check"></i>
-          Aprobar</button>
-        <button type="button" class="btn btn-danger btn-sm mx-2" @click="rejectedOrder"><i class="fa fa-times"></i>
-          Rechazar</button>
+      <div class="col-sm-3 text-sm-end quotation-actions">
+        <button type="button" class="btn btn-success btn-sm" @click="approveOrder"><i class="fa fa-check me-1" aria-hidden="true"></i> Aprobar</button>
+        <button type="button" class="btn btn-danger btn-sm" @click="rejectedOrder"><i class="fa fa-times me-1" aria-hidden="true"></i> Rechazar</button>
       </div>
     </div>
-
-
+  </div>
   </div>
 </template>
 <script setup>
@@ -275,6 +213,15 @@ const { verpedido, indexPedido, tipo } = defineProps({
 
 const store = useStore();
 const detallepedido = computed(() => store.state.detallepedido);
+const despachoPedido = computed(() => {
+  const detalle = store.state.despachoPedido || {};
+  return {
+    tipo_despacho: detalle.tipo_despacho ?? verpedido.tipo_despacho,
+    requiere_aprobacion_flete: detalle.requiere_aprobacion_flete ?? verpedido.requiere_aprobacion_flete,
+    motivo_aprobacion_flete: detalle.motivo_aprobacion_flete ?? verpedido.motivo_aprobacion_flete,
+    fle_valor: detalle.fle_valor ?? verpedido.fle_valor,
+  };
+});
 const estadodecuenta = computed(() => store.state.estadodecuenta);
 const segmentocliente = computed(() => store.state.segmentocliente);
 const nivelPrecioCliente = computed(() => store.state.nivelPrecioClienteDetalle);
@@ -319,58 +266,168 @@ function verdiferenciadescripcion(articulo) {
 }
 
 function verdiferenciavalor(articulo) {
-  let msg = 'simon';
-  swalInfo('Cambio de precio de artículo', 'de <b>$' + articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.ART_VALOR + '</b>');
+  const precioOriginal = Number(articulo.ART_VALOR_ORIGINAL ?? 0);
+  const precioSinFlete = Number(articulo.precio_sin_flete ?? 0);
+  const precioConFlete = Number(articulo.ART_VALOR ?? 0);
+  const diferencia = precioSinFlete - precioOriginal;
+  const signo = diferencia > 0 ? '+' : diferencia < 0 ? '−' : '';
+  const porcentaje = precioOriginal !== 0 ? `${signo}${Math.abs(diferencia / precioOriginal * 100).toFixed(2)}%` : 'No aplica';
+  const estado = diferencia > 0 ? 'Aumento' : diferencia < 0 ? 'Reducción' : 'Sin cambio';
+  const html = `
+    <div style="text-align:left;font-size:14px;line-height:1.5;">
+      <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(128,128,128,.2);">
+        <span>Precio original</span>
+        <strong style="font-variant-numeric:tabular-nums;white-space:nowrap;">$${format4(precioOriginal)}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(128,128,128,.2);">
+        <span>Precio sin flete</span>
+        <strong style="font-variant-numeric:tabular-nums;white-space:nowrap;">$${format4(precioSinFlete)}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;">
+        <span>Precio con flete</span>
+        <strong style="font-variant-numeric:tabular-nums;white-space:nowrap;">$${format4(precioConFlete)}</strong>
+      </div>
+      <div style="margin-top:16px;padding:16px;border-radius:10px;background:rgba(54,185,220,.09);border:1px solid rgba(54,185,220,.3);">
+        <div style="font-size:12px;font-weight:600;letter-spacing:.04em;">CAMBIO DEL PRECIO SIN FLETE</div>
+        <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin:14px 0;font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;">
+          <span>$${format4(precioOriginal)}</span>
+          <span aria-label="cambia a" style="opacity:.55;">→</span>
+          <span>$${format4(precioSinFlete)}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid rgba(54,185,220,.2);padding-top:12px;">
+          <span>${estado} <strong style="white-space:nowrap;">${signo}$${format4(Math.abs(diferencia))}</strong></span>
+          <strong style="padding:3px 10px;border-radius:20px;background:rgba(54,185,220,.14);">${porcentaje}</strong>
+        </div>
+      </div>
+      <p style="margin:10px 0 0;font-size:12px;opacity:.75;">La variación compara el precio original con el precio sin flete.</p>
+    </div>
+  `;
+  swalInfo('Cambio de precio', html);
 }
-
 function verdiferenciadescuento(articulo) {
   let msg = 'simon';
   swalInfo('Cambio de porcentaje de descuento', 'de <b>' + articulo.descuento_original + '%</b> a <b>' + articulo.descuento + '%</b>');
 }
 
 
+function escapeAlert(value) {
+  return String(value ?? 'Sin dato').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
+
+function alertRow(label, value) {
+  return `<div style="display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(128,128,128,.18);"><span>${escapeAlert(label)}</span><strong style="text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;">${escapeAlert(value)}</strong></div>`;
+}
+
+function priceChangeWithoutFreight(articulo) {
+  const original = Number(articulo.ART_VALOR_ORIGINAL);
+  const actual = Number(articulo.precio_sin_flete);
+  if (articulo.ART_VALOR_ORIGINAL == null || articulo.precio_sin_flete == null
+    || !Number.isFinite(original) || !Number.isFinite(actual) || original === 0) return 0;
+  return (actual - original) / original * 100;
+}
+
+function hasPriceChangeWithoutFreight(articulo) {
+  return articulo.precio_sin_flete != null && articulo.ART_VALOR_ORIGINAL != null
+    && Number(articulo.precio_sin_flete) !== Number(articulo.ART_VALOR_ORIGINAL);
+}
+
 const hasChangePorcentil = (articulo) => {
-  const pChange = Number.parseFloat(articulo.priceChange) || 0;
+  const pChange = priceChangeWithoutFreight(articulo);
   const dChange = Number.parseFloat(articulo.discountChange) || 0;
 
   return Math.abs(pChange) > 0.01 || Math.abs(dChange) > 0.01;
 };
 function verPorcentajesDeCambio(articulo) {
   const discount = Number(articulo.discountChange ?? 0);
-  const price = Number(articulo.priceChange ?? 0);
-
-  const discountLabel = `${discount.toFixed(2)}%`;
-  const priceLabel = `${price.toFixed(2)}%`;
-
+  const price = priceChangeWithoutFreight(articulo);
   const reglas = articulo.reglasAprobacion || {};
   const reglaDescuento = reglas.regla_descuento || { min: 0, max: 0 };
   const reglaPrecio = reglas.regla_precio || { min: 0, max: 0 };
-
-  const html = `
-    <div style="text-align: left; font-size: 15px;">
-      <p class="mb-1"><b>Modificación del artículo:</b></p>
-      <ul style="margin-bottom: 15px;">
-        <li>Cambio en Descuento: <b>${discountLabel}</b></li>
-        <li>Cambio en Precio: <b>${priceLabel}</b></li>
-      </ul>
-      
-      <hr>
-      
-      <p class="mb-1"><b>Tus límites permitidos:</b></p>
-      <ul>
-        <li>Descuento: Desde <b class="text-primary">${reglaDescuento.min}%</b> hasta <b class="text-primary">${reglaDescuento.max}%</b></li>
-        <li>Precio: Desde <b class="text-primary">${reglaPrecio.min}%</b> hasta <b class="text-primary">${reglaPrecio.max}%</b></li>
-      </ul>
+  const variationCard = (label, value, regla) => {
+    const fuera = value < Number(regla.min) || value > Number(regla.max);
+    const tint = fuera ? '220,120,65' : '54,185,220';
+    return `<div style="padding:14px;border-radius:10px;background:rgba(${tint},.09);border:1px solid rgba(${tint},.3);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;"><strong>${label}</strong><strong style="font-size:22px;font-variant-numeric:tabular-nums;">${value > 0 ? '+' : ''}${value.toFixed(2)}%</strong></div>
+      <div style="font-size:12px;margin-top:8px;">Límite permitido: <strong>${escapeAlert(regla.min)}% a ${escapeAlert(regla.max)}%</strong></div>
+      <div style="font-size:12px;margin-top:5px;font-weight:600;">${fuera ? 'Fuera de tu rango permitido' : 'Dentro de tu rango permitido'}</div>
+    </div>`;
+  };
+  const html = `<div style="text-align:left;font-size:14px;line-height:1.5;">
+    <div style="font-size:12px;font-weight:600;letter-spacing:.04em;margin-bottom:4px;">PRECIOS Y DESCUENTO</div>
+    ${alertRow('Precio original', '$' + format4(Number(articulo.ART_VALOR_ORIGINAL ?? 0)))}
+    ${alertRow('Precio sin flete', '$' + format4(Number(articulo.precio_sin_flete ?? 0)))}
+    ${alertRow('Precio con flete', '$' + format4(Number(articulo.ART_VALOR ?? 0)))}
+    ${alertRow('Descuento aplicado', Number(articulo.descuento ?? 0).toFixed(2) + '%')}
+    <div style="font-size:12px;font-weight:600;letter-spacing:.04em;margin:18px 0 10px;">VARIACIONES Y TUS LÍMITES</div>
+    <div style="display:grid;gap:10px;">
+      ${variationCard('Precio sin flete', price, reglaPrecio)}
+      ${variationCard('Descuento', discount, reglaDescuento)}
     </div>
-  `;
-
-  swalInfo(
-    'Análisis de Aprobación',
-    html
-  );
+    <p style="margin:10px 0 0;font-size:12px;opacity:.75;">La variación de precio compara el precio original con el precio sin flete.</p>
+  </div>`;
+  swalInfo('Análisis de aprobación', html);
 }
+
 onMounted(() => {
 });
 onBeforeUnmount(() => {
 });
 </script>
+<style scoped>
+.quotation-approval { display: flex; flex-direction: column; max-height: calc(100dvh - 3.5rem); overflow: hidden; }
+.quotation-approval :deep(.block) { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.quotation-approval :deep(.block-header) { flex-shrink: 0; }
+.quotation-approval :deep(.block-content) { min-height: 0; overflow-y: auto; padding-top: .65rem; }
+.quotation-section { margin-bottom: .5rem; }
+.quotation-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .3rem .75rem; margin: 0; }
+.quotation-details > div:not(.quotation-segmentation) { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.quotation-details dt { flex-shrink: 0; display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6c757d; margin-bottom: 0; line-height: 1.3; }
+.quotation-details dd { margin: 0; font-weight: 600; font-size: .8rem; line-height: 1.3; overflow-wrap: anywhere; min-width: 0; }
+.quotation-segmentation { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding-top: .15rem; }
+.quotation-segmentation dt { margin: 0; }
+.quotation-segmentation .badge { font-size: 12px; white-space: normal; text-align: left; }
+.quotation-change { background: transparent; border: 0; padding: 0; color: var(--bs-danger, #dc3545); text-decoration: underline dotted; text-underline-offset: 3px; text-align: inherit; font: inherit; cursor: pointer; }
+.quotation-notice { display: flex; align-items: baseline; gap: .5rem; padding: .4rem .65rem; margin-bottom: .5rem; font-size: .8rem; }
+.quotation-freight-content { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .65rem; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.quotation-freight-amount { margin-left: auto; white-space: nowrap; }
+.quotation-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.quotation-credit { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1.5rem; margin-bottom: .65rem; padding: .4rem .65rem; background: var(--tuval-surface-muted, #f8f9fa); border-radius: .25rem; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.quotation-credit > span { white-space: nowrap; }
+.quotation-section-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .5rem; }
+.quotation-section-heading h3 { font-size: .875rem; margin: 0; }
+.quotation-items > table { min-width: 980px; }
+.quotation-items .table-head-sticky th { position: sticky; top: 0; background: var(--tuval-surface, #fff); z-index: 1; }
+.quotation-items th { white-space: nowrap; text-transform: uppercase; }
+.quotation-items .quotation-description { min-width: 230px; }
+.quotation-items .text-end { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.quotation-items td.text-end { font-weight: 600; }
+.quotation-items > table > tbody > tr > td:nth-child(2) { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; }
+.article-group .article-main > td { border-top: 1px solid var(--bs-border-color, #e4e7ed); }
+.article-group-l .article-main > td { background: var(--tuval-surface-muted, #f8f9fa); }
+.article-group-l .article-main > td:first-child { border-left: 3px solid var(--bs-info, #36b9dc); }
+.article-l-badge { display: inline-block; margin-left: .25rem; padding: 0 .25rem; border-radius: .2rem; background: rgba(54, 185, 220, .14); color: var(--bs-info, #1686a2); font: 700 10px/1.5 sans-serif; }
+.quotation-items .provider-row { padding: 0 0 .4rem !important; }
+.provider-details { border-left: 3px solid var(--bs-info, #36b9dc); background: var(--tuval-surface-muted, #f8f9fa); padding: 0 .65rem .4rem; }
+.provider-entry { display: grid; grid-template-columns: minmax(180px, 1.2fr) auto minmax(180px, 1fr); align-items: start; gap: .65rem; padding: .35rem 0; border-top: 1px dashed var(--bs-border-color, #d8dee6); font-size: 12px; line-height: 1.3; }
+.provider-description, .provider-name { display: flex; flex-direction: column; gap: .15rem; min-width: 0; overflow-wrap: anywhere; }
+.provider-label, .provider-metrics dt { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6c757d; }
+.provider-metrics { display: flex; gap: .85rem; margin: 0; }
+.provider-metrics > div { text-align: right; }
+.provider-metrics dt { white-space: nowrap; }
+.provider-metrics dd { margin: .15rem 0 0; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.quotation-footer { flex-shrink: 0; padding: 1rem 1.25rem; }
+.quotation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem; }
+@media (min-width: 992px) {
+  .quotation-items .table.table-sm > :not(caption) > * > * { padding-top: .35rem; padding-bottom: .35rem; }
+}
+@media (max-width: 767.98px) {
+  .quotation-approval { max-height: calc(100dvh - 1rem); }
+  .quotation-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quotation-approval :deep(.block-content) { padding: .75rem; }
+  .quotation-footer { padding: .75rem; }
+}
+@media (max-width: 575.98px) {
+  .quotation-freight-amount { margin-left: 0; }
+  .quotation-actions { justify-content: flex-start; }
+}
+</style>

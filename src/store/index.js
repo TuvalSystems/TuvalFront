@@ -190,6 +190,8 @@ const store = createStore({
       loading: false,
       data: {},
     },
+    despachoCotizacion: {},
+    despachoPedido: {},
     detallecotizacion: {
       loading: false,
       data: {},
@@ -667,6 +669,7 @@ const store = createStore({
         });
     },
     detallecotizacion({ commit }, cotizacion) {
+      commit("setDespachoCotizacion", {});
       commit("setDetalleCotizacionLoading", true);
       commit("setEstadoDeCuentaLoading", true);
 
@@ -675,6 +678,7 @@ const store = createStore({
         .then((res) => {
           commit("setDetalleCotizacionLoading", false);
           commit("setDetalleCotizacion", res.data.data.detalle);
+          commit("setDespachoCotizacion", res.data.data);
           commit("setEstadoDeCuentaLoading", false);
           commit("setEstadoDeCuenta", res.data.data.estadodecuenta);
           commit("setSegmentoClienteLoading", false);
@@ -1431,6 +1435,14 @@ const store = createStore({
       state.descuentooriginal = value;
     },
     setDetallePedido: (state, data) => {
+      state.despachoPedido = {
+        tipo_despacho: data.tipo_despacho ?? null,
+        fle_usuario_aut_id: data.fle_usuario_aut_id ?? null,
+        fle_fecha_aut: data.fle_fecha_aut ?? null,
+        fle_valor: data.fle_valor ?? null,
+        requiere_aprobacion_flete: data.requiere_aprobacion_flete ?? null,
+        motivo_aprobacion_flete: data.motivo_aprobacion_flete ?? null,
+      };
       state.detallepedido.data = data.detalle;
       state.ordendecompra = data.ordendecompra;
       state.traslados = data.traslados;
@@ -1477,6 +1489,16 @@ const store = createStore({
     },
     setDetalleCotizacionLoading: (state, loading) => {
       state.detallecotizacion.loading = loading;
+    },
+    setDespachoCotizacion: (state, data) => {
+      state.despachoCotizacion = {
+        tipo_despacho: data.tipo_despacho ?? null,
+        fle_usuario_aut_id: data.fle_usuario_aut_id ?? null,
+        fle_fecha_aut: data.fle_fecha_aut ?? null,
+        fle_valor: data.fle_valor ?? 0,
+        requiere_aprobacion_flete: data.requiere_aprobacion_flete ?? false,
+        motivo_aprobacion_flete: data.motivo_aprobacion_flete ?? null,
+      };
     },
     setDetalleCotizacion: (state, detalle) => {
       state.detallecotizacion.data = detalle;

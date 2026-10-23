@@ -134,7 +134,7 @@
 
                   <td class="fs-sm text-end">
                     <a class="text-danger" v-if="
-                      articulo.ART_VALOR != articulo.ART_VALOR_ORIGINAL &&
+                      articulo.precio_sin_flete != articulo.ART_VALOR_ORIGINAL &&
                       articulo.ART_TIPO_COMPRA != 'L'
                     " @click="verdiferenciavalor(articulo)" href="javascript:void(0);">{{
                       format4(parseFloat(articulo.ART_VALOR)) }}</a>
@@ -332,7 +332,7 @@ function verdiferenciavalor(articulo) {
     "de <b>$" +
     articulo.ART_VALOR_ORIGINAL +
     "</b> a <b>$" +
-    articulo.ART_VALOR +
+    articulo.precio_sin_flete +
     "</b>"
   );
 }
