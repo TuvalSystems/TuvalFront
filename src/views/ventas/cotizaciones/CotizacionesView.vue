@@ -529,7 +529,7 @@ import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/useP
 import VerSolicitudReservaModalComponent from "@/views/ventas/cotizaciones/modals/verSolicitudReservaModal.vue";
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 import { useUpdateQuotationStatus } from "@/composables/aprobaciones/cotizaciones/useUpdateQuotationStatus";
-import { useQuotationReserveRequestSale } from "@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale";
+import { useQuotationReserveRequestSale, validateReserveDispatch } from "@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale";
 import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions.js";
 const { loadingChange, changeStatusQuoteBeenWaiting } =
   useUpdateQuotationStatus();
@@ -817,6 +817,11 @@ let verReservaModal = ref(null);
 let verReservaModalObj = null;
 let datosModalReserva = ref(null);
 async function verModalReserva(row) {
+  const dispatchValidation = validateReserveDispatch(row);
+  if (dispatchValidation.invalid) {
+    swalWarning(dispatchValidation.message);
+    return;
+  }
   const reserva = row?.reserva ?? null;
   const hasReserva = row?.has_reserva === true || !!reserva;
   if (hasReserva && reserva) {
@@ -854,6 +859,7 @@ async function verModalReserva(row) {
 
   const payload = {
     cotizacion_id: row.id,
+    tipo_despacho_id: row.tipo_despacho_id,
     cotizacion: row.cotizacion,
     pto_venta: row.BOD_BODEGA,
     PTO_VTA_ID: row.PTO_VTA_ID,

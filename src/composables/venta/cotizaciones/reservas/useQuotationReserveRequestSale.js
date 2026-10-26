@@ -5,6 +5,14 @@ import { daysUntil } from "@/composables/venta/cotizaciones/reservas/useDaysBetw
 import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
 import { useApiAction } from "@/composables/core/useApiAction";
 
+export function validateReserveDispatch(cotizacion) {
+  return {
+    invalid: [3, 4, 5].includes(Number(cotizacion?.tipo_despacho_id)),
+    message:
+      "No puede realizar una reserva con ese tipo de despacho (paquetería, proveedor entrega o flete al cobro).",
+  };
+}
+
 export function useQuotationReserveRequestSale(datoReserva) {
   const ptoStore = usePuntosVentaReservaLimits();
   const reservedValidation = ref(false);
@@ -99,6 +107,10 @@ export function useQuotationReserveRequestSale(datoReserva) {
 
 
   async function solicitarReserva() {
+    const dispatchValidation = validateReserveDispatch(unref(datoReserva));
+    if (dispatchValidation.invalid) {
+      return returnErrorMessage(dispatchValidation.message);
+    }
     if (isInvalid.value) {
       return false;
     }
