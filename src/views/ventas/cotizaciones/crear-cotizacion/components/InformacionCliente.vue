@@ -495,9 +495,9 @@ onMounted(async () => {
         <!-- para flete al cobro y proveedores  -->
         <div v-show="[3, 4, 5].includes(Number(typeDispatchId))" class="col-12">
           <section class="delivery-section" aria-labelledby="delivery-heading">
-            <h3 id="delivery-heading" class="delivery-heading">
+            <!-- <h3 id="delivery-heading" class="delivery-heading">
               Flete al Cobro
-            </h3>
+            </h3> -->
             <div class="row g-2">
               <div class="col-12 col-lg-8">
                 <div class="kv space-y-2">

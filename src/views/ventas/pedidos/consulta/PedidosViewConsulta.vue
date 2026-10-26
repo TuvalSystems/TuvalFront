@@ -129,7 +129,6 @@ const fecha_desde = ref(null);
 const fecha_hasta = ref(null);
 const estado_filtro = ref(null);
 
-
 // variables de filtro de cliente
 const selectedCustomer = ref(null);
 
@@ -161,7 +160,6 @@ async function funcionverpedido(pedido) {
     });
   });
 }
-
 
 const verpedidoModal = ref(null);
 const verpedidoModalObj = useBootstrapModal(verpedidoModal);
@@ -202,7 +200,6 @@ async function llenarpedidos(estado) {
       swalError(err.response.data.error);
     });
 }
-
 
 function refreshllenarpedidos() {
   llenarpedidos("todos");
@@ -336,6 +333,9 @@ function motivoEspera(pedido) {
   if (pedido.factura_siguiente_mes) {
     msg += "factura a siguiente mes";
   }
+  if (pedido.origen === "factura_demanda") {
+    msg += " factura Demanda";
+  }
   if (
     pedido.requiere_aprobacion_comercial === "yes" &&
     pedido.aprobado_comercial === "no"
@@ -358,21 +358,9 @@ function motivoEspera(pedido) {
   if (pedido.factura_a_demanda) {
     msg += "requiere factura a demanda posterior al despacho ";
   }
+
   swalWarning(msg);
 }
-
-// let verActualizarDatos = ref(null);
-// let verActualizarDatosObj = null;
-// let datosModalAcPedido = ref({});
-
-// let verModalUpdateDateInvoice = ref(null);
-// let verModalUpdateDateInvoiceObj = null;
-// let datosModalPedidoAcDate = ref({});
-
-// const BLOCKED_STATES = ['facturado', 'rechazado', 'anulada', 'eliminado'];
-// function canRescheduleInvoice(row) {
-//   return row.origen === 'factura_demanda' && !BLOCKED_STATES.includes(row.estado);
-// }
 
 onMounted(() => {
   // Remove labels from
