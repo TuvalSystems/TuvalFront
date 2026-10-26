@@ -129,7 +129,7 @@ onMounted(() => {});
     <!-- cabecera de busqueda -->
     <div class="block-content fs-sm p-0 rounded">
       <div class="row g-2 align-items-end">
-        <div class="col-md-5">
+        <div class="col-12 col-md-5">
           <small
             class="fw-bold text-uppercase text-muted"
             style="font-size: 10px"
@@ -138,7 +138,7 @@ onMounted(() => {});
           <div class="input-group input-group-sm">
             <select
               class="form-select border-1 shadow-sm"
-              style="flex: 0 0 170px"
+              style="flex: 0 0 130px"
               v-model="payload.select_codigo"
             >
               <option
@@ -157,7 +157,7 @@ onMounted(() => {});
             />
           </div>
         </div>
-        <div class="col-12 col-md-1">
+        <div class="col-12 col-md-2">
           <small
             class="fw-bold text-uppercase text-muted"
             style="font-size: 10px"
@@ -171,7 +171,7 @@ onMounted(() => {});
             @keyup.enter="buscarArticulo"
           />
         </div>
-        <div class="col-md-5">
+        <div class="col-12 col-md-5">
           <small
             class="fw-bold text-uppercase text-muted"
             style="font-size: 10px"
@@ -180,7 +180,7 @@ onMounted(() => {});
           <div class="input-group input-group-sm">
             <select
               class="form-select border-1 shadow-sm"
-              style="flex: 0 0 170px"
+              style="flex: 0 0 130px"
               v-model="payload.select_nombre"
             >
               <option
