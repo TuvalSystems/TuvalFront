@@ -85,7 +85,7 @@ const getInitialState = () => ({
 
     //parte de fletes 
     responsable_flete: 'tuval',
-    tipo_despacho_id: null,
+    tipo_despacho_id: 1,
     fle_proveedor_id: null,
     fle_valor: 0,
     fle_peso: 0,
