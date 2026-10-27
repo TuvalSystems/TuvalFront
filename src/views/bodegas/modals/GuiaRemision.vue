@@ -10,6 +10,7 @@ import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
 import { useExternalFreightActions } from "@/composables/sistemas/mantenimientos/external-freight/useExternalFreightActions";
 
 import { formatPrice } from "../../../functions";
+import { DISPATCH_TYPE, dispatchSelectionMode, providerDeliversItem, guideGroup, validateGuideSelection } from "@/functions/dispatchGuideSelection";
 const typeIdentifyStore = useTypeIdentifyStore();
 const listTypeIdentify = computed(() => typeIdentifyStore.list);
 const loadingIdentify = computed(() => typeIdentifyStore.loading);
@@ -38,12 +39,10 @@ const { loadingCarrierByProvider, fetchListCarrierByProviderSalesPoints } =
 const providerDrivers = ref([]);
 const selectedDriverId = ref("");
 const providerDriverError = ref("");
-const usesProviderDriver = computed(() => {
-  const dispatch = String(
-    verpedido.value?.pedido?.despacho ?? ""
-  ).toLowerCase();
-  return dispatch.includes("flete") || dispatch.includes("proveedor");
-});
+const dispatchTypeId = computed(() => Number(verpedido.value?.pedido?.tipo_despacho_id));
+const usesProviderDriver = computed(() =>
+  [DISPATCH_TYPE.COLLECT_FREIGHT, DISPATCH_TYPE.PROVIDER].includes(dispatchTypeId.value)
+);
 const selectedProviderDriver = computed(() =>
   providerDrivers.value.find((driver) => driver.id === selectedDriverId.value)
 );
@@ -52,7 +51,7 @@ watch(
   [
     () => props.verpedido,
     () => verpedido.value?.pedido?.id,
-    () => verpedido.value?.pedido?.despacho,
+    () => verpedido.value?.pedido?.tipo_despacho_id,
     () => verpedido.value?.pedido?.fle_proveedor_id,
     () => store.state.puntoventaselectid,
   ],
@@ -98,6 +97,10 @@ function changeVehiculo() {
 }
 
 function aplicatodo(traslado) {
+  if (selectionMode.value !== "normal") {
+    selectRestrictedItem(traslado);
+    return;
+  }
   if (traslado.aplicar_todo === false) {
     traslado.seleccionado = "";
     checkgenerarguia();
@@ -109,8 +112,8 @@ function aplicatodo(traslado) {
 
 const todosSeleccionados = computed(
   () =>
-    detalle_orden_despacho.value.length > 0 &&
-    detalle_orden_despacho.value.every(
+    selectableGroup.value.length > 0 &&
+    selectableGroup.value.every(
       (traslado) =>
         traslado.aplicar_todo &&
         Number(traslado.seleccionado) === Number(traslado.pendiente)
@@ -120,11 +123,47 @@ const todosSeleccionados = computed(
 function seleccionartodos() {
   const seleccionar = !todosSeleccionados.value;
   detalle_orden_despacho.value.forEach((traslado) => {
-    traslado.seleccionado = seleccionar ? traslado.pendiente : "";
-    traslado.aplicar_todo = seleccionar;
+    const selected = seleccionar && selectableGroup.value.includes(traslado);
+    traslado.seleccionado = selected ? traslado.pendiente : "";
+    traslado.aplicar_todo = selected;
   });
   checkgenerarguia();
 }
+
+const selectionMode = computed(() => dispatchSelectionMode(dispatchTypeId.value));
+const selectableGroup = computed(() => guideGroup(detalle_orden_despacho.value, selectionMode.value));
+
+function selectRestrictedItem(item) {
+  const selected = item.aplicar_todo;
+  if (selectionMode.value === "collect" || !providerDeliversItem(item)) {
+    detalle_orden_despacho.value.forEach((row) => {
+      row.aplicar_todo = selected && selectableGroup.value.includes(row);
+      row.seleccionado = row.aplicar_todo ? row.pendiente : "";
+    });
+  } else {
+    detalle_orden_despacho.value.forEach((row) => {
+      if (!providerDeliversItem(row)) {
+        row.aplicar_todo = false;
+        row.seleccionado = "";
+      }
+    });
+    item.seleccionado = selected ? item.pendiente : "";
+  }
+  checkgenerarguia();
+}
+
+watch(
+  [() => detalle_orden_despacho.value, () => props.verpedido, selectionMode],
+  () => {
+    if (selectionMode.value === "normal") return;
+    detalle_orden_despacho.value.forEach((item) => {
+      item.aplicar_todo = selectableGroup.value.includes(item);
+      item.seleccionado = item.aplicar_todo ? item.pendiente : "";
+    });
+    checkgenerarguia();
+  },
+  { immediate: true }
+);
 
 function checkgenerarguia() {
   let check = false;
@@ -187,6 +226,11 @@ function aplicartraslado(traslado) {
 }
 
 async function generarGuia(verpedido) {
+  if (!Object.values(DISPATCH_TYPE).includes(dispatchTypeId.value)) {
+    return swalWarning("El pedido debe incluir un tipo de despacho válido (tipo_despacho_id)");
+  }
+  const selectionError = validateGuideSelection(detalle_orden_despacho.value, selectionMode.value);
+  if (selectionError) return swalWarning(selectionError);
   let itemsDespacho = detalle_orden_despacho.value.filter(
     (item) => item.seleccionado > 0
   );
@@ -195,7 +239,7 @@ async function generarGuia(verpedido) {
   }
 
   // 1. Validaciones
-  const esRetiro = verpedido.pedido.despacho === "Retiro en bodega";
+  const esRetiro = dispatchTypeId.value === DISPATCH_TYPE.WAREHOUSE_PICKUP;
 
   if (esRetiro) {
     if (!transportista.value.nombre) {
@@ -277,13 +321,11 @@ async function generarGuia(verpedido) {
 }
 
 /**nuevas funciones  */
-const mode = ref("");
-async function updateAnotherVariable(event) {
-  if (event.target.value == "Retiro en bodega") {
-    mode.value = "externo";
-  } else {
-    mode.value = "local";
-  }
+const mode = computed(() => dispatchTypeId.value === DISPATCH_TYPE.WAREHOUSE_PICKUP ? "externo" : "local");
+function updateAnotherVariable() {
+  // El nombre se conserva en el payload por compatibilidad; las reglas usan el ID.
+  verpedido.value.pedido.despacho = dispatchTypeId.value === DISPATCH_TYPE.WAREHOUSE_PICKUP
+    ? "Retiro en bodega" : "Despacho en ruta";
 }
 
 /** Validación tipo identificación transportista externo */
@@ -291,7 +333,7 @@ async function updateAnotherVariable(event) {
 const transportIdentifyError = ref("");
 
 const isExternalMode = computed(() => {
-  return verpedido.value?.pedido?.despacho === "Retiro en bodega";
+  return dispatchTypeId.value === DISPATCH_TYPE.WAREHOUSE_PICKUP;
 });
 
 const selectedTransportTypeIdentify = computed(() => {
@@ -474,7 +516,7 @@ watch(
 );
 
 watch(
-  () => verpedido.value?.pedido?.despacho,
+  () => verpedido.value?.pedido?.tipo_despacho_id,
   () => {
     transportIdentifyError.value = "";
   }
@@ -576,11 +618,12 @@ onMounted(() => {
                 id="example-select-floating"
                 name="example-select-floating"
                 aria-label="Estado"
-                v-model="verpedido.pedido.despacho"
+                v-model.number="verpedido.pedido.tipo_despacho_id"
+                :disabled="selectionMode !== 'normal'"
                 @change="updateAnotherVariable($event)"
               >
-                <option value="Retiro en bodega">Externo</option>
-                <option value="Despacho en ruta">Local</option>
+                <option :value="DISPATCH_TYPE.WAREHOUSE_PICKUP">Externo</option>
+                <option :value="DISPATCH_TYPE.ROUTE">Local</option>
               </select>
             </td>
           </tr>
@@ -620,7 +663,7 @@ onMounted(() => {
             <td class="text-end">Placa de vehículo:</td>
             <td>{{ selectedProviderDriver?.placa ?? "" }}</td>
           </tr>
-          <tr v-if="verpedido.pedido.despacho === 'Despacho en ruta'">
+          <tr v-if="dispatchTypeId === DISPATCH_TYPE.ROUTE">
             <td class="text-end">Vehículo:</td>
             <td>
               <select
@@ -660,7 +703,7 @@ onMounted(() => {
               </select>
             </td>
           </tr>
-          <template v-if="verpedido.pedido.despacho === 'Retiro en bodega'">
+          <template v-if="dispatchTypeId === DISPATCH_TYPE.WAREHOUSE_PICKUP">
             <tr>
               <td class="text-end">Nombre Transportista:</td>
               <td>
@@ -675,7 +718,7 @@ onMounted(() => {
               <td>
                 <select
                   class="form-select"
-                  :required="verpedido.pedido.despacho === 'Retiro en bodega'"
+                  :required="dispatchTypeId === DISPATCH_TYPE.WAREHOUSE_PICKUP"
                   :disabled="loadingIdentify"
                   v-model="transportista.tipo_identificacion"
                 >
@@ -796,6 +839,11 @@ onMounted(() => {
         </tbody>
       </table>
     </div>
+    <div v-if="selectionMode !== 'normal'" class="alert alert-info fs-sm">
+      {{ selectionMode === 'package'
+        ? 'Paquetería: se despachan todos los ítems completos. Los ítems L que entrega el proveedor se seleccionan para una guía independiente.'
+        : 'Flete al cobro: se seleccionan únicamente los ítems con un monto de flete mayor que cero.' }}
+    </div>
     <div class="col-sm-12 text-end">
       <button
         type="button"
@@ -869,6 +917,7 @@ onMounted(() => {
                   type="checkbox"
                   class="form-check-input"
                   v-model="articulo.aplicar_todo"
+                  :disabled="selectionMode === 'collect' && !selectableGroup.includes(articulo)"
                   @change="aplicatodo(articulo)"
                 />
               </td>
@@ -878,6 +927,7 @@ onMounted(() => {
                   type="text"
                   class="form-control text-end"
                   v-model="articulo.seleccionado"
+                  :readonly="selectionMode !== 'normal'"
                   @change="aplicartraslado(articulo)"
                 />
               </td>
