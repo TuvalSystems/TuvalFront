@@ -118,11 +118,17 @@ const addProvider = async () => {
     TOTALCONIMPUESTO: "",
     NOTA: "",
     MARGEN: margenPorDefecto.value,
-    proveedor_entrega: true,
+    proveedor_entrega: itemsProvider.value[0]?.proveedor_entrega ?? true,
   };
   itemsProvider.value.push(newProveedor);
 };
 const isValidAmout = (value) => Number(value) >= 0;
+
+function actualizarProveedorEntrega(entrega) {
+  itemsProvider.value.forEach((provider) => {
+    provider.proveedor_entrega = entrega;
+  });
+}
 
 function calculaTotalProveedor(index) {
   const row = itemsProvider.value[index];
@@ -163,6 +169,11 @@ function calculaTotalProveedor(index) {
 }
 
 function guardarProveedor() {
+  const entrega = itemsProvider.value[0]?.proveedor_entrega;
+  if (itemsProvider.value.some((provider) => provider.proveedor_entrega !== entrega)) {
+    swalWarning("Todos los proveedores deben tener el mismo valor en Proveedor entrega. Marque o desmarque uno para aplicarlo a todos.");
+    return;
+  }
   if (!validateProviderBeforeStore()) {
     return;
   }
@@ -400,6 +411,7 @@ const totalAsignado = computed(() => {
                       type="checkbox"
                       class="form-check-input"
                       v-model="prov.proveedor_entrega"
+                      @change="actualizarProveedorEntrega($event.target.checked)"
                     />
                     <span class="form-check-label">Proveedor entrega</span>
                   </label>
