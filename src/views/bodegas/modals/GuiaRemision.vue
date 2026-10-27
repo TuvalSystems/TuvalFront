@@ -41,7 +41,7 @@ const selectedDriverId = ref("");
 const providerDriverError = ref("");
 const dispatchTypeId = computed(() => Number(verpedido.value?.pedido?.tipo_despacho_id));
 const usesProviderDriver = computed(() =>
-  [DISPATCH_TYPE.COLLECT_FREIGHT, DISPATCH_TYPE.PROVIDER].includes(dispatchTypeId.value)
+  [DISPATCH_TYPE.PACKAGE, DISPATCH_TYPE.COLLECT_FREIGHT, DISPATCH_TYPE.PROVIDER].includes(dispatchTypeId.value)
 );
 const selectedProviderDriver = computed(() =>
   providerDrivers.value.find((driver) => driver.id === selectedDriverId.value)
