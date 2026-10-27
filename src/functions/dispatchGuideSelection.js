@@ -22,10 +22,10 @@ export function providerDeliversItem(item) {
   );
 }
 
-export function guideGroup(items, mode) {
+export function guideGroup(items, mode, withFreight = true, providerDelivery = false) {
   return items.filter((item) => Number(item.pendiente) > 0 &&
-    (mode === "collect" ? Number(item.fle_valor) > 0 :
-      mode === "package" ? !providerDeliversItem(item) : true));
+    (mode === "collect" ? (Number(item.fle_valor) > 0) === withFreight :
+      mode === "package" ? providerDeliversItem(item) === providerDelivery : true));
 }
 
 export function validateGuideSelection(items, mode) {
@@ -39,13 +39,13 @@ export function validateGuideSelection(items, mode) {
     return selected.every(providerDeliversItem) ? "" :
       "Los ítems L que entrega el proveedor deben generarse en una guía independiente";
   }
-  const group = guideGroup(items, mode);
+  const group = guideGroup(items, mode, Number(selected[0].fle_valor) > 0);
   if (selected.some((item) => !group.includes(item))) {
-    return "Solo puede seleccionar ítems con un monto de flete mayor que cero";
+    return "Los ítems con flete y sin flete deben generarse en guías independientes";
   }
   if (group.some((item) => Number(item.seleccionado) !== Number(item.pendiente))) {
     return mode === "package" ? "Paquetería requiere despachar todos los ítems; los L que entrega el proveedor salen por separado" :
-      "Debe seleccionar todos los ítems con un monto de flete mayor que cero";
+      "Debe seleccionar todos los ítems del grupo elegido: con flete o sin flete";
   }
   return "";
 }

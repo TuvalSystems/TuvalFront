@@ -131,10 +131,35 @@ function seleccionartodos() {
 }
 
 const selectionMode = computed(() => dispatchSelectionMode(dispatchTypeId.value));
-const selectableGroup = computed(() => guideGroup(detalle_orden_despacho.value, selectionMode.value));
+const withFreight = ref(true);
+const providerDelivery = ref(false);
+const selectableGroup = computed(() => guideGroup(detalle_orden_despacho.value, selectionMode.value, withFreight.value, providerDelivery.value));
+
+function selectFreightGroup(value) {
+  withFreight.value = value;
+  selectCurrentGroup();
+}
+
+function selectPackageGroup(value) {
+  providerDelivery.value = value;
+  selectCurrentGroup();
+}
+
+function selectCurrentGroup() {
+  detalle_orden_despacho.value.forEach((item) => {
+    item.aplicar_todo = selectableGroup.value.includes(item);
+    item.seleccionado = item.aplicar_todo ? item.pendiente : "";
+  });
+  checkgenerarguia();
+}
 
 function selectRestrictedItem(item) {
   const selected = item.aplicar_todo;
+  if (selectionMode.value === "collect") {
+    withFreight.value = Number(item.fle_valor) > 0;
+  } else if (selectionMode.value === "package") {
+    providerDelivery.value = providerDeliversItem(item);
+  }
   if (selectionMode.value === "collect" || !providerDeliversItem(item)) {
     detalle_orden_despacho.value.forEach((row) => {
       row.aplicar_todo = selected && selectableGroup.value.includes(row);
@@ -156,6 +181,9 @@ watch(
   [() => detalle_orden_despacho.value, () => props.verpedido, selectionMode],
   () => {
     if (selectionMode.value === "normal") return;
+    providerDelivery.value = selectionMode.value === "package" &&
+      guideGroup(detalle_orden_despacho.value, "package").length === 0;
+    withFreight.value = guideGroup(detalle_orden_despacho.value, selectionMode.value).length > 0;
     detalle_orden_despacho.value.forEach((item) => {
       item.aplicar_todo = selectableGroup.value.includes(item);
       item.seleccionado = item.aplicar_todo ? item.pendiente : "";
@@ -841,8 +869,24 @@ onMounted(() => {
     </div>
     <div v-if="selectionMode !== 'normal'" class="alert alert-info fs-sm">
       {{ selectionMode === 'package'
-        ? 'Paquetería: se despachan todos los ítems completos. Los ítems L que entrega el proveedor se seleccionan para una guía independiente.'
-        : 'Flete al cobro: se seleccionan únicamente los ítems con un monto de flete mayor que cero.' }}
+        ? 'Paquetería: seleccione los ítems que van por paquetería o los ítems L que despacha el proveedor. Cada grupo se genera en una guía independiente.'
+        : 'Flete al cobro: seleccione todos los ítems con flete o todos los ítems sin monto de flete. Cada grupo se genera en una guía independiente.' }}
+    </div>
+    <div v-if="selectionMode === 'package'" class="mb-2 d-flex gap-2">
+      <button type="button" class="btn btn-sm"
+        :class="!providerDelivery ? 'btn-primary' : 'btn-outline-primary'"
+        @click="selectPackageGroup(false)">Seleccionar para paquetería</button>
+      <button type="button" class="btn btn-sm"
+        :class="providerDelivery ? 'btn-primary' : 'btn-outline-primary'"
+        @click="selectPackageGroup(true)">Seleccionar L que despacha proveedor</button>
+    </div>
+    <div v-if="selectionMode === 'collect'" class="mb-2 d-flex gap-2">
+      <button type="button" class="btn btn-sm"
+        :class="withFreight ? 'btn-primary' : 'btn-outline-primary'"
+        @click="selectFreightGroup(true)">Seleccionar con flete</button>
+      <button type="button" class="btn btn-sm"
+        :class="!withFreight ? 'btn-primary' : 'btn-outline-primary'"
+        @click="selectFreightGroup(false)">Seleccionar sin flete</button>
     </div>
     <div class="col-sm-12 text-end">
       <button
@@ -917,7 +961,6 @@ onMounted(() => {
                   type="checkbox"
                   class="form-check-input"
                   v-model="articulo.aplicar_todo"
-                  :disabled="selectionMode === 'collect' && !selectableGroup.includes(articulo)"
                   @change="aplicatodo(articulo)"
                 />
               </td>
