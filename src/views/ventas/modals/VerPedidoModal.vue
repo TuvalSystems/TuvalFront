@@ -126,32 +126,8 @@
                     </td>
                   </tr>
                   <tr v-if="articulo.proveedores.length">
-                    <td colspan="10" style="background:#EFEFEF">
-                      <table class="table-sm table-vcenter">
-                        <tr>
-                          <th>Descripción L</th>
-                          <th>Orden compra</th>
-                          <th>Recibo compra</th>
-                          <th class="text-end">Cantidad</th>
-                          <th class="text-end"></th>
-
-                        </tr>
-                        <tr v-for="(proveedor, indice) in articulo.proveedores" :key="indice">
-                          <td>{{ proveedor.DESCRIPCION_ARTICULO }}</td>
-                          <td>
-                            <template v-for="(orden, index) in proveedor.orden_detalle" :key="index">
-                              {{ orden.ORDEN_COMPRA_DOCUMENTO }}
-                            </template>
-                          </td>
-                          <td>
-                            <template v-for="(orden, index) in proveedor.orden_detalle" :key="index">
-                              {{ orden.ORDEN_COMPRA_RECIBO }}
-                            </template>
-                          </td>
-                          <td class="text-end">{{ proveedor.CANTIDAD }}</td>
-                          <td></td>
-                        </tr>
-                      </table>
+                    <td colspan="10" class="p-0">
+                      <DetalleItemsL :proveedores="articulo.proveedores" mostrar-orden-compra />
                     </td>
                   </tr>
                 </template>
@@ -273,6 +249,7 @@
   <VueEasyLightbox :visible="gallery.visible" :index="gallery.index" :imgs="gallery.photos" @hide="handleHide" />
 </template>
 <script setup>
+import DetalleItemsL from "@/components/ventas/DetalleItemsL.vue";
 import { ref, reactive, computed, onMounted,  onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
 import {  swalInfo, toast } from "@/functions/swal-alert.js";

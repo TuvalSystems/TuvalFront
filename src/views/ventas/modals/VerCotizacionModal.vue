@@ -155,39 +155,8 @@
                   </td>
                 </tr>
                 <tr v-if="articulo.proveedores.length">
-                  <td colspan="10" style="background: #efefef">
-                    <table class="table table-sm table-vcenter">
-                      <tr>
-                        <th>Descripción L</th>
-                        <th class="text-end">Cantidad</th>
-                        <th class="text-end">Precio de venta mínimo</th>
-                        <th class="text-end">Margen</th>
-                        <th class="text-end">Costo unitario</th>
-                        <th class="text-end">Subtotal</th>
-                        <th class="text-end">Impuesto</th>
-                        <th class="text-end">Total</th>
-                      </tr>
-                      <tr v-for="(proveedor, indice) in articulo.proveedores" :key="indice">
-                        <td>{{ proveedor.DESCRIPCION_ARTICULO }}</td>
-                        <td class="text-end">{{ proveedor.CANTIDAD }}</td>
-                        <td class="text-end text-danger">
-                          ${{ proveedor.margen }}
-                        </td>
-                        <td class="text-end">{{ proveedor.MARGEN }}%</td>
-                        <td class="text-end">
-                          ${{ proveedor.COSTO_UNITARIO }}
-                        </td>
-                        <td class="text-end">
-                          ${{ format4(parseFloat(proveedor.TOTAL)) }}
-                        </td>
-                        <td class="text-end">
-                          ${{ format4(parseFloat(proveedor.IMPUESTO)) }}
-                        </td>
-                        <td class="text-end">
-                          ${{ format(parseFloat(proveedor.TOTALCONIMPUESTO)) }}
-                        </td>
-                      </tr>
-                    </table>
+                  <td colspan="9" class="p-0">
+                    <DetalleItemsL :proveedores="articulo.proveedores" />
                   </td>
                 </tr>
               </template>
@@ -261,6 +230,7 @@
   </div>
 </template>
 <script setup>
+import DetalleItemsL from "@/components/ventas/DetalleItemsL.vue";
 import {
   ref,
   reactive,
