@@ -12,6 +12,7 @@ import FacturarDespachadoModal from "../modals/FacturarDespachadoModal.vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { format } from "@/functions";
+import { validateInvoiceExistingDispatch } from "@/functions/orderDispatch";
 import verActualizarOrdYNotaModalComponent from "@/views/ventas/pedidos/modals/verActualizarOrdenYNotaClienteModal.vue";
 import verActualizarFechaFacturaReserva from "@/views/ventas/pedidos/modals/verActualizarFechaFacturaReserva.vue";
 import { useUpdateOrderStatus } from "@/composables/aprobaciones/pedidos/useUpdateOrderStatus";
@@ -206,6 +207,11 @@ function levantarFiltrocliente() {
   filtrarClienteModalObj.show();
 }
 function consultarExistente(verpedido) {
+  const validation = validateInvoiceExistingDispatch(verpedido);
+  if (validation.invalid) {
+    swalWarning(validation.message);
+    return;
+  }
   verpedidoModalObj.hide();
   store
     .dispatch("consultarExistente", verpedido)

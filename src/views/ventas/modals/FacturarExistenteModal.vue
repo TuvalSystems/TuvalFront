@@ -185,6 +185,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
 import { format4, format, formatPrice } from "@/functions";
+import { validateInvoiceExistingDispatch } from "@/functions/orderDispatch";
 import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 
 
@@ -200,6 +201,11 @@ const facturar_existente = computed(() => store.state.facturar_existente);
 const emit = defineEmits(["cerrarFacturarExistente"]);
 
 function confirmFacturarExistente(pedido) {
+  const validation = validateInvoiceExistingDispatch(pedido);
+  if (validation.invalid) {
+    swalWarning(validation.message);
+    return;
+  }
   toast
     .fire({
       title: "Estás seguro?",
@@ -229,6 +235,13 @@ function confirmFacturarExistente(pedido) {
 }
 
 function facturarExistente() {
+  const validation = [verpedido, facturar_existente.value.pedido]
+    .map(validateInvoiceExistingDispatch)
+    .find((result) => result.invalid);
+  if (validation) {
+    swalWarning(validation.message);
+    return;
+  }
 
   store.dispatch('facturarExistente', facturar_existente.value).then((res) => {
     if (res.success) {
