@@ -21,7 +21,7 @@
     <!-- Full Table -->
     <FiltrarCliente
       :clients="clients"
-      :loading="loadingSearch || loadingCustomer || refreshingCustomer"
+      :loading="loadingSearch || loadingCustomer"
       :error-search="errorSearchClient"
       :show-results="showCustomerResults"
       @search-term-change="updateCustomerSearchTerm"
@@ -37,7 +37,7 @@
       :refreshing="refreshingCustomer"
       @download-excel="printAccountStatementExcel"
       @download-pdf="printAccountStatementPdf"
-      @refresh="selectcliente(currentClienteDevolucion)"
+      @refresh="actualizar"
     />
     <BaseBlock
       v-if="currentClienteDevolucion"
@@ -45,86 +45,57 @@
       class="row g-0 mt-4"
     >
       <template #content>
-        <div
-          class="alert alert-info alert-dismissible fade show d-flex align-items-center"
-          role="alert"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            fill="currentColor"
-            class="bi bi-info-circle-fill flex-shrink-0 me-2"
-            viewBox="0 0 16 16"
-          >
-            <path
-              d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
-            />
-          </svg>
-
-          <div>
-            <strong>Importante:</strong> Para anular una factura, esta debe
-            estar autorizada por el SRI.
-            <!-- <a href="javascript:void(0)" class="alert-link text-decoration-underline">Ver documento relacionado</a> -->
-          </div>
-
-          <!-- <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> -->
+        <div class="return-notice" role="note" aria-label="Requisito para anular facturas">
+          <i class="fa fa-triangle-exclamation return-notice-icon" aria-hidden="true"></i>
+          <p><strong>Importante para anular facturas</strong><span class="return-notice-separator" aria-hidden="true">·</span>Para anular una factura, primero debe estar <strong>autorizada por el SRI.</strong></p>
         </div>
 
-        <ul
-          class="nav nav-tabs nav-tabs-block flex-md-column col-md-2"
-          role="tablist"
-        >
-          <li class="nav-item d-md-flex flex-md-column">
-            <button
-              class="nav-link text-md-start active"
-              id="btabs-vertical-facturas-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#btabs-vertical-facturas"
-              role="tab"
-              aria-controls="btabs-vertical-facturas"
-              aria-selected="false"
-            >
-              <i
-                class="fa fa-fw fa-user-circle opacity-50 me-1 d-none d-sm-inline-block"
-              ></i>
-              Facturas
-            </button>
-          </li>
-          <li class="nav-item d-md-flex flex-md-column">
-            <button
-              class="nav-link text-md-start"
-              id="btabs-vertical-devoluciones-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#btabs-vertical-devoluciones"
-              role="tab"
-              aria-controls="btabs-vertical-devoluciones"
-              aria-selected="false"
-            >
-              <i
-                class="fa fa-fw fa-cog opacity-50 me-1 d-none d-sm-inline-block"
-              ></i>
-              Devoluciones
-            </button>
-          </li>
-        </ul>
-        <div class="tab-content col-md-10">
+        <div class="return-tabs" role="tablist" aria-label="Pedidos y devoluciones">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            :id="`btabs-vertical-${tab.id}-tab`"
+            type="button"
+            class="return-tab"
+            :class="{ 'is-active': activeTab === tab.id }"
+            role="tab"
+            :aria-controls="`btabs-vertical-${tab.id}`"
+            :aria-selected="activeTab === tab.id"
+            :tabindex="activeTab === tab.id ? 0 : -1"
+            @click="activeTab = tab.id"
+            @keydown="navigateTabs($event, tab.id)"
+          >
+            <i :class="['fa fa-fw', tab.icon]" aria-hidden="true"></i>
+            <span>{{ tab.label }}</span>
+            <span v-if="tab.loading" class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Actualizando {{ tab.label.toLowerCase() }}...</span>
+            </span>
+            <span v-else class="return-tab-count">{{ tab.count }}</span>
+          </button>
+        </div>
+        <div class="tab-content col-12">
           <div
-            class="block-content tab-pane active"
+            class="block-content"
+            v-show="activeTab === 'facturas'"
             id="btabs-vertical-facturas"
             role="tabpanel"
-            aria-labelledby="btabs-vertical-home-tab"
+            aria-labelledby="btabs-vertical-facturas-tab"
+            :aria-busy="store.state.pedidos.loading"
+            tabindex="0"
           >
             <Pedidos
-              @recargarCliente="selectcliente(currentClienteDevolucion)"
+              @recargarCliente="actualizar"
             ></Pedidos>
           </div>
 
           <div
-            class="block-content tab-pane"
+            class="block-content"
+            v-show="activeTab === 'devoluciones'"
             id="btabs-vertical-devoluciones"
             role="tabpanel"
             aria-labelledby="btabs-vertical-devoluciones-tab"
+            :aria-busy="store.state.devoluciones.loading"
+            tabindex="0"
           >
             <Devoluciones></Devoluciones>
           </div>
@@ -178,10 +149,41 @@ const showCustomerDetails = computed(
     verpedidos.value &&
     !loadingSearch.value &&
     !loadingCustomer.value &&
-    !refreshingCustomer.value &&
     !showCustomerResults.value
 );
 const verpedidos = ref(false);
+const activeTab = ref("facturas");
+const tabs = computed(() => [
+  {
+    id: "facturas",
+    label: "Facturas",
+    icon: "fa-file-invoice-dollar",
+    count: store.state.pedidos.data.length,
+    loading: store.state.pedidos.loading,
+  },
+  {
+    id: "devoluciones",
+    label: "Devoluciones",
+    icon: "fa-arrow-right-arrow-left",
+    count: store.state.devoluciones.data.length,
+    loading: store.state.devoluciones.loading,
+  },
+]);
+
+function navigateTabs(event, tabId) {
+  const index = tabs.value.findIndex((tab) => tab.id === tabId);
+  let nextIndex;
+  switch (event.key) {
+    case "ArrowRight": nextIndex = (index + 1) % tabs.value.length; break;
+    case "ArrowLeft": nextIndex = (index - 1 + tabs.value.length) % tabs.value.length; break;
+    case "Home": nextIndex = 0; break;
+    case "End": nextIndex = tabs.value.length - 1; break;
+    default: return;
+  }
+  event.preventDefault();
+  activeTab.value = tabs.value[nextIndex].id;
+  document.getElementById(`btabs-vertical-${activeTab.value}-tab`)?.focus();
+}
 
 if (!verpedidos.value && currentClienteDevolucion.value) {
   selectcliente(currentClienteDevolucion.value);
@@ -215,6 +217,9 @@ async function selectcliente(cliente) {
       swalWarning("La información del cliente no incluye el identificador para consultar devoluciones.");
       return;
     }
+    if (currentClienteDevolucion.value?.id !== infoClient.value.id) {
+      activeTab.value = "facturas";
+    }
     store.commit("setCurrentclienteDevolucion", { ...infoClient.value });
     await actualizar();
   } catch (err) {
@@ -245,7 +250,6 @@ async function actualizar() {
       }
     }
   } catch (err) {
-    verpedidos.value = false;
     store.commit("setPedidosLoading", false);
     store.commit("setDevolucionesLoading", false);
     swalError(
@@ -280,3 +284,89 @@ async function printAccountStatementPdf() {
   swalSuccess(resp?.message || "Pdf Generado exitosamente");
 }
 </script>
+
+<style scoped>
+.return-notice {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.75rem 0.75rem 0;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #e7bc54;
+  border-left: 4px solid #d99500;
+  border-radius: 0.5rem;
+  background: #fff3cd;
+  color: #664d03;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.return-notice-icon {
+  flex-shrink: 0;
+  color: #946200;
+  font-size: 1rem;
+}
+
+.return-notice p { margin: 0; }
+.return-notice strong { font-weight: 700; }
+.return-notice-separator { margin: 0 0.5rem; opacity: 0.5; }
+
+@media (max-width: 575.98px) {
+  .return-notice p > strong:first-child { display: block; margin-bottom: 0.125rem; }
+  .return-notice-separator { display: none; }
+}
+
+.return-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--bs-border-color, #e9ecef);
+  width: 100%;
+}
+
+.return-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: inherit;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+
+.return-tab:hover {
+  background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.06);
+}
+
+.return-tab.is-active {
+  color: var(--bs-primary, #0d6efd);
+  background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.1);
+  border-color: currentColor;
+}
+
+.return-tab:focus-visible {
+  outline: 3px solid var(--bs-primary, #0d6efd);
+  outline-offset: 2px;
+}
+
+.return-tab-count {
+  min-width: 1.375rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 1rem;
+  background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.1);
+  font-size: 0.6875rem;
+}
+
+@media (max-width: 575.98px) {
+  .return-tab {
+    gap: 0.375rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+</style>

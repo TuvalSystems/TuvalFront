@@ -1159,23 +1159,6 @@ const store = createStore({
           return res.data;
         });
     },
-    solicitardevolucion({ commit }, pedido) {
-      commit("setDetallePedidoDevolucionLoading", true);
-      return axiosClient
-        .post("/devoluciones/detallepedidodevolucion", pedido)
-        .then((res) => {
-          commit("setDetallePedidoDevolucionLoading", false);
-          commit("setDetallePedidoDevolucion", res.data);
-          return res.data;
-        });
-    },
-    enviarDevolucion(_, devolucion) {
-      return axiosClient
-        .post("/devoluciones/enviardevolucion", devolucion)
-        .then((res) => {
-          return res.data;
-        });
-    },
     detalleDevolucion({ commit }, devolucion) {
       commit("setDetalleDevolucionLoading", true);
 
@@ -1796,9 +1779,10 @@ const store = createStore({
       state.devolucion.sucursal_id = data.sucursal_id;
     },
     setSucursalesFacturacion: (state) => {
-      state.sucursales_facturacion = state.clientes_devolucion.find(
+      const cliente = state.clientes_devolucion.find(
         (item) => item.id === state.devolucion.cliente_volver_a_facturar_id
-      ).sucursales;
+      );
+      state.sucursales_facturacion = cliente?.sucursales ?? [];
     },
     resetFiltrarCliente: (state) => {
       state.filtrar_cliente = null;

@@ -9,71 +9,17 @@ defineEmits(["download-excel", "download-pdf", "refresh"]);
 </script>
 
 <template>
-  <BaseBlock title="Cliente" class="mt-4" content-class="pb-2">
-    <div class="table-responsive">
-      <table class="table table-striped table-sm table-vcenter">
-        <tbody>
-          <tr>
-            <th class="fs-sm">RUC</th>
-            <td class="fs-sm">{{ cliente.CLI_RUC }}</td>
-            <th class="fs-sm">Razón Social</th>
-            <td class="fs-sm">
-              {{ cliente.CLI_RAZON_SOCIAL }}
-            </td>
-            <th class="fs-sm">Descuento Comercial</th>
-            <td class="fs-sm">{{ cliente.CLI_DSTO_COMERCIAL }}%</td>
-          </tr>
-          <tr>
-            <th class="fs-sm">Ciudad</th>
-            <td class="fs-sm">
-              {{ cliente.CLI_CIUDAD }}
-            </td>
-
-            <th class="fs-sm">Provincia</th>
-            <td class="fs-sm">
-              {{ cliente.CLI_PROVINCIA }}
-            </td>
-
-            <th class="fs-sm">Condición de pago</th>
-            <td class="fs-sm">
-              {{ cliente.CLI_CONDICION_PAGO }}
-              <span
-                class="badge bg-info"
-                v-if="cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0"
-                >{{ cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de
-                gracia</span
-              >
-            </td>
-          </tr>
-          <tr>
-            <th class="fs-sm">Suspendido</th>
-            <td class="fs-sm">
-              <span
-                class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                :class="
-                  cliente.suspendido == 0
-                    ? 'bg-success-light text-success'
-                    : 'bg-danger-light text-danger'
-                "
-                >{{ cliente.suspendido == 1 ? "Si" : "No" }}</span
-              >
-            </td>
-            <th class="fs-sm">Cupo Asignado</th>
-            <td class="fs-sm">${{ cliente.cupo_asignado }}</td>
-            <th class="fs-sm">Cupo Disponible</th>
-            <td
-              class="fs-sm"
-              :class="
-                parseFloat(cliente.cupo_disponible) < 0 ? 'text-danger' : ''
-              "
-            >
-              ${{ cliente.cupo_disponible }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="d-flex justify-content-end mb-2">
+  <BaseBlock class="mt-3" content-class="py-3">
+    <div class="client-summary-header">
+      <div class="client-identity">
+        <div class="client-name">{{ cliente.CLI_RAZON_SOCIAL }}</div>
+        <div class="client-meta">
+          <span>RUC <strong>{{ cliente.CLI_RUC }}</strong></span>
+          <span class="badge rounded-pill" :class="cliente.suspendido == 1 ? 'bg-danger-light text-danger' : 'bg-success-light text-success'">
+            Suspendido: {{ cliente.suspendido == 1 ? 'Sí' : 'No' }}
+          </span>
+        </div>
+      </div>
       <div class="client-actions">
           <button type="button" class="client-action-button client-action-excel"
               title="Descargar estado de cuenta en Excel" aria-label="Descargar estado de cuenta en Excel"
@@ -102,7 +48,7 @@ defineEmits(["download-excel", "download-pdf", "refresh"]);
           </button>
 
           <button type="button" class="client-action-button client-action-refresh"
-              title="Actualizar informacion del cliente" aria-label="Actualizar informacion del cliente"
+              title="Actualizar pedidos y devoluciones" aria-label="Actualizar pedidos y devoluciones"
               @click="$emit('refresh')" :disabled="refreshing">
               <span class="client-action-icon">
                   <span v-if="refreshing" class="spinner-border spinner-border-sm"></span>
@@ -110,15 +56,52 @@ defineEmits(["download-excel", "download-pdf", "refresh"]);
               </span>
               <span class="client-action-label">
                   <span>{{ refreshing ? 'Actualizando...' : 'Actualizar' }}</span>
-                  <small>Datos del cliente</small>
+                  <small>Pedidos y devoluciones</small>
               </span>
           </button>
       </div>
     </div>
+    <dl class="client-details">
+      <div><dt>Ciudad / Provincia</dt><dd>{{ cliente.CLI_CIUDAD || '—' }} / {{ cliente.CLI_PROVINCIA || '—' }}</dd></div>
+      <div><dt>Condición de pago</dt><dd>{{ cliente.CLI_CONDICION_PAGO || '—' }} <span v-if="cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA > 0" class="badge bg-info">{{ cliente.CLI_DIA_GRACIA_CHEQUE_A_FECHA }} días de gracia</span></dd></div>
+      <div><dt>Descuento comercial</dt><dd>{{ cliente.CLI_DSTO_COMERCIAL }}%</dd></div>
+      <div><dt>Cupo asignado</dt><dd>$ {{ cliente.cupo_asignado }}</dd></div>
+      <div><dt>Cupo disponible</dt><dd :class="parseFloat(cliente.cupo_disponible) < 0 ? 'text-danger' : 'text-success'">$ {{ cliente.cupo_disponible }}</dd></div>
+    </dl>
   </BaseBlock>
 </template>
 
 <style scoped>
+.client-summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+
+.client-identity { flex: 1 1 16rem; min-width: 0; }
+.client-name { font-size: .95rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.client-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; margin-top: .25rem; font-size: .75rem; }
+.client-meta strong { font-weight: 600; }
+.client-details {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.3fr) repeat(3, minmax(0, 1fr));
+    gap: .625rem 1rem;
+    margin: .75rem 0 0;
+    padding-top: .625rem;
+    border-top: 1px solid var(--bs-border-color, #e9ecef);
+}
+.client-details dt { font-size: .6875rem; font-weight: 500; opacity: .7; margin-bottom: .125rem; }
+.client-details dd { margin: 0; font-size: .8125rem; font-weight: 600; overflow-wrap: anywhere; }
+
+@media (max-width: 991.98px) {
+    .client-details { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 575.98px) {
+    .client-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .client-actions {
     display: grid;
     grid-template-columns: repeat(3, minmax(6.25rem, 1fr));
@@ -183,7 +166,7 @@ defineEmits(["download-excel", "download-pdf", "refresh"]);
     font-size: .6rem;
     font-weight: 700;
     text-transform: none;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 
 .client-action-excel .client-action-icon {
@@ -210,7 +193,8 @@ defineEmits(["download-excel", "download-pdf", "refresh"]);
 
 @media (max-width: 575.98px) {
     .client-actions {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        min-width: 0;
     }
 }
 </style>

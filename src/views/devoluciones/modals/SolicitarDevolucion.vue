@@ -1,25 +1,10 @@
 <template>
-  <BaseBlock title="Solicitar Devolución" class="mb-0">
-    <template v-if="verpedido" #options>
-      <span v-if="(verpedido.despachado === 1)"
-        class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-info-light text-info mx-1" title="Despachado">
-        <i class="fa fa-truck-fast"></i> Despachado
-      </span>
-      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
-        <i class="fa fa-fw fa-times"></i>
-      </button>
-    </template>
-    <template #content>
       <div class="block-content tab-content fs-sm">
         <div v-if="devolucion_anterior" class="alert alert-danger">
           Esta factura ya tiene devoluciónes anterior, por lo que las cantidades se modificaron
         </div>
-        <CabeceraPedido :verpedido="verpedido"></CabeceraPedido>
+        <CabeceraPedido :verpedido="pedidoLocal"></CabeceraPedido>
 
-        <div v-if="detallepedido.loading" class="text-center">
-          <div class="spinner-border text-primary mt-4" role="status"><span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
         <div class="row mb-2">
           <div class="col-sm-6">
             <div class="row">
@@ -90,7 +75,7 @@
                   </select>
                 </div>
               </div>
-              <div class="row mb-2" v-if="verpedido.despacho === 'Despacho en ruta' && !verpedido.despachado">
+              <div class="row mb-2" v-if="pedidoLocal.despacho === 'Despacho en ruta' && !pedidoLocal.despachado">
                 <label for="select-sucursal" class="col-sm-3 col-form-label text-left">Dirección de entrega:</label>
                 <div class="col-sm-5">
                   <select class="form-select form-select-sm" id="select-sucursal-facturacion"
@@ -105,11 +90,11 @@
                 <div class="col-sm-5">
                   <div class="input-group">
 
-                    <input v-model="verpedido.orden_de_compra" type="text" id="orden-de-compra"  :maxlength="max_length_orden_compra"
+                    <input v-model="pedidoLocal.orden_de_compra" type="text" id="orden-de-compra"  :maxlength="max_length_orden_compra"
                       class="form-control form-control-sm" placeholder="Orden de compra" />
-                    <span v-if="verpedido.orden_de_compra" class="input-group-text input-group-text-alt">{{ max_length_orden_compra
+                    <span v-if="pedidoLocal.orden_de_compra" class="input-group-text input-group-text-alt">{{ max_length_orden_compra
                       -
-                      verpedido.orden_de_compra.length
+                      pedidoLocal.orden_de_compra.length
                       }}</span>
                   </div>
                 </div>
@@ -120,10 +105,10 @@
                   <div class="input-group">
 
                     <textarea id="nota-cliente" class="form-control" rows="4" :maxlength="max_length_nota"
-                      v-model.trim="verpedido.nota_cliente"></textarea>
-                    <span v-if="verpedido.nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota
+                      v-model.trim="pedidoLocal.nota_cliente"></textarea>
+                    <span v-if="pedidoLocal.nota_cliente" class="input-group-text input-group-text-alt">{{ max_length_nota
                       -
-                      verpedido.nota_cliente.length
+                      pedidoLocal.nota_cliente.length
                       }}</span>
                   </div>
                 </div>
@@ -132,7 +117,7 @@
           </div>
         </div>
         <div class="table-responsive">
-          <table v-if="detallepedido.data.length && !detallepedido.loading"
+          <table v-if="detallepedido.data.length"
             class="table table-hover table-sm table-vcenter mt-4 fs-sm">
             <thead>
               <tr>
@@ -209,8 +194,7 @@
           </table>
         </div>
       </div>
-    </template>
-  </BaseBlock>
+
   <div class="block-content block-content-full bg-body">
 
     <div class="row">
@@ -220,36 +204,46 @@
       </div>
       <div class="col-sm-4 text-end">
 
-        <button ref="botonEnviar" :disabled="!generar" type="button" class="btn btn-warning btn-sm mx-1"
-          @click="enviarDevolucion(verpedido)">Solicitar Devolución</button>
+        <button  :disabled="!generar || enviando" type="button" class="btn btn-warning btn-sm mx-1"
+          @click="enviarDevolucion(pedidoLocal)">{{ enviando ? "Enviando..." : "Solicitar Devolución" }}</button>
 
-        <button type="button" class="btn btn-primary btn-sm mx-1" data-bs-dismiss="modal"> Cerrar</button>
+        <button type="button" class="btn btn-primary btn-sm mx-1" :disabled="enviando" @click="emit('cerrar')"> Cerrar</button>
       </div>
     </div>
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount, watch } from "vue";
-import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { ref, computed, watch, nextTick } from "vue";
+import { useSendDevolution } from "@/composables/devoluciones/useSendDevolution";
+import { swalSuccess, swalError, swalWarning } from "@/functions/swal-alert.js";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
-import { formatPrice, format, format4 } from "@/functions";
-const { verpedido } = defineProps({
-  verpedido: Object,
-})
-const emit = defineEmits(["enviarDevolucion"]);
-
-const store = useStore();
-const detallepedido = computed(() => store.state.detallepedido_devolucion);
-const generar = computed(() => store.state.generar);
-const devolucion = ref(store.state.devolucion);
-const motivos_devolucion = computed(() => store.state.motivos_devolucion);
-const sucursales_facturacion = computed(() => store.state.sucursales_facturacion);
-const botonEnviar = ref('botonEnviar');
-const clientes_devolucion = computed(() => store.state.clientes_devolucion);
-const devolucion_anterior = computed(() => store.state.devolucion_anterior);
-const despacho_parcial = computed(() => store.state.despacho_parcial);
-const despacho_parcial_item = computed(() => store.state.despacho_parcial_item);
+import { format, format4 } from "@/functions";
+const props = defineProps({
+  verpedido: { type: Object, required: true },
+  info: { type: Object, required: true },
+});
+const emit = defineEmits(["enviarDevolucion", "cerrar", "enviando"]);
+const { loading: enviando, sendDevolution } = useSendDevolution();
+const pedidoLocal = ref({ ...props.verpedido });
+const detallepedido = computed(() => ({ data: props.info.detalle ?? [] }));
+const generar = ref(false);
+watch(enviando, value => emit('enviando', value), { flush: 'sync' });
+const devolucion = ref({
+  volver_a_facturar: false,
+  motivo: null,
+  cliente_volver_a_facturar_id: props.verpedido.cliente_id,
+  sucursal_facturacion_id: props.verpedido.sucursal_facturacion_id,
+  sucursal_id: props.verpedido.sucursal_id,
+  tipo_devolucion: "parcial",
+  observacion: null,
+});
+const motivos_devolucion = computed(() => props.info.motivos ?? []);
+const clientes_devolucion = computed(() => props.info.clientes ?? []);
+const sucursales_facturacion = computed(() => clientes_devolucion.value.find(
+  cliente => cliente.id === devolucion.value.cliente_volver_a_facturar_id
+)?.sucursales ?? []);
+const devolucion_anterior = computed(() => props.info.devolucion_anterior);
+const despacho_parcial_item = computed(() => !!props.info.items_devueltos);
 const max_length_nota = ref(300);
 const max_length_orden_compra = ref(20);
 function aplicatodo(articulo) {
@@ -263,9 +257,8 @@ function aplicatodo(articulo) {
 }
 
 function changecliente() {
-  store.commit('setSucursalesFacturacion');
-  devolucion.value.sucursal_facturacion_id = sucursales_facturacion.value[0].id;
-  devolucion.value.sucursal_id = sucursales_facturacion.value[0].id;
+  devolucion.value.sucursal_facturacion_id = sucursales_facturacion.value[0]?.id ?? null;
+  devolucion.value.sucursal_id = sucursales_facturacion.value[0]?.id ?? null;
 }
 
 function isInt(value) {
@@ -306,7 +299,7 @@ function aplicardevolucion(articulo) {
 
 function checkgenerardevolucion() {
   let check = false;
-  let total = true;
+  let total = detallepedido.value.data.length > 0;
 
   detallepedido.value.data.map((articulo) => {
     if (articulo.seleccionado > 0) {
@@ -316,53 +309,40 @@ function checkgenerardevolucion() {
       total = false;
     }
   });
-  if (check) {
-    store.commit("setGenerar", true);
-  } else {
-    store.commit("setGenerar", false);
-  }
+  generar.value = check;
   if (total) {
     devolucion.value.tipo_devolucion = 'total';
   }
 }
 
-function enviarDevolucion(verpedido) {
-
-  botonEnviar.value.classList.add('hide');
+async function enviarDevolucion(verpedido) {
+  if (enviando.value) return;
   if (!devolucion.value.motivo) {
-    swalError('Es necesario seleccionar un motivo');
-    botonEnviar.value.classList.remove('hide');
+    swalWarning('Es necesario seleccionar un motivo');
     return;
   }
-
   if (devolucion.value.volver_a_facturar && !devolucion.value.sucursal_facturacion_id) {
-    swalError('Es necesario seleccionar una dirección de facturación');
-    botonEnviar.value.classList.remove('hide');
+    swalWarning('Es necesario seleccionar una dirección de facturación');
     return;
   }
 
-  const data = reactive({
+  const result = await sendDevolution({
     devolucion: devolucion.value,
     pedido: verpedido,
     detallepedido: detallepedido.value.data,
   });
-
-  store.dispatch('enviarDevolucion', data).then((res) => {
-    if (res.success == true) {
-      swalSuccess(res.message);
-      botonEnviar.value.classList.remove('hide');
-      emit('enviarDevolucion');
-
+  if (!result.ok) {
+    if (!result.handled && !result.canceled) {
+      const message = result.message || 'No se pudo solicitar la devolución';
+      (result.status >= 500 ? swalError : swalWarning)(message);
     }
-  }).catch(err => {
-    swalError(err.response.data.error)
-    botonEnviar.value.classList.remove('hide');
-    emit('enviarDevolucion');
-  });
+    return;
+  }
+
+  await nextTick();
+  emit('enviarDevolucion');
+  swalSuccess(result.message || 'La devolución ha sido solicitada.');
 }
-
-
-
 watch(
   () => devolucion.value.tipo_devolucion,
   () => {
