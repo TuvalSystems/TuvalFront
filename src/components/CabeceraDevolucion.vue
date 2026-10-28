@@ -81,6 +81,10 @@
             </span>
           </td>
         </tr>
+        <tr v-if="verdevolucion.responsable_pago_transporte">
+          <th class="fs-sm">Responsable pago orden de compra transportista</th>
+          <td colspan="5">{{ verdevolucion.responsable_pago_transporte.descripcion }}</td>
+        </tr>
         <tr>
           <th>Motivo de devolución</th>
           <td>{{ verdevolucion.motivo }}</td>
@@ -122,10 +126,8 @@
   </div>
 </template>
 <script setup>
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import { useStore } from 'vuex'
-import { computed } from 'vue'
-const { verdevolucion } = defineProps({
+import { swalWarning } from "@/functions/swal-alert.js";
+defineProps({
   verdevolucion: Object,
   segmentocliente: Object
 })

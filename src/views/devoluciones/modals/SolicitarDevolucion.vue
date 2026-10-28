@@ -21,12 +21,31 @@
             </div>
           </div>
         </div>
+        <div v-if="reglas.mostrar_responsable_pago_transporte" class="row mb-3">
+          <label for="responsable-pago-transporte" class="col-sm-4 col-form-label">
+            Responsable pago de orden de compra transportista:
+          </label>
+          <div class="col-sm-4">
+            <select id="responsable-pago-transporte" class="form-select form-select-sm"
+              v-model="devolucion.responsable_pago_transporte_id" :disabled="enviando">
+              <option v-for="responsable in reglas.responsables_pago_transporte" :key="responsable.id" :value="responsable.id">
+                {{ responsable.descripcion }}
+              </option>
+            </select>
+          </div>
+          <p class="text-muted mt-2 mb-0" role="status">
+            {{ soloTotal ? 'Sin despacho solo se permite devolución total. ' : '' }}
+            {{ reglas.tipo_despacho === 'paqueteria'
+              ? (incluyeFlete ? 'Se incluye el servicio logístico en la nota de crédito.' : 'No se incluye el servicio logístico en la nota de crédito.')
+              : (incluyeFlete ? 'La nota de crédito incluye el valor con flete.' : 'La nota de crédito usa el precio sin flete.') }}
+          </p>
+        </div>
         <div class="row">
           <div class="col-sm-6">
             <div class="alert alert-warning">
               <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" id="devolucion-parcial" name="example-radios-default"
-                  value="parcial" v-model="devolucion.tipo_devolucion"
+                  value="parcial" v-model="devolucion.tipo_devolucion" :disabled="soloTotal || enviando"
                   style="width: 17px; height: 17px; margin: 2px 5px 8px;" />
                 <label class="form-check-label" for="devolucion-parcial">Devolución Parcial</label>
               </div>
@@ -181,12 +200,12 @@
                   <td style="width: 31px" class="text-center">
                     <input v-if="articulo.disponible > 0" type="checkbox" class="form-check-input"
                       v-model="articulo.aplicar_todo" @change="aplicatodo(articulo)"
-                      :disabled="devolucion.tipo_devolucion == 'total'" />
+                      :disabled="devolucion.tipo_devolucion == 'total' || esServicioAutomatico(articulo) || enviando" />
                   </td>
                   <td style="width: 80px">
                     <input v-if="articulo.disponible > 0" type="text" class="form-control text-end form-control-sm"
                       v-model="articulo.seleccionado" @change="aplicardevolucion(articulo)"
-                      :disabled="devolucion.tipo_devolucion == 'total'" />
+                      :disabled="devolucion.tipo_devolucion == 'total' || esServicioAutomatico(articulo) || enviando" />
                   </td>
                 </tr>
               </template>
@@ -218,6 +237,7 @@ import { useSendDevolution } from "@/composables/devoluciones/useSendDevolution"
 import { swalSuccess, swalError, swalWarning } from "@/functions/swal-alert.js";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
 import { format, format4 } from "@/functions";
+import { projectReturnItems } from "@/functions/returnFreight";
 const props = defineProps({
   verpedido: { type: Object, required: true },
   info: { type: Object, required: true },
@@ -225,7 +245,21 @@ const props = defineProps({
 const emit = defineEmits(["enviarDevolucion", "cerrar", "enviando"]);
 const { loading: enviando, sendDevolution } = useSendDevolution();
 const pedidoLocal = ref({ ...props.verpedido });
-const detallepedido = computed(() => ({ data: props.info.detalle ?? [] }));
+const reglas = computed(() => props.info.reglas_devolucion ?? {});
+const soloTotal = computed(() => reglas.value.tipos_devolucion_permitidos?.length === 1
+  && reglas.value.tipos_devolucion_permitidos[0] === 'total');
+const items = ref((props.info.detalle ?? []).map(item => ({ ...item })));
+const originales = new Map(items.value.map(item => [`${item.id}:${Boolean(item.despacho)}`, {
+  ART_VALOR: item.ART_VALOR, ART_DESCUENTO: item.ART_DESCUENTO,
+}]));
+const incluyeFlete = computed(() => !reglas.value.material_despachado
+  || reglas.value.responsables_pago_transporte?.find(r => r.id === devolucion.value.responsable_pago_transporte_id)?.codigo === 'tuval');
+const detallepedido = computed(() => ({ data: items.value.filter(item => !(
+  reglas.value.tipo_despacho === 'paqueteria' && !incluyeFlete.value && item.es_servicio_logistico
+)) }));
+function esServicioAutomatico(item) {
+  return reglas.value.tipo_despacho === 'paqueteria' && Boolean(item.es_servicio_logistico);
+}
 const generar = ref(false);
 watch(enviando, value => emit('enviando', value), { flush: 'sync' });
 const devolucion = ref({
@@ -234,7 +268,8 @@ const devolucion = ref({
   cliente_volver_a_facturar_id: props.verpedido.cliente_id,
   sucursal_facturacion_id: props.verpedido.sucursal_facturacion_id,
   sucursal_id: props.verpedido.sucursal_id,
-  tipo_devolucion: "parcial",
+  tipo_devolucion: soloTotal.value ? "total" : "parcial",
+  responsable_pago_transporte_id: reglas.value.responsable_pago_transporte_id ?? null,
   observacion: null,
 });
 const motivos_devolucion = computed(() => props.info.motivos ?? []);
@@ -299,9 +334,9 @@ function aplicardevolucion(articulo) {
 
 function checkgenerardevolucion() {
   let check = false;
-  let total = detallepedido.value.data.length > 0;
+  let total = detallepedido.value.data.some(item => !esServicioAutomatico(item));
 
-  detallepedido.value.data.map((articulo) => {
+  detallepedido.value.data.filter(item => !esServicioAutomatico(item)).forEach((articulo) => {
     if (articulo.seleccionado > 0) {
       check = true;
     }
@@ -317,6 +352,10 @@ function checkgenerardevolucion() {
 
 async function enviarDevolucion(verpedido) {
   if (enviando.value) return;
+  if (reglas.value.mostrar_responsable_pago_transporte && !devolucion.value.responsable_pago_transporte_id) {
+    swalWarning('Seleccione el responsable de pago de la orden de compra del transportista');
+    return;
+  }
   if (!devolucion.value.motivo) {
     swalWarning('Es necesario seleccionar un motivo');
     return;
@@ -346,14 +385,26 @@ async function enviarDevolucion(verpedido) {
 watch(
   () => devolucion.value.tipo_devolucion,
   () => {
-    detallepedido.value.data.map(articulo => {
-      if (devolucion.value.tipo_devolucion === 'total') {
-        articulo.aplicar_todo = true;
-      } else {
-        articulo.aplicar_todo = false;
-      }
-      aplicatodo(articulo);
-    })
-  }
-)
+    detallepedido.value.data.forEach(articulo => {
+      articulo.aplicar_todo = devolucion.value.tipo_devolucion === 'total' || esServicioAutomatico(articulo);
+      articulo.seleccionado = articulo.aplicar_todo ? articulo.disponible : 0;
+    });
+    checkgenerardevolucion();
+  },
+  { immediate: true }
+);
+watch(incluyeFlete, () => {
+  const projected = projectReturnItems(items.value.map(item => ({
+    ...item, ...originales.get(`${item.id}:${Boolean(item.despacho)}`),
+  })), reglas.value.tipo_despacho, incluyeFlete.value);
+  items.value.forEach((item, index) => {
+    item.ART_VALOR = projected[index].ART_VALOR;
+    item.ART_DESCUENTO = projected[index].ART_DESCUENTO;
+    if (esServicioAutomatico(item)) {
+      item.seleccionado = incluyeFlete.value ? item.disponible : 0;
+      item.aplicar_todo = incluyeFlete.value;
+    }
+  });
+  checkgenerardevolucion();
+}, { immediate: true });
 </script>
