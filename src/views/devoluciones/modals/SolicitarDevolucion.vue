@@ -591,6 +591,7 @@ async function enviarDevolucion(verpedido) {
     if (!result.handled && !result.canceled) {
       const message = result.message || "No se pudo solicitar la devolución";
       (result.status >= 500 ? swalError : swalWarning)(message);
+      await nextTick();
       emit("enviarDevolucion");
     }
     return;
