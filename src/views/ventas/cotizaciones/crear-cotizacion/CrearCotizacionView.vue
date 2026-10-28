@@ -2062,7 +2062,6 @@ onMounted(async () => {
                       for="switch-facturar"
                     >
                       Facturar ahora
-                      {{  form.facturar_ahora }}
                     </label>
                   </div>
                 </div>
