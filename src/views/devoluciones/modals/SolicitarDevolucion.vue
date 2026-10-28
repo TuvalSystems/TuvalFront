@@ -27,7 +27,7 @@
           </label>
           <div class="col-sm-4">
             <select id="responsable-pago-transporte" class="form-select form-select-sm"
-              v-model="devolucion.responsable_pago_transporte_id" :disabled="enviando">
+              v-model="devolucion.responsable_pago_transporte_id" :disabled="enviando || soloTotal">
               <option v-for="responsable in reglas.responsables_pago_transporte" :key="responsable.id" :value="responsable.id">
                 {{ responsable.descripcion }}
               </option>
@@ -269,7 +269,9 @@ const devolucion = ref({
   sucursal_facturacion_id: props.verpedido.sucursal_facturacion_id,
   sucursal_id: props.verpedido.sucursal_id,
   tipo_devolucion: soloTotal.value ? "total" : "parcial",
-  responsable_pago_transporte_id: reglas.value.responsable_pago_transporte_id ?? null,
+  responsable_pago_transporte_id: soloTotal.value
+    ? (reglas.value.responsables_pago_transporte?.find(r => r.codigo === 'cliente')?.id ?? null)
+    : (reglas.value.responsable_pago_transporte_id ?? null),
   observacion: null,
 });
 const motivos_devolucion = computed(() => props.info.motivos ?? []);
