@@ -13,6 +13,18 @@
     <template #content>
       <div class="block-content fs-sm ">
         <CabeceraDevolucion :verdevolucion="verdevolucion" :segmentocliente="segmentocliente"></CabeceraDevolucion>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3 fs-sm">
+          <span class="text-muted">Tipo de despacho del pedido:</span>
+          <span class="fw-semibold">{{ verdevolucion.tipo_despacho || 'Sin tipo de despacho' }}</span>
+          <span class="text-muted ms-sm-3">Responsable del pago de transporte:</span>
+          <span class="badge bg-info-light text-info">
+            {{ verdevolucion.responsable_pago_transporte?.codigo === 'tuval'
+              ? 'Tuval'
+              : verdevolucion.responsable_pago_transporte?.codigo === 'cliente'
+                ? 'Cliente'
+                : verdevolucion.responsable_pago_transporte?.descripcion || 'No registrado' }}
+          </span>
+        </div>
         <DetalleDevolucion></DetalleDevolucion>
       </div>
     </template>

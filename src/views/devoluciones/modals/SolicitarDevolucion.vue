@@ -5,6 +5,10 @@
       modificaron
     </div>
     <CabeceraPedido :verpedido="pedidoLocal"></CabeceraPedido>
+    <div class="d-flex align-items-center gap-2 mb-3 fs-sm">
+      <span class="text-muted">Tipo de despacho del pedido:</span>
+      <span class="fw-semibold">{{ info.tipo_despacho || 'Sin tipo de despacho' }}</span>
+    </div>
 
     <div class="row mb-2">
       <div class="col-sm-6">
