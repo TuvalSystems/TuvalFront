@@ -22,7 +22,7 @@
               ? 'Tuval'
               : verdevolucion.responsable_pago_transporte?.codigo === 'cliente'
                 ? 'Cliente'
-                : verdevolucion.responsable_pago_transporte?.descripcion || 'No registrado' }}
+                : verdevolucion.responsable_pago_transporte?.descripcion || 'No Aplica' }}
           </span>
         </div>
         <DetalleDevolucion></DetalleDevolucion>
