@@ -1,0 +1,64 @@
+name: Desplegar frontend en pruebas
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tuval-frontend-pruebas
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: [self-hosted, Linux, X64, tuval-frontend-pruebas]
+    timeout-minutes: 25
+    env:
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      VITE_PUSHER_APP_KEY: ${{ vars.VITE_PUSHER_APP_KEY }}
+      VITE_PUSHER_APP_CLUSTER: ${{ vars.VITE_PUSHER_APP_CLUSTER }}
+      VITE_PUSHER_HOST: ${{ vars.VITE_PUSHER_HOST }}
+      VITE_PUSHER_PORT: ${{ vars.VITE_PUSHER_PORT }}
+      VITE_PUSHER_SCHEME: ${{ vars.VITE_PUSHER_SCHEME }}
+    steps:
+      - name: Obtener el commit del despliegue
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Usar Node 22 para Vite
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Compilar
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(hostname -s)" = srv-web02
+          test -n "$VITE_API_BASE_URL" || { echo '::error::Configurar la variable de repositorio VITE_API_BASE_URL.'; exit 1; }
+          npm ci --no-audit --no-fund
+          npm run build
+          test -s vue/index.html
+          test -s vue/version.json
+
+      - name: Comprobar que develop sigue en este commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          latest=$(curl --fail --silent --show-error --retry 3 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header 'Accept: application/vnd.github+json' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/git/ref/heads/develop" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])')
+          test "$latest" = "$GITHUB_SHA" || { echo '::error::develop tiene un commit más reciente.'; exit 1; }
+
+      - name: Publicar la compilación
+        run: bash scripts/deploy-pruebas.sh
