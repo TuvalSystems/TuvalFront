@@ -18,12 +18,12 @@ jobs:
     runs-on: [self-hosted, Linux, X64, tuval-frontend-pruebas]
     timeout-minutes: 25
     env:
-      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-      VITE_PUSHER_APP_KEY: ${{ vars.VITE_PUSHER_APP_KEY }}
-      VITE_PUSHER_APP_CLUSTER: ${{ vars.VITE_PUSHER_APP_CLUSTER }}
-      VITE_PUSHER_HOST: ${{ vars.VITE_PUSHER_HOST }}
-      VITE_PUSHER_PORT: ${{ vars.VITE_PUSHER_PORT }}
-      VITE_PUSHER_SCHEME: ${{ vars.VITE_PUSHER_SCHEME }}
+      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+      VITE_PUSHER_APP_KEY: ${{ secrets.VITE_PUSHER_APP_KEY }}
+      VITE_PUSHER_APP_CLUSTER: ${{ secrets.VITE_PUSHER_APP_CLUSTER }}
+      VITE_PUSHER_HOST: ${{ secrets.VITE_PUSHER_HOST }}
+      VITE_PUSHER_PORT: ${{ secrets.VITE_PUSHER_PORT }}
+      VITE_PUSHER_SCHEME: ${{ secrets.VITE_PUSHER_SCHEME }}
     steps:
       - name: Obtener el commit del despliegue
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(hostname -s)" = srv-web02
-          test -n "$VITE_API_BASE_URL" || { echo '::error::Configurar la variable de repositorio VITE_API_BASE_URL.'; exit 1; }
+          test -n "$VITE_API_BASE_URL" || { echo '::error::Configurar el secreto de repositorio VITE_API_BASE_URL.'; exit 1; }
           npm ci --no-audit --no-fund
           npm run build
           test -s vue/index.html
