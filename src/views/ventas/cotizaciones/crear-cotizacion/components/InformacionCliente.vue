@@ -161,7 +161,10 @@ watch(
   { immediate: true }
 );
 async function handleResponsibleChange(type) {
-  await fetchTypeDispatchesResponsible(type);
+  const result = await fetchTypeDispatchesResponsible(type);
+  if (result.ok && typeDispatchId.value == null && typeDispatchesResponsible.value.length > 0) {
+    typeDispatchId.value = typeDispatchesResponsible.value[0].id;
+  }
 }
 
 onMounted(async () => {
