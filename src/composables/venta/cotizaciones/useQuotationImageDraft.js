@@ -11,6 +11,7 @@ export function useQuotationImageDraft() {
   const images = ref([]);
   const rows = ref([]);
   const observations = ref([]);
+  const usage = ref(null);
   const confirmed = ref(false);
   const extracted = ref(false);
   const extracting = ref(false);
@@ -40,6 +41,7 @@ export function useQuotationImageDraft() {
     if (pendingRequest.value || creating.value) return;
     rows.value = [];
     observations.value = [];
+    usage.value = null;
     extracted.value = false;
     created.value = null;
     confirmed.value = false;
@@ -103,6 +105,7 @@ export function useQuotationImageDraft() {
       return;
     }
     const response = result.data;
+    usage.value = response.usage || null;
     const reviews = new Map((response.revisiones || []).map((review) => [review.indice, review.observacion]));
     rows.value = (response.payload?.detalle || []).map((item, index) => ({
       id: ++rowId,
@@ -184,7 +187,7 @@ export function useQuotationImageDraft() {
   });
 
   return {
-    customer, images, rows, observations, confirmed, extracted, extracting, creating,
+    customer, images, rows, observations, usage, confirmed, extracted, extracting, creating,
     error, created, pendingRequest, pvId, pointLabel, busy, locked, validRows,
     selectCustomer, addFiles, removeFile, extract, addRow, removeRow, createDraft, reset,
   };

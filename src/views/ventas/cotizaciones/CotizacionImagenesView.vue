@@ -13,6 +13,7 @@ const {
   images,
   rows,
   observations,
+  usage,
   confirmed,
   extracted,
   extracting,
@@ -316,6 +317,15 @@ onBeforeRouteLeave(async () => {
       content-full
       class="mb-3"
     >
+      <div v-if="usage" class="bg-body-light border rounded p-3 mb-3" role="status">
+        <div class="fw-semibold mb-2"><i class="fa fa-chart-simple me-1" aria-hidden="true"></i> Consumo de esta lectura</div>
+        <div class="row g-2 fs-sm">
+          <div class="col-12 col-md-4">Entrada: <strong>{{ usage.inputTokens ?? 'No informado' }}</strong></div>
+          <div class="col-12 col-md-4">Salida: <strong>{{ usage.outputTokens ?? 'No informado' }}</strong></div>
+          <div class="col-12 col-md-4">Total: <strong>{{ usage.totalTokens ?? 'No informado' }}</strong> tokens</div>
+        </div>
+        <div class="text-muted fs-sm mt-2">Modelo: {{ usage.model }}. Cada nueva lectura tiene su propio consumo.</div>
+      </div>
       <div v-if="observations.length" class="alert alert-warning">
         <ul class="mb-0">
           <li v-for="(observation, index) in observations" :key="index">
