@@ -29,6 +29,15 @@ const routes = [
         },
       },
       {
+        path: "cotizaciones/desde-imagenes",
+        name: "ventas-cotizacion-imagenes",
+        component: () => import("@/views/ventas/cotizaciones/CotizacionImagenesView.vue"),
+        meta: {
+          title: "Ventas - Cotización desde imágenes",
+          extends: "ventas-crearcotizacion",
+        },
+      },
+      {
         path: "cotizacionprospecto",
         name: "ventas-cotizacionprospecto",
         component: VentasCotizacionProspecto,

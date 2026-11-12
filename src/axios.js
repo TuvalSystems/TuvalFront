@@ -53,7 +53,7 @@ axiosClient.interceptors.response.use(
         const { response } = error;
 
         // Caso 1: Error 503 (Mantenimiento)
-        if (response && response.status === 503) {
+        if (response && response.status === 503 && !error.config?.skipMaintenanceRedirect) {
             if (router.currentRoute.value.name !== 'Maintenance') {
                 router.push({ name: 'Maintenance' });
             }

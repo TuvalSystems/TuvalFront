@@ -1,5 +1,7 @@
 export const QUOTE_API_ROUTES = {
     DRAFTS: {
+        EXTRACT_IMAGES: 'borradores/extraer-imagenes',
+        CREATE_ITEMS: 'borradores/items',
         LIST: 'borradores/list',
         GET: 'borradores/get',
         SYNC: 'borradores/sync',

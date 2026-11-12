@@ -1455,6 +1455,13 @@ onMounted(async () => {
               <i class="fa fa-folder-open text-warning me-1"></i> Borradores
             </button>
             <router-link
+              :to="{ name: 'ventas-cotizacion-imagenes' }"
+              class="btn btn-outline-primary btn-sm fw-semibold"
+              title="Crear un borrador desde imágenes"
+            >
+              <i class="fa fa-image me-1"></i> Desde imágenes
+            </router-link>
+            <router-link
               :to="{ name: 'ventas-crearcliente' }"
               class="btn btn-success btn-sm"
               :class="{ disabled: loadingSearch }"
