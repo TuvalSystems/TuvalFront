@@ -106,7 +106,7 @@ onBeforeRouteLeave(async () => {
       </router-link>
     </template>
   </BasePageHeading>
-  <div class="content">
+  <div class="content quotation-images-page">
     <div
       class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3"
     >
@@ -130,72 +130,21 @@ onBeforeRouteLeave(async () => {
       {{ error || searchError }}
     </div>
 
-    <BaseBlock content-full class="mb-3">
-      <ol
-        class="row g-3 list-unstyled mb-0"
-        aria-label="Etapas de la cotización"
-      >
-        <li class="col-12 col-md-4">
-          <div class="d-flex align-items-center gap-3">
-            <i
-              :class="
-                customer
-                  ? 'fa fa-circle-check text-primary fa-2x'
-                  : 'fa fa-user text-muted fa-2x'
-              "
-              aria-hidden="true"
-            ></i>
-            <div>
-              <div class="fw-semibold">1. Cliente</div>
-              <div class="fs-sm text-muted">
-                {{
-                  customer
-                    ? "Cliente seleccionado"
-                    : "Busque y seleccione el cliente"
-                }}
-              </div>
-            </div>
-          </div>
-        </li>
-        <li class="col-12 col-md-4">
-          <div class="d-flex align-items-center gap-3">
-            <i
-              class="fa fa-images fa-2x"
-              :class="images.length ? 'text-primary' : 'text-muted'"
-              aria-hidden="true"
-            ></i>
-            <div>
-              <div class="fw-semibold">2. Imágenes</div>
-              <div class="fs-sm text-muted">
-                {{ images.length }} de 3 imágenes adjuntas
-              </div>
-            </div>
-          </div>
-        </li>
-        <li class="col-12 col-md-4">
-          <div class="d-flex align-items-center gap-3">
-            <i
-              class="fa fa-file-lines fa-2x"
-              :class="extracted ? 'text-primary' : 'text-muted'"
-              aria-hidden="true"
-            ></i>
-            <div>
-              <div class="fw-semibold">3. Revisión y borrador</div>
-              <div class="fs-sm text-muted">
-                {{
-                  created?.id
-                    ? "Borrador creado"
-                    : extracted
-                    ? `${rows.length} líneas para revisar`
-                    : "Revise el detalle de la lectura"
-                }}
-              </div>
-            </div>
-          </div>
-        </li>
-      </ol>
-    </BaseBlock>
-    <fieldset :disabled="disabled" class="mb-3">
+    <ol class="quotation-steps list-unstyled" aria-label="Etapas de la cotización">
+      <li :class="{ 'text-primary': customer }">
+        <span class="step-number bg-body-light"><i v-if="customer" class="fa fa-check" aria-hidden="true"></i><template v-else>1</template></span>
+        <span>Cliente</span>
+      </li>
+      <li :class="{ 'text-primary': images.length }">
+        <span class="step-number bg-body-light">2</span>
+        <span>Imágenes <span class="text-muted">{{ images.length }}/3</span></span>
+      </li>
+      <li :class="{ 'text-primary': extracted }">
+        <span class="step-number bg-body-light">3</span>
+        <span>{{ created?.id ? "Borrador creado" : "Revisar y crear" }}</span>
+      </li>
+    </ol>
+    <fieldset :disabled="disabled" class="customer-search mb-3">
       <FiltrarCliente
         title="1. Seleccionar cliente"
         :search-value="dataSearch.search || ''"
@@ -210,262 +159,265 @@ onBeforeRouteLeave(async () => {
     </fieldset>
     <div
       v-if="customer"
-      class="bg-body-light border rounded p-3 mb-3 d-flex flex-wrap justify-content-between gap-2"
+      class="bg-body-light border rounded px-3 py-2 mb-3 d-flex flex-wrap align-items-center gap-2"
     >
       <span
         ><strong>{{ customer.CLI_RAZON_SOCIAL }}</strong> ·
         {{ customer.CLI_RUC }}</span
       >
-      <span>PV: {{ pointLabel }}</span>
+      <span class="badge bg-primary-light text-primary ms-auto">Cliente seleccionado</span>
     </div>
 
-    <BaseBlock title="2. Adjuntar imágenes" content-full class="mb-3">
-      <label for="quotation-images" class="form-label"
-        >Imágenes de la solicitud</label
-      >
-      <input
-        id="quotation-images"
-        type="file"
-        class="form-control"
-        accept="image/jpeg,image/png,image/webp"
-        multiple
-        :disabled="disabled || images.length >= 3"
-        aria-describedby="quotation-images-help"
-        @change="selectFiles"
-      />
-      <div id="quotation-images-help" class="form-text mb-3">
-        Hasta 3 imágenes JPG, PNG o WEBP de 2 MiB cada una. Use fotos claras y
-        completas.
-      </div>
-      <div
-        v-if="!images.length"
-        class="bg-body-light border rounded text-center p-4 mb-3"
-      >
-        <i class="fa fa-images fa-2x text-primary mb-2" aria-hidden="true"></i>
-        <p class="fw-semibold mb-1">Adjunte la solicitud del cliente</p>
-        <p class="text-muted fs-sm mb-0">
-          Compruebe que las descripciones y cantidades se vean completas.
-        </p>
-      </div>
-      <div class="row g-3 mb-3">
-        <div
-          v-for="(image, index) in images"
-          :key="image.url"
-          class="col-12 col-sm-6 col-xl-4"
+    <div class="quotation-workspace" :class="{ 'has-results': extracted }">
+      <BaseBlock title="2. Imágenes de la solicitud" content-full class="image-panel mb-0">
+        <template #options><span class="badge bg-body-light text-muted">{{ images.length }} / 3</span></template>
+        <label for="quotation-images" class="form-label"
+          >Imágenes de la solicitud</label
         >
-          <div class="border rounded p-2 h-100">
-            <button
-              type="button"
-              class="btn btn-alt-secondary w-100 mb-2 p-2"
-              :aria-label="`Ampliar imagen ${index + 1}: ${image.file.name}`"
-              @click="
-                previewIndex = index;
-                previewVisible = true;
-              "
-            >
-              <img
-                :src="image.url"
-                :alt="`Solicitud ${index + 1}: ${image.file.name}`"
-                class="img-fluid rounded"
-              />
-              <span class="d-block fs-sm mt-2"
-                ><i
-                  class="fa fa-magnifying-glass-plus me-1"
-                  aria-hidden="true"
-                ></i>
-                Ampliar imagen {{ index + 1 }}</span
-              >
-            </button>
-            <div
-              class="d-flex align-items-center justify-content-between gap-2"
-            >
-              <span class="text-truncate fs-sm">{{ image.file.name }}</span>
+        <input
+          id="quotation-images"
+          type="file"
+          class="form-control"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          :disabled="disabled || images.length >= 3"
+          aria-describedby="quotation-images-help"
+          @change="selectFiles"
+        />
+        <div id="quotation-images-help" class="form-text mb-3">
+          Hasta 3 imágenes JPG, PNG o WEBP de 2 MiB cada una. Use fotos claras y
+          completas.
+        </div>
+        <div
+          v-if="!images.length"
+          class="image-empty bg-body-light rounded text-center p-4 mb-3"
+        >
+          <i class="fa fa-images fa-2x text-primary mb-2" aria-hidden="true"></i>
+          <p class="fw-semibold mb-1">Adjunte la solicitud del cliente</p>
+          <p class="text-muted fs-sm mb-0">
+            Compruebe que las descripciones y cantidades se vean completas.
+          </p>
+        </div>
+        <div v-if="images.length" class="image-gallery mb-3">
+          <div
+            v-for="(image, index) in images"
+            :key="image.url"
+            class="image-card border rounded"
+          >
+            <div class="p-2 h-100">
               <button
                 type="button"
-                class="btn btn-alt-danger btn-sm"
-                :disabled="disabled"
-                :aria-label="`Quitar ${image.file.name}`"
-                @click="removeFile(index)"
+                class="image-preview btn btn-alt-secondary w-100 mb-2 p-2"
+                :aria-label="`Ampliar imagen ${index + 1}: ${image.file.name}`"
+                @click="
+                  previewIndex = index;
+                  previewVisible = true;
+                "
               >
-                <i class="fa fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button
-        type="button"
-        class="btn btn-primary"
-        :disabled="disabled || !customer || !pvId || !images.length"
-        @click="extract"
-      >
-        <i
-          :class="
-            extracting ? 'fa fa-spinner fa-spin me-1' : 'fa fa-image me-1'
-          "
-        ></i>
-        {{ extracting ? "Leyendo imágenes…" : "Leer imágenes" }}
-      </button>
-      <span v-if="extracting" class="text-muted fs-sm ms-2" role="status"
-        >La lectura puede tardar hasta un minuto.</span
-      >
-    </BaseBlock>
-
-    <BaseBlock
-      v-if="extracted"
-      title="3. Revisar detalle"
-      content-full
-      class="mb-3"
-    >
-      <div v-if="usage" class="bg-body-light border rounded p-3 mb-3" role="status">
-        <div class="fw-semibold mb-2"><i class="fa fa-chart-simple me-1" aria-hidden="true"></i> Consumo de esta lectura</div>
-        <div class="row g-2 fs-sm">
-          <div class="col-12 col-md-4">Entrada: <strong>{{ usage.inputTokens ?? 'No informado' }}</strong></div>
-          <div class="col-12 col-md-4">Salida: <strong>{{ usage.outputTokens ?? 'No informado' }}</strong></div>
-          <div class="col-12 col-md-4">Total: <strong>{{ usage.totalTokens ?? 'No informado' }}</strong> tokens</div>
-        </div>
-        <div class="text-muted fs-sm mt-2">Modelo: {{ usage.model }}. Cada nueva lectura tiene su propio consumo.</div>
-      </div>
-      <div v-if="observations.length" class="alert alert-warning">
-        <ul class="mb-0">
-          <li v-for="(observation, index) in observations" :key="index">
-            {{ observation }}
-          </li>
-        </ul>
-      </div>
-      <div class="d-flex flex-wrap gap-2 mb-3">
-        <span class="badge bg-primary">{{ rows.length }} / 20 líneas</span
-        ><span class="text-muted fs-sm"
-          >Verifique cada descripción y cantidad antes de confirmar.</span
-        >
-      </div>
-      <p class="text-muted">
-        Revise las medidas y complete todas las cantidades. Puede corregir,
-        agregar o quitar líneas.
-      </p>
-      <div v-if="!rows.length" class="alert alert-info">
-        No hay líneas para crear el borrador. Puede volver a leer imágenes más
-        claras o agregar el detalle.
-      </div>
-      <div v-else class="table-responsive">
-        <table
-          class="table table-bordered table-vcenter table-hover align-middle"
-        >
-          <thead class="bg-body-light">
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Descripción</th>
-              <th scope="col" class="w-25">Cantidad</th>
-              <th scope="col"><span class="visually-hidden">Acciones</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, index) in rows" :key="row.id">
-              <td>{{ index + 1 }}</td>
-              <td class="w-50">
-                <textarea
-                  v-model="row.texto"
-                  class="form-control form-control-sm"
-                  rows="2"
-                  maxlength="200"
-                  :disabled="locked"
-                  :aria-label="`Descripción de línea ${index + 1}`"
-                ></textarea>
-                <div v-if="row.review" class="text-warning fs-sm mt-1">
-                  <i class="fa fa-triangle-exclamation me-1"></i
-                  >{{ row.review }}
-                </div>
-              </td>
-              <td>
-                <input
-                  v-model="row.cantidad"
-                  type="number"
-                  min="0.01"
-                  max="1000000"
-                  step="0.01"
-                  class="form-control form-control-sm"
-                  :disabled="locked"
-                  :aria-label="`Cantidad de línea ${index + 1}`"
+                <img
+                  :src="image.url"
+                  :alt="`Solicitud ${index + 1}: ${image.file.name}`"
+                  class="image-thumbnail rounded"
                 />
-              </td>
-              <td>
+                <span class="d-block fs-sm mt-2"
+                  ><i
+                    class="fa fa-magnifying-glass-plus me-1"
+                    aria-hidden="true"
+                  ></i>
+                  Ampliar imagen {{ index + 1 }}</span
+                >
+              </button>
+              <div
+                class="d-flex align-items-center justify-content-between gap-2"
+              >
+                <span class="text-truncate fs-sm" :title="image.file.name">{{ image.file.name }}</span>
                 <button
                   type="button"
                   class="btn btn-alt-danger btn-sm"
-                  :disabled="locked"
-                  :aria-label="`Quitar línea ${index + 1}`"
-                  @click="removeRow(index)"
+                  :disabled="disabled"
+                  :aria-label="`Quitar ${image.file.name}`"
+                  @click="removeFile(index)"
                 >
                   <i class="fa fa-trash"></i>
                 </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <button
-        type="button"
-        class="btn btn-alt-secondary btn-sm mb-3"
-        :disabled="locked || rows.length >= 20"
-        @click="addRow"
-      >
-        <i class="fa fa-plus me-1"></i> Agregar línea
-      </button>
-      <div class="alert alert-warning">
-        Cuando una descripción tenga varias coincidencias, el borrador puede
-        incluir varios artículos para esa línea. Revise el resultado antes de
-        continuar con la cotización.
-      </div>
-      <div v-if="pendingRequest" class="alert alert-info" role="status">
-        Hay una creación pendiente para el punto de venta
-        {{ pendingRequest.pv_id }}. Reintente para consultar o completar la
-        misma solicitud.
-      </div>
-      <div class="form-check mb-3">
-        <input
-          id="confirm-image-details"
-          v-model="confirmed"
-          type="checkbox"
-          class="form-check-input"
-          :disabled="locked || !validRows"
-        />
-        <label for="confirm-image-details" class="form-check-label"
-          >Revisé las descripciones y cantidades y confirmo la creación del
-          borrador.</label
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary w-100"
+          :disabled="disabled || !customer || !pvId || !images.length"
+          @click="extract"
         >
-      </div>
-      <button
-        type="button"
-        class="btn btn-primary"
-        :disabled="
-          busy ||
-          !!created?.id ||
-          (!pendingRequest && (!confirmed || !validRows))
-        "
-        @click="createDraft"
-      >
-        <i
-          :class="
-            creating
-              ? 'fa fa-spinner fa-spin me-1'
-              : 'fa fa-file-circle-plus me-1'
-          "
-        ></i>
-        {{
-          creating
-            ? "Creando borrador…"
-            : pendingRequest
-            ? "Reintentar misma solicitud"
-            : "Crear borrador"
-        }}
-      </button>
-      <span v-if="!validRows && rows.length" class="text-danger fs-sm ms-2"
-        >Complete cantidades positivas con hasta 2 decimales y descripciones
-        válidas.</span
-      >
-    </BaseBlock>
+          <i
+            :class="
+              extracting ? 'fa fa-spinner fa-spin me-1' : 'fa fa-image me-1'
+            "
+          ></i>
+          {{ extracting ? "Leyendo imágenes…" : "Leer imágenes" }}
+        </button>
+        <p v-if="!customer && !disabled" class="text-muted fs-sm mt-2 mb-0">
+          Seleccione un cliente para poder leer las imágenes.
+        </p>
+        <span v-if="extracting" class="d-block text-muted fs-sm mt-2" role="status"
+          >La lectura puede tardar hasta un minuto.</span
+        >
+      </BaseBlock>
 
-    <BaseBlock v-if="created" title="Resultado" content-full class="mb-3">
+      <BaseBlock
+        v-if="extracted"
+        title="3. Revisar detalle"
+        content-full
+        class="review-panel mb-0"
+      >
+        <details v-if="usage" class="bg-body-light rounded px-3 py-2 mb-3 fs-sm">
+          <summary class="text-muted">Consumo de la lectura · {{ usage.totalTokens ?? 'No informado' }} tokens</summary>
+          <div class="d-flex flex-wrap gap-3 mt-2">
+            <span>Entrada: <strong>{{ usage.inputTokens ?? 'No informado' }}</strong></span>
+            <span>Salida: <strong>{{ usage.outputTokens ?? 'No informado' }}</strong></span>
+            <span>Modelo: {{ usage.model }}</span>
+          </div>
+        </details>
+        <div v-if="observations.length" class="alert alert-warning">
+          <ul class="mb-0">
+            <li v-for="(observation, index) in observations" :key="index">
+              {{ observation }}
+            </li>
+          </ul>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge bg-primary">{{ rows.length }} / 20 líneas</span
+          ><span class="text-muted fs-sm"
+            >Verifique cada descripción y cantidad antes de confirmar.</span
+          >
+        </div>
+
+        <div v-if="!rows.length" class="alert alert-info">
+          No hay líneas para crear el borrador. Puede volver a leer imágenes más
+          claras o agregar el detalle.
+        </div>
+        <div v-else class="table-responsive">
+          <table
+            class="quotation-detail table table-bordered table-vcenter table-hover align-middle"
+          >
+            <thead class="bg-body-light">
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Descripción</th>
+                <th scope="col" class="quantity-column">Cantidad</th>
+                <th scope="col"><span class="visually-hidden">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, index) in rows" :key="row.id">
+                <td>{{ index + 1 }}</td>
+                <td>
+                  <textarea
+                    v-model="row.texto"
+                    class="form-control form-control-sm"
+                    rows="2"
+                    maxlength="200"
+                    :disabled="locked"
+                    :aria-label="`Descripción de línea ${index + 1}`"
+                  ></textarea>
+                  <div v-if="row.review" class="text-warning fs-sm mt-1">
+                    <i class="fa fa-triangle-exclamation me-1"></i
+                    >{{ row.review }}
+                  </div>
+                </td>
+                <td>
+                  <input
+                    v-model="row.cantidad"
+                    type="number"
+                    min="0.01"
+                    max="1000000"
+                    step="0.01"
+                    class="form-control form-control-sm"
+                    :disabled="locked"
+                    :aria-label="`Cantidad de línea ${index + 1}`"
+                  />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn btn-alt-danger btn-sm"
+                    :disabled="locked"
+                    :aria-label="`Quitar línea ${index + 1}`"
+                    @click="removeRow(index)"
+                  >
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button
+          type="button"
+          class="btn btn-alt-secondary btn-sm mb-3"
+          :disabled="locked || rows.length >= 20"
+          @click="addRow"
+        >
+          <i class="fa fa-plus me-1"></i> Agregar línea
+        </button>
+        <div class="alert alert-warning">
+          Cuando una descripción tenga varias coincidencias, el borrador puede
+          incluir varios artículos para esa línea. Revise el resultado antes de
+          continuar con la cotización.
+        </div>
+        <div v-if="pendingRequest" class="alert alert-info" role="status">
+          Hay una creación pendiente para el punto de venta
+          {{ pendingRequest.pv_id }}. Reintente para consultar o completar la
+          misma solicitud.
+        </div>
+        <div class="form-check mb-3">
+          <input
+            id="confirm-image-details"
+            v-model="confirmed"
+            type="checkbox"
+            class="form-check-input"
+            :disabled="locked || !validRows"
+          />
+          <label for="confirm-image-details" class="form-check-label"
+            >Revisé las descripciones y cantidades y confirmo la creación del
+            borrador.</label
+          >
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary"
+          :disabled="
+            busy ||
+            !!created?.id ||
+            (!pendingRequest && (!confirmed || !validRows))
+          "
+          @click="createDraft"
+        >
+          <i
+            :class="
+              creating
+                ? 'fa fa-spinner fa-spin me-1'
+                : 'fa fa-file-circle-plus me-1'
+            "
+          ></i>
+          {{
+            creating
+              ? "Creando borrador…"
+              : pendingRequest
+              ? "Reintentar misma solicitud"
+              : "Crear borrador"
+          }}
+        </button>
+        <span v-if="!validRows && rows.length" class="text-danger fs-sm ms-2"
+          >Complete cantidades positivas con hasta 2 decimales y descripciones
+          válidas.</span
+        >
+      </BaseBlock>
+
+    </div>
+
+    <BaseBlock v-if="created" title="Resultado" content-full class="mt-3 mb-3">
       <div
         :class="created.id ? 'alert alert-success' : 'alert alert-warning'"
         role="status"
@@ -530,3 +482,101 @@ onBeforeRouteLeave(async () => {
     @hide="previewVisible = false"
   />
 </template>
+
+<style scoped>
+.quotation-images-page {
+  padding-top: 1rem;
+}
+.quotation-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 2rem;
+  margin-bottom: 1rem;
+  font-size: .875rem;
+  font-weight: 600;
+}
+.quotation-steps li {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  font-size: .75rem;
+}
+.customer-search {
+  min-width: 0;
+}
+.customer-search :deep(.block) {
+  padding-bottom: .5rem !important;
+}
+.quotation-images-page :deep(.block-header) {
+  padding: .75rem 1rem;
+}
+.quotation-images-page :deep(.block-content) {
+  padding: 1rem;
+}
+.quotation-workspace {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+.image-panel,
+.review-panel {
+  min-width: 0;
+}
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: .75rem;
+}
+.image-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.image-thumbnail {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+}
+.image-preview:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+.image-empty {
+  border: 1px dashed var(--bs-border-color);
+}
+.quotation-detail {
+  min-width: 480px;
+}
+.quotation-detail .quantity-column {
+  width: 115px;
+}
+.quotation-detail textarea {
+  min-height: 58px;
+  resize: vertical;
+}
+@media (min-width: 1200px) {
+  .quotation-workspace.has-results {
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 2.2fr);
+  }
+  .has-results .image-gallery {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 575.98px) {
+  .quotation-steps {
+    gap: .5rem 1rem;
+    font-size: .75rem;
+  }
+  .image-gallery {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
