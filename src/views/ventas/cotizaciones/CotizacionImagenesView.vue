@@ -45,6 +45,25 @@ const previewImages = computed(() =>
 const showResults = ref(false);
 const searchError = ref("");
 const disabled = computed(() => busy.value || locked.value);
+const dragDepth = ref(0);
+const canAddImages = computed(() => !disabled.value && images.value.length < 3);
+const draggingImages = computed(() => canAddImages.value && dragDepth.value > 0);
+
+function dragEnter(event) {
+  if (canAddImages.value && Array.from(event.dataTransfer?.types || []).includes("Files")) dragDepth.value++;
+}
+function dragOver(event) {
+  if (event.dataTransfer) event.dataTransfer.dropEffect = canAddImages.value ? "copy" : "none";
+}
+function dragLeave() {
+  dragDepth.value = Math.max(0, dragDepth.value - 1);
+}
+function dropImages(event) {
+  dragDepth.value = 0;
+  if (!canAddImages.value) return;
+  const files = event.dataTransfer?.files;
+  if (files?.length) addFiles(files);
+}
 
 async function search() {
   if (disabled.value || loadingSearch.value) return;
@@ -171,6 +190,17 @@ onBeforeRouteLeave(async () => {
     <div class="quotation-workspace" :class="{ 'has-results': extracted }">
       <BaseBlock title="2. Imágenes de la solicitud" content-full class="image-panel mb-0">
         <template #options><span class="badge bg-body-light text-muted">{{ images.length }} / 3</span></template>
+        <div
+          class="image-dropzone rounded mb-3"
+          :class="{ 'is-dragging': draggingImages, 'is-disabled': !canAddImages }"
+          @dragenter.prevent.stop="dragEnter"
+          @dragover.prevent.stop="dragOver"
+          @dragleave.prevent.stop="dragLeave"
+          @drop.prevent.stop="dropImages"
+        >
+          <p class="fw-semibold mb-2" role="status" aria-live="polite">
+            {{ draggingImages ? "Suelte las imágenes para adjuntarlas" : "Arrastre imágenes aquí o seleccione archivos" }}
+          </p>
         <label for="quotation-images" class="visually-hidden"
           >Imágenes de la solicitud</label
         >
@@ -194,11 +224,12 @@ onBeforeRouteLeave(async () => {
         >
           <i class="fa fa-images fa-2x text-primary flex-shrink-0" aria-hidden="true"></i>
           <div>
-          <p class="fw-semibold mb-1">Adjunte la solicitud del cliente</p>
+          <p class="fw-semibold mb-1">Arrastre aquí las imágenes de la solicitud</p>
           <p class="text-muted fs-sm mb-0">
             Compruebe que las descripciones y cantidades se vean completas.
           </p>
           </div>
+        </div>
         </div>
         <div v-if="images.length" class="image-gallery mb-3">
           <div
@@ -551,6 +582,18 @@ onBeforeRouteLeave(async () => {
 .image-preview:focus-visible {
   outline: 2px solid var(--bs-primary);
   outline-offset: 2px;
+}
+.image-dropzone {
+  padding: 0.65rem 0.75rem;
+  border: 1px dashed var(--tuval-border, var(--bs-border-color));
+  transition: border-color .15s, background-color .15s;
+}
+.image-dropzone.is-dragging {
+  border-color: var(--bs-primary);
+  background: rgba(var(--bs-primary-rgb), 0.08);
+}
+.image-dropzone.is-disabled {
+  opacity: .65;
 }
 .image-empty {
   border: 1px dashed var(--bs-border-color);
