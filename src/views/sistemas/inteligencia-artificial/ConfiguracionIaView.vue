@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
+import BaseTable from "@/components/BaseTable.vue";
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
 const { run } = useApiAction();
@@ -8,6 +9,36 @@ const error = ref("");
 const aviso = ref("");
 const config = ref(null);
 const reporte = ref(null);
+const paginaUsuarios = ref(1);
+const usuariosPorPagina = 10;
+const columnasTokens = [
+  { key: "inputTokens", label: "Entrada", align: "text-end" },
+  { key: "outputTokens", label: "Salida", align: "text-end" },
+  { key: "accountedTokens", label: "Contabilizado", align: "text-end" },
+];
+const columnasUsuarios = [
+  { key: "usuario", label: "Usuario" },
+  { key: "llamadas", label: "Llamadas", align: "text-end" },
+  ...columnasTokens,
+];
+const columnasRegistros = [
+  { key: "fecha", label: "Fecha" },
+  { key: "usuario", label: "Usuario" },
+  { key: "operacion", label: "Operación / modelo" },
+  { key: "estado", label: "Estado" },
+  ...columnasTokens,
+];
+const usuarios = computed(() => reporte.value?.usuarios ?? []);
+const paginasUsuarios = computed(() => Math.max(1, Math.ceil(usuarios.value.length / usuariosPorPagina)));
+const usuariosVisibles = computed(() => usuarios.value.slice(
+  (paginaUsuarios.value - 1) * usuariosPorPagina, paginaUsuarios.value * usuariosPorPagina
+));
+function cambiarPaginaUsuarios(page) {
+  if (!busy.value && page >= 1 && page <= paginasUsuarios.value) paginaUsuarios.value = page;
+}
+function cambiarPaginaRegistros(page) {
+  if (!busy.value && page >= 1 && page <= reporte.value.ultimaPagina) consultar(page);
+}
 const fechaLocal = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Guayaquil", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 const hoy = fechaLocal();
 const filtros = reactive({ desde: hoy.slice(0, 7) + "-01", hasta: hoy, userId: "" });
@@ -35,7 +66,10 @@ async function guardar() {
 async function consultar(page = 1) {
   error.value = "";
   const result = await run(() => axiosClient.get(`${base}/consumos`, { ...opciones, params: { ...filtros, userId: filtros.userId || undefined, page } }), { loadingRef: busy });
-  if (result.ok) reporte.value = result.data;
+  if (result.ok) {
+    reporte.value = result.data;
+    paginaUsuarios.value = 1;
+  }
   else error.value = result.message;
 }
 onMounted(async () => { await cargar(); if (config.value) await consultar(); });
@@ -55,7 +89,7 @@ onMounted(async () => { await cargar(); if (config.value) await consultar(); });
           </div>
         </div>
         <p class="text-muted fs-sm">Las cuotas suman entrada y salida. Antes de generar se reserva la entrada contada más el máximo de salida; luego se ajusta al consumo informado. Un valor de cuota 0 bloquea el uso. Los períodos siguen la zona horaria del servidor TUVAL.</p>
-        <p class="text-muted fs-sm">Los límites incluyen la lectura de imágenes y los mensajes. Una reserva de consumo desconocido se mantiene para evitar exceder el cupo. No representa necesariamente el consumo facturado.</p>
+        <p class="text-muted fs-sm">Los límites incluyen la lectura de imágenes. Una reserva de consumo desconocido se mantiene para evitar exceder el cupo. No representa necesariamente el consumo facturado.</p>
         <button class="btn btn-primary" :disabled="busy">Guardar límites</button>
       </form>
     </BaseBlock>
@@ -68,17 +102,31 @@ onMounted(async () => { await cargar(); if (config.value) await consultar(); });
       </form>
       <template v-if="reporte">
         <div class="bg-body-light p-3 rounded mb-3">Entrada: <strong>{{ reporte.totales.inputTokens }}</strong> · Salida: <strong>{{ reporte.totales.outputTokens }}</strong> · Contabilizado para límites: <strong>{{ reporte.totales.accountedTokens }}</strong></div>
-        <div class="table-responsive"><table class="table table-striped table-vcenter">
-          <caption>Resumen por usuario (hasta 200 usuarios con mayor consumo)</caption>
-          <thead><tr><th>Usuario</th><th>Llamadas</th><th>Entrada</th><th>Salida</th><th>Contabilizado</th></tr></thead>
-          <tbody><tr v-for="u in reporte.usuarios" :key="u.userId"><td>{{ u.usuario || 'Usuario' }} ({{ u.userId }})</td><td>{{ u.llamadas }}</td><td>{{ u.inputTokens ?? 'Desconocido' }}</td><td>{{ u.outputTokens ?? 'Desconocido' }}</td><td>{{ u.accountedTokens }}</td></tr></tbody>
-        </table></div>
-        <div class="table-responsive"><table class="table table-striped table-vcenter fs-sm">
-          <caption>Detalle de llamadas</caption>
-          <thead><tr><th>Fecha</th><th>Usuario</th><th>Operación / modelo</th><th>Estado</th><th>Entrada</th><th>Salida</th><th>Contabilizado</th></tr></thead>
-          <tbody><tr v-for="r in reporte.registros" :key="r.id"><td>{{ r.fecha }}</td><td>{{ r.usuario }} ({{ r.userId }})</td><td>{{ r.operacion }}<br />{{ r.modelo }}</td><td>{{ r.estado }}</td><td>{{ r.inputTokens ?? 'Desconocido' }}</td><td>{{ r.outputTokens ?? 'Desconocido' }}</td><td>{{ r.accountedTokens }}</td></tr><tr v-if="!reporte.registros.length"><td colspan="7">No hay consumo registrado en este período.</td></tr></tbody>
-        </table></div>
-        <div class="d-flex gap-3 align-items-center"><button class="btn btn-alt-secondary btn-sm" :disabled="busy || reporte.pagina <= 1" @click="consultar(reporte.pagina - 1)">Anterior</button><span>Página {{ reporte.pagina }} / {{ reporte.ultimaPagina }}</span><button class="btn btn-alt-secondary btn-sm" :disabled="busy || reporte.pagina >= reporte.ultimaPagina" @click="consultar(reporte.pagina + 1)">Siguiente</button></div>
+        <h3 class="h6">Resumen por usuario (hasta 200 usuarios con mayor consumo)</h3>
+        <BaseTable
+          :columns="columnasUsuarios" :data="usuariosVisibles" :loading="busy"
+          :perPage="String(usuariosPorPagina)" :totalItems="usuarios.length"
+          :currentPage="paginaUsuarios" :totalPage="paginasUsuarios"
+          @onPageChange="cambiarPaginaUsuarios"
+        >
+          <template #cell-usuario="{ row }">{{ row.usuario || 'Usuario' }} ({{ row.userId }})</template>
+          <template #cell-inputTokens="{ value }">{{ value ?? 'Desconocido' }}</template>
+          <template #cell-outputTokens="{ value }">{{ value ?? 'Desconocido' }}</template>
+          <template #empty>No hay consumo registrado en este período.</template>
+        </BaseTable>
+        <h3 class="h6 mt-4">Detalle de llamadas</h3>
+        <BaseTable
+          :columns="columnasRegistros" :data="reporte.registros" :loading="busy"
+          perPage="30" :totalItems="reporte.totalRegistros ?? 0"
+          :currentPage="reporte.pagina" :totalPage="reporte.ultimaPagina"
+          @onPageChange="cambiarPaginaRegistros"
+        >
+          <template #cell-usuario="{ row }">{{ row.usuario || 'Usuario' }} ({{ row.userId }})</template>
+          <template #cell-operacion="{ row }">{{ row.operacion }}<br />{{ row.modelo }}</template>
+          <template #cell-inputTokens="{ value }">{{ value ?? 'Desconocido' }}</template>
+          <template #cell-outputTokens="{ value }">{{ value ?? 'Desconocido' }}</template>
+          <template #empty>No hay consumo registrado en este período.</template>
+        </BaseTable>
       </template>
     </BaseBlock>
   </div>
