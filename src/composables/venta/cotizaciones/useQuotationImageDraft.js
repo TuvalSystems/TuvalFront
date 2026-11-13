@@ -16,7 +16,6 @@ export function useQuotationImageDraft() {
   const extracted = ref(false);
   const extracting = ref(false);
   const creating = ref(false);
-  const error = ref("");
   const created = ref(null);
   const pendingRequest = ref(null);
   const pvId = computed(() => Number(store.state.puntoventaselectid) || null);
@@ -45,7 +44,6 @@ export function useQuotationImageDraft() {
     extracted.value = false;
     created.value = null;
     confirmed.value = false;
-    error.value = "";
   }
 
   watch([() => customer.value?.CLI_RUC, pvId], invalidateExtraction, { flush: "sync" });
@@ -61,12 +59,10 @@ export function useQuotationImageDraft() {
     const additions = Array.from(files || []);
     if (!additions.length) return;
     if (images.value.length + additions.length > 3) {
-      error.value = "Puede adjuntar hasta 3 imágenes.";
-      return;
+      return { ok: false, status: 422, message: "Puede adjuntar hasta 3 imágenes." };
     }
     if (additions.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 2 * 1024 * 1024)) {
-      error.value = "Seleccione imágenes JPG, PNG o WEBP de hasta 2 MiB cada una.";
-      return;
+      return { ok: false, status: 422, message: "Seleccione imágenes JPG, PNG o WEBP de hasta 2 MiB cada una." };
     }
     invalidateExtraction();
     images.value.push(...additions.map((file) => ({ file, url: URL.createObjectURL(file) })));
@@ -82,8 +78,7 @@ export function useQuotationImageDraft() {
   async function extract() {
     if (busy.value || locked.value) return;
     if (!customer.value?.CLI_RUC || !pvId.value || !images.value.length) {
-      error.value = "Seleccione un cliente, verifique el punto de venta y adjunte al menos una imagen.";
-      return;
+      return { ok: false, status: 422, message: "Seleccione un cliente, verifique el punto de venta y adjunte al menos una imagen." };
     }
     invalidateExtraction();
     const version = extractionVersion;
@@ -99,10 +94,9 @@ export function useQuotationImageDraft() {
     }), { loadingRef: extracting });
     if (version !== extractionVersion || result.canceled) return;
     if (!result.ok) {
-      if (!result.handled) error.value = result.status === 503
-        ? "La lectura de imágenes no está disponible. Intente más tarde o contacte al administrador."
-        : result.message;
-      return;
+      return result.status === 503
+        ? { ...result, message: "La lectura de imágenes no está disponible. Intente más tarde o contacte al administrador." }
+        : result;
     }
     const response = result.data;
     usage.value = response.usage || null;
@@ -115,6 +109,7 @@ export function useQuotationImageDraft() {
     }));
     observations.value = response.observaciones || [];
     extracted.value = true;
+    return result;
   }
 
   function addRow() {
@@ -142,8 +137,7 @@ export function useQuotationImageDraft() {
     if (busy.value || created.value?.id) return;
     if (!pendingRequest.value) {
       if (!confirmed.value || !validRows.value || !customer.value?.CLI_RUC || !pvId.value) {
-        error.value = "Revise las descripciones, complete las cantidades y confirme el detalle.";
-        return;
+        return { ok: false, status: 422, message: "Revise las descripciones, complete las cantidades y confirme el detalle." };
       }
       pendingRequest.value = {
         request_id: uuid(), confirmado: true,
@@ -153,7 +147,6 @@ export function useQuotationImageDraft() {
         maxCandidatos: 6,
       };
     }
-    error.value = "";
     const result = await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.CREATE_ITEMS, pendingRequest.value, {
       timeout: 130000, skipMaintenanceRedirect: true,
     }), { loadingRef: creating });
@@ -162,13 +155,13 @@ export function useQuotationImageDraft() {
       pendingRequest.value = null;
       confirmed.value = false;
     } else {
-      if (!result.handled) error.value = result.message;
       // A timeout/5xx can happen after commit. Freeze the body and reuse the UUID.
       if (result.status >= 400 && result.status < 500 && ![408, 429].includes(result.status)) {
         pendingRequest.value = null;
         confirmed.value = false;
       }
     }
+    return result;
   }
 
   function reset() {
@@ -188,7 +181,7 @@ export function useQuotationImageDraft() {
 
   return {
     customer, images, rows, observations, usage, confirmed, extracted, extracting, creating,
-    error, created, pendingRequest, pvId, pointLabel, busy, locked, validRows,
+    created, pendingRequest, pvId, pointLabel, busy, locked, validRows,
     selectCustomer, addFiles, removeFile, extract, addRow, removeRow, createDraft, reset,
   };
 }

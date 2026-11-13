@@ -1,111 +1,52 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 import { onBeforeRouteLeave } from "vue-router";
 import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
-import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { useQuotationImageDraft } from "@/composables/venta/cotizaciones/useQuotationImageDraft";
-import { CUSTOMER_SEARCH_MIN_LENGTH } from "@/constants/customerSearch";
-import { toast } from "@/functions/swal-alert";
+import { useQuotationImageUpload } from "@/composables/venta/cotizaciones/useQuotationImageUpload";
+import { useQuotationImageCustomerSearch } from "@/composables/venta/cotizaciones/useQuotationImageCustomerSearch";
+import { toast, swalError, swalWarning, swalSuccess } from "@/functions/swal-alert";
 
 const {
-  customer,
-  images,
-  rows,
-  observations,
-  usage,
-  confirmed,
-  extracted,
-  extracting,
-  creating,
-  error,
-  created,
-  pendingRequest,
-  pvId,
-  pointLabel,
-  busy,
-  locked,
-  validRows,
-  selectCustomer,
-  addFiles,
-  removeFile,
-  extract,
-  addRow,
-  removeRow,
-  createDraft,
-  reset,
+  customer, images, rows, observations, usage, confirmed, extracted, extracting,
+  creating, created, pendingRequest, pvId, pointLabel, busy, locked, validRows,
+  selectCustomer, addFiles: adjuntarArchivos, removeFile, extract: extraerImagenes,
+  addRow, removeRow, createDraft: crearBorrador, reset,
 } = useQuotationImageDraft();
-const { clients, errorSearchClient, dataSearch, loadingSearch, searchClients } =
-  useClientSearch();
-const previewVisible = ref(false);
-const previewIndex = ref(0);
-const previewImages = computed(() =>
-  images.value.map((image) => ({ src: image.url, title: image.file.name }))
-);
-const showResults = ref(false);
-const searchError = ref("");
 const disabled = computed(() => busy.value || locked.value);
-const dragDepth = ref(0);
-const canAddImages = computed(() => !disabled.value && images.value.length < 3);
-const draggingImages = computed(() => canAddImages.value && dragDepth.value > 0);
+const {
+  clients, errorSearchClient, dataSearch, loadingSearch, showResults,
+  search: buscarClientes, select, resetSearch,
+} = useQuotationImageCustomerSearch({ disabled, selectCustomer });
+const {
+  previewVisible, previewIndex, previewImages, canAddImages, draggingImages,
+  dragEnter, dragOver, dragLeave, pasteImages, dropImages, selectFiles,
+} = useQuotationImageUpload({ images, disabled, addFiles });
 
-function dragEnter(event) {
-  if (canAddImages.value && Array.from(event.dataTransfer?.types || []).includes("Files")) dragDepth.value++;
+function mostrarError(result) {
+  if (!result || result.ok || result.handled || result.canceled || result.stale) return;
+  (result.status >= 500 ? swalError : swalWarning)(result.message);
 }
-function dragOver(event) {
-  if (event.dataTransfer) event.dataTransfer.dropEffect = canAddImages.value ? "copy" : "none";
+function addFiles(files) {
+  mostrarError(adjuntarArchivos(files));
 }
-function dragLeave() {
-  dragDepth.value = Math.max(0, dragDepth.value - 1);
-}
-function pasteImages(event) {
-  const files = Array.from(event.clipboardData?.items || [])
-    .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
-    .map((item) => item.getAsFile())
-    .filter(Boolean);
-  if (!files.length) return;
-  event.preventDefault();
-  if (disabled.value) return;
-  addFiles(files);
-}
-
-function dropImages(event) {
-  dragDepth.value = 0;
-  if (!canAddImages.value) return;
-  const files = event.dataTransfer?.files;
-  if (files?.length) addFiles(files);
-}
-
 async function search() {
-  if (disabled.value || loadingSearch.value) return;
-  const term = String(dataSearch.search || "").trim();
-  errorSearchClient.value = term.length < CUSTOMER_SEARCH_MIN_LENGTH;
-  if (errorSearchClient.value) return;
-  dataSearch.search = term;
-  dataSearch.tipo = "proceso";
-  searchError.value = "";
-  const result = await searchClients();
-  showResults.value = result.ok;
-  if (!result.ok && !result.handled) searchError.value = result.message;
+  mostrarError(await buscarClientes());
 }
-
-function select(client) {
-  if (disabled.value) return;
-  selectCustomer(client);
-  showResults.value = false;
+async function extract() {
+  mostrarError(await extraerImagenes());
 }
-
-function selectFiles(event) {
-  addFiles(event.target.files);
-  event.target.value = "";
+async function createDraft() {
+  const result = await crearBorrador();
+  if (result?.ok && result.data?.id) swalSuccess(`Borrador ${result.data.numero} creado correctamente.`);
+  else if (result?.ok) swalWarning("No se creó un borrador: no se encontraron artículos disponibles.");
+  else mostrarError(result);
 }
-
 function startAgain() {
+  if (busy.value || pendingRequest.value) return;
   reset();
-  clients.value = [];
-  dataSearch.search = "";
-  showResults.value = false;
-  searchError.value = "";
+  resetSearch();
 }
 
 onBeforeRouteLeave(async () => {
@@ -155,9 +96,6 @@ onBeforeRouteLeave(async () => {
     </div>
     <div v-if="!pvId" class="alert alert-warning" role="alert">
       Seleccione un punto de venta en la cabecera del sistema para continuar.
-    </div>
-    <div v-if="error || searchError" class="alert alert-danger" role="alert">
-      {{ error || searchError }}
     </div>
 
     <ol class="quotation-steps list-unstyled" aria-label="Etapas de la cotización">

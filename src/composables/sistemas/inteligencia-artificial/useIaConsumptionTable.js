@@ -6,7 +6,6 @@ import { IA_API_ROUTES } from "@/constants/apiRoutes/sistema/inteligenciaArtific
 export function useIaConsumptionTable() {
   const { run } = useApiAction();
   const busy = ref(false);
-  const error = ref("");
   const reporte = ref(null);
   const paginaUsuarios = ref(1);
   const usuariosPorPagina = 10;
@@ -37,22 +36,21 @@ export function useIaConsumptionTable() {
     if (!busy.value && page >= 1 && page <= paginasUsuarios.value) paginaUsuarios.value = page;
   }
   function cambiarPaginaRegistros(page) {
-    if (!busy.value && page >= 1 && page <= reporte.value.ultimaPagina) consultar(page);
+    if (!busy.value && page >= 1 && page <= reporte.value.ultimaPagina) return consultar(page);
   }
   const fechaLocal = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Guayaquil", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const hoy = fechaLocal();
   const filtros = reactive({ desde: hoy.slice(0, 7) + "-01", hasta: hoy, userId: "" });
   const opciones = { skipMaintenanceRedirect: true };
   async function consultar(page = 1) {
-    error.value = "";
     const result = await run(() => axiosClient.get(IA_API_ROUTES.CONSUMOS, { ...opciones, params: { ...filtros, userId: filtros.userId || undefined, page } }), { loadingRef: busy });
     if (result.ok) {
       reporte.value = result.data;
       paginaUsuarios.value = 1;
     }
-    else error.value = result.message;
+    return result;
   }
-  return { busy, error, reporte, paginaUsuarios, usuariosPorPagina, columnasUsuarios,
+  return { busy, reporte, paginaUsuarios, usuariosPorPagina, columnasUsuarios,
     columnasRegistros, usuarios, paginasUsuarios, usuariosVisibles, cambiarPaginaUsuarios,
     cambiarPaginaRegistros, filtros, consultar };
 }

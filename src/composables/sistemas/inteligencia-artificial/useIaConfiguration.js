@@ -6,8 +6,6 @@ import { IA_API_ROUTES } from "@/constants/apiRoutes/sistema/inteligenciaArtific
 export function useIaConfiguration() {
   const { run } = useApiAction();
   const busy = ref(false);
-  const error = ref("");
-  const aviso = ref("");
   const config = ref(null);
   const paginaPerfiles = ref(1);
   const perfiles = computed(() => config.value?.perfiles ?? []);
@@ -38,35 +36,32 @@ export function useIaConfiguration() {
   async function cargar() {
     const result = await run(() => axiosClient.get(IA_API_ROUTES.CONFIGURACION, opciones), { loadingRef: busy });
     if (result.ok) config.value = result.data;
-    else error.value = result.message;
     return result;
   }
   async function guardar() {
     if (busy.value) return;
-    error.value = ""; aviso.value = "";
     const campoInvalido = campos.find(c => !Number.isInteger(config.value[c.key]) || config.value[c.key] < c.min || config.value[c.key] > c.max);
     if (campoInvalido || config.value.limiteMensualGlobal < config.value.limiteDiarioGlobal) {
-      error.value = campoInvalido ? `Revise el valor de ${campoInvalido.label}.` : "El presupuesto mensual no puede ser menor al diario.";
-      return { ok: false, tab: "general" };
+      const message = campoInvalido ? `Revise el valor de ${campoInvalido.label}.` : "El presupuesto mensual no puede ser menor al diario.";
+      return { ok: false, status: 422, tab: "general", message };
     }
     const perfilInvalido = perfiles.value.find(p => typeof p.porcentaje !== "number" || !Number.isFinite(p.porcentaje) || p.porcentaje < 0 || p.porcentaje > 100 || Math.abs(p.porcentaje * 100 - Math.round(p.porcentaje * 100)) > 0.000001);
     if (perfilInvalido) {
       paginaPerfiles.value = Math.floor(perfiles.value.indexOf(perfilInvalido) / 10) + 1;
-      error.value = `Revise el porcentaje de ${perfilInvalido.nombre}: use de 0 a 100, con hasta dos decimales.`;
-      return { ok: false, tab: "perfiles" };
+      const message = `Revise el porcentaje de ${perfilInvalido.nombre}: use de 0 a 100, con hasta dos decimales.`;
+      return { ok: false, status: 422, tab: "perfiles", message };
     }
     if (porcentajeAsignado.value > 100) {
-      error.value = "La suma de porcentajes no puede superar el 100%.";
-      return { ok: false, tab: "perfiles" };
+      const message = "La suma de porcentajes no puede superar el 100%.";
+      return { ok: false, status: 422, tab: "perfiles", message };
     }
     const body = Object.fromEntries(["habilitado", ...campos.map(c => c.key)].map(k => [k, config.value[k]]));
     body.perfiles = perfiles.value.map(({ perfilId, porcentaje }) => ({ perfilId, porcentaje }));
     const result = await run(() => axiosClient.put(IA_API_ROUTES.CONFIGURACION, body, opciones), { loadingRef: busy });
-    if (result.ok) { config.value = result.data; aviso.value = "Configuración guardada. Se aplica a las nuevas llamadas."; }
-    else error.value = result.message;
+    if (result.ok) config.value = result.data;
     return result;
   }
-  return { busy, error, aviso, config, paginaPerfiles, perfiles, paginasPerfiles,
+  return { busy, config, paginaPerfiles, perfiles, paginasPerfiles,
     perfilesVisibles, porcentajeAsignado, columnasPerfiles, cuotaPerfil, cambiarPaginaPerfiles,
     campos, cargar, guardar };
 }

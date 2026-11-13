@@ -1,21 +1,21 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { swalError, swalWarning, swalSuccess } from "@/functions/swal-alert";
 import BaseTable from "@/components/BaseTable.vue";
 import { useIaConfiguration } from "@/composables/sistemas/inteligencia-artificial/useIaConfiguration";
 import { useIaConsumptionTable } from "@/composables/sistemas/inteligencia-artificial/useIaConsumptionTable";
 
 const {
-  busy: loadingConfig, error: errorConfig, aviso, config, paginaPerfiles, perfiles,
+  busy: loadingConfig, config, paginaPerfiles, perfiles,
   paginasPerfiles, perfilesVisibles, porcentajeAsignado, columnasPerfiles,
   cuotaPerfil, cambiarPaginaPerfiles, campos, cargar, guardar: guardarConfiguracion,
 } = useIaConfiguration();
 const {
-  busy: loadingConsumo, error: errorConsumo, reporte, paginaUsuarios,
+  busy: loadingConsumo, reporte, paginaUsuarios,
   usuariosPorPagina, columnasUsuarios, columnasRegistros, usuarios, paginasUsuarios,
-  usuariosVisibles, cambiarPaginaUsuarios, cambiarPaginaRegistros, filtros, consultar,
+  usuariosVisibles, cambiarPaginaUsuarios, cambiarPaginaRegistros: cambiarPaginaConsumo, filtros, consultar: consultarConsumo,
 } = useIaConsumptionTable();
 const busy = computed(() => loadingConfig.value || loadingConsumo.value);
-const error = computed(() => errorConfig.value || errorConsumo.value);
 const tabActual = ref("consumo");
 const tabs = [
   { id: "consumo", nombre: "Consumo", icon: "fa fa-chart-column" },
@@ -38,17 +38,27 @@ async function guardar() {
   if (busy.value) return;
   const result = await guardarConfiguracion();
   if (result?.tab) tabActual.value = result.tab;
+  if (result?.ok) swalSuccess("Configuración guardada. Se aplica a las nuevas llamadas.");
+  else mostrarError(result);
+}
+function mostrarError(result) {
+  if (!result || result.ok || result.handled || result.canceled || result.stale) return;
+  (result.status >= 500 ? swalError : swalWarning)(result.message);
+}
+async function consultar(page = 1) {
+  mostrarError(await consultarConsumo(page));
+}
+async function cambiarPaginaRegistros(page) {
+  mostrarError(await cambiarPaginaConsumo(page));
 }
 onMounted(async () => {
-  await cargar();
+  mostrarError(await cargar());
   if (config.value) await consultar();
 });
 </script>
 <template>
   <BasePageHeading title="Inteligencia artificial" subtitle="Sistemas · Límites de tokens y consumo por usuario" />
   <div class="content ai-page">
-    <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
-    <div v-if="aviso" class="alert alert-success" role="status">{{ aviso }}</div>
     <ul v-if="config" class="nav nav-tabs nav-tabs-alt mb-3" role="tablist" aria-label="Gestión de inteligencia artificial">
       <li v-for="(tab, index) in tabs" :key="tab.id" class="nav-item" role="presentation">
         <button :id="`ia-tab-${tab.id}`" type="button" class="nav-link"
