@@ -10,6 +10,12 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       {
+        path: "inteligencia-artificial",
+        name: "sistemas-ia-configuracion",
+        component: () => import("@/views/sistemas/inteligencia-artificial/ConfiguracionIaView.vue"),
+        meta: { title: "Sistemas - Inteligencia artificial" },
+      },
+      {
         path: "logs", // Nivel 2 (ID 49)
         name: "sistemas-logs", // Coincide con 'to' de ID 49
         // IMPORTANTE: Como es un padre, necesita un RouterView para mostrar al hijo
