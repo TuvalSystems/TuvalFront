@@ -58,6 +58,17 @@ function dragOver(event) {
 function dragLeave() {
   dragDepth.value = Math.max(0, dragDepth.value - 1);
 }
+function pasteImages(event) {
+  const files = Array.from(event.clipboardData?.items || [])
+    .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+    .map((item) => item.getAsFile())
+    .filter(Boolean);
+  if (!files.length) return;
+  event.preventDefault();
+  if (disabled.value) return;
+  addFiles(files);
+}
+
 function dropImages(event) {
   dragDepth.value = 0;
   if (!canAddImages.value) return;
@@ -192,6 +203,11 @@ onBeforeRouteLeave(async () => {
         <template #options><span class="badge bg-body-light text-muted">{{ images.length }} / 3</span></template>
         <div
           class="image-dropzone rounded mb-3"
+          tabindex="0"
+          role="region"
+          aria-label="Adjuntar imágenes: seleccione archivos, arrástrelos o pegue con Ctrl + V"
+          :aria-disabled="disabled"
+          @paste="pasteImages"
           :class="{ 'is-dragging': draggingImages, 'is-disabled': !canAddImages }"
           @dragenter.prevent.stop="dragEnter"
           @dragover.prevent.stop="dragOver"
@@ -199,7 +215,7 @@ onBeforeRouteLeave(async () => {
           @drop.prevent.stop="dropImages"
         >
           <p class="fw-semibold mb-2" role="status" aria-live="polite">
-            {{ draggingImages ? "Suelte las imágenes para adjuntarlas" : "Arrastre imágenes aquí o seleccione archivos" }}
+            {{ draggingImages ? "Suelte las imágenes para adjuntarlas" : "Arrastre imágenes, seleccione archivos o pegue con Ctrl + V" }}
           </p>
         <label for="quotation-images" class="visually-hidden"
           >Imágenes de la solicitud</label
@@ -215,6 +231,7 @@ onBeforeRouteLeave(async () => {
           @change="selectFiles"
         />
         <div id="quotation-images-help" class="form-text mb-3">
+          Haga clic en esta zona y presione Ctrl + V para pegar una imagen copiada.
           Hasta 3 imágenes JPG, PNG o WEBP de 2 MiB cada una. Use fotos claras y
           completas.
         </div>
@@ -587,6 +604,10 @@ onBeforeRouteLeave(async () => {
   padding: 0.65rem 0.75rem;
   border: 1px dashed var(--tuval-border, var(--bs-border-color));
   transition: border-color .15s, background-color .15s;
+}
+.image-dropzone:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
 }
 .image-dropzone.is-dragging {
   border-color: var(--bs-primary);
