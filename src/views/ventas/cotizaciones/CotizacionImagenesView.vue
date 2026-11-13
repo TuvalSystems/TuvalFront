@@ -106,7 +106,7 @@ onBeforeRouteLeave(async () => {
       </router-link>
     </template>
   </BasePageHeading>
-  <div class="content quotation-images-page">
+  <div class="content quotation-images-page ai-page">
     <div
       class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3"
     >
@@ -177,7 +177,7 @@ onBeforeRouteLeave(async () => {
         <input
           id="quotation-images"
           type="file"
-          class="form-control"
+          class="form-control form-control-sm"
           accept="image/jpeg,image/png,image/webp"
           multiple
           :disabled="disabled || images.length >= 3"
@@ -494,7 +494,7 @@ onBeforeRouteLeave(async () => {
   flex-wrap: wrap;
   gap: .75rem 2rem;
   margin-bottom: 1rem;
-  font-size: .875rem;
+  font-size: .78rem;
   font-weight: 600;
 }
 .quotation-steps li {
@@ -596,3 +596,5 @@ onBeforeRouteLeave(async () => {
   }
 }
 </style>
+
+<style scoped lang="scss" src="@/assets/scss/ai-views.scss"></style>

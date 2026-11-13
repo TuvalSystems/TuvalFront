@@ -76,16 +76,16 @@ onMounted(async () => { await cargar(); if (config.value) await consultar(); });
 </script>
 <template>
   <BasePageHeading title="Inteligencia artificial" subtitle="Sistemas · Límites de tokens y consumo por usuario" />
-  <div class="content">
+  <div class="content ai-page">
     <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
     <div v-if="aviso" class="alert alert-success" role="status">{{ aviso }}</div>
     <BaseBlock v-if="config" title="Control de uso" content-full>
       <form @submit.prevent="guardar">
         <div class="form-check form-switch mb-3"><input id="ia-habilitada" v-model="config.habilitado" type="checkbox" class="form-check-input" :disabled="busy" /><label class="form-check-label" for="ia-habilitada">Permitir nuevas llamadas a IA</label></div>
-        <div class="row">
+        <div class="row g-2 mb-3">
           <div v-for="campo in campos" :key="campo.key" class="col-md-6 col-xl-4 mb-3">
             <label :for="campo.key" class="form-label">{{ campo.label }}</label>
-            <input :id="campo.key" v-model.number="config[campo.key]" type="number" step="1" :min="campo.min" :max="campo.max" required class="form-control" :disabled="busy" />
+            <input :id="campo.key" v-model.number="config[campo.key]" type="number" step="1" :min="campo.min" :max="campo.max" required class="form-control form-control-sm" :disabled="busy" />
           </div>
         </div>
         <p class="text-muted fs-sm">Las cuotas suman entrada y salida. Antes de generar se reserva la entrada contada más el máximo de salida; luego se ajusta al consumo informado. Un valor de cuota 0 bloquea el uso. Los períodos siguen la zona horaria del servidor TUVAL.</p>
@@ -95,13 +95,17 @@ onMounted(async () => { await cargar(); if (config.value) await consultar(); });
     </BaseBlock>
     <BaseBlock v-if="config" title="Consumo por usuario" content-full>
       <form class="row align-items-end mb-3" @submit.prevent="consultar(1)">
-        <div class="col-md-3 mb-2"><label for="ia-desde" class="form-label">Desde</label><input id="ia-desde" v-model="filtros.desde" type="date" class="form-control" required /></div>
-        <div class="col-md-3 mb-2"><label for="ia-hasta" class="form-label">Hasta</label><input id="ia-hasta" v-model="filtros.hasta" type="date" class="form-control" required /></div>
-        <div class="col-md-3 mb-2"><label for="ia-usuario" class="form-label">ID de usuario (opcional)</label><input id="ia-usuario" v-model="filtros.userId" type="number" min="1" class="form-control" /></div>
+        <div class="col-md-3 mb-2"><label for="ia-desde" class="form-label">Desde</label><input id="ia-desde" v-model="filtros.desde" type="date" class="form-control form-control-sm" required /></div>
+        <div class="col-md-3 mb-2"><label for="ia-hasta" class="form-label">Hasta</label><input id="ia-hasta" v-model="filtros.hasta" type="date" class="form-control form-control-sm" required /></div>
+        <div class="col-md-3 mb-2"><label for="ia-usuario" class="form-label">ID de usuario (opcional)</label><input id="ia-usuario" v-model="filtros.userId" type="number" min="1" class="form-control form-control-sm" /></div>
         <div class="col-md-3 mb-2"><button class="btn btn-alt-primary" :disabled="busy">Consultar</button></div>
       </form>
       <template v-if="reporte">
-        <div class="bg-body-light p-3 rounded mb-3">Entrada: <strong>{{ reporte.totales.inputTokens }}</strong> · Salida: <strong>{{ reporte.totales.outputTokens }}</strong> · Contabilizado para límites: <strong>{{ reporte.totales.accountedTokens }}</strong></div>
+        <div class="token-summary">
+          <div class="token-summary-item"><span>Tokens de entrada</span><strong>{{ reporte.totales.inputTokens }}</strong></div>
+          <div class="token-summary-item"><span>Tokens de salida</span><strong>{{ reporte.totales.outputTokens }}</strong></div>
+          <div class="token-summary-item"><span>Contabilizado para límites</span><strong>{{ reporte.totales.accountedTokens }}</strong></div>
+        </div>
         <h3 class="h6">Resumen por usuario (hasta 200 usuarios con mayor consumo)</h3>
         <BaseTable
           :columns="columnasUsuarios" :data="usuariosVisibles" :loading="busy"
@@ -131,3 +135,5 @@ onMounted(async () => { await cargar(); if (config.value) await consultar(); });
     </BaseBlock>
   </div>
 </template>
+
+<style scoped lang="scss" src="@/assets/scss/ai-views.scss"></style>
