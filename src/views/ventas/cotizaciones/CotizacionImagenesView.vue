@@ -111,8 +111,8 @@ onBeforeRouteLeave(async () => {
       class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3"
     >
       <div>
-        <span class="text-muted">Punto de venta actual:</span>
-        <strong>{{ pointLabel }}</strong>
+        <span class="text-muted">Punto de venta:</span>
+        <strong class="ms-1">{{ pointLabel }}</strong>
       </div>
       <button
         type="button"
@@ -171,7 +171,7 @@ onBeforeRouteLeave(async () => {
     <div class="quotation-workspace" :class="{ 'has-results': extracted }">
       <BaseBlock title="2. Imágenes de la solicitud" content-full class="image-panel mb-0">
         <template #options><span class="badge bg-body-light text-muted">{{ images.length }} / 3</span></template>
-        <label for="quotation-images" class="form-label"
+        <label for="quotation-images" class="visually-hidden"
           >Imágenes de la solicitud</label
         >
         <input
@@ -190,13 +190,15 @@ onBeforeRouteLeave(async () => {
         </div>
         <div
           v-if="!images.length"
-          class="image-empty bg-body-light rounded text-center p-4 mb-3"
+          class="image-empty bg-body-light rounded d-flex align-items-center gap-3 p-3 mb-3"
         >
-          <i class="fa fa-images fa-2x text-primary mb-2" aria-hidden="true"></i>
+          <i class="fa fa-images fa-2x text-primary flex-shrink-0" aria-hidden="true"></i>
+          <div>
           <p class="fw-semibold mb-1">Adjunte la solicitud del cliente</p>
           <p class="text-muted fs-sm mb-0">
             Compruebe que las descripciones y cantidades se vean completas.
           </p>
+          </div>
         </div>
         <div v-if="images.length" class="image-gallery mb-3">
           <div
@@ -246,7 +248,7 @@ onBeforeRouteLeave(async () => {
         </div>
         <button
           type="button"
-          class="btn btn-primary w-100"
+          class="read-images-button btn btn-primary"
           :disabled="disabled || !customer || !pvId || !images.length"
           @click="extract"
         >
@@ -501,6 +503,7 @@ onBeforeRouteLeave(async () => {
   gap: .5rem;
 }
 .step-number {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -552,6 +555,9 @@ onBeforeRouteLeave(async () => {
 .image-empty {
   border: 1px dashed var(--bs-border-color);
 }
+.has-results .read-images-button {
+  width: 100%;
+}
 .quotation-detail {
   min-width: 480px;
 }
@@ -572,8 +578,18 @@ onBeforeRouteLeave(async () => {
 }
 @media (max-width: 575.98px) {
   .quotation-steps {
-    gap: .5rem 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .5rem;
     font-size: .75rem;
+  }
+  .quotation-steps li {
+    flex-direction: column;
+    text-align: center;
+    gap: .25rem;
+  }
+  .read-images-button {
+    width: 100%;
   }
   .image-gallery {
     grid-template-columns: 1fr;
