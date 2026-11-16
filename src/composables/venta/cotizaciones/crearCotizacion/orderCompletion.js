@@ -1,5 +1,5 @@
 // Conserva el paso confirmado durante la vida de la pantalla, incluso entre reintentos.
-// No sustituye la idempotencia del servidor ante una respuesta de creación perdida.
+// Tras recargar, persistentSubmission y el backend recuperan los pasos confirmados.
 export function createOrderCompletion() {
     const pending = new Map();
 

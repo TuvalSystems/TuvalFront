@@ -151,6 +151,7 @@ const {
   createQuote,
   loadingSaveOrder,
   saveOrderAndUpdateQuote,
+  finishSubmission,
   isRecoveringQuote,
 
   //temp
@@ -876,6 +877,7 @@ async function createQuotationOnce() {
     return;
   }
   await clearCotizacion();
+  await finishSubmission();
   swalSuccess(respCreate?.message);
   router.push({
     name: "ventas-cotizaciones",
@@ -900,6 +902,7 @@ async function saveToOrderAndUpdateQuotationOnce() {
   }
 
   await clearCotizacion();
+  await finishSubmission();
   swalSuccess(respOrder?.message || "Pedido guardado correctamente");
   router.push({
     name: "ventas-pedidos",
