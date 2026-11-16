@@ -42,7 +42,7 @@ import verModalModificacionPeso from "./modals/verModalModificacionPeso.vue";
 import verModalProveedores from "./modals/verModalProveedores.vue";
 import verModalListaBorradores from "./modals/verModalListaBorradores.vue";
 import verModalHistoricoFacturas from "./modals/verModalHistoricoFacturas.vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter, useRoute, onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
 import ConfiguracionSegmentacionCard from "@/views/ventas/cotizaciones/crear-cotizacion/components/ConfiguracionSegmentacionCard.vue";
 import InformacionCliente from "./components/InformacionCliente.vue";
 import FiltrarCliente from "@/components/ventas/cliente/FiltrarCliente.vue";
@@ -151,6 +151,10 @@ const {
   isRecoveringQuote,
 
   //temp
+  draftSaveState,
+  draftSaveError,
+  retryDraftSave,
+  flushDraftSave,
   fetchCurrentDraft,
   getActiveDrafts,
   removeDraft,
@@ -172,6 +176,12 @@ const {
   validateDispatchFields,
   validateItemLWeights,
 } = useProcessCreateQuote(currentDraftId.value);
+
+// No abandonar un borrador con cambios pendientes o cuyo guardado falló.
+onBeforeRouteLeave(() => flushDraftSave());
+onBeforeRouteUpdate((to, from) => {
+  if (to.query.draft !== from.query.draft) return flushDraftSave();
+});
 
 const {
   fetchConditionPayment,
@@ -914,6 +924,7 @@ watch(
 
 // --- LÓGICA PARA EL MODAL DE BORRADORES ---
 const createNewDraft = async () => {
+  if (!(await flushDraftSave())) return;
   const newId = `draft_${Date.now()}`;
   await clearForm(uploadedFiles, false, false, uploadedPdfs);
   showInfoClient.value = false;
@@ -1284,6 +1295,19 @@ onMounted(async () => {
             >
               <i class="fa fa-plus me-1"></i> Crear
             </router-link>
+          </div>
+          <div v-if="draftSaveState !== 'idle'" class="col-12 fs-sm" role="status" aria-live="polite" aria-atomic="true">
+            <span v-if="draftSaveState === 'saving'" class="text-muted">
+              <i class="fa fa-spinner fa-spin me-1" aria-hidden="true"></i>Guardando borrador…
+            </span>
+            <span v-else-if="draftSaveState === 'pending'" class="text-muted">Cambios pendientes de guardar</span>
+            <span v-else-if="draftSaveState === 'saved'" class="text-success">
+              <i class="fa fa-check me-1" aria-hidden="true"></i>Borrador guardado
+            </span>
+            <template v-else-if="draftSaveState === 'error'">
+              <span class="text-danger" :title="draftSaveError">No se pudo guardar el borrador. Tus cambios siguen en esta pantalla.</span>
+              <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" @click="retryDraftSave">Reintentar</button>
+            </template>
           </div>
         </template>
       </FiltrarCliente>

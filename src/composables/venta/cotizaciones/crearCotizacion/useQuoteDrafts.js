@@ -1,5 +1,5 @@
-import { ref, nextTick } from "vue";
-import { watchDebounced } from "@vueuse/core";
+import { ref, nextTick, computed, reactive, watch, onScopeDispose } from "vue";
+import { createDraftSaveQueue } from "./draftSaveQueue";
 import axiosClient from "@/axios";
 import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
 import { getInitialState } from "./quoteInitialState";
@@ -51,29 +51,62 @@ export function useQuoteDrafts({
     }
 
 
-    const loadingSyncDraft = ref(false);
-    watchDebounced(
-        () => form.value, async (newVal) => {
-            if (!newVal.cliente && newVal.items.length === 0) {
-                return;
-            }
-            const currentId = newVal.draft_id;
-            if (!currentId || currentId === 'undefined') return;
-            const { ...cleanData } = newVal;
-            return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, {
-                draft_id: currentId,
-                pto_vta_id: selectedPointSaleCode.value,
-                pv_id : selectedPointSaleId.value,
-                data: {
-                    ...cleanData,
-                    imagenesoperaciones: [], // Aseguramos que viajen vacíos
-                    documentos_pdf: []      // Aseguramos que viajen vacíos
-                }
-            }), {
-                loadingRef: loadingSyncDraft
-            })
-        }, { deep: true, debounce: 1000 });
+    const saveStates = reactive({});
+    const draftSaveState = computed(() => saveStates[form.value.draft_id]?.state || 'idle');
+    const draftSaveError = computed(() => saveStates[form.value.draft_id]?.error || '');
+    const loadingSyncDraft = computed(() => draftSaveState.value === 'saving');
+    let debounceId;
+    let disposed = false;
+    const queue = createDraftSaveQueue({
+        save: payload => run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, payload)),
+        onState: (id, state, error) => { saveStates[id] = { state, error }; },
+    });
 
+    function enqueueCurrentDraft() {
+        if (disposed || isRecoveringQuote.value) return;
+        const data = form.value;
+        if (!data.draft_id || data.draft_id === 'undefined' || (!data.cliente && data.items.length === 0)) return;
+        // Copia independiente: editar el formulario no modifica una solicitud ya en curso.
+        const payload = JSON.parse(JSON.stringify({
+            draft_id: data.draft_id,
+            pto_vta_id: selectedPointSaleCode.value,
+            pv_id: selectedPointSaleId.value,
+            data: { ...data, imagenesoperaciones: [], documentos_pdf: [] },
+        }));
+        queue.enqueue(payload);
+        clearTimeout(debounceId);
+        debounceId = setTimeout(() => queue.flush(), 1000);
+    }
+
+    watch(() => form.value, enqueueCurrentDraft, { deep: true });
+    watch(isRecoveringQuote, recovering => {
+        if (!recovering) enqueueCurrentDraft();
+    });
+
+    async function flushDraftSave() {
+        await nextTick();
+        clearTimeout(debounceId);
+        return queue.flush();
+    }
+
+    async function retryDraftSave() {
+        await nextTick();
+        clearTimeout(debounceId);
+        return queue.retry(form.value.draft_id);
+    }
+
+    function warnBeforeUnload(event) {
+        if (!queue.hasPending()) return;
+        event.preventDefault();
+        event.returnValue = '';
+    }
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    onScopeDispose(() => {
+        disposed = true;
+        clearTimeout(debounceId);
+        queue.dispose();
+        window.removeEventListener('beforeunload', warnBeforeUnload);
+    });
 
     const loadingListDrafts = ref(false);
     async function getActiveDrafts() {
@@ -84,12 +117,17 @@ export function useQuoteDrafts({
 
     const loadingRemoveDraft = ref(false);
     async function removeDraft(draftIdToRemove) {
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.DELETE, { draft_id: draftIdToRemove }), {
-            loadingRef: loadingRemoveDraft,
-            onError: (err) => {
-                console.error("Error al eliminar borrador:", err);
-            }
-        });
+        await queue.suspend(draftIdToRemove);
+        try {
+            return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.DELETE, { draft_id: draftIdToRemove }), {
+                loadingRef: loadingRemoveDraft,
+                onError: (err) => {
+                    console.error("Error al eliminar borrador:", err);
+                }
+            });
+        } finally {
+            queue.resume(draftIdToRemove);
+        }
     }
 
 
@@ -104,6 +142,10 @@ export function useQuoteDrafts({
         loadingGetCurrentDraft,
         fetchCurrentDraft,
         loadingSyncDraft,
+        draftSaveState,
+        draftSaveError,
+        retryDraftSave,
+        flushDraftSave,
         loadingListDrafts,
         getActiveDrafts,
         loadingRemoveDraft,

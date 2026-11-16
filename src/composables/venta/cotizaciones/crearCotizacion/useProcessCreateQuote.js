@@ -28,7 +28,12 @@ export function useProcessCreateQuote(draftId = 'default') {
     // nuevo proceso para almacenar en bd 
     const isRecoveringQuote = ref(false);
     const form = ref(getInitialState());
-    form.value.draft_id = draftId;    const {
+    form.value.draft_id = draftId;
+    const {
+        draftSaveState,
+        draftSaveError,
+        retryDraftSave,
+        flushDraftSave,
         fetchCurrentDraft,
         getActiveDrafts,
         removeDraft,
@@ -1867,6 +1872,10 @@ export function useProcessCreateQuote(draftId = 'default') {
 
 
         //manejo de borradores 
+        draftSaveState,
+        draftSaveError,
+        retryDraftSave,
+        flushDraftSave,
         fetchCurrentDraft,
         getActiveDrafts,
         removeDraft,
