@@ -109,12 +109,12 @@
 <script setup>
 import { computed } from "vue";
 import { useStore} from 'vuex'
-import { formatPrice, formatPrice4 } from "@/functions";
+import { formatPrice } from "@/functions";
 
 const store = useStore();
 const picking = computed(() => store.state.picking);
 
-const { verpedido } = defineProps({
+defineProps({
   verpedido: Object,
 });
 

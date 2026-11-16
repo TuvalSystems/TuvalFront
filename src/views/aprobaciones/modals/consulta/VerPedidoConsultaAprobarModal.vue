@@ -4,7 +4,7 @@ import { useStore } from 'vuex'
 import { swalInfo } from "@/functions/swal-alert.js";
 import { format, format4 } from "@/functions";
 
-const { verpedido, indexPedido, tipo } = defineProps({
+defineProps({
   verpedido: Object,
   indexPedido: Number,
   tipo: String,
@@ -18,30 +18,30 @@ const nivelPrecioCliente = computed(() => store.state.nivelPrecioClienteDetalle)
 
 
 
-const emit = defineEmits(["aprobar", "rechazar"]);
+defineEmits(["aprobar", "rechazar"]);
 
 function verdiferenciacondicion(pedido) {
-  let msg = 'simon';
+
   swalInfo('Cambio condición de pago', 'de <b>' + pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
 }
 
 function verdiferenciaporcentaje(pedido) {
-  let msg = 'simon';
+
   swalInfo('Cambio porcentaje de descuento', 'de <b>' + pedido.porcentage_descuentooriginal + '%</b> a <b>' + pedido.porcentage_descuento + '%</b>');
 }
 
 function verdiferenciadescripcion(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de descripción de artículo', 'de <br><b>' + articulo.ART_DESCRIPCION_ORIGINAL + '</b><br> a <br><b>' + articulo.ART_DESCRIPCION + '</b>');
 }
 
 function verdiferenciavalor(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de precio de artículo', 'de <b>$' + articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.ART_VALOR + '</b>');
 }
 
 function verdiferenciadescuento(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de porcentaje de descuento', 'de <b>' + articulo.descuento_original + '%</b> a <b>' + articulo.descuento + '%</b>');
 }
 

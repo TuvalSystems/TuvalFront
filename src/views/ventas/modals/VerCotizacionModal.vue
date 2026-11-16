@@ -205,7 +205,7 @@
           <label for="orden-de-compra" class="col-sm-3 col-form-label text-right">Orden de compra:</label>
           <div class="col-sm-9">
             <div class="input-group">
-              <input v-model="vercotizacion.orden_de_compra" type="text" id="orden-de-compra" class="form-control"
+              <input v-model="editable_orden_de_compra" type="text" id="orden-de-compra" class="form-control"
                 :maxlength="max_length" @change="guardarOrdenDeCompra(vercotizacion)" />
               <span v-if="vercotizacion.orden_de_compra" class="input-group-text">{{ max_length -
                 vercotizacion.orden_de_compra.length }}</span>
@@ -215,7 +215,7 @@
         <div class="row">
           <label for="nota-interna" class="col-sm-3 col-form-label text-end">Nota interna:</label>
           <div class="col-sm-9">
-            <input v-model="vercotizacion.nota_interna" type="text" id="orden-de-compra" class="form-control"
+            <input v-model="editable_nota_interna" type="text" id="orden-de-compra" class="form-control"
               @change="guardarOrdenDeCompra(vercotizacion)" />
           </div>
         </div>
@@ -233,24 +233,17 @@
 import DetalleItemsL from "@/components/ventas/DetalleItemsL.vue";
 import {
   ref,
-  reactive,
   computed,
   onMounted,
-  onUnmounted,
   onBeforeUnmount,
 } from "vue";
 import { useStore } from "vuex";
-import { formatPrice, format, format4 } from "@/functions";
+import { format, format4 } from "@/functions";
 import {
-  swalSimple,
   swalInfo,
-  swalSuccess,
-  swalWarning,
-  swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 
-const { vercotizacion, indexCotizacion, tipo } = defineProps({
+const props = defineProps({
   vercotizacion: Object,
   indexCotizacion: Number,
   tipo: String,
@@ -261,10 +254,10 @@ const segmentocliente = computed(() => store.state.segmentocliente);
 const proyecto = computed(() => store.state.proyecto);
 const max_length = ref(20);
 
-let errorMsg = ref("");
+
 
 function verdiferenciacondicion(pedido) {
-  let msg = "simon";
+
   swalInfo(
     "Cambio condición de pago",
     "de <b>" + pedido.COND_ID_ORIGINAL + "</b> a <b>" + pedido.COND_ID + "</b>"
@@ -272,7 +265,7 @@ function verdiferenciacondicion(pedido) {
 }
 
 function verdiferenciaporcentaje(pedido) {
-  let msg = "simon";
+
   swalInfo(
     "Cambio porcentaje de descuento",
     "de <b>" +
@@ -284,7 +277,7 @@ function verdiferenciaporcentaje(pedido) {
 }
 
 function verdiferenciadescripcion(articulo) {
-  let msg = "simon";
+
   swalInfo(
     "Cambio de descripción de artículo",
     "de <br><b>" +
@@ -296,7 +289,7 @@ function verdiferenciadescripcion(articulo) {
 }
 
 function verdiferenciavalor(articulo) {
-  let msg = "simon";
+
   swalInfo(
     "Cambio de precio de artículo",
     "de <b>$" +
@@ -315,4 +308,13 @@ function guardarOrdenDeCompra(cotizacion) {
 
 onMounted(() => { });
 onBeforeUnmount(() => { });
+const emit = defineEmits(["update:vercotizacion"]);
+const editable_orden_de_compra = computed({
+  get: () => props.vercotizacion.orden_de_compra,
+  set: (value) => emit("update:vercotizacion", { orden_de_compra: value }),
+});
+const editable_nota_interna = computed({
+  get: () => props.vercotizacion.nota_interna,
+  set: (value) => emit("update:vercotizacion", { nota_interna: value }),
+});
 </script>

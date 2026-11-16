@@ -62,7 +62,9 @@ export function initNotifications() {
     if (currentUid) {
       try {
         echo.leave(`App.Models.GpUsuario.${currentUid}`);
-      } catch {}
+      } catch {
+        // El canal puede estar desconectado; continuar limpiando la sesión local.
+      }
       currentUid = null;
       initialized = false;
     }
@@ -80,7 +82,9 @@ export function initNotifications() {
   if (currentUid && currentUid !== uid) {
     try {
       echo.leave(`App.Models.GpUsuario.${currentUid}`);
-    } catch {}
+    } catch {
+        // El canal puede estar desconectado; continuar limpiando la sesión local.
+      }
   }
 
   currentUid = uid;
@@ -92,7 +96,7 @@ export function initNotifications() {
   // });
 
   // (Opcional) log de errores del canal
-  chan.error?.((err) => {
+  chan.error?.(() => {
     // console.warn("Canal notificaciones error:", err);
   });
   chan.notification((n) => {

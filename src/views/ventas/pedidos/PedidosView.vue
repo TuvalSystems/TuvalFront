@@ -1173,7 +1173,7 @@ async function handleCustomerSelected(selection) {
           @consultarExistente="consultarExistente(verpedido)"
           @consultarDespachado="consultarDespachado(verpedido)"
           @cancelarPedido="cancelarPedido"
-        ></VerPedidoModal>
+         @update:verpedido="Object.assign(verpedido, $event)"></VerPedidoModal>
       </div>
     </div>
   </div>

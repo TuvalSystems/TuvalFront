@@ -146,7 +146,7 @@
 
 import { ref, computed } from "vue";
 import { useStore } from 'vuex';
-import { swalSuccess, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, toast } from "@/functions/swal-alert.js";
 
 
 
@@ -192,13 +192,13 @@ function editPerfil(perfil) {
 
 const store = useStore();
 const sections = computed(() => store.state.sections);
-const usuarios = computed(() => store.state.usuarios);
+
 const perfiles = computed(() => store.state.perfiles);
 store.dispatch("getPerfiles");
 
 const optionstate = store.state.optionstate;
 
-const perfilesLoading = computed(() => store.state.perfiles.loading);
+
 
 function deletePerfil(perfil) {
   store.dispatch("deletePerfil", perfil.id).then((res) => {
@@ -237,90 +237,15 @@ function selectseccionperfil(seccion, perfil) {
     });
 }
 
-const datausuarioperfil = ref();
-function selectusuarioperfil(event, usuario) {
-  datausuarioperfil.value = {
-    usuario_id: usuario.USERID,
-    perfil_id: event.target.value,
-  };
-  store.dispatch('updateUsuarioPerfil', datausuarioperfil.value)
-    .catch(err => {
-      errorMsg.value = err.response.data.error
-    });
-}
 
-function swalAlertResetPassword(usuario) {
-  toast.fire({
-    title: "Estas seguro?",
-    text: "Si resetea la contraseña de " + usuario.USERNAME + " obligatoriamente tendra que cambiarla",
-    icon: "warning",
-    showCancelButton: true,
-    customClass: {
-      confirmButton: "btn btn-danger m-1",
-      cancelButton: "btn btn-secondary m-1",
-    },
-    confirmButtonText: "Si, resetearla!",
-    html: false,
-    preConfirm: () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 50);
-      });
-    },
-  }).then((result) => {
-    if (result.value) {
-      resetPassword(usuario)
-    }
-  })
-}
 
-async function resetPassword(usuario) {
-  try {
-    const res = await store.dispatch('resetPassword', { USERID: usuario.USERID });
-    await swalSuccess(res.data.message);
-  } catch (err) {
-    errorMsg.value = err.response?.data?.error || 'Error al resetear contraseña';
-    swalError(errorMsg.value);
 
-  }
-}
-function swalChangeStatus(usuario) {
-  toast.fire({
-    title: "Estas seguro?",
-    text: "Si cambias el estado de " + usuario.USERNAME + " no podra acceder al sistema",
-    icon: "warning",
-    showCancelButton: true,
-    customClass: {
-      confirmButton: "btn btn-danger m-1",
-      cancelButton: "btn btn-secondary m-1",
-    },
-    confirmButtonText: "Si, cambiarlo!",
-    html: false,
-    preConfirm: () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 50);
-      });
-    },
-  }).then((result) => {
-    if (result.value) {
-      changeStatusUser(usuario)
-    }
-  });
-}
 
-async function changeStatusUser(usuario) {
 
-  try {
-    const res = await store.dispatch('changeStatusUser', { USERID: usuario.USERID });
-    await swalSuccess(res.data.message);
-  } catch (err) {
-    errorMsg.value = err.response?.data?.error || 'Error al cambiar estado del usuario';
-    swalError(errorMsg.value);
-  }
-}
+
+
+
+
 
 
 

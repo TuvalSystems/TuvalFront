@@ -955,6 +955,7 @@ onUnmounted(() => {
       <!-- fin proceso de cobros a ejecutar -->
 
       <ResumenCobro
+        @update-draft="Object.assign(collectionDraft, $event)"
         v-if="canShowCollectionSummary"
         :loading-register="loadingRegisterInvoiceCollection"
         ref="collectionSummaryRef"

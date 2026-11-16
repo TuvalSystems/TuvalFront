@@ -83,7 +83,7 @@
               v-model="vehiculo.transportista_id"
               > 
               <option
-                v-for="transportista in transportistas" :key="vehiculo.id"
+                v-for="transportista in transportistas" :key="transportista.id"
                 :value="transportista.id"
                 >{{ transportista.nombre }}</option>
             </select>

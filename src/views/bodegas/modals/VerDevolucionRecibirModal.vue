@@ -104,16 +104,16 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
-import { formatPrice} from "@/functions";
+import { ref, reactive, computed } from "vue";
+
 import CabeceraDevolucion from "@/components/CabeceraDevolucion.vue";
 import {useStore} from "vuex";
 import {swalError, swalSuccess} from "@/functions/swal-alert";
 const store = useStore();
 const detalledevolucion = computed(() => store.state.detalledevolucion);
-const { verdevolucion } = defineProps({
+defineProps({
   verdevolucion: Object,
-})
+});
 const emit = defineEmits(["recibir", "rechazar"]);
 const generar = computed(() => store.state.generar);
 const botonRecibir = ref('botonRecibir');

@@ -47,7 +47,7 @@ const packs = [
 
 
 const currentPack = computed(() => {
-    return packs.find((pack) => pack.key === activePack.value) || pack[0];
+    return packs.find((pack) => pack.key === activePack.value) || packs[0];
 });
 
 const normalizedSearch = computed(() => {

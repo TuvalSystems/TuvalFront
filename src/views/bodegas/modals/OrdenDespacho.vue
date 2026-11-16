@@ -152,12 +152,12 @@ import DocumentosPdf from "@/views/ventas/modals/tabs/DocumentosPdf.vue";
 import DireccionEnvioOrd from "@/views/ventas/modals/tabs/DireccionEnvioOrd.vue";
 
 const store = useStore();
-const picking = computed(() => store.state.picking);
+
 const detalle_orden_despacho = computed(() => store.state.detalle_orden_despacho);
 const detalle_orden_despacho_loading = computed(() => store.state.detalle_orden_despacho_loading);
 const direccionEnvio = computed(() => store.state.detalle_orden_despacho?.orden?.sucursal);
-const pesototal = ref(0);
-const { verpedido, currentOrden, documentosPedidos } = defineProps({
+
+defineProps({
   verpedido: Object,
   currentOrden: Object,
   documentosPedidos: Array

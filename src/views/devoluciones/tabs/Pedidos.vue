@@ -141,7 +141,7 @@
           :verpedido="verpedido"
           :indexPedido="indexPedido"
           :tipo="tipo"
-        ></VerPedidoModal>
+         @update:verpedido="Object.assign(verpedido, $event)"></VerPedidoModal>
       </div>
     </div>
   </div>

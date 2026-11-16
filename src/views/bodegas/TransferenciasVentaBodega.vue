@@ -1,14 +1,14 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useStore } from 'vuex'
 import { useTemplateStore } from "@/stores/template";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
-import { useRouter, useRoute } from "vue-router";
+import { useRoute } from "vue-router";
 import PickingTransferencias from "./modals/PickingTransferencias.vue"
 import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
 import VueSelect from "vue-select";
-import { formatPrice, formatPrice4 } from "@/functions";
+import { formatPrice } from "@/functions";
 import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
 import { useSalesTransfersProcess } from "@/composables/bodegas/transferencia/useSalesTransferProcess";
 const {
@@ -17,7 +17,6 @@ const {
   sendGuideSalesTransfer,
 } = useSalesTransfersGuideProcess();
 const {
-  loadingCancelPicking,
   cancelPicking
 } = useSalesTransfersProcess();
 
@@ -26,9 +25,9 @@ const templateStore = useTemplateStore();
 const route = useRoute();
 const transferencias_venta = computed(() => store.state.transferencias_venta);
 const transferencias_venta_loading = computed(() => store.state.transferencias_venta_loading);
-const picking = computed(() => store.state.picking);
-const currentOrden = ref(null);
-const motivo = ref(null);
+
+
+
 const buscarpedido = ref(null);
 const buscarcompartimiento = ref(null);
 const currentBodega = ref(null);
@@ -38,8 +37,8 @@ const currentBodega = ref(null);
 
 store.dispatch('getTransportistas');
 
-let verpedidoModal = ref(null);
-let verpedidoModalObj = null;
+
+
 
 let pickingModal = ref(null);
 let pickingModalObj = null;
@@ -88,40 +87,9 @@ async function imprimirGuia(guia) {
     });
 }
 
-function confirmEliminarguiaGuia(guia) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De eliminar la guía de remisión " + guia.GUI_REM_GUIA_REMISION,
-      icon: "question",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, eliminarla",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        eliminarguiaGuia(guia)
-      }
-    });
-}
 
-function eliminarguiaGuia(guia) {
-  store.dispatch('eliminarGuiaRemision', guia).then((res) => {
-    refrescar();
-  })
-}
+
+
 
 function confirmDespacharGuia(guia) {
   toast

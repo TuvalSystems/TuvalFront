@@ -2,8 +2,8 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from 'vuex'
 import { Modal } from "bootstrap";
-import { formatPrice, format } from "@/functions";
-import { swalSuccess, swalError, toast } from "@/functions/swal-alert.js";
+import { format } from "@/functions";
+import { swalSuccess, swalError } from "@/functions/swal-alert.js";
 import VerCotizacionAprobarModal from "../modals/VerCotizacionAprobarModal.vue";
 import { useApprovalQuote } from "@/composables/aprobaciones/cotizaciones/useApprovalQuote";
 
@@ -108,11 +108,9 @@ const store = useStore();
 
 
 let errorMsg = ref('');
-const cotizaciones = computed(() => store.state.cotizaciones);
 
-function rechazarcotizacion(cotizacion) {
-  swalSuccess('Cotización: ' + cotizacion.cotizacion + ' rechazada')
-}
+
+
 
 const vercotizacion = ref({});
 const indexCotizacion = ref(null);
@@ -125,34 +123,7 @@ function funcionvercotizacion(cotizacion) {
   store.dispatch('detallecotizacion', cotizacion)
 }
 
-function confirmAprobarCotizacion(cotizacion) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De aprobar la cotización " + cotizacion.cotizacion + "",
-      icon: "question",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, aprobarlo",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        aprobarCotizacion(cotizacion);
-      }
-    });
-}
+
 
 function aprobarCotizacion(cotizacion) {
   cotizacion.chao = true;
@@ -165,34 +136,7 @@ function aprobarCotizacion(cotizacion) {
   });
 }
 
-function confirmRechazarCotizacion(cotizacion) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De rechazar la cotización " + cotizacion.cotizacion + "",
-      icon: "warning",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-danger m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, rechazarlo",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        rechazarCotizacion(cotizacion);
-      }
-    });
-}
+
 
 function rechazarCotizacion(cotizacion) {
   cotizacion.chao = true;
@@ -310,7 +254,7 @@ onMounted(() => {
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <VerCotizacionAprobarModal :vercotizacion="vercotizacion" :indexCotizacion="indexCotizacion" :tipo="tipo"
-          @rechazar="rechazarCotizacion(vercotizacion)" @aprobar="aprobarCotizacion(vercotizacion)">
+          @rechazar="rechazarCotizacion(vercotizacion)" @aprobar="aprobarCotizacion(vercotizacion)" @update:vercotizacion="Object.assign(vercotizacion, $event)">
         </VerCotizacionAprobarModal>
       </div>
     </div>

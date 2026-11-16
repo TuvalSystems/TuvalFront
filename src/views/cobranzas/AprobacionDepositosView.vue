@@ -192,7 +192,7 @@ async function aprobarDeposito(deposito) {
     id: deposito
   });
   store.dispatch('aprobarDepositos', data)
-    .then((result) => {
+    .then(() => {
       store.dispatch('depositosPorAprobar');
     });
 }
@@ -203,7 +203,7 @@ async function rechazarDeposito(deposito) {
     motivo: motivo.value
   });
   store.dispatch('rechazarDepositos', data)
-    .then((result) => {
+    .then(() => {
       rechazarModalObj.hide();
       store.dispatch('depositosPorAprobar');
     });

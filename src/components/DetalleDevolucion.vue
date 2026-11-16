@@ -72,8 +72,8 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
-import { formatPrice, format, format4 } from "@/functions";
+import { computed } from "vue";
+import { format4 } from "@/functions";
 import { useStore } from 'vuex'
 const store = useStore();
 const detalledevolucion = computed(() => store.state.detalledevolucion);

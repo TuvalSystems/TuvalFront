@@ -112,7 +112,7 @@ import { useTypeIdentifyStore } from "@/stores/catalogos/useTypeIdentifyStore";
 
 const store = useStore();
 const transportista = computed(() => store.state.transportista);
-const vehiculos = computed(() => store.state.vehiculos);
+
 const emit = defineEmits(["guardarTransportista"]);
 const typeIdentifyStore = useTypeIdentifyStore();
 const listTypeIdentify = computed(() => typeIdentifyStore.list);

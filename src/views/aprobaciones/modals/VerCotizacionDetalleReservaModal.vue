@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { watch, reactive, onMounted } from 'vue';
+
 import { formatPriceJm, formatJm, toInt } from "@/functions";
 
 const props = defineProps({
@@ -16,10 +16,10 @@ const props = defineProps({
 
 // Formateadores (USD y cantidades)
 const nf2 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const nf4 = new Intl.NumberFormat("es-EC", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-const money = (n) => `$${nf2.format(n ?? 0)}`;
+new Intl.NumberFormat("es-EC", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+
 const num2 = (n) => nf2.format(n ?? 0);
-const num4 = (n) => nf4.format(n ?? 0);
+
 const infoReserva = computed(() => props.infoReserva);
 const segmento = computed(() => props.segmento);
 </script>

@@ -440,7 +440,7 @@
           :vercotizacion="vercotizacion"
           :indexCotizacion="indexCotizacion"
           :tipo="tipo"
-        >
+         @update:vercotizacion="Object.assign(vercotizacion, $event)">
         </VerCotizacionModal>
       </div>
     </div>

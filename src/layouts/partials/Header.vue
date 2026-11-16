@@ -8,7 +8,7 @@ import { useNotificationCenter } from "@/composables/notificaciones/useNotificat
 const { unreadCount } = useNotificationCenter();
 // Grab example data
 
-const notificaciones = {};
+
 // Main store and Router
 const store = useTemplateStore();
 const actions = useStore();
@@ -16,7 +16,7 @@ const router = useRouter();
 
 const user = actions.state.user.data;
 const puntosdeventa = computed(() => actions.state.puntosdeventa);
-const bodegas = computed(() => actions.state.bodegas);
+
 const puntodeventaselect = computed(() => actions.state.puntodeventaselect);
 const currentCliente = ref(actions.state.currentCliente);
 const currentSucursal = ref(actions.state.currentSucursal);

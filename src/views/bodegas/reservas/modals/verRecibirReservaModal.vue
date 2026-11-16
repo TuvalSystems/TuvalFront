@@ -65,7 +65,7 @@ async function confirmarRecibir() {
     loadingReceived.value = true;
     toast.fire({
         title: 'Confimar recibir items?',
-        icon: 'question',
+
         html: `Vas a recibir <b>${items.length}</b> ítems .<br>Guía: <b>${numeroGuia}</b>`,
         icon: 'question',
         showCancelButton: true,

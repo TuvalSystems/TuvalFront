@@ -127,7 +127,7 @@ import { useStore} from 'vuex'
 let errorMsg = ref('');
 const store = useStore();
 const testBlock = ref(null);
-const procesosBlock = ref(null);
+
 const isDisabled = ref(null);
 
 function sincronizaDataGP(testBlock, path){
@@ -148,25 +148,9 @@ function sincronizaDataGP(testBlock, path){
   }); 
 }
 
-function sincronizaDataGPprocesos(procesosBlock, path){
-  errorMsg.value = null;
-  isDisabled.value = true;
-  procesosBlock.statusLoading()
-  store.dispatch('sincronizaDataGP', path)
-  .then((response) => {
-      errorMsg.value = null;
-      procesosBlock.statusNormal()
-      serverResponseProcesos.value = response.data.message;
-      isDisabled.value = false;
-  })
-  .catch(err => {
-    isDisabled.value = false;
-    procesosBlock.statusNormal()
-    errorMsg.value = err.response.data.message
-  }); 
-}
+
 // Used to reference test blocks
 
 let serverResponse = ref('Esperando respuesta del servidor');
-let serverResponseProcesos = ref('Esperando respuesta del servidor');
+
 </script>

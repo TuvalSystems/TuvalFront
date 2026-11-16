@@ -345,7 +345,7 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useStore} from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalError } from "@/functions/swal-alert.js";
 import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { formatPriceJm } from "@/functions";

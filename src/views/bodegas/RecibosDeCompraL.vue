@@ -96,7 +96,7 @@
   <!-- END Page Content -->
 </template>
 <script setup>
-import { ref, reactive, computed } from "vue";
+
 import { useStore} from 'vuex'
 
 import RecibosDeCompraGenerados from "./tablas/RecibosDeCompraGenerados.vue";

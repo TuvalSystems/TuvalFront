@@ -85,55 +85,31 @@
   <!-- END Page Content -->
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
-import { useRouter, useRoute } from "vue-router";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import flatPickr from 'vue-flatpickr-component';
-import { Spanish } from "flatpickr/dist/l10n/es.js"
+
+
+
+
 import { formatPrice } from "../../functions";
 
-const flatPickrState = reactive({
-  // Configuration, get more form https://chmln.github.io/flatpickr/options/
-  fecha: {
-    maxDate: Date.now(),
-    locale: Spanish,
-  },
-});
+
 
 
 const store = useStore();
 const transferencias_reposicion = computed(() => store.state.transferencias_reposicion);
-const route = useRoute();
+
 
 const today = new Date();
-const fecha = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 
-const set_fecha = ref(fecha);
+
 const loading = ref(false);
 
 store.dispatch('transferenciasReposicion')
 //store.dispatch('transferenciasReposicionInterval');
 
-function consultarreposicion(fecha) {
-  const params = {
-    numDoc: '',
-    fecha: fecha,
-  }
-  loading.value = true;
-  store.dispatch('getReposicion', params).then((res) => {
-    if (res.success) {
-      swalSuccess(res.message);
-      store.dispatch('transferenciasReposicion');
-    } else {
-      swalWarning(res.message);
-    }
-    loading.value = false;
-  }).catch(err => {
-    swalError(err.response.data.error);
-    loading.value = false;
-  });
-}
+
 
 onBeforeUnmount(() => {
   //store.dispatch('transferenciasReposicionStop');

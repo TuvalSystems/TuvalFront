@@ -248,7 +248,7 @@ import CabeceraPedido from "@/components/CabeceraPedido.vue";
 import DocumentosPdf from "@/views/ventas/modals/tabs/DocumentosPdf.vue";
 
 import VueEasyLightbox from "vue-easy-lightbox";
-const { verpedido, indexPedido, tipo } = defineProps({
+defineProps({
   verpedido: Object,
   indexPedido: Number,
   tipo: String,
@@ -267,25 +267,19 @@ const documentosPdf = computed(() => store.state.documentosPdf);
 
 
 const tabActual = ref('detalle');
-let errorMsg = ref('');
 
-function verdiferenciacondicion(pedido) {
-  let msg = 'simon';
-  swalInfo('Cambio condición de pago', 'de <b>' + pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
-}
 
-function verdiferenciaporcentaje(pedido) {
-  let msg = 'simon';
-  swalInfo('Cambio porcentaje de descuento', 'de <b>' + pedido.porcentage_descuentooriginal + '%</b> a <b>' + pedido.porcentage_descuento + '%</b>');
-}
+
+
+
 
 function verdiferenciadescripcion(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de descripción de artículo', 'de <br><b>' + articulo.ART_DESCRIPCION_ORIGINAL + '</b><br> a <br><b>' + articulo.ART_DESCRIPCION + '</b>');
 }
 
 function verdiferenciavalor(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de precio de artículo', 'de <b>$' + articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.ART_VALOR + '</b>');
 }
 

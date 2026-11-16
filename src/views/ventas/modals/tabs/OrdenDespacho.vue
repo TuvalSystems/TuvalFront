@@ -30,9 +30,9 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { computed } from "vue";
 import { useStore} from 'vuex'
-import Swal from "sweetalert2";
+
 
 const store = useStore();
 const orden_despacho = computed(() => store.state.orden_despacho);

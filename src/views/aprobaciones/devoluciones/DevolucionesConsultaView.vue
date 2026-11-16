@@ -195,7 +195,7 @@
             <VerDevolucionAprobarModal
               :verdevolucion="verdevolucion"
               @aprobar="aprobarDevolucion(verdevolucion)"
-            ></VerDevolucionAprobarModal>
+             @update:verdevolucion="Object.assign(verdevolucion, $event)"></VerDevolucionAprobarModal>
           </div>
         </div>
       </div>

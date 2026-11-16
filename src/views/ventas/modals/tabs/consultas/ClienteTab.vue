@@ -13,16 +13,11 @@ const {
 
     //customer
     infoClient,
-    infoSegmento,
-    loadingAvailableCredit,
     fetchAvailableCreditCustomer,
 
     //sucursales
-    loadingSucursales,
     sucursales,
     fetchCustomerBranches,
-    //validations
-    getClientStatus,
 
 } = useClientSearch();
 

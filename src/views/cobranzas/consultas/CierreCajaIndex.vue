@@ -4,7 +4,7 @@ import flatPickr from 'vue-flatpickr-component';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useCashClosureLookup } from "@/composables/cobranzas/consultas/useCashClosureLookup";
 import { swalWarning, swalError, swalSuccess } from "@/functions/swal-alert";
-import { formatPrice } from "@/functions";
+
 
 //importacion de componentes 
 import CashClosureSaldos from '@/views/cobranzas/consultas/components/CashClosureSaldos.vue';
@@ -26,7 +26,6 @@ const {
   //filters
   filters,
   //punto de venta
-  loadingListPv,
   listPv,
   fetchListPvByUser,
   //cajas

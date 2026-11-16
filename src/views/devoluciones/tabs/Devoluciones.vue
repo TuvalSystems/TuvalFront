@@ -131,17 +131,17 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore} from 'vuex'
-import { useTemplateStore } from "@/stores/template";
+
 import { Modal } from "bootstrap";
 
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalWarning } from "@/functions/swal-alert.js";
 import DetalleDevolucion from "../modals/DetalleDevolucion.vue"
 
 const store = useStore();
-const templateStore = useTemplateStore();
+
 const devoluciones = computed(() => store.state.devoluciones);
 const verdevolucion = ref({});
-const indexPedido = ref(null);
+
 
 let verDevolucionModal= ref(null);
 let verDevolucionModalObj = null;

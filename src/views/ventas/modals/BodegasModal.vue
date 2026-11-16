@@ -43,18 +43,13 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, reactive, watch } from "vue";
+import { computed, reactive } from "vue";
 import { useStore } from "vuex";
 import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 
-const { indexbodegas, verbodegas } = defineProps({
+defineProps({
   indexbodegas: Number,
   verbodegas: Boolean,
 });
@@ -62,7 +57,7 @@ const store = useStore();
 const cotizacion = computed(() => store.state.cotizacion);
 
 
-let errorMsg = ref("");
+
 
 function isInt(value) {
   var x = parseFloat(value);

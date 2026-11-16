@@ -19,7 +19,6 @@ const {
   profiles,
   loading,
   fetchProfiles,
-  refresh,
 } = useProfileList();
 
 const {

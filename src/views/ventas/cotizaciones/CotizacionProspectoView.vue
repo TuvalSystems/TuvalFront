@@ -629,9 +629,7 @@ const  calcTotales = () =>{
       const modifier = Number.parseFloat(articulo.modificador || 0);
       let priceCalculated = unitPrice + (unitPrice * modifier / 100);
       const diference = Math.abs(priceCalculated - Number.parseFloat(articulo.ART_VALOR || 0));
-      if (articulo.cambiar_valor) {
-
-      } else {
+      if (!articulo.cambiar_valor) {
         if (diference < 0.001) {
           articulo.ART_VALOR = redondear(articulo.ART_VALOR, 4);
         } else {
@@ -782,48 +780,7 @@ async function guardarCotizacion() {
     });
 }
 
-const cols = reactive([
-  {
-    name: "Código",
-    field: "ART_CODIGO",
-    sort: "",
-  },
-  {
-    name: "Descripción",
-    field: "ART_DESCRIPCION",
-    sort: "",
-  },
-  {
-    name: "CTL",
-    field: "ART_CODIGO_TRES_LETRAS",
-    sort: "",
-  },
-  {
-    name: "U. medida",
-    field: "ART_PLAN_UMEDIDA",
-    sort: "",
-  },
-  {
-    name: "Stock bodega",
-    field: "ART_STOCK",
-    sort: "",
-  },
-  {
-    name: "P.Lista",
-    field: "ART_VALOR",
-    sort: "",
-  },
-  {
-    name: "P. + IVA",
-    field: "ART_VALOR",
-    sort: "",
-  },
-  {
-    name: "Peso",
-    field: "ART_PESO",
-    sort: "",
-  },
-]);
+
 
 
 

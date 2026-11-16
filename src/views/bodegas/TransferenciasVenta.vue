@@ -72,22 +72,22 @@
   <!-- END Page Content -->
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount  } from "vue";
+import { ref, computed, onBeforeUnmount  } from "vue";
 import { useStore} from 'vuex'
-import { useRouter, useRoute } from "vue-router";
-import Swal from "sweetalert2";
-import { Modal } from "bootstrap";
+
+
+
 import {formatPrice} from "../../functions";
 
 
 const store = useStore();
 const transferencias_venta = computed(() => store.state.transferencias_venta);
 const transferencias_venta_loading = ref(true);
-const route = useRoute();
+
 
 store.dispatch('transferenciasVenta').then( () => {
   transferencias_venta_loading.value = false;
-}).catch( err => {
+}).catch( () => {
   transferencias_venta_loading.value = false;
 })
 // store.dispatch('transferenciasVentaInterval');

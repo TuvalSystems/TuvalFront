@@ -1,14 +1,12 @@
 <script setup>
 import { watch, reactive, toRefs, unref } from 'vue';
-import { formatPrice, formatPrice4 } from "@/functions";
+import { formatPrice } from "@/functions";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
-import { storeToRefs } from 'pinia'
 import { useTipoReservasStore } from '@/stores/cotizaciones/reservas/useTipoReservasStore';
 import { useQuotationReserveRequestSale } from '@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale';
 import {
     swalSuccess,
-    swalError,
     swalWarning
 } from "@/functions/swal-alert.js";
 const emit = defineEmits(['modalReservaHide']);
@@ -17,7 +15,6 @@ const props = defineProps({
 });
 const { datosReserva } = toRefs(props);
 const tipoReservasStore = useTipoReservasStore();
-const { tipoReservas } = storeToRefs(tipoReservasStore);
 const { reserva, solicitarReserva, isInvalid, resetForm, validateTypeReserveHasItemLOrService,
     validateHasDuplicateItems, } = useQuotationReserveRequestSale(datosReserva);
 

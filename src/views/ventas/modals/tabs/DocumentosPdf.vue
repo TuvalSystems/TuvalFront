@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import { useBootstrapModal } from '@/composables/core/useBootstrapModal';
-const props = defineProps({
+defineProps({
     documentos: {
         type: Array,
         default: () => []
     }
-})
+});
 const selectedPdf = ref(null)
 const modalPreviewRef = ref(null)
 const { show, hide } = useBootstrapModal(modalPreviewRef, {

@@ -30,7 +30,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits([
+defineEmits([
   'toggle',
   'set-home',
   'mark-all',

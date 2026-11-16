@@ -116,13 +116,13 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { ref, computed } from "vue";
 import { useStore } from 'vuex'
-import { formatPrice } from "@/functions";
-import swalAlert, { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+
+import { swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { useTemplateStore } from "@/stores/template";
 
-const { verrecibodecompral } = defineProps({
+defineProps({
   verrecibodecompral: Object,
 });
 
@@ -132,7 +132,7 @@ const detallerecibodecompral = computed(() => store.state.detallerecibodecompral
 const generar = computed(() => store.state.generar);
 const deshabilitarImprimir = ref(false);
 
-let errorMsg = ref('');
+
 
 const emit = defineEmits(["recibir"]);
 

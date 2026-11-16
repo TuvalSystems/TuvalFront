@@ -128,7 +128,7 @@ function changeVehicleTransport() {
       data.transporte_id = '';
     }
   }
-};
+}
 
 
 /** validacion para tipo de identificacion */

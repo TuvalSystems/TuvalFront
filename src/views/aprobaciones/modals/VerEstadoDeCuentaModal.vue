@@ -175,7 +175,7 @@
     <div class="row">
       <label for="orden-de-compra" class="col-sm-2 col-form-label text-right">Mensaje:</label>
       <div class="col-sm-7">
-        <input v-model="verpedido.aprobado_crediticio_mensaje" type="text" 
+        <input v-model="editable_aprobado_crediticio_mensaje" type="text"
           id="orden-de-compra" class="form-control" 
           placeholder="Motivo de rechazo"
           @change="guardarMensaje(verpedido)"
@@ -189,12 +189,12 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { computed, onMounted, onBeforeUnmount } from "vue";
 import { useStore} from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import {formatPrice, format} from "@/functions";
+import { swalInfo } from "@/functions/swal-alert.js";
+import {format} from "@/functions";
 
-const { verpedido, indexPedido, tipo } = defineProps({
+const props = defineProps({
   verpedido: Object,
   indexPedido: Number,
   tipo: String,
@@ -210,14 +210,18 @@ function guardarMensaje(pedido){
 }
 
 
-let errorMsg = ref('');
 
-const emit = defineEmits(["aprobar", "rechazar"]);
+
+const emit = defineEmits(["update:verpedido", "aprobar", "rechazar"]);
 
 
 
 onMounted(() => {
 });
 onBeforeUnmount(() => {
+});
+const editable_aprobado_crediticio_mensaje = computed({
+  get: () => props.verpedido.aprobado_crediticio_mensaje,
+  set: (value) => emit("update:verpedido", { aprobado_crediticio_mensaje: value }),
 });
 </script>

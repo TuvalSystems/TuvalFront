@@ -1,10 +1,14 @@
+import { useQuoteStock } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteStock";
+import { useQuoteAlternativeItems } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteAlternativeItems";
+import { useQuoteDrafts } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteDrafts";
+import { getInitialState } from "./quoteInitialState";
 import axiosClient from "@/axios";
 import { freightUnitPrice } from "@/functions/freightPrice";
 import { useApiAction } from "@/composables/core/useApiAction";
 import { ref, watch, computed, nextTick } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
-import { watchDebounced } from '@vueuse/core';
+
 import { useRoute } from "vue-router";
 import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
 
@@ -12,87 +16,6 @@ function redondear(num, decimales = 2) {
     const factor = Math.pow(10, decimales);
     return Math.round((num + Number.EPSILON) * factor) / factor;
 }
-const getInitialState = () => ({
-    //variables nuevas para manejo de varias cotizaciones
-    created_temp_at: Date.now(),
-    draft_id: null,
-    nota_temporal: '',
-
-    cotizacion_id: null,
-    cotizacion_codigo: null,
-    mode: 'crear',
-    bodega_facturacion: null,
-    cliente: null,
-    segmento: null,
-    pv_id: null, //id del punto de venta 
-    punto_venta_id: null,
-    //variables de fecha y direccion de facturacion
-    // tipo_entrega: 'retiro',  //despacho
-    fecha_entrega: null,
-    direccion_facturacion_id: null,
-    direccion_entrega_id: null,
-
-    // variables de facturacion posterior (Booleanos)
-    factura_posterior_despacho: false,
-    factura_a_demanda: false,
-    factura_siguiente_mes: false,
-    alerta_facturar: '',
-    pregunta_facturar: false,
-    facturar_ahora: false,
-
-    //forma de pago 
-    condicion_pago_id: null,
-    condicion_pago_original_id: null,
-    forma_pago_id: null,
-
-
-    //descuentos
-    descuento_articulo: 0,
-    descuento_original: 0,
-
-    //notas
-    nota_interna: '',
-    nota_cliente: '',
-    nota_operaciones: '',
-    orden_de_compra: '',
-
-
-    //registro copia
-    registro_copia: null,
-
-    //calculos
-    subtotal: 0,
-    peso: 0,
-    descuento: 0,
-    iva: 0,
-    total: 0,
-
-    //modificador global
-    modificador_global: 0,
-    //items de cotizacion
-    items: [],
-
-    //imagenes de operaciones
-    imagenesoperaciones: [],
-    origen: '',
-
-    //pdf
-    documentos_pdf: [],
-
-    //seleccion de tipo de proyecto 
-    proyecto: null,
-
-
-    //parte de fletes 
-    responsable_flete: 'tuval',
-    tipo_despacho_id: 1,
-    fle_proveedor_id: null,
-    fle_valor: 0,
-    fle_peso: 0,
-
-    //campo para la facturación forzada a pesar de que tenga limite por fecha de facturacion
-
-});
 export function useProcessCreateQuote(draftId = 'default') {
     const store = useStore();
     const selectedPointSaleId = computed(() => store.state.puntoventaselectid);
@@ -103,93 +26,22 @@ export function useProcessCreateQuote(draftId = 'default') {
     const route = useRoute();
 
     // nuevo proceso para almacenar en bd 
+    const isRecoveringQuote = ref(false);
     const form = ref(getInitialState());
-    form.value.draft_id = draftId;
-
-    const loadingGetCurrentDraft = ref(false);
-    async function fetchCurrentDraft() {
-        const idToFetch = route.query.draft || draftId;
-        isRecoveringQuote.value = true;
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.GET, { draft_id: idToFetch }), {
-            loadingRef: loadingGetCurrentDraft,
-            onSuccess: (info) => {
-                const rawData = info.data;
-                const savedForm = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-                const nextState = {
-                    ...getInitialState(),
-                    ...(savedForm || {}),
-                    draft_id: idToFetch,
-                    imagenesoperaciones: [],
-                    documentos_pdf: []
-                };
-                if (!nextState.items) nextState.items = [];
-                if (!nextState.orden_de_compra) nextState.orden_de_compra = '';
-                form.value = nextState;
-                nextTick(() => {
-                    calculateTotals();
-                    setTimeout(() => {
-                        isRecoveringQuote.value = false;
-                    }, 500);
-                });
-            },
-            onError: (err) => {
-                console.log("Iniciando borrador nuevo en blanco", err);
-                const emptyState = getInitialState();
-                emptyState.draft_id = idToFetch;
-                form.value = emptyState;
-                isRecoveringQuote.value = false;
-            }
-        })
-    }
-
-
-    const loadingSyncDraft = ref(false);
-    watchDebounced(
-        () => form.value, async (newVal) => {
-            if (!newVal.cliente && newVal.items.length === 0) {
-                return;
-            }
-            const currentId = newVal.draft_id;
-            if (!currentId || currentId === 'undefined') return;
-            const { ...cleanData } = newVal;
-            return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, {
-                draft_id: currentId,
-                pto_vta_id: selectedPointSaleCode.value,
-                pv_id : selectedPointSaleId.value,
-                data: {
-                    ...cleanData,
-                    imagenesoperaciones: [], // Aseguramos que viajen vacíos
-                    documentos_pdf: []      // Aseguramos que viajen vacíos
-                }
-            }), {
-                loadingRef: loadingSyncDraft
-            })
-        }, { deep: true, debounce: 1000 });
-
-
-    const loadingListDrafts = ref(false);
-    async function getActiveDrafts() {
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.LIST, { pv_id: selectedPointSaleId.value }), {
-            loadingRef: loadingListDrafts
-        });
-    }
-
-    const loadingRemoveDraft = ref(false);
-    async function removeDraft(draftIdToRemove) {
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.DELETE, { draft_id: draftIdToRemove }), {
-            loadingRef: loadingRemoveDraft,
-            onError: (err) => {
-                console.error("Error al eliminar borrador:", err);
-            }
-        });
-    }
-
-
-
-
-
-
-
+    form.value.draft_id = draftId;    const {
+        fetchCurrentDraft,
+        getActiveDrafts,
+        removeDraft,
+    } = useQuoteDrafts({
+        route,
+        draftId,
+        isRecoveringQuote,
+        run,
+        form,
+        calculateTotals: () => calculateTotals(),
+        selectedPointSaleCode,
+        selectedPointSaleId,
+    });
 
     //validadores maximos para notas
     const maxLength = 200;
@@ -395,41 +247,18 @@ export function useProcessCreateQuote(draftId = 'default') {
 
     }
 
-
-    //proceso de items alternativos
-    //proceso para listado de items alternativos 
-    const descripcionAlternativa = ref('');
-    const listItemsAlternatives = ref([]);
-    const loadingListAlternative = ref(false);
-    async function getAlternativeDescriptions(artCode) {
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.LIST_ALTERNATIVE_ITEMS, { item: artCode }), {
-            loadingRef: loadingListAlternative,
-            onSuccess: (res) => {
-                listItemsAlternatives.value = res;
-            },
-            successMessage: 'Proceso realizado exitosamente',
-        });
-    }
-
-    async function clearSelectionItemalternative() {
-        listItemsAlternatives.value = [];
-        descripcionAlternativa.value = '';
-    }
-
-    async function updateCheckAlternative(event, element, i) {
-        let valEvent = event.target.checked ? 1 : 0;
-        form.value.items[i].CHECK_ALTERNATIVO = valEvent;
-
-    }
-
-    async function updateDescriptionsForCheckAlternative(descripcion, i) {
-        form.value.items[i].ART_DESCRIPCION = descripcion;
-        form.value.items[i].ART_DESCRIPCION_ORIGINAL = descripcion;
-        form.value.items[i].cambiar_descripcion = false;
-    }
-
-
-
+    const {
+        descripcionAlternativa,
+        listItemsAlternatives,
+        loadingListAlternative,
+        getAlternativeDescriptions,
+        clearSelectionItemalternative,
+        updateCheckAlternative,
+        updateDescriptionsForCheckAlternative,
+    } = useQuoteAlternativeItems({
+        run,
+        form,
+    });
 
     //proceso para manejo de cantidades
 
@@ -456,12 +285,21 @@ export function useProcessCreateQuote(draftId = 'default') {
         const allowsDecimals = row.ART_DECIMAL_CANTIDAD > 0;
         if (qty < 0) return { ok: false, message: 'La cantidad no puede ser negativa' };
         if (allowsDecimals && Number.isNaN(qty)) {
-            return { ok: false, message: 'La cantidad debe ser un número' };
+            return {
+                ok: false,
+                message: 'La cantidad debe ser un número',
+            };
         }
         if (!allowsDecimals && !isInt(qty)) {
-            return { ok: false, message: 'La cantidad debe ser un número entero' };
+            return {
+                ok: false,
+                message: 'La cantidad debe ser un número entero',
+            };
         }
-        return { ok: true, code: 0 };
+        return {
+            ok: true,
+            code: 0,
+        };
     }
     const formatQty = (qty, row) => {
         const valor = Number.parseFloat(qty) || 0;
@@ -476,179 +314,24 @@ export function useProcessCreateQuote(draftId = 'default') {
         return !Number.isNaN(value) && (x | 0) === x;
     }
 
-
-
-
-    //proceso de stock total de un articulo 
-    const shouldShowStock = (row) => {
-        const excludeTypes = ['L', 'SERV'];
-        return !excludeTypes.includes(row.ART_TIPO_COMPRA);
-    };
-
-
-
-    //proceso de modal stock y peso 
-    const dataStockItem = ref({
-        items: [],
-        index: 0,
-        permiteDecimales: false
+    const {
+        shouldShowStock,
+        dataStockItem,
+        isStockDisabled,
+        getStockClass,
+        localStocks,
+        totalAsignado,
+        validateInput,
+        loadingStockMasivo,
+        updateStockByBatch,
+        updateStockByBatchV2,
+    } = useQuoteStock({
+        isInt,
+        form,
+        calculateTotals: () => calculateTotals(),
+        selectedPointSaleCode,
+        run,
     });
-    const isStockDisabled = (row) => {
-        return row.disableOpenModalStock || row.stockRowLoading;
-    }
-
-    //procesos de modal verModalSelecionStockBodegas 
-    const getStockClass = (stock) => {
-        const s = Number.parseFloat(stock);
-        if (s <= 0) return 'text-danger fw-bold';
-        if (s < 10) return 'text-warning fw-bold';
-        return 'text-success';
-    };
-
-    const localStocks = ref([]);
-    const totalAsignado = computed(() => {
-        return localStocks.value.reduce((acc, item) => acc + (Number(item.seleccionado) || 0), 0);
-    });
-
-    const validateInput = (item, isDecimal) => {
-        const maxStock = Number.parseFloat(item.STO_ART_STOCK_DISPONIBLE || 0);
-        if (item.seleccionado < 0) item.seleccionado = 0;
-        if (item.seleccionado > maxStock) {
-            item.seleccionado = maxStock;
-            swalWarning(`Stock insuficiente.<br>Máximo disponible: <b>${maxStock}</b>`);
-            return false;
-        }
-        if (!isDecimal && !isInt(item.seleccionado)) {
-            item.error = true;
-            item.seleccionado = 0;
-            swalWarning('Ingresar un número entero');
-            return false;
-        }
-        if (isDecimal && Number.isNaN(item.seleccionado)) {
-            item.error = true;
-            item.seleccionado = 0;
-            swalWarning('Ingresar un número');
-            return false;
-        }
-        item.error = false;
-        return true;
-
-    }
-
-
-    /** proceso de actualizacion de stock por lote  */
-    const loadingStockMasivo = ref(false);
-
-    async function updateStockByBatch() {
-        if (!form.value.items || form.value.items.length === 0) return;
-        loadingStockMasivo.value = true;
-
-        const actualizaciones = form.value.items.map(async (item, index) => {
-            if (item.ART_TIPO_COMPRA === 'L') {
-                item.stockRowLoading = false;
-                return;
-            }
-            form.value.items[index].stockRowLoading = true;
-            form.value.items[index].disableOpenModalStock = true;
-            form.value.items[index].stockListo = false;
-            const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-
-            if (!respLote?.ok) {
-                form.value.items[index].stockListo = false;
-                form.value.items[index].stockRowLoading = false;
-                form.value.items[index].disableOpenModalStock = false;
-                console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
-                return;
-            }
-            form.value.items[index].stock = respLote.data.stock || [];
-            form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
-
-            form.value.items[index].stockRowLoading = false;
-            form.value.items[index].disableOpenModalStock = false;
-        });
-        await Promise.all(actualizaciones);
-        loadingStockMasivo.value = false;
-        calculateTotals(); // Recalcular validaciones de la cotización
-
-    }
-
-
-    const loadingUpdateStockItemsByBatch = ref(false);
-    async function updateStockItemsByBatch(item, tipo, cotizacionId) {
-        const payloadBatch = {
-            'articulo': item,
-            'bodega': selectedPointSaleCode.value,
-            'tipo': tipo,
-            'cotizacion_id': cotizacionId,
-        }
-        return run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.GET_ITEM_STOCK_BY_WAREHOUSE, payloadBatch), {
-            loadingRef: loadingUpdateStockItemsByBatch,
-            onError: (err) => {
-                console.log(err, 'updateStockItemsByBatch');
-            },
-            // successMessage: 'Proceso realizado exitosamente',
-        })
-    }
-
-
-
-    async function updateStockByBatchV2() {
-        if (!form.value.items || form.value.items.length === 0) return;
-
-        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L' && !item.es_servicio_logistico);
-        if (itemsParaProcesar.length === 0) return;
-        loadingStockMasivo.value = true;
-
-        itemsParaProcesar.forEach(item => {
-            item.stockRowLoading = true;
-            item.disableOpenModalStock = true;
-            item.stockListo = false;
-        });
-        const response = await updateStockItemsBatchAPI(itemsParaProcesar, 'LOTE', form.value.cotizacion_id);
-
-        if (response?.ok) {
-            const resultados = response.data;
-            form.value.items.forEach(item => {
-                if (resultados[item.id_temp]) {
-                    const data = resultados[item.id_temp];
-                    item.stock = data.stock || [];
-                    item.ART_STOCK = data.ART_STOCK;
-                    // item.stockListo = true;
-                }
-                item.stockRowLoading = false;
-                item.disableOpenModalStock = false;
-            });
-        } else {
-            itemsParaProcesar.forEach(item => {
-                item.stockRowLoading = false;
-                item.disableOpenModalStock = false;
-                // item.stockListo = false;
-            });
-            console.error("Error en la petición por lote:", response?.message);
-        }
-
-        loadingStockMasivo.value = false;
-        calculateTotals();
-
-    }
-
-    const loadingUpdateStockBatch = ref(false);
-    async function updateStockItemsBatchAPI(item, tipo, cotizacionId) {
-        const payloadBatch = {
-            'articulos': item,
-            'bodega': selectedPointSaleCode.value,
-            'tipo': tipo,
-            'cotizacion_id': cotizacionId,
-        }
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.GET_ITEM_STOCK_BY_WAREHOUSE_V2, payloadBatch), {
-            loadingRef: loadingUpdateStockBatch,
-            onError: (err) => {
-                console.log(err, 'updateStockItemsByBatch');
-            }
-        });
-    }
-
-
 
     const dataPesoItem = ref({ item: {}, index: 0 });
 
@@ -1195,7 +878,10 @@ export function useProcessCreateQuote(draftId = 'default') {
         const dispatchError = validateDispatchFields();
         if (dispatchError) return { ok: false, message: dispatchError };
         if (!(Number(form.value.tipo_despacho_id) > 0)) {
-            return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
+            return {
+                ok: false,
+                message: 'Debe seleccionar un tipo de despacho.',
+            };
         }
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');
@@ -1384,7 +1070,7 @@ export function useProcessCreateQuote(draftId = 'default') {
      *  PROCESO DE RECUPERAR COTIZACION 
      * 
      */
-    const isRecoveringQuote = ref(false); // Variable para controlar la recuperación y manejarla en los watchs
+
     const loadingGetQuoteData = ref(false);
 
     async function fetchAndFillQuotation(quoteId, uploadedFilesRef, uploadedPdfsRef) {
@@ -1897,7 +1583,10 @@ export function useProcessCreateQuote(draftId = 'default') {
         const dispatchError = validateDispatchFields();
         if (dispatchError) return { ok: false, message: dispatchError };
         if (!(Number(form.value.tipo_despacho_id) > 0)) {
-            return { ok: false, message: 'Debe seleccionar un tipo de despacho.' };
+            return {
+                ok: false,
+                message: 'Debe seleccionar un tipo de despacho.',
+            };
         }
         if (!form.value.cliente) {
             swalWarning('Debe seleccionar un cliente.');

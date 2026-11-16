@@ -142,7 +142,7 @@
                 :verdevolucion="verdevolucion"
                 @rechazar="rechazarDevolucion(verdevolucion)"
                 @aprobar="aprobarDevolucion(verdevolucion)"
-            ></VerDevolucionAprobarModal>
+             @update:verdevolucion="Object.assign(verdevolucion, $event)"></VerDevolucionAprobarModal>
           </div>
         </div>
       </div>
@@ -155,7 +155,7 @@
 import { ref, reactive, computed, onMounted,  } from "vue";
 import { useStore} from 'vuex'
 import { Modal } from "bootstrap";
-import {  swalInfo,  toast } from "@/functions/swal-alert.js";
+
 
 import VerDevolucionAprobarModal from "./modals/VerDevolucionAprobarModal.vue";
 
@@ -257,34 +257,7 @@ function refrescar(){
   store.dispatch('verDevolucionesPorAprobar');
 }
 
-function confirmAprobar(pedido, estadodecuenta = false) {
-  toast
-      .fire({
-        title: "Estás seguro?",
-        text: "De aprobar el pedido "+pedido.pedido +"",
-        icon: "question",
-        showCancelButton: true,
-        customClass: {
-          confirmButton: "btn btn-success m-1",
-          cancelButton: "btn btn-secondary m-1",
-        },
-        confirmButtonText: "Si, aprobarlo",
-        cancelButtonText: "Cancelar",
-        html: false,
-        preConfirm: () => {
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-            }, 50);
-          });
-        },
-      })
-      .then((result) => {
-        if (result.value) {
-          aprobarDevolucion(pedido, estadodecuenta);
-        }
-      });
-}
+
 
 function aprobarDevolucion(pedido){
   pedido.chao = true;
@@ -295,34 +268,7 @@ function aprobarDevolucion(pedido){
   });
 }
 
-function confirmRechazarPedido(pedido){
-  toast
-      .fire({
-        title: "Estás seguro?",
-        text: "De rechazar el pedido "+pedido.pedido +"",
-        icon: "warning",
-        showCancelButton: true,
-        customClass: {
-          confirmButton: "btn btn-danger m-1",
-          cancelButton: "btn btn-secondary m-1",
-        },
-        confirmButtonText: "Si, rechazarlo",
-        cancelButtonText: "Cancelar",
-        html: false,
-        preConfirm: () => {
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-            }, 50);
-          });
-        },
-      })
-      .then((result) => {
-        if (result.value) {
-          rechazarDevolucion(pedido);
-        }
-      });
-}
+
 
 function rechazarDevolucion(pedido){
   pedido.chao = true;
@@ -335,8 +281,8 @@ function rechazarDevolucion(pedido){
 
 
 const verdevolucion = ref({});
-const indexPedido = ref(null);
-const tipo = ref(null);
+
+
 
 async function funcionverdevolucion(pedido) {
   verDevolucionModalObj.show();
@@ -344,22 +290,15 @@ async function funcionverdevolucion(pedido) {
   store.dispatch('detalleDevolucion', pedido);
 }
 
-async function funcionverestadodecuenta(pedido) {
-  verestadodecuentaModalObj.show();
-  verdevolucion.value = pedido;
-  tipo.value = 'pedido';
-  store.dispatch('detalleestadodecuenta', pedido)
-}
 
-function verdiferenciacondicion(pedido){
-  swalInfo('Cambio condición de pago', 'de <b>'+ pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
-}
+
+
 
 let verDevolucionModal= ref(null);
 let verDevolucionModalObj = null;
 
-let verestadodecuentaModal = ref(null);
-let verestadodecuentaModalObj = null;
+
+
 
 onMounted(() => {
 

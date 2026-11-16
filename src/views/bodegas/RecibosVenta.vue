@@ -1,11 +1,11 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
-import { useRouter, useRoute } from "vue-router";
-import PickingTransferencias from "./modals/PickingTransferencias.vue"
-import GuiaRemisionTransferencia from "./modals/GuiaRemisionTransferencia.vue"
+
+
+
 import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
 
 const {
@@ -14,12 +14,12 @@ const {
   receivedGuideSalesTransfer,
 } = useSalesTransfersGuideProcess();
 const store = useStore();
-const route = useRoute();
+
 const recibos_venta = computed(() => store.state.recibos_venta);
 const recibos_venta_loading = computed(() => store.state.recibos_venta_loading);
-const picking = computed(() => store.state.picking);
-const currentOrden = ref(null);
-const motivo = ref(null);
+
+
+
 const currentGuia = ref(null);
 
 let guiaRemisionModal = ref(null);

@@ -168,7 +168,7 @@
           :verpedido="verpedido" 
           :indexPedido="indexPedido"
           :tipo="tipo"
-          ></VerPedidoModal>
+           @update:verpedido="Object.assign(verpedido, $event)"></VerPedidoModal>
       </div>
     </div>
   </div>
@@ -176,7 +176,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted  } from "vue";
 import { useStore} from 'vuex'
-import {  swalSuccess,  swalError, toast } from "@/functions/swal-alert.js";
+import {  swalSuccess,  swalError } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 import VerPedidoModal from "../ventas/modals/VerPedidoModal.vue"
 import { formatPriceJm } from "@/functions";
@@ -286,41 +286,9 @@ async function funcionverpedido(pedido) {
   });
 }
 
-function confirmRechazar(orden) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De rechazar la orden "+orden.orden,
-      icon: "question",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, rechazarla",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        rechazarOrden(orden)
-      }
-    });
-}
 
-function rechazarOrden(orden){
 
-  store.dispatch('rechazarOrdenDespacho', orden.id).then( (res) => {
-    store.dispatch('ordenesDespachoPendientes');
-  })
-}
+
 
 function confirmLiberar(orden) {
   currentOrden.value = orden;

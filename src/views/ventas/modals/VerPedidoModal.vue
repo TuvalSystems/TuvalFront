@@ -199,7 +199,7 @@
           <label for="orden-de-compra" class="col-sm-3 col-form-label text-right">Orden de compra:</label>
           <div class="col-sm-9">
             <div class="input-group">
-              <input v-model="verpedido.orden_de_compra" type="text" id="orden-de-compra" class="form-control"
+              <input v-model="editable_orden_de_compra" type="text" id="orden-de-compra" class="form-control"
                 :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
                 :maxlength="max_length" @change="guardarOrdenDeCompra(verpedido)" />
               <span v-if="verpedido.orden_de_compra" class="input-group-text">{{ max_length -
@@ -211,7 +211,7 @@
         <div class="row">
           <label for="nota-interna" class="col-sm-3 col-form-label text-right">Nota interna:</label>
           <div class="col-sm-9">
-            <input v-model="verpedido.nota_interna" type="text" id="nota-interna" class="form-control"
+            <input v-model="editable_nota_interna" type="text" id="nota-interna" class="form-control"
               :disabled="verpedido.estado == 'facturado' || verpedido.estado == 'eliminado' || verpedido.estado == 'anulada'"
               @change="guardarOrdenDeCompra(verpedido)" />
           </div>
@@ -262,7 +262,7 @@ import Devoluciones from "./tabs/Devoluciones.vue";
 import DocumentosPdf from "./tabs/DocumentosPdf.vue";
 import CabeceraPedido from "@/components/CabeceraPedido.vue";
 import VueEasyLightbox from "vue-easy-lightbox";
-const { verpedido, indexPedido, tipo } = defineProps({
+const props = defineProps({
   verpedido: Object,
   indexPedido: Number,
   tipo: String,
@@ -275,7 +275,7 @@ const traslados = computed(() => store.state.traslados);
 const orden_despacho = computed(() => store.state.orden_despacho);
 const guias_remision = computed(() => store.state.guias_remision);
 const devoluciones = computed(() => store.state.devoluciones_pedido);
-const pendientes = computed(() => store.state.pendientes);
+
 const existentes = computed(() => store.state.existentes);
 const segmentocliente = computed(() => store.state.segmentocliente);
 const has_guide_dispatched = computed(() => store.state.has_guide_dispatched);
@@ -284,28 +284,22 @@ const documentosPdf = computed(() => store.state.documentosPdf);
 const proyecto = computed(() => store.state.proyecto);
 
 const max_length = ref(20);
-const emit = defineEmits(["consultarExistente", "cancelarPedido", "consultarDespachado"]);
+const emit = defineEmits(["update:verpedido", "consultarExistente", "cancelarPedido", "consultarDespachado"]);
 
 const tabActual = ref('detalle');
-let errorMsg = ref('');
 
-function verdiferenciacondicion(pedido) {
-  let msg = 'simon';
-  swalInfo('Cambio condición de pago', 'de <b>' + pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
-}
 
-function verdiferenciaporcentaje(pedido) {
-  let msg = 'simon';
-  swalInfo('Cambio porcentaje de descuento', 'de <b>' + pedido.porcentage_descuentooriginal + '%</b> a <b>' + pedido.porcentage_descuento + '%</b>');
-}
+
+
+
 
 function verdiferenciadescripcion(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de descripción de artículo', 'de <br><b>' + articulo.ART_DESCRIPCION_ORIGINAL + '</b><br> a <br><b>' + articulo.ART_DESCRIPCION + '</b>');
 }
 
 function verdiferenciavalor(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de precio de artículo', 'de <b>$' + articulo.ART_VALOR_ORIGINAL + '</b> a <b>$' + articulo.precio_sin_flete + '</b>');
 }
 
@@ -383,5 +377,13 @@ onMounted(() => {
 
 });
 onBeforeUnmount(() => {
+});
+const editable_orden_de_compra = computed({
+  get: () => props.verpedido.orden_de_compra,
+  set: (value) => emit("update:verpedido", { orden_de_compra: value }),
+});
+const editable_nota_interna = computed({
+  get: () => props.verpedido.nota_interna,
+  set: (value) => emit("update:verpedido", { nota_interna: value }),
 });
 </script>

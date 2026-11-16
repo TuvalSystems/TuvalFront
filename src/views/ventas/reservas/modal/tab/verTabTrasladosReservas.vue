@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 
-const props = defineProps({
+defineProps({
   traslados: {
     type: Array,
     required: true

@@ -104,11 +104,11 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useStore} from 'vuex'
-import { useTemplateStore } from '@/stores/template'
+
 import { Modal } from "bootstrap";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+
 import VerOrdenDeCompraRecibida from "../modals/VerOrdenDeCompraRecibida.vue";
 
 
@@ -195,14 +195,14 @@ function onSort(event, i) {
 }
 
 const store = useStore();
-const templatestore = useTemplateStore();
 
 
-let errorMsg = ref('');
+
+
 const recibosdecompral = computed(() => store.state.recibosdecompral);
 const verrecibodecompral = ref({});
-const indexPedido = ref(null);
-const tipo = ref(null);
+
+
 async function funcionverrecibodecompra(recibodecompral) {
   store.commit("setGenerar", false);
   verrecibodecompralModalObj.show();

@@ -75,10 +75,10 @@
   
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { reactive, computed, onMounted } from "vue";
 import { useStore} from 'vuex'
-import Swal from "sweetalert2";
-import VerOrdenDeCompraRecibida from "../modals/VerOrdenDeCompraRecibida.vue";
+
+
 
 
 

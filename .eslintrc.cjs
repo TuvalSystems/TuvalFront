@@ -20,6 +20,7 @@ module.exports = {
 
   ignorePatterns: [
     'dist/',
+    'vue/', // Salida compilada de Vite; el lint revisa el código fuente.
     'node_modules/',
   ],
 

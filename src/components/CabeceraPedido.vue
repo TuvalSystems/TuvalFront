@@ -177,7 +177,7 @@
 <script setup>
 import { swalInfo } from "@/functions/swal-alert";
 
-const { verpedido } = defineProps({
+defineProps({
   verpedido: Object,
   segmento: Object,
   proyecto: String,
@@ -191,7 +191,7 @@ function verdiferenciacondicion(pedido) {
 }
 
 function verdiferenciaporcentaje(pedido) {
-  let msg = "simon";
+
   swalInfo(
     "Cambio porcentaje de descuento",
     "de <b>" +

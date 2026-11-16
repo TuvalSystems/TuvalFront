@@ -120,49 +120,11 @@ function getNotificationBadge(row) {
     return payload?.cotizacion ? `Cotización ${payload.cotizacion}` : 'Notificación';
 }
 
-function getNotificationStatus(row) {
-    const payload = getNotificationPayload(row);
-    return payload?.estado ?? payload?.Estado ?? payload?.status ?? payload?.state ?? '';
-}
 
-function getNotificationStatusLabel(row) {
-    const status = String(getNotificationStatus(row) ?? '').trim();
-    if (!status) return '';
 
-    const normalizedStatus = normalizeQuotationStatus(status);
-    const labels = {
-        pendientes: 'Pendiente',
-        caducado: 'Caducada',
-        caducada: 'Caducada',
-        caducados: 'Caducada',
-        caducadas: 'Caducada',
-        procesado: 'Procesada',
-        procesada: 'Procesada',
-        procesados: 'Procesada',
-        procesadas: 'Procesada',
-        rechazado: 'Rechazada',
-        rechazada: 'Rechazada',
-        rechazados: 'Rechazada',
-        rechazadas: 'Rechazada',
-        aprobado: 'Pendiente',
-        aprobada: 'Pendiente',
-        espera: 'Pendiente',
-    };
 
-    return labels[status.toLowerCase()] ?? labels[normalizedStatus] ?? status;
-}
 
-function getNotificationStatusClass(row) {
-    const status = String(getNotificationStatus(row) ?? '').trim().toLowerCase();
-    const normalizedStatus = normalizeQuotationStatus(status);
 
-    if (normalizedStatus === 'caducado') return 'bg-danger-light text-danger';
-    if (normalizedStatus === 'rechazadas') return 'bg-danger-light text-danger';
-    if (normalizedStatus === 'procesadas') return 'bg-info-light text-info';
-    if (normalizedStatus === 'pendientes') return 'bg-warning-light text-warning';
-
-    return 'bg-body-light text-muted border';
-}
 
 function getPuntoVentaBadge(row) {
     const payload = getNotificationPayload(row);

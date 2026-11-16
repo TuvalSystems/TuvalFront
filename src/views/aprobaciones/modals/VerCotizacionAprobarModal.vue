@@ -189,7 +189,7 @@
     <div class="row g-2 align-items-center">
       <label for="cotizacion-aprobacion-mensaje" class="col-sm-2 col-form-label text-sm-end fw-semibold">Mensaje:</label>
       <div class="col-sm-7">
-        <input v-model="vercotizacion.aprobado_comercial_mensaje" type="text" id="cotizacion-aprobacion-mensaje" class="form-control form-control-sm"
+        <input v-model="editable_aprobado_comercial_mensaje" type="text" id="cotizacion-aprobacion-mensaje" class="form-control form-control-sm"
           placeholder="Motivo de rechazo" @change="guardarMensaje(vercotizacion)" />
       </div>
       <div class="col-sm-3 text-sm-end quotation-actions">
@@ -201,12 +201,12 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { computed, onMounted, onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import { formatPrice, format, format4 } from "@/functions";
+import { swalInfo } from "@/functions/swal-alert.js";
+import { format, format4 } from "@/functions";
 
-const { vercotizacion, indexCotizacion, tipo } = defineProps({
+const props = defineProps({
   vercotizacion: Object,
   indexCotizacion: Number,
   tipo: String,
@@ -224,9 +224,9 @@ function guardarMensaje(pedido) {
 }
 
 
-let errorMsg = ref('');
 
-const emit = defineEmits(["aprobar", "rechazar"]);
+
+const emit = defineEmits(["update:vercotizacion", "aprobar", "rechazar"]);
 
 function escapeAlert(value) {
   return String(value ?? 'Sin dato').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -351,6 +351,10 @@ function verPorcentajesDeCambio(articulo) {
 onMounted(() => {
 });
 onBeforeUnmount(() => {
+});
+const editable_aprobado_comercial_mensaje = computed({
+  get: () => props.vercotizacion.aprobado_comercial_mensaje,
+  set: (value) => emit("update:vercotizacion", { aprobado_comercial_mensaje: value }),
 });
 </script>
 <style scoped>

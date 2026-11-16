@@ -33,7 +33,7 @@
     <div class="row">
       <label for="nota-interna" class="col-sm-2 col-form-label text-end">Observación:</label>
       <div class="col-sm-6">
-        <input v-model="verdevolucion.observacion" type="text"
+        <input v-model="editable_observacion" type="text"
                id="orden-de-compra" class="form-control"
                disabled
         />
@@ -51,11 +51,15 @@ import { computed } from 'vue'
 import { useStore } from 'vuex'
 import CabeceraDevolucion from "@/components/CabeceraDevolucion.vue";
 import DetalleDevolucion from "@/components/DetalleDevolucion.vue";
-const { verdevolucion } = defineProps({
+const props = defineProps({
   verdevolucion: Object,
 })
-const emit = defineEmits(["aprobar", "rechazar"]);
+const emit = defineEmits(["update:verdevolucion", "aprobar", "rechazar"]);
 const store = useStore();
 const segmentocliente = computed(() => store.state.segmentocliente);
 
+const editable_observacion = computed({
+  get: () => props.verdevolucion.observacion,
+  set: (value) => emit("update:verdevolucion", { observacion: value }),
+});
 </script>

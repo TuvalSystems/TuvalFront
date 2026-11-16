@@ -12,7 +12,7 @@ String.prototype.like = function (search) {
   // Check matches
   return RegExp('^' + search + '$', 'gi').test(this);
 }
-export const searchLike = (value, searchString, rowData) => {
+export const searchLike = (value, searchString) => {
   const like = searchString.replace(' ', '%');
   return value.like('%' + like + '%');
 }
@@ -45,10 +45,7 @@ export const format4 = (num) => num.toLocaleString('en-US', {
   maximumFractionDigits: 4,
 });
 
-const format3 = (num) => num.toLocaleString('en-US', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 3,
-});
+
 
 export const format = (num) => num.toLocaleString('en-US', {
   minimumFractionDigits: 2,
@@ -61,7 +58,7 @@ export const formatClean = (num, decimals) => {
   return Math.round((n + Number.EPSILON) * factor) / factor;
 }
 
-export const formatClean3 = (num, decimals) => {
+export const formatClean3 = (num) => {
   return Math.round((num + Number.EPSILON) * 1000) / 1000
 }
 

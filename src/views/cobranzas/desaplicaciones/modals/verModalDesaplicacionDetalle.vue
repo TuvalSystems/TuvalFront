@@ -36,7 +36,6 @@ const props = defineProps({
 
 
 const {
-  loadingUpdate,
   updateUnapplicationItems,
 } = useUnapplicationProcess();
 

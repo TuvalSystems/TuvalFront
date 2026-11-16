@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 
-const props = defineProps({
+defineProps({
     cliente: {
         type: Object,
         required: true,
@@ -11,7 +11,7 @@ const props = defineProps({
         type: Array,
         required: true
     }
-})
+});
 const {
     //validations
     getClientStatus,

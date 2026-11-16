@@ -29,7 +29,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["remove-payment", "register-collection"]);
+const emit = defineEmits(["update-draft", "remove-payment", "register-collection"]);
 
 const summaryRoot = ref(null);
 const modalValidationPaymentRef = ref(null);
@@ -152,7 +152,7 @@ const collectionReference = computed({
   get: () => props.collectionDraft?.referencia ?? "",
   set: (value) => {
     if (props.collectionDraft) {
-      props.collectionDraft.referencia = value ?? "";
+      emit("update-draft", { referencia: value ?? "" });
     }
   },
 });
@@ -235,9 +235,9 @@ function mergeValidationResponseIntoDraft(validationData) {
     return;
   }
 
-  props.collectionDraft.hasGlobalExcess = Boolean(
+  emit("update-draft", { hasGlobalExcess: Boolean(
     validationData.hasGlobalExcess
-  );
+  ) });
 
   mergeRowsByIndex(
     props.collectionDraft.retenciones,
@@ -965,14 +965,13 @@ function applyRecommendedAmounts() {
   removeZeroAmountApplications();
   removeEmptyPaymentApplications();
   recalculatePaymentHeaders();
-  props.collectionDraft.hasGlobalExcess = false;
+  emit("update-draft", { hasGlobalExcess: false });
 }
 
 function removeZeroAmountApplications() {
-  props.collectionDraft.retenciones =
-    props.collectionDraft.retenciones?.filter((retention) => {
+  emit("update-draft", { retenciones: props.collectionDraft.retenciones?.filter((retention) => {
       return toPaymentNumber(retention?.total) > 0;
-    }) ?? [];
+    }) ?? [] });
 
   filterInvoiceApplications(props.collectionDraft.efectivo, "efectivo");
   filterInvoiceApplications(props.collectionDraft.tarjeta, "tarjetas");
@@ -999,26 +998,24 @@ function filterInvoiceApplications(payment, methodKey) {
 
 function removeEmptyPaymentApplications() {
   if (props.collectionDraft.efectivo?.facturas?.length === 0) {
-    props.collectionDraft.efectivo = null;
+    emit("update-draft", { efectivo: null });
   }
 
   if (props.collectionDraft.tarjeta?.facturas?.length === 0) {
-    props.collectionDraft.tarjeta = null;
+    emit("update-draft", { tarjeta: null });
   }
 
   if (props.collectionDraft.cheque?.facturas?.length === 0) {
-    props.collectionDraft.cheque = null;
+    emit("update-draft", { cheque: null });
   }
 
-  props.collectionDraft.depositos =
-    props.collectionDraft.depositos?.filter((deposit) => {
+  emit("update-draft", { depositos: props.collectionDraft.depositos?.filter((deposit) => {
       return deposit?.facturas?.length > 0;
-    }) ?? [];
+    }) ?? [] });
 
-  props.collectionDraft.aplicaciones =
-    props.collectionDraft.aplicaciones?.filter((application) => {
+  emit("update-draft", { aplicaciones: props.collectionDraft.aplicaciones?.filter((application) => {
       return application?.facturas?.length > 0;
-    }) ?? [];
+    }) ?? [] });
 }
 
 function removePaymentApplicationRow(item) {

@@ -189,7 +189,7 @@
       
       <label for="orden-de-compra" class="col-sm-2 col-form-label text-right">Mensaje:</label>
       <div class="col-sm-7">
-        <input v-model="verpedido.aprobado_crediticio_mensaje" type="text" 
+        <input v-model="editable_aprobado_crediticio_mensaje" type="text"
           id="orden-de-compra" class="form-control" 
           placeholder="Motivo de rechazo"
           @change="guardarMensaje(verpedido)"
@@ -204,12 +204,12 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { computed, onMounted, onBeforeUnmount } from "vue";
 import { useStore} from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import {formatPrice, format, format4} from "@/functions";
+import { swalInfo } from "@/functions/swal-alert.js";
+import {format, format4} from "@/functions";
 
-const { verpedido, indexPedido, tipo } = defineProps({
+const props = defineProps({
   verpedido: Object,
   indexPedido: Number,
   tipo: String,
@@ -217,7 +217,7 @@ const { verpedido, indexPedido, tipo } = defineProps({
 
 const store = useStore();
 const detallepedido = computed(() => store.state.detallepedido);
-const estadodecuenta = computed(() => store.state.estadodecuenta);
+
 const segmentocliente = computed(() => store.state.segmentocliente);
 
 
@@ -227,17 +227,17 @@ function guardarMensaje(pedido){
 }
 
 
-let errorMsg = ref('');
 
-const emit = defineEmits(["aprobar", "rechazar"]);
+
+const emit = defineEmits(["update:verpedido", "aprobar", "rechazar"]);
 
 function verdiferenciacondicion(pedido){
-  let msg = 'simon';
+
   swalInfo('Cambio condición de pago', 'de <b>'+ pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
 }
 
 function verdiferenciaporcentaje(pedido){
-  let msg = 'simon';
+
   swalInfo('Cambio porcentaje de descuento', 'de <b>'+ pedido.porcentage_descuentooriginal + '%</b> a <b>' + pedido.porcentage_descuento + '%</b>');
 }
 
@@ -256,5 +256,9 @@ function verdiferenciadescuento(articulo){
 onMounted(() => {
 });
 onBeforeUnmount(() => {
+});
+const editable_aprobado_crediticio_mensaje = computed({
+  get: () => props.verpedido.aprobado_crediticio_mensaje,
+  set: (value) => emit("update:verpedido", { aprobado_crediticio_mensaje: value }),
 });
 </script>

@@ -64,7 +64,6 @@ const {
   cancelPicking,
 
   //imprimir guias pendientes
-  loadingPrintGuideRemision,
   printGuidePdf
 } = useSalesTransfersProcess();
 const {

@@ -265,40 +265,9 @@ async function imprimirGuia(guia) {
     });
 }
 
-function confirmEliminarguiaGuia(guia) {
-  toast
-    .fire({
-      title: "Estás seguro?",
-      text: "De eliminar la guía de remisión " + guia.GUI_REM_GUIA_REMISION,
-      icon: "question",
-      showCancelButton: true,
-      customClass: {
-        confirmButton: "btn btn-success m-1",
-        cancelButton: "btn btn-secondary m-1",
-      },
-      confirmButtonText: "Si, eliminarla",
-      cancelButtonText: "Cancelar",
-      html: false,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 50);
-        });
-      },
-    })
-    .then((result) => {
-      if (result.value) {
-        eliminarguiaGuia(guia)
-      }
-    });
-}
 
-function eliminarguiaGuia(guia) {
-  store.dispatch('eliminarGuiaRemision', guia).then((res) => {
-    refrescar();
-  })
-}
+
+
 
 function confirmDespacharGuia(guia) {
   toast
@@ -414,10 +383,7 @@ function aplicartraslado(traslado) {
     swalError('No ingresar números negativos');
     traslado.seleccionado = null;
     traslado.aplicar_todo = false;
-  } else if (parseFloat(traslado.seleccionado) < 0) {
-    traslado.aplicar_todo = false;
-    swalError("No se puede ingresar números negativos");
-    traslado.seleccionado = null;
+
   } else if (parseFloat(traslado.seleccionado) <= parseFloat(traslado.pendiente)) {
     traslado.aplicar_todo = true;
   } else if (parseFloat(traslado.seleccionado) > parseFloat(traslado.pendiente)) {

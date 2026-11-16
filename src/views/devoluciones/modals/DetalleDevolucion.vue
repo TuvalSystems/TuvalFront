@@ -33,9 +33,9 @@ import DetalleDevolucion from "@/components/DetalleDevolucion.vue";
 import {useStore} from "vuex";
 
 const store = useStore();
-const { verdevolucion } = defineProps({
+defineProps({
   verdevolucion: Object,
-})
+});
 async function imprimirDevolucion(devolucion){
   store.dispatch('imprimir', '/devoluciones/imprimirdevolucion/'+devolucion.id)
       .then((response) => {

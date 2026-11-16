@@ -114,7 +114,7 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalError, toast } from "@/functions/swal-alert.js";
 import FlatPickr from "vue-flatpickr-component";
 import { formatPriceJm } from "@/functions";
 
@@ -175,7 +175,7 @@ function resumencaja(set_fecha) {
   store.dispatch('resumencaja', '/cobranzas/resumencaja/' + set_fecha + '/' + cajausuario.value)
 }
 
-function confirmCerrarCaja(index, retencion) {
+function confirmCerrarCaja() {
   toast.fire({
     title: "Estás seguro?",
     text: "De cerrar la caja: " + currentCaja.value.CAJA_DESCRIPCION,

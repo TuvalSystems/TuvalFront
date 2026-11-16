@@ -92,9 +92,9 @@
   </template>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { computed } from "vue";
 import { useStore} from 'vuex'
-import {formatPrice, format, format4} from "@/functions";
+import {format, format4} from "@/functions";
 
 const store = useStore();
 const recibosdecompral = computed(() => store.state.ordendecompra);

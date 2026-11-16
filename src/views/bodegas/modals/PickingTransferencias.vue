@@ -75,17 +75,17 @@
   </div>
 </template>
 <script setup>
-import { computed, reactive } from "vue";
+import { computed } from "vue";
 import { useStore} from 'vuex'
 
 const store = useStore();
 const picking = computed(() => store.state.picking);
 const emit = defineEmits(["regrescarLista"]);
-const { currentBodega } = defineProps({
+const props = defineProps({
   currentBodega: Object,
 });
 
-const format = (num, decimals) => num.toLocaleString('en-US', {
+const format = (num) => num.toLocaleString('en-US', {
    minimumFractionDigits: 2,
    maximumFractionDigits: 2,
 });
@@ -98,7 +98,7 @@ async function imprimirPicking(traslados){
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'picking-'+currentBodega.bodega+'.pdf');
+        link.setAttribute('download', 'picking-'+props.currentBodega.bodega+'.pdf');
         document.body.appendChild(link);
         link.click();
         emit("regrescarLista");

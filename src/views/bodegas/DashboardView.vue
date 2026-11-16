@@ -63,12 +63,12 @@
   <!-- END Page Content -->
 </template>
 <script setup>
-import { ref, reactive, computed, onBeforeUnmount } from "vue";
+import { computed, onBeforeUnmount } from "vue";
 import { useStore} from 'vuex'
 
 const store = useStore();
 const dashboard_sections = computed(() => store.state.dashboard_sections);
-let errorMsg = ref('');
+
 
 store.dispatch('bodegasDashboard')
 store.dispatch('bodegasDashboardInterval');

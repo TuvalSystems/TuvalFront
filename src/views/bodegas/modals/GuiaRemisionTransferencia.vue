@@ -2,7 +2,7 @@
 import { computed, ref, onMounted, watch } from "vue";
 import { useStore } from 'vuex'
 import flatPickr from 'vue-flatpickr-component';
-import { useTemplateStore } from "@/stores/template";
+
 import { formatPrice } from "@/functions";
 import { swalError, swalWarning } from "@/functions/swal-alert";
 import { useSalesTransfersGuideProcess } from '@/composables/bodegas/transferencia/useSalesTransfersGuideProcess';
@@ -20,7 +20,7 @@ const {
   createGuideReposition
 } = useRepositionGuideProcess();
 const store = useStore();
-const templateStore = useTemplateStore();
+
 const picking = computed(() => store.state.picking);
 const despacho = ref(store.state.despacho);
 const transportistas = computed(() => store.state.transportistas);
@@ -33,7 +33,7 @@ const ruta = ref('');
 const maxLengthPlaca = 10;
 
 const boton_generar = ref('boton_generar');
-const { currentBodega } = defineProps({
+const props = defineProps({
   currentBodega: Object,
 });
 
@@ -93,13 +93,13 @@ async function generarGuia() {
     items: picking.value.data,
     observacion: observacion.value,
     ruta: ruta.value,
-    tipo: currentBodega.tipo,
+    tipo: props.currentBodega.tipo,
   };
 
   // 1) consultar
 
   // 2) generar guia de traslado de venta
-  if (currentBodega.tipo == 'transferencia') {
+  if (props.currentBodega.tipo == 'transferencia') {
 
     const respVerify = await verifyGuideTransfer(data);
     if (!respVerify.ok) {
@@ -127,7 +127,7 @@ async function generarGuia() {
     clearCampos();
     emit('generarGuia');
   }
-  if (currentBodega.tipo == 'reposicion') {
+  if (props.currentBodega.tipo == 'reposicion') {
     const respReposition = await createGuideReposition(data);
     if (!respReposition.ok) {
       if (respReposition?.status >= 400 && respReposition?.status < 500) {

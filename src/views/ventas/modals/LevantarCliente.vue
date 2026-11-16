@@ -5,7 +5,7 @@ import { useTemplateStore } from "@/stores/template";
 import { useClientSearch } from "@/composables/venta/cotizaciones/crearCotizacion/useClientSearch";
 import { swalWarning, swalError } from "@/functions/swal-alert.js";
 
-const { verpedido, tipo } = defineProps({
+defineProps({
   verpedido: Object,
   tipo: String,
 });

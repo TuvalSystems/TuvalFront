@@ -120,9 +120,9 @@
   </div> 
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted  } from "vue";
+import { ref, computed, onMounted  } from "vue";
 import { useStore} from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalSuccess, swalError, toast } from "@/functions/swal-alert.js";
 import { Modal } from "bootstrap";
 import Transportista from "./modals/Transportista.vue"
 import Vehiculo from "./modals/Vehiculo.vue"
@@ -133,7 +133,7 @@ const transportistas = computed(() => store.state.transportistas);
 const transportista = computed(() => store.state.transportista);
 const vehiculos = computed(() => store.state.vehiculos);
 const vehiculo = computed(() => store.state.vehiculo);
-let errorMsg = ref('');
+
 
 let transportistaModal= ref(null);
 let transportistaModalObj = null;

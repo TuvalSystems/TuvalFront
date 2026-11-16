@@ -188,7 +188,7 @@
     <div class="row g-2 align-items-center">
       <label for="pedido-aprobacion-mensaje" class="col-sm-2 col-form-label text-sm-end fw-semibold">Mensaje:</label>
       <div class="col-sm-7">
-        <input v-model="verpedido.aprobado_comercial_mensaje" type="text" id="pedido-aprobacion-mensaje" class="form-control form-control-sm"
+        <input v-model="editable_aprobado_comercial_mensaje" type="text" id="pedido-aprobacion-mensaje" class="form-control form-control-sm"
           placeholder="Motivo de rechazo" @change="guardarMensaje(verpedido)" />
       </div>
       <div class="col-sm-3 text-sm-end quotation-actions">
@@ -200,12 +200,12 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { computed, onMounted, onBeforeUnmount } from "vue";
 import { useStore } from 'vuex'
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
-import { formatPrice, format, format4 } from "@/functions";
+import { swalInfo } from "@/functions/swal-alert.js";
+import { format, format4 } from "@/functions";
 
-const { verpedido, indexPedido, tipo } = defineProps({
+const props = defineProps({
   verpedido: Object,
   indexPedido: Number,
   tipo: String,
@@ -216,10 +216,10 @@ const detallepedido = computed(() => store.state.detallepedido);
 const despachoPedido = computed(() => {
   const detalle = store.state.despachoPedido || {};
   return {
-    tipo_despacho: detalle.tipo_despacho ?? verpedido.tipo_despacho,
-    requiere_aprobacion_flete: detalle.requiere_aprobacion_flete ?? verpedido.requiere_aprobacion_flete,
-    motivo_aprobacion_flete: detalle.motivo_aprobacion_flete ?? verpedido.motivo_aprobacion_flete,
-    fle_valor: detalle.fle_valor ?? verpedido.fle_valor,
+    tipo_despacho: detalle.tipo_despacho ?? props.verpedido.tipo_despacho,
+    requiere_aprobacion_flete: detalle.requiere_aprobacion_flete ?? props.verpedido.requiere_aprobacion_flete,
+    motivo_aprobacion_flete: detalle.motivo_aprobacion_flete ?? props.verpedido.motivo_aprobacion_flete,
+    fle_valor: detalle.fle_valor ?? props.verpedido.fle_valor,
   };
 });
 const estadodecuenta = computed(() => store.state.estadodecuenta);
@@ -232,36 +232,36 @@ function guardarMensaje(pedido) {
 }
 
 
-let errorMsg = ref('');
 
-const emit = defineEmits(["aprobar", "rechazar"]);
+
+const emit = defineEmits(["update:verpedido", "aprobar", "rechazar"]);
 
 function approveOrder() {
   emit("aprobar", {
-    id: verpedido?.id,
-    message: verpedido?.aprobado_comercial_mensaje,
+    id: props.verpedido?.id,
+    message: props.verpedido?.aprobado_comercial_mensaje,
   });
 }
 
 function rejectedOrder() {
   emit("rechazar", {
-    id: verpedido?.id,
-    message: verpedido?.aprobado_comercial_mensaje,
+    id: props.verpedido?.id,
+    message: props.verpedido?.aprobado_comercial_mensaje,
   });
 }
 
 function verdiferenciacondicion(pedido) {
-  let msg = 'simon';
+
   swalInfo('Cambio condición de pago', 'de <b>' + pedido.COND_ID_ORIGINAL + '</b> a <b>' + pedido.COND_ID + '</b>');
 }
 
 function verdiferenciaporcentaje(pedido) {
-  let msg = 'simon';
+
   swalInfo('Cambio porcentaje de descuento', 'de <b>' + pedido.porcentage_descuentooriginal + '%</b> a <b>' + pedido.porcentage_descuento + '%</b>');
 }
 
 function verdiferenciadescripcion(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de descripción de artículo', 'de <br><b>' + articulo.ART_DESCRIPCION_ORIGINAL + '</b><br> a <br><b>' + articulo.ART_DESCRIPCION + '</b>');
 }
 
@@ -305,7 +305,7 @@ function verdiferenciavalor(articulo) {
   swalInfo('Cambio de precio', html);
 }
 function verdiferenciadescuento(articulo) {
-  let msg = 'simon';
+
   swalInfo('Cambio de porcentaje de descuento', 'de <b>' + articulo.descuento_original + '%</b> a <b>' + articulo.descuento + '%</b>');
 }
 
@@ -371,6 +371,10 @@ function verPorcentajesDeCambio(articulo) {
 onMounted(() => {
 });
 onBeforeUnmount(() => {
+});
+const editable_aprobado_comercial_mensaje = computed({
+  get: () => props.verpedido.aprobado_comercial_mensaje,
+  set: (value) => emit("update:verpedido", { aprobado_comercial_mensaje: value }),
 });
 </script>
 <style scoped>

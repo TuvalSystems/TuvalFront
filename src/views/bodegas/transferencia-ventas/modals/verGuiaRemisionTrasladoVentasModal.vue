@@ -26,7 +26,6 @@ const {
   pesoTotalItemsFmt,
   loading,
   createGuideTransfer,
-  loadingVerifyGuide,
   verifyGuideTransfer,
 
 
@@ -38,7 +37,6 @@ const {
   clearChangeModeExterno,
   validationModo,
   // despachar guia de transferencia de venta
-  loadingSendGuide,
   sendGuideSalesTransfer,
 } = useSalesTransfersGuideProcess();
 const { printGuidePdf } = useSalesTransfersProcess();
@@ -96,7 +94,7 @@ function changeVehicleTransport() {
       data.transporte_id = '';
     }
   }
-};
+}
 
 
 async function storeGuideRemision() {

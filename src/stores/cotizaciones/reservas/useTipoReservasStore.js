@@ -1,12 +1,7 @@
 import { defineStore } from 'pinia';
 import axiosClient from "@/axios";
 import {
-  swalSimple,
-  swalInfo,
-  swalSuccess,
-  swalWarning,
   swalError,
-  toast,
 } from "@/functions/swal-alert.js";
 export const useTipoReservasStore = defineStore('tipoReservas',{
 

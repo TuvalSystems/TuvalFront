@@ -15,7 +15,7 @@
     </main> 
 </template>
 <script setup>
-const props = defineProps({
+defineProps({
     title: String,
 });
 </script>

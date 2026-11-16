@@ -1,10 +1,10 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useStore } from 'vuex'
 import { Modal } from "bootstrap";
-import { swalSimple, swalInfo, swalSuccess, swalWarning, swalError, toast } from "@/functions/swal-alert.js";
+import { swalInfo, swalSuccess, swalWarning, swalError } from "@/functions/swal-alert.js";
 import VerPedidoAprobarModal from "../modals/VerPedidoAprobarModal.vue";
-import { formatPrice, format } from "@/functions";
+import { format } from "@/functions";
 import { useApprovalOrder } from "@/composables/aprobaciones/pedidos/useApprovalOrder";
 import { useCommercialOrdersActions } from "@/composables/aprobaciones/pedidos/useCommercialOrdersActions.js";
 
@@ -14,15 +14,11 @@ const {
   orders,
 
   //consulta de stock para pedido antes de aprobar 
-  loadingValidateStockOrderApproval,
   validateStockForOrderApproval
 } = useApprovalOrder();
 const {
-  loadingCommercialApproval,
   approveComercialOrder,
-  loadingCommercialRejection,
   rejectionCommercialOrder,
-  loadingCommercialRejectionStock,
   rejectionCommercialOrderStock
 } = useCommercialOrdersActions();
 // Helper variables
@@ -119,8 +115,8 @@ function onSort(event, i) {
 
 const store = useStore();
 
-let errorMsg = ref('');
-const pedidos = computed(() => store.state.pedidos);
+
+
 
 
 
@@ -295,7 +291,7 @@ onMounted(() => {
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <VerPedidoAprobarModal :verpedido="verpedido" :indexPedido="indexPedido" :tipo="tipo"
-          @rechazar="rejectedOrder(verpedido)" @aprobar="approveOrder(verpedido)"></VerPedidoAprobarModal>
+          @rechazar="rejectedOrder(verpedido)" @aprobar="approveOrder(verpedido)" @update:verpedido="Object.assign(verpedido, $event)"></VerPedidoAprobarModal>
       </div>
     </div>
   </div>
