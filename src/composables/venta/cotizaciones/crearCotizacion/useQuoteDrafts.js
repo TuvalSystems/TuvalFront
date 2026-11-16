@@ -1,5 +1,6 @@
 import { ref, nextTick, computed, reactive, watch, onScopeDispose } from "vue";
 import { createDraftSaveQueue } from "./draftSaveQueue";
+import { getDraftSignature } from "./draftSignature";
 import axiosClient from "@/axios";
 import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
 import { getInitialState } from "./quoteInitialState";
@@ -57,6 +58,7 @@ export function useQuoteDrafts({
                 // Mantiene la pausa de recuperación para los watchers del formulario.
                 await new Promise(resolve => setTimeout(resolve, 500));
                 if (!isCurrent()) return { ...result, stale: true };
+                if (savedForm) queue.markSaved(createDraftPayload());
                 isRecoveringQuote.value = false;
                 return result;
             } catch (error) {
@@ -76,27 +78,33 @@ export function useQuoteDrafts({
     let debounceId;
     let disposed = false;
     const queue = createDraftSaveQueue({
+        getSignature: getDraftSignature,
         save: payload => run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.SYNC, payload)),
         onState: (id, state, error) => { saveStates[id] = { state, error }; },
     });
 
-    function enqueueCurrentDraft() {
-        if (disposed || isRecoveringQuote.value || draftLoadError.value) return;
+    function createDraftPayload() {
         const data = form.value;
-        if (!data.draft_id || data.draft_id === 'undefined' || (!data.cliente && data.items.length === 0)) return;
         // Copia independiente: editar el formulario no modifica una solicitud ya en curso.
-        const payload = JSON.parse(JSON.stringify({
+        return JSON.parse(JSON.stringify({
             draft_id: data.draft_id,
             pto_vta_id: selectedPointSaleCode.value,
             pv_id: selectedPointSaleId.value,
             data: { ...data, imagenesoperaciones: [], documentos_pdf: [] },
         }));
-        queue.enqueue(payload);
+    }
+
+    function enqueueCurrentDraft() {
+        if (disposed || isRecoveringQuote.value || draftLoadError.value) return;
+        const data = form.value;
+        if (!data.draft_id || data.draft_id === 'undefined' || (!data.cliente && data.items.length === 0)) return;
+        if (!queue.enqueue(createDraftPayload())) return;
         clearTimeout(debounceId);
         debounceId = setTimeout(() => queue.flush(), 1000);
     }
 
     watch(() => form.value, enqueueCurrentDraft, { deep: true });
+    watch([selectedPointSaleCode, selectedPointSaleId], enqueueCurrentDraft);
     watch(isRecoveringQuote, recovering => {
         if (!recovering) enqueueCurrentDraft();
     });
