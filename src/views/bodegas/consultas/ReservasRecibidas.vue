@@ -118,7 +118,7 @@ onMounted(() => {
 
 <template>
   <div class="content-fluid p-1 m-2">
-    <BaseBlock title="Reservas enviadas" content-full rounded>
+    <BaseBlock title="Reservas recibidas" content-full rounded>
       <template #options>
         <div class="block-options-item">
           <button class="btn btn-outline-primary btn-sm" title="Refrescar" aria-label="Refrescar" @click="refresh">
