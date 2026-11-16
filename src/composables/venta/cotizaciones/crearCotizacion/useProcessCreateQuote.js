@@ -30,6 +30,8 @@ export function useProcessCreateQuote(draftId = 'default') {
     const form = ref(getInitialState());
     form.value.draft_id = draftId;
     const {
+        loadingGetCurrentDraft,
+        draftLoadError,
         draftSaveState,
         draftSaveError,
         retryDraftSave,
@@ -328,6 +330,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         totalAsignado,
         validateInput,
         loadingStockMasivo,
+        stockError,
         updateStockByBatch,
         updateStockByBatchV2,
     } = useQuoteStock({
@@ -1843,6 +1846,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         //update stock por lote
         updateStockByBatch,
         loadingStockMasivo,
+        stockError,
         updateStockByBatchV2,
 
         //global
@@ -1872,6 +1876,8 @@ export function useProcessCreateQuote(draftId = 'default') {
 
 
         //manejo de borradores 
+        loadingGetCurrentDraft,
+        draftLoadError,
         draftSaveState,
         draftSaveError,
         retryDraftSave,

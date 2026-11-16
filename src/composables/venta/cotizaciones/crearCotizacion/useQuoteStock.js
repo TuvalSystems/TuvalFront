@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { ref, computed, onScopeDispose, watch } from "vue";
 import axiosClient from "@/axios";
 import { swalWarning } from "@/functions/swal-alert";
 import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
@@ -70,39 +70,77 @@ export function useQuoteStock({
     /** proceso de actualizacion de stock por lote  */
     const loadingStockMasivo = ref(false);
 
-    async function updateStockByBatch() {
-        if (!form.value.items || form.value.items.length === 0) return;
-        loadingStockMasivo.value = true;
-
-        const actualizaciones = form.value.items.map(async (item, index) => {
-            if (item.ART_TIPO_COMPRA === 'L') {
-                item.stockRowLoading = false;
-                return;
-            }
-            form.value.items[index].stockRowLoading = true;
-            form.value.items[index].disableOpenModalStock = true;
-            form.value.items[index].stockListo = false;
-            const respLote = await updateStockItemsByBatch(item, 'LOTE', form.value.cotizacion_id);
-
-            if (!respLote?.ok) {
-                form.value.items[index].stockListo = false;
-                form.value.items[index].stockRowLoading = false;
-                form.value.items[index].disableOpenModalStock = false;
-                console.error(`Error en item ${item.ART_CODIGO}:`, respLote?.message);
-                return;
-            }
-            form.value.items[index].stock = respLote.data.stock || [];
-            form.value.items[index].ART_STOCK = respLote.data.ART_STOCK; // Revisa mayúsculas/minúsculas
-
-            form.value.items[index].stockRowLoading = false;
-            form.value.items[index].disableOpenModalStock = false;
+    const stockError = ref('');
+    let stockSequence = 0;
+    let disposed = false;
+    const owners = new WeakMap();
+    let activeItems = [];
+    watch(() => [form.value, form.value.cotizacion_id, selectedPointSaleCode.value], () => {
+        stockSequence++;
+        activeItems.forEach(item => {
+            item.stockRowLoading = false;
+            item.disableOpenModalStock = false;
+            owners.delete(item);
         });
-        await Promise.all(actualizaciones);
+        activeItems = [];
         loadingStockMasivo.value = false;
-        calculateTotals(); // Recalcular validaciones de la cotización
+        stockError.value = '';
+    }, { flush: 'sync' });
+    onScopeDispose(() => { disposed = true; stockSequence++; });
 
+    async function refreshStock(batch) {
+        const sequence = ++stockSequence;
+        const currentForm = form.value;
+        const warehouse = selectedPointSaleCode.value;
+        const quoteId = currentForm.cotizacion_id;
+        const items = (currentForm.items || []).filter(item => item.ART_TIPO_COMPRA !== 'L' && (!batch || !item.es_servicio_logistico));
+        const snapshots = items.map(item => ({ item, code: item.ART_CODIGO, id: item.id_temp }));
+        const isCurrent = () => !disposed && sequence === stockSequence && form.value === currentForm &&
+            selectedPointSaleCode.value === warehouse && form.value.cotizacion_id === quoteId;
+        const isCurrentItem = ({ item, code, id }) => isCurrent() && form.value.items.includes(item) &&
+            item.ART_CODIGO === code && item.id_temp === id;
+        activeItems = items;
+        stockError.value = '';
+        loadingStockMasivo.value = items.length > 0;
+        items.forEach(item => {
+            owners.set(item, sequence);
+            item.stockRowLoading = true;
+            item.disableOpenModalStock = true;
+            item.stockListo = false;
+        });
+        try {
+            if (!items.length) return;
+            const payload = JSON.parse(JSON.stringify(items));
+            const responses = batch
+                ? [await updateStockItemsBatchAPI(payload, 'LOTE', quoteId)]
+                : await Promise.all(payload.map(item => updateStockItemsByBatch(item, 'LOTE', quoteId)));
+            snapshots.forEach((snapshot, index) => {
+                if (!isCurrentItem(snapshot)) return;
+                const response = responses[batch ? 0 : index];
+                const data = batch ? response?.data?.[snapshot.id] : response?.data;
+                if (!response?.ok || !data) {
+                    stockError.value = 'No se pudo actualizar todo el stock. Reintenta la consulta.';
+                    return;
+                }
+                snapshot.item.stock = data.stock || [];
+                snapshot.item.ART_STOCK = data.ART_STOCK;
+            });
+            if (isCurrent()) calculateTotals();
+        } catch {
+            if (isCurrent()) stockError.value = 'No se pudo actualizar el stock. Reintenta la consulta.';
+        } finally {
+            items.forEach(item => {
+                if (owners.get(item) !== sequence) return;
+                item.stockRowLoading = false;
+                item.disableOpenModalStock = false;
+                owners.delete(item);
+            });
+            if (sequence === stockSequence) loadingStockMasivo.value = false;
+        }
     }
 
+    const updateStockByBatch = () => refreshStock(false);
+    const updateStockByBatchV2 = () => refreshStock(true);
 
     const loadingUpdateStockItemsByBatch = ref(false);
     async function updateStockItemsByBatch(item, tipo, cotizacionId) {
@@ -122,46 +160,6 @@ export function useQuoteStock({
     }
 
 
-
-    async function updateStockByBatchV2() {
-        if (!form.value.items || form.value.items.length === 0) return;
-
-        const itemsParaProcesar = form.value.items.filter(item => item.ART_TIPO_COMPRA !== 'L' && !item.es_servicio_logistico);
-        if (itemsParaProcesar.length === 0) return;
-        loadingStockMasivo.value = true;
-
-        itemsParaProcesar.forEach(item => {
-            item.stockRowLoading = true;
-            item.disableOpenModalStock = true;
-            item.stockListo = false;
-        });
-        const response = await updateStockItemsBatchAPI(itemsParaProcesar, 'LOTE', form.value.cotizacion_id);
-
-        if (response?.ok) {
-            const resultados = response.data;
-            form.value.items.forEach(item => {
-                if (resultados[item.id_temp]) {
-                    const data = resultados[item.id_temp];
-                    item.stock = data.stock || [];
-                    item.ART_STOCK = data.ART_STOCK;
-                    // item.stockListo = true;
-                }
-                item.stockRowLoading = false;
-                item.disableOpenModalStock = false;
-            });
-        } else {
-            itemsParaProcesar.forEach(item => {
-                item.stockRowLoading = false;
-                item.disableOpenModalStock = false;
-                // item.stockListo = false;
-            });
-            console.error("Error en la petición por lote:", response?.message);
-        }
-
-        loadingStockMasivo.value = false;
-        calculateTotals();
-
-    }
 
     const loadingUpdateStockBatch = ref(false);
     async function updateStockItemsBatchAPI(item, tipo, cotizacionId) {
@@ -191,6 +189,7 @@ export function useQuoteStock({
         totalAsignado,
         validateInput,
         loadingStockMasivo,
+        stockError,
         updateStockByBatch,
         loadingUpdateStockItemsByBatch,
         updateStockItemsByBatch,

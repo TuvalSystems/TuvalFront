@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, watch } from "vue";
 import { Modal } from "bootstrap";
 
 export function useBootstrapModal(elementRef, options = {}) {
@@ -46,8 +46,21 @@ export function useBootstrapModal(elementRef, options = {}) {
         runCallback(onHidden, event);
     };
 
-    // Inicializamos el modal cuando el componente se monta
-    onMounted(() => {
+    const disposeModal = () => {
+        if (modalElement) {
+            modalElement.removeEventListener("show.bs.modal", handleShowEvent);
+            modalElement.removeEventListener("shown.bs.modal", handleShownEvent);
+            modalElement.removeEventListener("hide.bs.modal", handleHideEvent);
+            modalElement.removeEventListener("hidden.bs.modal", handleHiddenEvent);
+        }
+        modalInstance?.dispose();
+        modalInstance = null;
+        modalElement = null;
+    };
+
+    const initializeModal = () => {
+        if (modalElement === elementRef.value) return;
+        disposeModal();
         modalElement = elementRef.value;
 
         if (!modalElement) return;
@@ -61,22 +74,12 @@ export function useBootstrapModal(elementRef, options = {}) {
         modalElement.addEventListener("shown.bs.modal", handleShownEvent);
         modalElement.addEventListener("hide.bs.modal", handleHideEvent);
         modalElement.addEventListener("hidden.bs.modal", handleHiddenEvent);
-    });
+    };
 
-    onUnmounted(() => {
-        if (modalElement) {
-            modalElement.removeEventListener("show.bs.modal", handleShowEvent);
-            modalElement.removeEventListener("shown.bs.modal", handleShownEvent);
-            modalElement.removeEventListener("hide.bs.modal", handleHideEvent);
-            modalElement.removeEventListener("hidden.bs.modal", handleHiddenEvent);
-        }
-
-        modalInstance?.dispose();
-        modalInstance = null;
-        modalElement = null;
-    });
-
-
+    onMounted(initializeModal);
+    // Los formularios con :key reemplazan el elemento al recuperar otro borrador.
+    watch(elementRef, initializeModal, { flush: 'post' });
+    onUnmounted(disposeModal);
 
     const show = () => {
         modalInstance?.show();

@@ -15,41 +15,59 @@ export function useQuoteDrafts({
     selectedPointSaleId,
 }) {
     const loadingGetCurrentDraft = ref(false);
+    const draftLoadError = ref('');
+    let loadSequence = 0;
     async function fetchCurrentDraft() {
-        const idToFetch = route.query.draft || draftId;
-        isRecoveringQuote.value = true;
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.GET, { draft_id: idToFetch }), {
-            loadingRef: loadingGetCurrentDraft,
-            onSuccess: (info) => {
-                const rawData = info.data;
+        const sequence = ++loadSequence;
+        loadingGetCurrentDraft.value = true;
+        try {
+            const idToFetch = route.query.draft || draftId;
+            const isCurrent = () => !disposed && sequence === loadSequence && (route.query.draft || draftId) === idToFetch;
+            isRecoveringQuote.value = true;
+            draftLoadError.value = '';
+            const result = await run(() => axiosClient.post(QUOTE_API_ROUTES.DRAFTS.GET, { draft_id: idToFetch }));
+            if (!isCurrent()) return { ...result, stale: true };
+            if (!result.ok) {
+                draftLoadError.value = result.message || 'No se pudo cargar el borrador.';
+                isRecoveringQuote.value = false;
+                return result;
+            }
+            try {
+                const rawData = result.data?.data;
                 const savedForm = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-                const nextState = {
+                if (result.raw?.data != null && savedForm == null) {
+                    throw new Error('El borrador recibido no tiene un formato válido.');
+                }
+                if (savedForm != null && (typeof savedForm !== 'object' || Array.isArray(savedForm) ||
+                    (savedForm.items != null && !Array.isArray(savedForm.items)))) {
+                    throw new Error('El borrador recibido no tiene un formato válido.');
+                }
+                form.value = {
                     ...getInitialState(),
                     ...(savedForm || {}),
                     draft_id: idToFetch,
+                    items: savedForm?.items || [],
+                    orden_de_compra: savedForm?.orden_de_compra || '',
                     imagenesoperaciones: [],
-                    documentos_pdf: []
+                    documentos_pdf: [],
                 };
-                if (!nextState.items) nextState.items = [];
-                if (!nextState.orden_de_compra) nextState.orden_de_compra = '';
-                form.value = nextState;
-                nextTick(() => {
-                    calculateTotals();
-                    setTimeout(() => {
-                        isRecoveringQuote.value = false;
-                    }, 500);
-                });
-            },
-            onError: (err) => {
-                console.log("Iniciando borrador nuevo en blanco", err);
-                const emptyState = getInitialState();
-                emptyState.draft_id = idToFetch;
-                form.value = emptyState;
+                await nextTick();
+                if (!isCurrent()) return { ...result, stale: true };
+                calculateTotals();
+                // Mantiene la pausa de recuperación para los watchers del formulario.
+                await new Promise(resolve => setTimeout(resolve, 500));
+                if (!isCurrent()) return { ...result, stale: true };
                 isRecoveringQuote.value = false;
+                return result;
+            } catch (error) {
+                draftLoadError.value = error.message || 'No se pudo interpretar el borrador.';
+                isRecoveringQuote.value = false;
+                return { ok: false, message: draftLoadError.value };
             }
-        })
+        } finally {
+            if (sequence === loadSequence) loadingGetCurrentDraft.value = false;
+        }
     }
-
 
     const saveStates = reactive({});
     const draftSaveState = computed(() => saveStates[form.value.draft_id]?.state || 'idle');
@@ -63,7 +81,7 @@ export function useQuoteDrafts({
     });
 
     function enqueueCurrentDraft() {
-        if (disposed || isRecoveringQuote.value) return;
+        if (disposed || isRecoveringQuote.value || draftLoadError.value) return;
         const data = form.value;
         if (!data.draft_id || data.draft_id === 'undefined' || (!data.cliente && data.items.length === 0)) return;
         // Copia independiente: editar el formulario no modifica una solicitud ya en curso.
@@ -140,6 +158,7 @@ export function useQuoteDrafts({
 
     return {
         loadingGetCurrentDraft,
+        draftLoadError,
         fetchCurrentDraft,
         loadingSyncDraft,
         draftSaveState,

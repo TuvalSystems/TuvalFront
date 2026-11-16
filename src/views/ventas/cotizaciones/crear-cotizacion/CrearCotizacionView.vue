@@ -138,6 +138,7 @@ const {
 
   //update stock por lote
   loadingStockMasivo,
+  stockError,
   updateStockByBatchV2,
   //gloabl
   calculateTotals,
@@ -151,6 +152,8 @@ const {
   isRecoveringQuote,
 
   //temp
+  loadingGetCurrentDraft,
+  draftLoadError,
   draftSaveState,
   draftSaveError,
   retryDraftSave,
@@ -411,7 +414,7 @@ async function closeModalCreateAddress() {
 }
 
 async function handleSavedAddress() {
-  if (form.value.cliente && form.value.cliente.CLI_RUC) {
+  if ( form.value.cliente && form.value.cliente.CLI_RUC) {
     await fetchCustomerBranches(form.value.cliente.CLI_RUC, "cotizacion");
   }
   newAddressModal.value?.hide();
@@ -980,53 +983,59 @@ const loadSelectedDraft = (draftId) => {
   }, 350);
 };
 
+async function recoverSelectedDraft() {
+  const result = await fetchCurrentDraft();
+  if (!result?.ok || result.stale) return;
+  setDefaultProject();
+  showInfoClient.value = false;
+  uploadedFiles.value = [];
+  if (form.value.cliente?.CLI_RUC) {
+    showInfoClient.value = true;
+    const promises = [
+      fetchCustomerBranches(form.value.cliente.CLI_RUC, "cotizacion"),
+      fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC),
+    ];
+    if (form.value.condicion_pago_id) {
+      promises.push(fetchMethodPayment(form.value.condicion_pago_id));
+    }
+
+    await Promise.all(promises);
+    if (form.value.imagenesoperaciones?.length > 0) {
+      uploadedFiles.value = form.value.imagenesoperaciones.map(
+        (url, index) => ({
+          id: `restored-${index}`,
+          preview: url,
+          isPersisted: true,
+        })
+      );
+    }
+
+    if (form.value.documentos_pdf?.length > 0) {
+      restorePersistedPdfs(
+        form.value.documentos_pdf.map((url, index) => ({
+          id: `pdf-restored-${index}`,
+          url,
+          nombre: `Documento ${index + 1}.pdf`,
+          mime_type: "application/pdf",
+        }))
+      );
+    }
+  }
+
+  if (form.value.items && form.value.items.length > 0) {
+    setTimeout(() => {
+      updateStockByBatchV2();
+    }, 300);
+  }
+}
+
 //watch para vigilar los cambios en el id del borrador en la URL
 watch(
   () => route.query.draft,
   async (newDraftId, oldDraftId) => {
-    if (isRecoveringQuote.value) return;
+    if (isRecoveringQuote.value && !loadingGetCurrentDraft.value) return;
     if (newDraftId && newDraftId !== oldDraftId) {
-      showInfoClient.value = false;
-      uploadedFiles.value = [];
-      await fetchCurrentDraft();
-      if (form.value.cliente?.CLI_RUC) {
-        showInfoClient.value = true;
-        const promises = [
-          fetchCustomerBranches(form.value.cliente.CLI_RUC, "cotizacion"),
-          fetchAvailableCreditCustomer(form.value.cliente.CLI_RUC),
-        ];
-        if (form.value.condicion_pago_id) {
-          promises.push(fetchMethodPayment(form.value.condicion_pago_id));
-        }
-
-        await Promise.all(promises);
-        if (form.value.imagenesoperaciones?.length > 0) {
-          uploadedFiles.value = form.value.imagenesoperaciones.map(
-            (url, index) => ({
-              id: `restored-${index}`,
-              preview: url,
-              isPersisted: true,
-            })
-          );
-        }
-
-        if (form.value.documentos_pdf?.length > 0) {
-          restorePersistedPdfs(
-            form.value.documentos_pdf.map((url, index) => ({
-              id: `pdf-restored-${index}`,
-              url,
-              nombre: `Documento ${index + 1}.pdf`,
-              mime_type: "application/pdf",
-            }))
-          );
-        }
-      }
-
-      if (form.value.items && form.value.items.length > 0) {
-        setTimeout(() => {
-          updateStockByBatchV2();
-        }, 300);
-      }
+      await recoverSelectedDraft();
     } else if (!newDraftId && oldDraftId) {
       await clearForm(uploadedFiles, false, false, uploadedPdfs);
       showInfoClient.value = false;
@@ -1162,18 +1171,18 @@ onMounted(async () => {
     await fetchCurrentDraft();
   }
   await fetchListProyectSellers();
-  setDefaultProject();
+  if (!draftLoadError.value) setDefaultProject();
   await Promise.all([fetchWarehouseByPtoVtaUser(), fetchConditionPayment()]);
 
   const newCustomerIdentification = String(
     route.query.cliente_nuevo ?? ""
   ).trim();
-  if (newCustomerIdentification) {
+  if (newCustomerIdentification && !draftLoadError.value) {
     await processSelectClient({ CLI_RUC: newCustomerIdentification });
   }
 
   //logica para recuperar datos en memoria
-  if (form.value.cliente && form.value.cliente.CLI_RUC) {
+  if (!draftLoadError.value && form.value.cliente && form.value.cliente.CLI_RUC) {
     loadingSearch.value = false;
     loadingAvailableCredit.value = false;
     showInfoClient.value = true;
@@ -1250,7 +1259,14 @@ onMounted(async () => {
 </script>
 <template>
   <div class="content">
-    <div :key="currentDraftId">
+    <div v-if="draftLoadError || loadingGetCurrentDraft" class="mb-2 fs-sm" role="status" aria-live="polite">
+      <span v-if="loadingGetCurrentDraft" class="text-muted">Cargando borrador…</span>
+      <template v-else>
+        <span class="text-danger" :title="draftLoadError">No se pudo cargar el borrador. El formulario se conserva y el autoguardado está en pausa.</span>
+        <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" @click="recoverSelectedDraft">Reintentar</button>
+      </template>
+    </div>
+    <div :key="currentDraftId" :inert="!!draftLoadError || loadingGetCurrentDraft">
       <FiltrarCliente
         title="Buscar Cliente"
         class="mb-2"
@@ -1434,6 +1450,10 @@ onMounted(async () => {
           >
             <i class="fa fa-file-invoice me-1"></i>Historial Facturas
           </button>
+        </div>
+        <div v-if="stockError" class="text-danger fs-sm mb-2" role="status" aria-live="polite">
+          {{ stockError }}
+          <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" :disabled="loadingStockMasivo" @click="updateStockByBatchV2">Reintentar</button>
         </div>
         <div class="table-responsive mt-1 mb-2">
           <table
