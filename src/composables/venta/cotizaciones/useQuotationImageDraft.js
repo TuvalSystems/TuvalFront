@@ -25,7 +25,7 @@ export function useQuotationImageDraft() {
   const pointLabel = computed(() => pointOfSale.value?.PTO_VTA_DESCRIPCION || store.state.puntodeventaselect || "Sin punto de venta");
   const busy = computed(() => extracting.value || creating.value);
   const locked = computed(() => creating.value || !!pendingRequest.value || !!created.value?.id);
-  const validRows = computed(() => rows.value.length > 0 && rows.value.length <= 20 && rows.value.every((row) => {
+  const validRows = computed(() => rows.value.length > 0 && rows.value.length <= 100 && rows.value.every((row) => {
     const quantity = String(row.cantidad ?? "");
     return row.texto.trim().length > 0 && row.texto.trim().length <= 200 &&
       /^\d+(\.\d{1,2})?$/.test(quantity) && Number(quantity) > 0 && Number(quantity) <= 1000000;
@@ -113,7 +113,7 @@ export function useQuotationImageDraft() {
   }
 
   function addRow() {
-    if (locked.value || rows.value.length >= 20) return;
+    if (locked.value || rows.value.length >= 100) return;
     rows.value.push({ id: ++rowId, texto: "", cantidad: "", review: "" });
   }
 

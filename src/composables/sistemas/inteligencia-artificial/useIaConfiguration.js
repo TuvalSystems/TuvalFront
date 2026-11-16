@@ -30,7 +30,7 @@ export function useIaConfiguration() {
     { key: "limiteDiarioGlobal", label: "Presupuesto diario global", min: 0, max: 1000000000 },
     { key: "limiteMensualGlobal", label: "Presupuesto mensual global", min: 0, max: 2000000000 },
     { key: "maxEntrada", label: "Máximo de entrada por llamada", min: 1000, max: 100000 },
-    { key: "maxSalida", label: "Máximo de salida por llamada", min: 256, max: 6000 },
+    { key: "maxSalida", label: "Máximo de salida por llamada", min: 256, max: 32000 },
   ];
   const opciones = { skipMaintenanceRedirect: true };
   async function cargar() {

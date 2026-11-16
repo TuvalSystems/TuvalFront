@@ -275,7 +275,7 @@ onBeforeRouteLeave(async () => {
           </ul>
         </div>
         <div class="d-flex flex-wrap gap-2 mb-3">
-          <span class="badge bg-primary">{{ rows.length }} / 20 líneas</span
+          <span class="badge bg-primary">{{ rows.length }} / 100 líneas</span
           ><span class="text-muted fs-sm"
             >Verifique cada descripción y cantidad antes de confirmar.</span
           >
@@ -344,7 +344,7 @@ onBeforeRouteLeave(async () => {
         <button
           type="button"
           class="btn btn-alt-secondary btn-sm mb-3"
-          :disabled="locked || rows.length >= 20"
+          :disabled="locked || rows.length >= 100"
           @click="addRow"
         >
           <i class="fa fa-plus me-1"></i> Agregar línea
