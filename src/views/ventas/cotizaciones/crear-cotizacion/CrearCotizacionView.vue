@@ -68,6 +68,7 @@ const {
   infoSegmento,
   loadingAvailableCredit,
   fetchAvailableCreditCustomer,
+  invalidateClientQueries,
 
   //sucursales
   loadingSucursales,
@@ -149,7 +150,7 @@ const {
   isQuoteValid,
   createQuote,
   loadingSaveOrder,
-  saveOrder,
+  saveOrderAndUpdateQuote,
   isRecoveringQuote,
 
   //temp
@@ -192,6 +193,7 @@ const {
   conditionPayment,
   loadingMethodPayment,
   fetchMethodPayment,
+  invalidatePaymentQueries,
   methodPayment,
 } = useSearchConditionPayment();
 
@@ -290,6 +292,7 @@ const showResultClients = ref(false);
 const showInfoClient = ref(false);
 
 function updateCustomerSearchTerm(value) {
+  invalidateClientQueries();
   dataSearch.search = value ?? "";
   clients.value = [];
   showResultClients.value = false;
@@ -309,6 +312,7 @@ async function searchFilterClientes() {
   dataSearch.search = search;
   dataSearch.tipo = "proceso";
   const resp = await searchClients();
+  if (resp?.stale) return;
 
   if (!resp?.ok) {
     errorSearchClient.value = true;
@@ -336,7 +340,16 @@ async function selectClient(client) {
   }
 }
 
+let clientSelectionSequence = 0;
+watch(() => [form.value, form.value.draft_id, selectedPointSaleCode.value], () => {
+  clientSelectionSequence++;
+  invalidateClientQueries();
+  invalidatePaymentQueries();
+}, { flush: "sync" });
 async function processSelectClient(client) {
+  const selection = ++clientSelectionSequence;
+  const selectedForm = form.value;
+  const pointSale = selectedPointSaleCode.value;
   if (verModalActualizarSegmentoObj) {
     verModalActualizarSegmentoObj.hide();
   }
@@ -352,6 +365,9 @@ async function processSelectClient(client) {
     fetchAvailableCreditCustomer(client.CLI_RUC), // Corregido 'Available'
     fetchCustomerBranches(client.CLI_RUC, "cotizacion"),
   ]);
+
+  if (selection !== clientSelectionSequence || selectedForm !== form.value ||
+      pointSale !== selectedPointSaleCode.value || respCredit?.stale || respBranches?.stale) return;
 
   if (!respCredit?.ok) {
     swalError(respCredit?.message || "Error consultando crédito");
@@ -521,11 +537,15 @@ watch(
 async function selectConditionPayment() {
   const condId = form.value.condicion_pago_id;
   if (!condId) {
+    invalidatePaymentQueries();
     methodPayment.value = [];
     form.value.forma_pago_id = null;
     return;
   }
-  await fetchMethodPayment(condId);
+  const selectedForm = form.value;
+  const result = await fetchMethodPayment(condId);
+  if (!result?.ok || result.stale || selectedForm !== form.value ||
+      condId !== form.value.condicion_pago_id) return;
   if (methodPayment.value && methodPayment.value.length > 0) {
     const formaPagoActual = form.value.forma_pago_id;
     const existeFormaActual = methodPayment.value.find(
@@ -870,23 +890,12 @@ async function createQuotationOnce() {
 async function saveToOrderAndUpdateQuotationOnce() {
   if (loadingSaveOrder.value || loadingCreateQuotation.value) return;
 
-  const respOrder = await saveOrder();
+  const respOrder = await saveOrderAndUpdateQuote();
   if (respOrder?.skipped) return;
 
   if (!respOrder?.ok) {
     const msg = respOrder?.message || "No se pudo crear el pedido";
     (respOrder?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
-    return;
-  }
-
-  const respQuotation = await createQuote("update");
-  if (respQuotation?.skipped) return;
-
-  if (!respQuotation?.ok) {
-    const msg =
-      respQuotation?.message ||
-      "El pedido se creó, pero no se pudo actualizar la cotización";
-    (respQuotation?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
     return;
   }
 

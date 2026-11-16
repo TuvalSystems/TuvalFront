@@ -838,7 +838,7 @@ export function useProcessCreateQuote(draftId = 'default') {
      * 
      * */
 
-    const { loadingCreateQuotation, createQuote, loadingSaveOrder, saveOrder } = useQuoteSubmission({
+    const { loadingCreateQuotation, createQuote, loadingSaveOrder, saveOrder, saveOrderAndUpdateQuote } = useQuoteSubmission({
         form, run, validateItemLWeights, validateDispatchFields, validateFreightTotal,
     });
 
@@ -993,6 +993,7 @@ export function useProcessCreateQuote(draftId = 'default') {
         //gaurdar una cotizacion a pedido
         loadingSaveOrder,
         saveOrder,
+        saveOrderAndUpdateQuote,
 
         //prospecto 
         loadingUpdateQuoteProspect,

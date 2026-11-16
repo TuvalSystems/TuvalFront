@@ -66,5 +66,6 @@ export function useApiAction() {
     return {
         loading,
         run,
+        invalidate: nextSeq,
     };
 }

@@ -1,9 +1,14 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref } from "vue";
+import { onScopeDispose, ref } from "vue";
 
 export function useSearchConditionPayment() {
-    const { run } = useApiAction();
+    const { run, invalidate } = useApiAction();
+    const invalidatePaymentQueries = () => invalidate("loadingMethodPayment");
+    onScopeDispose(() => {
+        invalidatePaymentQueries();
+        invalidate("loadingConditionPayment");
+    });
     const loadingConditionPayment = ref(false);
     const conditionPayment = ref(null);
     const apiConditions = 'obtener-condiciones-pago';
@@ -12,6 +17,8 @@ export function useSearchConditionPayment() {
     async function fetchConditionPayment() {
         return run(() => axiosClient.post(apiConditions), {
             loadingRef: loadingConditionPayment,
+            latestOnly: true,
+            key: "loadingConditionPayment",
             onSuccess: (data) => {
                 conditionPayment.value = data;
             },
@@ -30,6 +37,8 @@ export function useSearchConditionPayment() {
     async function fetchMethodPayment(condId) {
         return run(() => axiosClient.post(apiMethods, { condId: condId }), {
             loadingRef: loadingMethodPayment,
+            latestOnly: true,
+            key: "loadingMethodPayment",
             onSuccess: (data) => {
                 methodPayment.value = data;
             },
@@ -41,6 +50,7 @@ export function useSearchConditionPayment() {
 
 
     return {
+        invalidatePaymentQueries,
         loadingConditionPayment,
         fetchConditionPayment,
         conditionPayment,

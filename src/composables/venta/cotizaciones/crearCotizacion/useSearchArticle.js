@@ -1,11 +1,13 @@
 import axiosClient from "@/axios";
 import { useApiAction } from "@/composables/core/useApiAction";
-import { ref, reactive, computed, toRef } from "vue";
+import { onScopeDispose, ref, reactive, computed, toRef } from "vue";
 import { swalWarning } from "@/functions/swal-alert";
 import { useStore } from 'vuex'
 import { ARTICLES_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/articleRoutes";
 export function useSearchArticle() {
-    const { run } = useApiAction();
+    const { run, invalidate } = useApiAction();
+    const invalidateArticleSearch = () => ["loadingArt"].forEach(invalidate);
+    onScopeDispose(invalidateArticleSearch);
     const store = useStore();
     const gallery = reactive({
         visible: false,
@@ -147,6 +149,7 @@ export function useSearchArticle() {
     }
 
     function resetSearch() {
+        invalidateArticleSearch();
         payload.text_codigo = '';
         payload.text_nombre = '';
         payload.codigo3l = '';
@@ -172,8 +175,10 @@ export function useSearchArticle() {
 
     //function de consulta para listar todos los articulos de acuerdo a los filtros
     async function fetchSearchArticles() {
-        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.ITEMS, payload), {
+        return await run(() => axiosClient.post(ARTICLES_API_ROUTES.ITEMS, { ...payload }), {
             loadingRef: loadingArt,
+            latestOnly: true,
+            key: "loadingArt",
             onSuccess: (res) => {
                 articles.value = res.filter((article) => {
                     const purchaseType = (article.ART_TIPO_COMPRA || '').trim().toUpperCase();
@@ -311,6 +316,7 @@ export function useSearchArticle() {
 
 
     return {
+        invalidateArticleSearch,
         payload,
         cols,
         onSort,

@@ -1,3 +1,4 @@
+import { createOrderCompletion } from "./orderCompletion";
 import { ref } from "vue";
 import axiosClient from "@/axios";
 import { swalWarning } from "@/functions/swal-alert";
@@ -46,7 +47,23 @@ export function useQuoteSubmission({ form, run, validateItemLWeights, validateDi
 
     const loadingSaveOrder = ref(false);
     const saveOrder = () => submitDocument(() => submitOrder());
-    async function submitOrder() {
+    const completeOrder = createOrderCompletion();
+    const saveOrderAndUpdateQuote = () => submitDocument(() => completeOrder(
+        `${form.value.punto_venta_id}:${form.value.cotizacion_id}:${form.value.draft_id}`,
+        () => {
+            // Congela el segundo envío antes de crear el pedido; no toma ediciones posteriores.
+            let updateData;
+            return {
+                createOrder: () => submitOrder(() => {
+                    updateData = buildQuotationFormData(form.value, "update");
+                }),
+                updateQuote: () => run(() => axiosClient.post(QUOTE_API_ROUTES.QUOTES.CREATE, updateData), {
+                    loadingRef: loadingCreateQuotation,
+                }),
+            };
+        },
+    ));
+    async function submitOrder(prepareUpdate) {
         const weightError = validateItemLWeights();
         if (weightError) return { ok: false, message: weightError };
         const dispatchError = validateDispatchFields();
@@ -70,6 +87,7 @@ export function useQuoteSubmission({ form, run, validateItemLWeights, validateDi
             return;
         }
         const formData = buildOrderFormData(form.value);
+        prepareUpdate?.();
 
         return run(() => axiosClient.post(QUOTE_API_ROUTES.ORDERS.CREATE, formData), {
             loadingRef: loadingSaveOrder,
@@ -79,5 +97,5 @@ export function useQuoteSubmission({ form, run, validateItemLWeights, validateDi
         });
     }
 
-    return { loadingCreateQuotation, createQuote, loadingSaveOrder, saveOrder };
+    return { loadingCreateQuotation, createQuote, loadingSaveOrder, saveOrder, saveOrderAndUpdateQuote };
 }
