@@ -11,6 +11,7 @@ export function useClientRegisteredCollectionsTable() {
     const ctrl = ref(null);
     let debounceId;
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -37,6 +38,8 @@ export function useClientRegisteredCollectionsTable() {
 
     async function fetchList(page = 1) {
         if (!table.filters.cliente_id) {
+            ctrl.value?.abort();
+            table.error = "";
             table.items = [];
             table.currentPage = 1;
             table.totalPage = 0;
@@ -57,6 +60,7 @@ export function useClientRegisteredCollectionsTable() {
             { signal: ctrl.value.signal }
         ), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: "lista-cobros-registrados",
             successMessage: "Información Obtenida Exitosamente",

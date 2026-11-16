@@ -14,6 +14,7 @@ export function useHistoryInvoicesTable() {
     const ctrl = ref(null);
     let debounceId;
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -116,6 +117,8 @@ export function useHistoryInvoicesTable() {
 
 
     function clearList() {
+        ctrl.value?.abort();
+        table.error = "";
         table.items = [];
         table.totalPage = 0;
         table.totalItems = 0;
@@ -146,6 +149,7 @@ export function useHistoryInvoicesTable() {
             signal: ctrl.value.signal
         }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-historico-facturas`,
             successMessage: "Proceso realizado exitosamente",

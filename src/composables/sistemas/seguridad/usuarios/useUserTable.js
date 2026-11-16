@@ -11,6 +11,7 @@ export function useUserTable() {
     let debounceId;
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -56,6 +57,7 @@ export function useUserTable() {
         }
         return run(() => axiosClient.post(SYSTEM_USERS_API_ROUTES.ACTIONS.LIST, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-usuarios`,
             successMessage: "Información obtenida exitosamente.",

@@ -12,6 +12,7 @@ export function useClientBranchesOperationsTable() {
     const apiList = "/gestion/lista-sucursales";
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -49,6 +50,7 @@ export function useClientBranchesOperationsTable() {
         }
         return run(() => axiosClient.post(apiList, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-logs`,
             successMessage: "Información obtenida exitosamente.",

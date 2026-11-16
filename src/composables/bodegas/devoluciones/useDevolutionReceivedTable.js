@@ -15,6 +15,7 @@ export function useDevolutionReceivedTable() {
     const apiList = "/devoluciones/pendiente-recepcion";
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -70,6 +71,7 @@ export function useDevolutionReceivedTable() {
         }
         return run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-devoluciones-pendiente-recepcion`,
             successMessage: "Proceso realizado exitosamente.",

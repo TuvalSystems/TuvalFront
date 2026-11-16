@@ -13,7 +13,7 @@ import { swalError } from "@/functions/swal-alert.js";
 const store = useStore();
 const ptoVta = usePtoVtaStore();
 const puntoVentaId = store.state.puntodeventaselect;
-const { table, fetchItems, refresh, onSort, limpiarFecha } =
+const { table, fetchItems, refresh, onSort } =
   useReposicionesRecibidasPagination(puntoVentaId);
 const { fetchDetailGuides } = useDetalleDespachoPedidos();
 const flatPickrState = reactive({
@@ -253,7 +253,8 @@ onMounted(async () => {
             <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
           </div>
         </div>
-        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchItems(table.currentPage)" :perPage="table.perPage"
           :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
           :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
           @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick">

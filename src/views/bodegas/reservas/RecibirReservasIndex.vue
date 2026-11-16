@@ -31,9 +31,8 @@ let receivedModal = ref(null);
 let receivedModalObj = null;
 
 /** functions standar component table  */
-const handleClick = ({ row, col }) => {
-    if (col.key === "numero_guia") {
-    }
+const handleClick = () => {
+    // Las acciones de este listado se ejecutan desde sus botones.
 };
 
 
@@ -177,7 +176,8 @@ onMounted(async () => {
                     <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
                 </div>
             </div>
-            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchListReceivedReservationTransfers(table.currentPage)" :perPage="table.perPage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort"
                 @onPageChange="fetchListReceivedReservationTransfers" @onSearch="table.searchTerm"

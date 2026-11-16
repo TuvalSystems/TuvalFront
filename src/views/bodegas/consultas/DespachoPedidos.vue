@@ -356,7 +356,8 @@ onMounted(() => {
         <BaseTable
           :columns="columns"
           :data="table.items"
-          :loading="table.loading"
+          :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchItems(table.currentPage)"
           :perPage="table.perPage"
           :totalItems="table.totalItems"
           :currentPage="table.currentPage"

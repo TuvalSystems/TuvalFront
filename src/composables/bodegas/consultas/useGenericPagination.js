@@ -1,4 +1,4 @@
-import {  watch } from "vue";
+import { watch, onScopeDispose } from "vue";
 import axiosClient from "../../../axios";
 import { usePaginationCacheStore } from "../../../stores/bodegas/consultas/usePaginationCacheStore";
 
@@ -6,12 +6,18 @@ export function useGenericPagination({ cacheKey, endpoint }) {
   const store = usePaginationCacheStore();
   store.initTable(cacheKey);
   const table = store.getTable(cacheKey); // todas las refs viven aquí
+  let controller;
   const fetchItems = async (page = 1) => {
+    controller?.abort();
+    const request = new AbortController();
+    controller = request;
     table.loading = true;
+    table.error = "";
     table.currentPage = page;
 
     try {
       const response = await axiosClient.get(endpoint, {
+        signal: request.signal,
         params: {
           page: table.currentPage,
           perPage: table.perPage,
@@ -25,18 +31,25 @@ export function useGenericPagination({ cacheKey, endpoint }) {
         },
       });
 
+      if (request.signal.aborted) return;
       const data = response.data.data;
+      if (response.data.success === false || !data) {
+        throw new Error(response.data.error || response.data.message || "No se pudo consultar el listado.");
+      }
       if (data) {
         table.items = data.data;
         table.totalPage = data.last_page;
         table.totalItems = data.total;
       }
     } catch (error) {
-      console.error("Error fetching items:", error);
+      if (!request.signal.aborted && error.code !== 'ERR_CANCELED' && !error.handledByRedirect) {
+        table.error = error.response?.data?.error || error.response?.data?.message || error.message || "No se pudo consultar el listado.";
+      }
     } finally {
-      table.loading = false;
+      if (controller === request) table.loading = false;
     }
   };
+  onScopeDispose(() => controller?.abort());
 
   watch(
     () => [

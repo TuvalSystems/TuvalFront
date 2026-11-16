@@ -11,6 +11,7 @@ export function useOrderReservationTable() {
     
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -169,6 +170,7 @@ export function useOrderReservationTable() {
         }
         return run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,                         // 👈 activa takeLatest
             key: `lista-pedidos-reservas`,      // 👈 clave para este endpoint
             successMessage: "Proceso realizado exitosamente.",

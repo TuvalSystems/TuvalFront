@@ -1,8 +1,11 @@
 import axios from 'axios';
 import store from './store';
 import router from './router';
+import { PRINT_REQUEST_TIMEOUT } from '@/constants/requestOptions';
+import { normalizeRequestError } from '@/utils/requestError';
 
 const axiosPrint = axios.create({
+    timeout: PRINT_REQUEST_TIMEOUT,
     baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`, //http://172.30.1.7/api,
     headers: {
         'Accept': 'application/json',
@@ -45,14 +48,16 @@ axiosPrint.interceptors.request.use(config => {
 axiosPrint.interceptors.response.use(
     response => response,
     error => {
+        normalizeRequestError(error);
         const { response } = error;
 
-        if (response && response.status === 503) {
+        if (response && response.status === 503 && !error.config?.skipMaintenanceRedirect) {
             if (router.currentRoute.value.name !== 'Maintenance') {
                 router.push({ name: 'Maintenance' });
             }
 
-            return new Promise(() => { });
+            error.handledByRedirect = true;
+            return Promise.reject(error);
         }
 
         if (response && response.status === 401) {
@@ -75,7 +80,8 @@ axiosPrint.interceptors.response.use(
 
             if (homeRouteName && router.currentRoute.value.name !== homeRouteName) {
                 router.push({ name: homeRouteName });
-                return new Promise(() => { });
+                error.handledByRedirect = true;
+                return Promise.reject(error);
             }
         }
 

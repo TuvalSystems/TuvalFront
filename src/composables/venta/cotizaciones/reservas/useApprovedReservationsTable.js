@@ -9,6 +9,7 @@ export function useApprovedReservationsTable() {
   let debounceId;
   const apiList = "/reservas/lista-reserva-aprobadas";
   const table = reactive({
+        error: "",
     items: [],
     currentPage: 1,
     totalPage: 0,
@@ -187,6 +188,7 @@ export function useApprovedReservationsTable() {
     }
     return run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
       loadingRef,
+      errorRef: toRef(table, "error"),
       latestOnly: true,                         // 👈 activa takeLatest
       key: `lista-reserva-aprobadas`,      // 👈 clave para este endpoint
       successMessage: "Proceso realizado exitosamente.",

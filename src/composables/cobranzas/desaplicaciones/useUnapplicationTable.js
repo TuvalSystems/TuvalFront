@@ -8,6 +8,7 @@ export function useUnapplicationTable() {
   let debounceId;
   const apiList = "cobranzas/desaplicaciones/lista";
   const table = reactive({
+        error: "",
     items: [],
     currentPage: 1,
     totalPage: 0,
@@ -54,6 +55,7 @@ export function useUnapplicationTable() {
         ),
       {
         loadingRef,
+        errorRef: toRef(table, "error"),
         latestOnly: true,
         key: `lista-cobros-aplicados`,
         successMessage: "Información Obtenida",

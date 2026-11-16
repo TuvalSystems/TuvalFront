@@ -22,6 +22,7 @@ watch(
   clientId,
   async (newClientId, previousClientId) => {
     if (!newClientId) {
+      await fetchList(1, null);
       table.cliente_id = null;
       table.items = [];
       table.totalItems = 0;
@@ -130,7 +131,8 @@ function formatNumber(value) {
       <BaseTable
         :columns="columns"
         :data="table.items"
-        :loading="table.loading"
+        :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchPage(table.currentPage)"
         :perPage="table.filters.perpage"
         :totalItems="table.totalItems"
         :currentPage="table.currentPage"

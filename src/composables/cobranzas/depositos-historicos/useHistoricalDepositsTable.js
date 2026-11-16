@@ -10,6 +10,7 @@ export function useHistoricalDepositsTable() {
     const ctrl = ref(null);
     let debounceId;
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -56,6 +57,7 @@ export function useHistoricalDepositsTable() {
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: 'lista-depositos-historico',
             successMessage: "Información Obtenida Exitosamente",

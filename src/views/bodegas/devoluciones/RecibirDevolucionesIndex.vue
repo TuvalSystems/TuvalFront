@@ -1,19 +1,16 @@
 <script setup>
-import { onMounted, reactive, ref, onBeforeUnmount, nextTick } from "vue";
+import { onMounted, ref, nextTick } from "vue";
 import BaseTable from "@/components/BaseTable.vue";
 import { Modal } from "bootstrap";
 import { useDevolutionReceivedTable } from "@/composables/bodegas/devoluciones/useDevolutionReceivedTable.js";
 import { useProcessDetailDevolution } from "@/composables/bodegas/devoluciones/useProcessDetailDevolution.js";
 import verRecibirDevolucionesModal from "@/views/bodegas/devoluciones/modals/verDevolucionRecibirItemsModal.vue";
 import {
-    swalWarning,
     swalError,
 } from "@/functions/swal-alert.js";
-import { set } from "nprogress";
 
 const { table,
     columns,
-    loadingRef,
     onSort,
 
     refresh,
@@ -22,7 +19,7 @@ const { table,
     fetchData } = useDevolutionReceivedTable();
 
 
-const { loadingDetail, fetchDetail } = useProcessDetailDevolution();
+const { fetchDetail } = useProcessDetailDevolution();
 /** este bloque es para desactivar el click de la tabla */
 
 const lockedIds = ref(new Set())
@@ -108,7 +105,7 @@ function modalsComponentSetup() {
     if (verRecibirModal.value) {
         verRecibirModalObj = Modal.getOrCreateInstance(verRecibirModal.value, { backdrop: true })
     }
-};
+}
 
 
 onMounted(async () => {
@@ -160,7 +157,8 @@ onMounted(async () => {
             </div>
 
 
-            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchData(table.currentPage)" :perPage="table.perPage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchData"
                 @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">

@@ -6,6 +6,7 @@ import { IA_API_ROUTES } from "@/constants/apiRoutes/sistema/inteligenciaArtific
 export function useIaConfiguration() {
   const { run } = useApiAction();
   const busy = ref(false);
+  const errorCarga = ref("");
   const config = ref(null);
   const paginaPerfiles = ref(1);
   const perfiles = computed(() => config.value?.perfiles ?? []);
@@ -34,7 +35,7 @@ export function useIaConfiguration() {
   ];
   const opciones = { skipMaintenanceRedirect: true };
   async function cargar() {
-    const result = await run(() => axiosClient.get(IA_API_ROUTES.CONFIGURACION, opciones), { loadingRef: busy });
+    const result = await run(() => axiosClient.get(IA_API_ROUTES.CONFIGURACION, opciones), { loadingRef: busy, errorRef: errorCarga });
     if (result.ok) config.value = result.data;
     return result;
   }
@@ -61,7 +62,7 @@ export function useIaConfiguration() {
     if (result.ok) config.value = result.data;
     return result;
   }
-  return { busy, config, paginaPerfiles, perfiles, paginasPerfiles,
+  return { busy, errorCarga, config, paginaPerfiles, perfiles, paginasPerfiles,
     perfilesVisibles, porcentajeAsignado, columnasPerfiles, cuotaPerfil, cambiarPaginaPerfiles,
     campos, cargar, guardar };
 }

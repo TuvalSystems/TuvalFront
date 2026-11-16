@@ -4,18 +4,19 @@ import { ref } from "vue";
 const loadingCounters = new WeakMap();
 function inc(r) { const c = (loadingCounters.get(r) ?? 0) + 1; loadingCounters.set(r, c); return c; }
 function dec(r) { const c = Math.max(0, (loadingCounters.get(r) ?? 1) - 1); loadingCounters.set(r, c); return c; }
-const latestSeq = new Map(); // 👈 secuencias por clave (takeLatest)
-
-function nextSeq(key) { const n = (latestSeq.get(key) ?? 0) + 1; latestSeq.set(key, n); return n; }
 function isAbortError(err) { return err?.name === 'AbortError' || err?.code === 'ERR_CANCELED' || err?.message === 'canceled'; }
 
 export function useApiAction() {
     const loading = ref(false);
+    // Las instancias de una misma pantalla no deben descartar respuestas entre sí.
+    const latestSeq = new Map();
+    function nextSeq(key) { const n = (latestSeq.get(key) ?? 0) + 1; latestSeq.set(key, n); return n; }
 
-    async function run(requestFn, { loadingRef, onSuccess, onError, successMessage, latestOnly = false, key } = {}) {
+    async function run(requestFn, { loadingRef, errorRef, onSuccess, onError, successMessage, latestOnly = false, key } = {}) {
         const targetLoading = loadingRef ?? loading;
         inc(targetLoading);
         targetLoading.value = true;
+        if (errorRef) errorRef.value = "";
 
         // 👇 ID de esta llamada si queremos "solo la última" por clave
         const seqId = latestOnly && key ? nextSeq(key) : null;
@@ -55,6 +56,7 @@ export function useApiAction() {
             if (error.handledByRedirect) {
                 return { ok: false, data: backend, raw: error, message: msg, status, handled: true };
             }
+            if (errorRef) errorRef.value = msg;
             onError && onError(backend, error);
             return { ok: false, data: backend, raw: error, message: msg , status: status };
         } finally {

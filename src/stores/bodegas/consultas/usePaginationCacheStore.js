@@ -11,6 +11,8 @@ export const usePaginationCacheStore = defineStore("paginationCache", {
       if (!this.tables[cacheKey]) {
         this.tables[cacheKey] = reactive({
           items: [],
+          loading: false,
+          error: "",
           currentPage: 1,
           totalPage: 0,
           totalItems: 0,

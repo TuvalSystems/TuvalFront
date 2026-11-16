@@ -1,6 +1,8 @@
 import axios from 'axios';
 import store from './store';
 import router from './router';
+import { REQUEST_TIMEOUT } from '@/constants/requestOptions';
+import { normalizeRequestError } from '@/utils/requestError';
 import { SYSTEM_USERS_API_ROUTES } from "@/constants/apiRoutes/sistema/userRoutes";
 
 const axiosClient = axios.create({
@@ -10,7 +12,7 @@ const axiosClient = axios.create({
         // NOTA: No ponemos 'Content-Type' aquí para permitir 
         // que el navegador gestione automáticamente FormData (imágenes/archivos)
     },
-    // Opcional: Establecer un tiempo máximo de espera (ej. 60 segundos)
+    timeout: REQUEST_TIMEOUT,
 });
 
 function isPasswordChangeResponse(response) {
@@ -50,6 +52,7 @@ axiosClient.interceptors.request.use(config => {
 axiosClient.interceptors.response.use(
     response => response,
     error => {
+        normalizeRequestError(error);
         const { response } = error;
 
         // Caso 1: Error 503 (Mantenimiento)

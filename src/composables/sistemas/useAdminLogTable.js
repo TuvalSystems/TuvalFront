@@ -11,6 +11,7 @@ export function useAdminLogTable() {
     let debounceId;
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -53,6 +54,7 @@ export function useAdminLogTable() {
         }
         return run(() => axiosClient.post(ADMIN_API_ROUTES.LOGS.LIST, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-logs`,
             successMessage: "Información obtenida exitosamente.",

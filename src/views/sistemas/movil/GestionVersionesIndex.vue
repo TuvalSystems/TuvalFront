@@ -13,7 +13,6 @@ import {
 const {
     table,
     columns,
-    loadingRef,
     listPerpage,
     fetchList,
     refresh,
@@ -21,10 +20,8 @@ const {
     estadoClass
 } = useVersionManagementTable();
 const {
-    loadingUpdateStatus,
     updateStatusVersion,
     formatApkSize,
-    loadingDelete,
     deleteVersion,
     resetForm
 } = useVersionManagementProcess();
@@ -35,11 +32,11 @@ const modalCreateRef = ref(null);
 const modalCreateObj = useBootstrapModal(modalCreateRef);
 
 
-const handleClick = ({ row, col }) => {
-
+const handleClick = () => {
+    // Las acciones de este listado se ejecutan desde sus botones.
 };
 
-function isRowDisabled(row) {
+function isRowDisabled() {
     return false;
 
 }
@@ -57,7 +54,7 @@ async function cambiarEstadoVersion(row) {
     const msg = resp?.message || "No se pudo actualizar el estado de la versión";
     (resp?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
 
-};
+}
 
 async function eliminarVersion(row) {
 
@@ -69,7 +66,7 @@ async function eliminarVersion(row) {
     }
     const msg = respD?.message || "No se puedo eliminar la versión";
     (respD?.status ?? 0) >= 500 ? swalError(msg) : swalWarning(msg);
-};
+}
 
 
 
@@ -138,7 +135,8 @@ onMounted(() => {
 
 
             <!-- table -->
-            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.filters.perpage"
+            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchList(table.currentPage)" :perPage="table.filters.perpage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.filters.sortField" :sortOrder="table.filters.sortOrder" @onSort="onSort"
                 @onPageChange="fetchList" @onSearch="table.filters.search" @onClick="handleClick"

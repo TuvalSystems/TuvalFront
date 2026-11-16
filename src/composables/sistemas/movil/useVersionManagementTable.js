@@ -11,6 +11,7 @@ export function useVersionManagementTable() {
     const apiList = "admin/app/versions/list";
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -49,6 +50,7 @@ export function useVersionManagementTable() {
         }
         return run(() => axiosClient.post(apiList, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-gestion-versiones-apk`,
             successMessage: "Información obtenida exitosamente.",

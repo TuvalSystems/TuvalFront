@@ -21,6 +21,7 @@ export function useSendReservationTable() {
         { label: "usuario", key: "USERID", sortable: true ,  thClass: "text-muted  text-uppercase fw-bold"},
     ]);
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -64,6 +65,7 @@ export function useSendReservationTable() {
         }
         return run(() => axiosClient.post(apiList, payload, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,                         // 👈 activa takeLatest
             key: `lista-reservas-enviadas`,      // 👈 clave para este endpoint
             successMessage: "Proceso realizado exitosamente.",

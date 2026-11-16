@@ -12,6 +12,7 @@ export function useDispatchTypeTable() {
     let debounceId;
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -53,6 +54,7 @@ export function useDispatchTypeTable() {
         }
         return run(() => axiosClient.post(DISPATCH_TYPES_API.LIST, { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-tipo-despachos`,
             successMessage: "Información obtenida exitosamente.",

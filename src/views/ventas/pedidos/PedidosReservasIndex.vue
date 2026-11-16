@@ -1,8 +1,6 @@
 <script setup>
 import BaseTable from "@/components/BaseTable.vue";
-import { onMounted, reactive, ref, onBeforeUnmount, nextTick } from "vue";
-import flatPickr from "vue-flatpickr-component";
-import { Spanish } from "flatpickr/dist/l10n/es.js";
+import { onMounted, ref, nextTick } from "vue";
 import { Modal } from "bootstrap";
 import { formatPriceJm } from "@/functions";
 import { useOrderReservationTable } from "@/composables/venta/pedidos/useOrderReservationTable.js";
@@ -12,19 +10,8 @@ import verActualizarPendienteDespachoPedidosModal from "@/views/ventas/pedidos/m
 
 import {
     swalWarning,
-    swalError,
 } from "@/functions/swal-alert.js";
 
-const flatPickrState = reactive({
-    fecha_desde: {
-        // maxDate: Date.now(),
-        locale: Spanish,
-    },
-    fecha_hasta: {
-        // maxDate: Date.now(),
-        locale: Spanish,
-    },
-});
 
 const {
     columns,
@@ -42,47 +29,18 @@ const { validateExistingGuidesWithAjustment } = useApiValidatesOrdersReservation
 // functiones de locked para tabla
 const lockedIds = ref(new Set())
 
-function lock(id) {
-    const s = new Set(lockedIds.value)
-    s.add(id)
-    lockedIds.value = s
-}
-function unlock(id) {
-    const s = new Set(lockedIds.value)
-    s.delete(id)
-    lockedIds.value = s
-}
 function isRowDisabled(row) {
     return row && lockedIds.value.has(row.id)
 }
 
-const handleClick = ({ row, col }) => {
-    // if (col.key === "cotizacion") {
-    //     visualizarDetalleCotización(row.id);
-    // }
+const handleClick = () => {
+    // Las acciones de este listado se ejecutan desde sus botones.
 };
 
-// disable para el boton 
 
-const testLocks = ref(new Map()) // Map<id, true>
 
-const isTestLocked = (idOrRow) => {
-    const id = typeof idOrRow === 'object' ? idOrRow?.id : idOrRow
-    return testLocks.value.get(String(id)) === true
-}
 
-function lockTest(id) {
 
-    const m = new Map(testLocks.value)
-    m.set(String(id), true)
-    testLocks.value = m        // 👈 reasignar dispara reactividad
-}
-
-function unlockTest(id) {
-    const m = new Map(testLocks.value)
-    m.delete(String(id))
-    testLocks.value = m        // 👈 idem
-}
 
 
 let verModalUpdateDateInvoice = ref(null);
@@ -211,7 +169,8 @@ onMounted(async () => {
                     <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
                 </div>
             </div>
-            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+            <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchList(table.currentPage)" :perPage="table.perPage"
                 :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
                 :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchList"
                 @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled" @onKeyDown="handleClick">

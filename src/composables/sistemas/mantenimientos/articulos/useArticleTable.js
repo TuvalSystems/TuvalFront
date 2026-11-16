@@ -10,6 +10,7 @@ export function useArticuleTable() {
     const ctrl = ref(null);
     let debounceId;
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -53,6 +54,7 @@ export function useArticuleTable() {
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-articulos`,
             successMessage: "Información obtenida exitosamente.",

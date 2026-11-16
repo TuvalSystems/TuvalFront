@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, nextTick } from 'vue';
+import { swalError } from '@/functions/swal-alert.js';
 import { useClientBranchesOperationsTable } from '@/composables/gestion-operativa/clientes/useClientBranchesOperationsTable';
 import { useClientBranchesProcessOperation } from '@/composables/gestion-operativa/clientes/useClientBranchesProcessOperation';
 import BaseTable from "@/components/BaseTable.vue";
@@ -18,8 +19,6 @@ const {
 } = useClientBranchesOperationsTable();
 
 const {
-  loadingBranchDetail,
-  branchDetail,
   fetchBranchDetail
 } = useClientBranchesProcessOperation();
 
@@ -33,8 +32,8 @@ const verModalGestionSucursalObj = useBootstrapModal(verModalGestionSucursalRef,
 });
 
 
-const handleClick = ({ row, col }) => {
-
+const handleClick = () => {
+  // Las acciones de este listado se ejecutan desde sus botones.
 };
 
 function isRowDisabled(row) {
@@ -150,7 +149,8 @@ onMounted(async () => {
       </div>
 
       <!-- table -->
-      <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.filters.perpage"
+      <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchList(table.currentPage)" :perPage="table.filters.perpage"
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
         :sortField="table.filters.sortField" :sortOrder="table.filters.sortOrder" @onSort="onSort"
         @onPageChange="fetchList" @onClick="handleClick" @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">

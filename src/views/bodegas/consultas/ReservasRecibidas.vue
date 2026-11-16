@@ -1,6 +1,6 @@
 <script setup>
 import GuiaArchivosConsulta from './GuiaArchivosConsulta.vue';
-import { onMounted, reactive, ref, onBeforeUnmount, nextTick } from "vue";
+import { onMounted, reactive, ref, nextTick } from "vue";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import { usePtoVtaStore } from "@/stores/bodegas/utils/useListPuntoVentaStore";
@@ -30,16 +30,6 @@ const flatPickrState = reactive({
 // functiones de locked para tabla
 const lockedIds = ref(new Set())
 
-function lock(id) {
-  const s = new Set(lockedIds.value)
-  s.add(id)
-  lockedIds.value = s
-}
-function unlock(id) {
-  const s = new Set(lockedIds.value)
-  s.delete(id)
-  lockedIds.value = s
-}
 function isRowDisabled(row) {
   return row && lockedIds.value.has(row.id)
 }
@@ -59,18 +49,7 @@ const isTestLocked = (idOrRow) => {
   return testLocks.value.get(String(id)) === true
 }
 
-function lockTest(id) {
 
-  const m = new Map(testLocks.value)
-  m.set(String(id), true)
-  testLocks.value = m        // 👈 reasignar dispara reactividad
-}
-
-function unlockTest(id) {
-  const m = new Map(testLocks.value)
-  m.delete(String(id))
-  testLocks.value = m        // 👈 idem
-}
 
 async function printPdfGuiaRemision(id) {
   const resp = await printGuidePdf({ 'id': id });
@@ -191,7 +170,8 @@ onMounted(() => {
         </div>
 
         <!-- basetable -->
-        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchList(table.currentPage)" :perPage="table.perPage"
           :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
           :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchList"
           @onSearch="table.searchTerm" @onClick="handleClick" :is-row-disabled="isRowDisabled" @onKeyDown="handleClick">

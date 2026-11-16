@@ -11,6 +11,7 @@ export function useReceiveReservationTransfers() {
   let debounceId;
   const apiFetch = 'bodegas/reservas/guia-remision/lista-transferencias-por-recibir';
   const table = reactive({
+        error: "",
     'items': [],
     'currentPage': 1,
     'totalPage': 1,
@@ -51,6 +52,7 @@ export function useReceiveReservationTransfers() {
     }
     return  run(() => axiosClient.post(apiFetch, payload, { signal: ctrl.value.signal }), {
       loadingRef,
+      errorRef: toRef(table, "error"),
       latestOnly: true,                         // 👈 activa takeLatest
       key: `receive-reservation-transfers`,      // 👈 clave para este endpoint
       successMessage: "Proceso realizado exitosamente.",

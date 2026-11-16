@@ -11,6 +11,7 @@ export function useCreditOrdersPendingTable() {
     let debounceId;
 
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -49,6 +50,9 @@ export function useCreditOrdersPendingTable() {
         return run(() => axiosClient.post(APPROVAL_API_ROUTES.CREDIT.ORDERS.LIST_PENDING,
             { filters: payload, page: table.currentPage }, { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
+            latestOnly: true,
+            key: 'lista-pedidos-credito',
             onSuccess: (paginator) => {
                 const rows = paginator?.data ?? [];
                 table.items = rows;

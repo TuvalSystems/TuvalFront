@@ -357,7 +357,8 @@ onBeforeUnmount(() => {
       <BaseTable
         :columns="columns"
         :data="table.items"
-        :loading="table.loading"
+        :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchList(table.currentPage)"
         :perPage="table.perPage"
         :totalItems="table.totalItems"
         :currentPage="table.currentPage"

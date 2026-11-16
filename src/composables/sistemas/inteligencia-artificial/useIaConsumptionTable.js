@@ -6,6 +6,8 @@ import { IA_API_ROUTES } from "@/constants/apiRoutes/sistema/inteligenciaArtific
 export function useIaConsumptionTable() {
   const { run } = useApiAction();
   const busy = ref(false);
+  const error = ref("");
+  const paginaSolicitada = ref(1);
   const reporte = ref(null);
   const paginaUsuarios = ref(1);
   const usuariosPorPagina = 10;
@@ -43,14 +45,15 @@ export function useIaConsumptionTable() {
   const filtros = reactive({ desde: hoy.slice(0, 7) + "-01", hasta: hoy, userId: "" });
   const opciones = { skipMaintenanceRedirect: true };
   async function consultar(page = 1) {
-    const result = await run(() => axiosClient.get(IA_API_ROUTES.CONSUMOS, { ...opciones, params: { ...filtros, userId: filtros.userId || undefined, page } }), { loadingRef: busy });
-    if (result.ok) {
+    paginaSolicitada.value = page;
+    const result = await run(() => axiosClient.get(IA_API_ROUTES.CONSUMOS, { ...opciones, params: { ...filtros, userId: filtros.userId || undefined, page } }), { loadingRef: busy, errorRef: error, latestOnly: true, key: "consumos" });
+    if (result.ok && !result.stale) {
       reporte.value = result.data;
       paginaUsuarios.value = 1;
     }
     return result;
   }
-  return { busy, reporte, paginaUsuarios, usuariosPorPagina, columnasUsuarios,
+  return { busy, error, paginaSolicitada, reporte, paginaUsuarios, usuariosPorPagina, columnasUsuarios,
     columnasRegistros, usuarios, paginasUsuarios, usuariosVisibles, cambiarPaginaUsuarios,
     cambiarPaginaRegistros, filtros, consultar };
 }

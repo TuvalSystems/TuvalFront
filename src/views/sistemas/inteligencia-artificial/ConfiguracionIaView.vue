@@ -6,12 +6,12 @@ import { useIaConfiguration } from "@/composables/sistemas/inteligencia-artifici
 import { useIaConsumptionTable } from "@/composables/sistemas/inteligencia-artificial/useIaConsumptionTable";
 
 const {
-  busy: loadingConfig, config, paginaPerfiles, perfiles,
+  busy: loadingConfig, errorCarga, config, paginaPerfiles, perfiles,
   paginasPerfiles, perfilesVisibles, porcentajeAsignado, columnasPerfiles,
   cuotaPerfil, cambiarPaginaPerfiles, campos, cargar, guardar: guardarConfiguracion,
 } = useIaConfiguration();
 const {
-  busy: loadingConsumo, reporte, paginaUsuarios,
+  busy: loadingConsumo, error: errorConsumo, paginaSolicitada, reporte, paginaUsuarios,
   usuariosPorPagina, columnasUsuarios, columnasRegistros, usuarios, paginasUsuarios,
   usuariosVisibles, cambiarPaginaUsuarios, cambiarPaginaRegistros: cambiarPaginaConsumo, filtros, consultar: consultarConsumo,
 } = useIaConsumptionTable();
@@ -55,10 +55,18 @@ onMounted(async () => {
   mostrarError(await cargar());
   if (config.value) await consultar();
 });
+async function reintentarConfiguracion() {
+  const result = await cargar();
+  if (result.ok && !reporte.value) await consultar();
+}
 </script>
 <template>
   <BasePageHeading title="Inteligencia artificial" subtitle="Sistemas · Límites de tokens y consumo por usuario" />
   <div class="content ai-page">
+    <BaseBlock v-if="errorCarga && !config" title="Inteligencia artificial" content-full>
+      <p role="alert" class="text-muted">{{ errorCarga }}</p>
+      <button type="button" class="btn btn-sm btn-alt-primary" :disabled="busy" @click="reintentarConfiguracion">Reintentar</button>
+    </BaseBlock>
     <ul v-if="config" class="nav nav-tabs nav-tabs-alt mb-3" role="tablist" aria-label="Gestión de inteligencia artificial">
       <li v-for="(tab, index) in tabs" :key="tab.id" class="nav-item" role="presentation">
         <button :id="`ia-tab-${tab.id}`" type="button" class="nav-link"
@@ -93,6 +101,7 @@ onMounted(async () => {
         <span>Disponible: <strong>{{ Math.max(0, 100 - porcentajeAsignado).toFixed(2) }}%</strong></span>
       </div>
       <BaseTable :columns="columnasPerfiles" :data="perfilesVisibles" :loading="busy"
+        :error="errorCarga" retryable @onRetry="reintentarConfiguracion"
         perPage="10" :totalItems="perfiles.length" :currentPage="paginaPerfiles"
         :totalPage="paginasPerfiles" @onPageChange="cambiarPaginaPerfiles">
         <template #cell-nombre="{ row }">{{ row.nombre }} <span v-if="row.estado !== 'active'" class="badge bg-body-light text-muted">Inactivo</span></template>
@@ -122,8 +131,8 @@ onMounted(async () => {
         <div class="col-md-3 mb-2"><label for="ia-usuario" class="form-label">ID de usuario (opcional)</label><input id="ia-usuario" v-model="filtros.userId" type="number" min="1" class="form-control form-control-sm" /></div>
         <div class="col-md-3 mb-2"><button class="btn btn-alt-primary" :disabled="busy">Consultar</button></div>
       </form>
-      <template v-if="reporte">
-        <div class="token-summary">
+      <template v-if="reporte || errorConsumo">
+        <div v-if="reporte && !errorConsumo" class="token-summary">
           <div class="token-summary-item"><span>Tokens de entrada</span><strong>{{ reporte.totales.inputTokens }}</strong></div>
           <div class="token-summary-item"><span>Tokens de salida</span><strong>{{ reporte.totales.outputTokens }}</strong></div>
           <div class="token-summary-item"><span>Contabilizado para límites</span><strong>{{ reporte.totales.accountedTokens }}</strong></div>
@@ -131,6 +140,7 @@ onMounted(async () => {
         <h3 class="h6">Resumen por usuario (hasta 200 usuarios con mayor consumo)</h3>
         <BaseTable
           :columns="columnasUsuarios" :data="usuariosVisibles" :loading="busy"
+          :error="errorConsumo" retryable @onRetry="consultar(paginaSolicitada)"
           :perPage="String(usuariosPorPagina)" :totalItems="usuarios.length"
           :currentPage="paginaUsuarios" :totalPage="paginasUsuarios"
           @onPageChange="cambiarPaginaUsuarios"
@@ -142,9 +152,10 @@ onMounted(async () => {
         </BaseTable>
         <h3 class="h6 mt-4">Detalle de llamadas</h3>
         <BaseTable
-          :columns="columnasRegistros" :data="reporte.registros" :loading="busy"
-          perPage="30" :totalItems="reporte.totalRegistros ?? 0"
-          :currentPage="reporte.pagina" :totalPage="reporte.ultimaPagina"
+          :columns="columnasRegistros" :data="reporte?.registros ?? []" :loading="busy"
+          :error="errorConsumo" retryable @onRetry="consultar(paginaSolicitada)"
+          perPage="30" :totalItems="reporte?.totalRegistros ?? 0"
+          :currentPage="paginaSolicitada" :totalPage="reporte?.ultimaPagina ?? 0"
           @onPageChange="cambiarPaginaRegistros"
         >
           <template #cell-usuario="{ row }">{{ row.usuario || 'Usuario' }} ({{ row.userId }})</template>

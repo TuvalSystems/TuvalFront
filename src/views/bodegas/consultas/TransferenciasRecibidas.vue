@@ -2,7 +2,7 @@
 import GuiaArchivosConsulta from './GuiaArchivosConsulta.vue';
 import BaseTable from "@/components/BaseTable.vue";
 import { useReposicionesRecibidasPagination } from "../../../composables/bodegas/consultas/useTransferenciasRecibidasPagination";
-import { onMounted, watch, reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
 import flatPickr from "vue-flatpickr-component";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
@@ -15,7 +15,7 @@ import { swalError } from "@/functions/swal-alert.js";
 const ptoVta = usePtoVtaStore();
 const store = useStore();
 const puntoVentaId = store.state.puntodeventaselect;
-const { table, fetchItems, refresh, onSort, limpiarFecha } =
+const { table, fetchItems, refresh, onSort } =
   useReposicionesRecibidasPagination(puntoVentaId);
 const { fetchDetailGuides } = useDetalleDespachoPedidos();
 
@@ -245,7 +245,8 @@ onMounted(async () => {
           </div>
         </div>
 
-        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.perPage"
+        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchItems(table.currentPage)" :perPage="table.perPage"
           :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
           :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
           @onSearch="table.searchTerm" @onClick="handleClick">

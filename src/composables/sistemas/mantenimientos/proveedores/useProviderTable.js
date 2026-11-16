@@ -11,6 +11,7 @@ export function useProviderTable() {
     const ctrl = ref(null);
     let debounceId;
     const table = reactive({
+        error: "",
         items: [],
         currentPage: 1,
         totalPage: 0,
@@ -58,6 +59,7 @@ export function useProviderTable() {
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: `lista-proveedores`,
             successMessage: "Información obtenida exitosamente.",

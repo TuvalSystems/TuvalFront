@@ -1,5 +1,5 @@
 import { useApiAction } from "@/composables/core/useApiAction"
-import { reactive, ref, toRef, watch, computed } from "vue";
+import { reactive, ref, toRef, watch, computed, onScopeDispose } from "vue";
 import { DISPATCH_ORDERS_API_ROUTES } from "@/constants/apiRoutes/cobranzas/dispatchOrdersRoute";
 import { getStatusBadgeClass } from "@/helpers/statusBadge";
 import axiosClient from "@/axios";
@@ -28,7 +28,8 @@ export function useDispatchOrdersTable() {
             fechaFin: "",
             pvCodigo: ptoVtaSelect
         },
-        loading: false
+        loading: false,
+        error: "",
 
     });
     const listStatus = reactive([
@@ -66,6 +67,7 @@ export function useDispatchOrdersTable() {
             { filters: payload, page: table.currentPage },
             { signal: ctrl.value.signal }), {
             loadingRef,
+            errorRef: toRef(table, "error"),
             latestOnly: true,
             key: 'lista-consulta-ordenes-despacho',
             successMessage: "Información Obtenida Exitosamente",
@@ -77,6 +79,11 @@ export function useDispatchOrdersTable() {
             }
         });
     }
+
+    onScopeDispose(() => {
+        clearTimeout(debounceId);
+        ctrl.value?.abort();
+    });
 
     async function refresh() {
         Object.assign(table.filters, {

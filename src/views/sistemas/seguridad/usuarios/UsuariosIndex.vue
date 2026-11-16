@@ -304,7 +304,8 @@ onMounted(() => {
       </div>
 
       <!-- table -->
-      <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :perPage="table.filters.perpage"
+      <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
+        @onRetry="fetchList(table.currentPage)" :perPage="table.filters.perpage"
         :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
         :sortField="table.filters.sortField" :sortOrder="table.filters.sortOrder" @onSort="onSort"
         @onPageChange="fetchList" @onClick="handleClick" @onKeyDown="handleClick" :is-row-disabled="isRowDisabled">
