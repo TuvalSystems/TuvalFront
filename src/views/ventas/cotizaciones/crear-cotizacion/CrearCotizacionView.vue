@@ -1,4 +1,5 @@
 <script setup>
+import { createSubmissionGuard } from "@/composables/venta/cotizaciones/crearCotizacion/submissionGuard";
 import { useQuoteImageGallery } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteImageGallery";
 
 import { useQuoteItemInteractions } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteItemInteractions";
@@ -842,8 +843,14 @@ const btnDisableStoreQuotation = computed(() => {
   return false;
 });
 
-async function createQuotation() {
+// Incluye limpieza y navegación, y los dos pasos de convertir una cotización en pedido.
+const submitSaveFlow = createSubmissionGuard();
+const createQuotation = () => submitSaveFlow(createQuotationOnce);
+const saveToOrderAndUpdateQuotation = () => submitSaveFlow(saveToOrderAndUpdateQuotationOnce);
+
+async function createQuotationOnce() {
   const respCreate = await createQuote("create");
+  if (respCreate?.skipped) return;
   if (!respCreate?.ok) {
     swalError(respCreate?.message);
     return;
@@ -860,10 +867,11 @@ async function createQuotation() {
  * guardar cotizacion a pedido y actualizar el pedido
  */
 
-async function saveToOrderAndUpdateQuotation() {
+async function saveToOrderAndUpdateQuotationOnce() {
   if (loadingSaveOrder.value || loadingCreateQuotation.value) return;
 
   const respOrder = await saveOrder();
+  if (respOrder?.skipped) return;
 
   if (!respOrder?.ok) {
     const msg = respOrder?.message || "No se pudo crear el pedido";
@@ -872,6 +880,7 @@ async function saveToOrderAndUpdateQuotation() {
   }
 
   const respQuotation = await createQuote("update");
+  if (respQuotation?.skipped) return;
 
   if (!respQuotation?.ok) {
     const msg =

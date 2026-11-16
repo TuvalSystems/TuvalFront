@@ -2,6 +2,7 @@ import { useQuoteStock } from "@/composables/venta/cotizaciones/crearCotizacion/
 import { useQuoteAlternativeItems } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteAlternativeItems";
 import { useQuoteDrafts } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteDrafts";
 import { getInitialState } from "./quoteInitialState";
+import { createSubmissionGuard } from "./submissionGuard";
 import axiosClient from "@/axios";
 import { freightUnitPrice } from "@/functions/freightPrice";
 import { useApiAction } from "@/composables/core/useApiAction";
@@ -880,7 +881,10 @@ export function useProcessCreateQuote(draftId = 'default') {
      * */
 
     const loadingCreateQuotation = ref(false);
-    async function createQuote(mode) {
+    // Cotizaciones y pedidos comparten bloqueo porque usan el mismo formulario.
+    const submitDocument = createSubmissionGuard();
+    const createQuote = mode => submitDocument(() => submitQuote(mode));
+    async function submitQuote(mode) {
         const weightError = validateItemLWeights();
         if (weightError) return { ok: false, message: weightError };
         const dispatchError = validateDispatchFields();
@@ -1585,7 +1589,8 @@ export function useProcessCreateQuote(draftId = 'default') {
      */
 
     const loadingSaveOrder = ref(false);
-    async function saveOrder() {
+    const saveOrder = () => submitDocument(() => submitOrder());
+    async function submitOrder() {
         const weightError = validateItemLWeights();
         if (weightError) return { ok: false, message: weightError };
         const dispatchError = validateDispatchFields();
