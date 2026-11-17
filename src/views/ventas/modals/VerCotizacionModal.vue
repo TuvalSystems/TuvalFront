@@ -1,11 +1,4 @@
 <template>
-  <BaseBlock title="Detalle de cotización" class="mb-0">
-    <template #options>
-      <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
-        <i class="fa fa-fw fa-times"></i>
-      </button>
-    </template>
-    <template #content>
       <div class="block-content fs-sm">
         <div class="table-responsive">
           <table class="table table-striped table-sm table-vcenter">
@@ -58,8 +51,8 @@
               <tr v-if="vercotizacion.despacho == 'Despacho en ruta'">
                 <th>Dirección entrega</th>
                 <td colspan="5">
-                  {{ vercotizacion.direccion_entrega.CLI_SUC_DIRECCION }} -
-                  {{ vercotizacion.direccion_entrega.CLI_SUC_CIUDAD }}
+                  {{ vercotizacion.direccion_entrega?.CLI_SUC_DIRECCION }} -
+                  {{ vercotizacion.direccion_entrega?.CLI_SUC_CIUDAD }}
                 </td>
               </tr>
               <tr>
@@ -78,20 +71,13 @@
                   Sin segmento para este cliente
                 </td>
               </tr>
-                <th v-if="proyecto" class="fs-sm">Tipo Venta</th>
-                <td v-if="proyecto" class="fs-sm">
-                  {{ proyecto }}
-                </td>
-
-              <!-- <td>{{ segmentocliente }}</td> -->
+              <tr v-if="proyecto">
+                <th class="fs-sm">Tipo Venta</th>
+                <td colspan="5" class="fs-sm">{{ proyecto }}</td>
+              </tr>
             </tbody>
           </table>
-          <div v-if="detallecotizacion.loading" class="text-center">
-            <div class="spinner-border text-primary mt-4" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-          <table v-if="detallecotizacion.data.length && !detallecotizacion.loading"
+          <table v-if="detallecotizacion.length"
             class="table table-hover table-sm table-vcenter mt-4">
             <thead>
               <tr>
@@ -107,7 +93,7 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="(articulo, index) in detallecotizacion.data" :key="index">
+              <template v-for="(articulo, index) in detallecotizacion" :key="index">
                 <tr>
                   <td class="fs-sm">{{ index + 1 }}</td>
                   <td class="fs-sm">
@@ -196,8 +182,7 @@
           </table>
         </div>
       </div>
-    </template>
-  </BaseBlock>
+
   <div class="block-content block-content-full bg-body">
     <div class="row">
       <div class="col-sm-9">
@@ -206,7 +191,7 @@
           <div class="col-sm-9">
             <div class="input-group">
               <input v-model="editable_orden_de_compra" type="text" id="orden-de-compra" class="form-control"
-                :maxlength="max_length" @change="guardarOrdenDeCompra(vercotizacion)" />
+                :maxlength="max_length" @change="emit('save')" :disabled="saving" />
               <span v-if="vercotizacion.orden_de_compra" class="input-group-text">{{ max_length -
                 vercotizacion.orden_de_compra.length }}</span>
             </div>
@@ -215,13 +200,13 @@
         <div class="row">
           <label for="nota-interna" class="col-sm-3 col-form-label text-end">Nota interna:</label>
           <div class="col-sm-9">
-            <input v-model="editable_nota_interna" type="text" id="orden-de-compra" class="form-control"
-              @change="guardarOrdenDeCompra(vercotizacion)" />
+            <input v-model="editable_nota_interna" type="text" id="nota-interna" class="form-control"
+              @change="emit('save')" :disabled="saving" />
           </div>
         </div>
       </div>
       <div class="col-sm-3 text-end space-y-2">
-        <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-primary btn-sm" :disabled="saving" data-bs-dismiss="modal">
           Cerrar
         </button>
       </div>
@@ -234,10 +219,7 @@ import DetalleItemsL from "@/components/ventas/DetalleItemsL.vue";
 import {
   ref,
   computed,
-  onMounted,
-  onBeforeUnmount,
 } from "vue";
-import { useStore } from "vuex";
 import { format, format4 } from "@/functions";
 import {
   swalInfo,
@@ -245,13 +227,12 @@ import {
 
 const props = defineProps({
   vercotizacion: Object,
-  indexCotizacion: Number,
-  tipo: String,
+  detailData: { type: Object, required: true },
+  saving: Boolean,
 });
-const store = useStore();
-const detallecotizacion = computed(() => store.state.detallecotizacion);
-const segmentocliente = computed(() => store.state.segmentocliente);
-const proyecto = computed(() => store.state.proyecto);
+const detallecotizacion = computed(() => props.detailData.detalle ?? []);
+const segmentocliente = computed(() => ({ data: props.detailData.segmento }));
+const proyecto = computed(() => props.detailData.proyecto);
 const max_length = ref(20);
 
 
@@ -300,15 +281,7 @@ function verdiferenciavalor(articulo) {
   );
 }
 
-function guardarOrdenDeCompra(cotizacion) {
-  store.dispatch("guardarOrdenDeCompra", cotizacion);
-}
-
-
-
-onMounted(() => { });
-onBeforeUnmount(() => { });
-const emit = defineEmits(["update:vercotizacion"]);
+const emit = defineEmits(["update:vercotizacion", "save"]);
 const editable_orden_de_compra = computed({
   get: () => props.vercotizacion.orden_de_compra,
   set: (value) => emit("update:vercotizacion", { orden_de_compra: value }),

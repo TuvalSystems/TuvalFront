@@ -19,6 +19,12 @@ export const QUOTE_API_ROUTES = {
     },
 
     QUOTES: {
+        CHECK_RESERVE: "reservas/validar-reserva-cotizacion",
+        LIST: 'cotizaciones/vercotizaciones',
+        PRINT: 'cotizaciones/imprimircotizacion',
+        PRINT_IMAGES: 'cotizaciones/imprimircotizacionimagenes',
+        DETAIL: 'cotizaciones/detallecotizacion',
+        SAVE_NOTES: 'cotizaciones/guardarordendecompra',
         LIST_ALTERNATIVE_ITEMS: 'cotizaciones/lista-items-alternativos',
         GET_ITEM_STOCK_BY_WAREHOUSE: 'cotizaciones/articulo-stock-por-bodega',
         GET_ITEM_STOCK_BY_WAREHOUSE_V2: 'cotizaciones/articulo-stock-por-bodega-v2',

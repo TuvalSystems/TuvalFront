@@ -105,36 +105,6 @@ const store = createStore({
       CLI_SUC_TELEFONO: "",
       CLI_SUC_CORREO_ELECTRONICO_SRI: "",
     },
-    nuevoCliente: {
-      CLI_TIPO_ID: "04",
-      CLI_RUC: "",
-      CLI_RAZON_SOCIAL: "",
-      CLI_NOMBRE_CORTO: "",
-      CLI_CONTACTO: "",
-      CLI_DIRECCION: "",
-      CLI_CIUDAD: "",
-      CLI_PROVINCIA: "",
-      CLI_TERRITORIO: "COSTA",
-      CLI_TELEFONO_1: "",
-      CLI_TELEFONO_2: "",
-      CLI_TELEFONO_3: "",
-      CLI_TELEFONO_4: "",
-      CLI_CORREO_ELECT_SRI: "",
-      CLI_CORREO_ELECT_NOTIFICACION_INTERNA: "",
-      CLI_VENDEDOR: 9,
-      CLI_GRUPO: "",
-      CLI_SUBGRUPO: "",
-    },
-    nuevoProspecto: {
-      id: null,
-      CLI_RUC: "",
-      CLI_RAZON_SOCIAL: "",
-      CLI_CORREO_ELECT_SRI: "",
-      CLI_DIRECCION: "",
-      CLI_DSTO_COMERCIAL: 25,
-      CLI_CONDICION_PAGO: "CONTADO",
-      CLI_TELEFONO_1: "",
-    },
     perfiles: {
       loading: false,
       data: [],
@@ -212,10 +182,6 @@ const store = createStore({
         selected: null,
       },
     ],
-    cotizaciones: {
-      loading: false,
-      data: [],
-    },
     pedidos: {
       loading: false,
       data: [],
@@ -507,16 +473,7 @@ const store = createStore({
         return res;
       });
     },
-    llenarcotizaciones({ commit }, data) {
-      commit("setVercotizacionesLoading", true);
-      return axiosClient
-        .post("/cotizaciones/vercotizaciones", data)
-        .then((res) => {
-          commit("setVercotizacionesLoading", false);
-          commit("getVercotizaciones", res.data.cotizaciones);
-          return res;
-        });
-    },
+
     imprimir(_, url) {
       return axiosPrint.get(url).then((res) => {
         return res;
@@ -656,18 +613,19 @@ const store = createStore({
       commit("setEstadoDeCuentaLoading", true);
 
       return axiosClient
-        .post("/cotizaciones/detallecotizacion", cotizacion)
+        .post("/cotizaciones/detallecotizacion", { id: cotizacion.id })
         .then((res) => {
-          commit("setDetalleCotizacionLoading", false);
           commit("setDetalleCotizacion", res.data.data.detalle);
           commit("setDespachoCotizacion", res.data.data);
-          commit("setEstadoDeCuentaLoading", false);
           commit("setEstadoDeCuenta", res.data.data.estadodecuenta);
-          commit("setSegmentoClienteLoading", false);
           commit("setSegmentoCliente", res.data.data.segmento);
           commit("setNivelPrecioCotizacion", res.data.data.nivelPrecio);
           commit("setProyectoString", res.data.data.proyecto);
           return res;
+        }).finally(() => {
+          commit("setDetalleCotizacionLoading", false);
+          commit("setEstadoDeCuentaLoading", false);
+          commit("setSegmentoClienteLoading", false);
         });
     },
     territorios({ commit }) {
@@ -677,15 +635,6 @@ const store = createStore({
         commit("setGruposSubgrupos", res.data.grupos_subgrupos);
         return res;
       });
-    },
-    guardarCliente({ commit }, direccion) {
-      direccion.CLI_PUNTO_VENTA = this.state.puntodeventaselect;
-      return axiosClient
-        .post("/cotizaciones/guardarcliente", direccion)
-        .then((res) => {
-          commit("resetNuevoCliente");
-          return res.data;
-        });
     },
     estadoCaja({ commit }) {
       return axiosClient
@@ -793,13 +742,6 @@ const store = createStore({
           return res;
         });
     },
-    guardarOrdenDeCompra(_, cotizacion) {
-      return axiosClient
-        .post("/cotizaciones/guardarordendecompra", cotizacion)
-        .then((res) => {
-          return res;
-        });
-    },
     guardarOrdenDeCompraPedido(_, pedido) {
       return axiosClient
         .post("/pedidos/guardarordendecompra", pedido)
@@ -814,7 +756,11 @@ const store = createStore({
     },
     guardarMensajeCotizacion(_, cotizacion) {
       return axiosClient
-        .post("/cotizaciones/guardarmensaje", cotizacion)
+        .post("/cotizaciones/guardarmensaje", {
+          id: cotizacion.id,
+          orden_de_compra: cotizacion.orden_de_compra,
+          aprobado_comercial_mensaje: cotizacion.aprobado_comercial_mensaje,
+        })
         .then((res) => {
           return res;
         });
@@ -1317,12 +1263,6 @@ const store = createStore({
     resetCotizacionProspecto: (state) => {
       state.cotizacion.data = [];
     },
-    setVercotizacionesLoading: (state, loading) => {
-      state.cotizaciones.loading = loading;
-    },
-    getVercotizaciones: (state, cotizaciones) => {
-      state.cotizaciones.data = cotizaciones;
-    },
     setPedidosLoading: (state, loading) => {
       state.pedidos.loading = loading;
     },
@@ -1467,7 +1407,6 @@ const store = createStore({
     setProvinciasCiudades: (state, provincias_ciudades) => {
       state.provincias_ciudades = provincias_ciudades;
       state.nuevadireccion.CLI_SUC_PROVINCIA = 9;
-      state.nuevoCliente.CLI_PROVINCIA = 9;
     },
     setGruposSubgrupos: (state, grupos_subgrupos) => {
       state.grupos_subgrupos = grupos_subgrupos;
@@ -1524,40 +1463,6 @@ const store = createStore({
     },
     setVerDetalleOrden: (state, data) => {
       state.detalle_orden_despacho = data;
-    },
-    resetNuevoCliente: (state) => {
-      state.nuevoCliente = {
-        CLI_TIPO_ID: "04",
-        CLI_RUC: "",
-        CLI_RAZON_SOCIAL: "",
-        CLI_NOMBRE_CORTO: "",
-        CLI_CONTACTO: "",
-        CLI_DIRECCION: "",
-        CLI_CIUDAD: "",
-        CLI_PROVINCIA: "",
-        CLI_TERRITORIO: "COSTA",
-        CLI_TELEFONO_1: "",
-        CLI_TELEFONO_2: "",
-        CLI_TELEFONO_3: "",
-        CLI_TELEFONO_4: "",
-        CLI_CORREO_ELECT_SRI: "",
-        CLI_CORREO_ELECT_NOTIFICACION_INTERNA: "",
-        CLI_VENDEDOR: 9,
-        CLI_GRUPO: "",
-        CLI_SUBGRUPO: "",
-      };
-    },
-    resetProspecto: (state) => {
-      state.nuevoProspecto = {
-        id: null,
-        CLI_RUC: "",
-        CLI_RAZON_SOCIAL: "",
-        CLI_CORREO_ELECT_SRI: "",
-        CLI_DIRECCION: "",
-        CLI_DSTO_COMERCIAL: 25,
-        CLI_CONDICION_PAGO: "CONTADO",
-        CLI_TELEFONO_1: "",
-      };
     },
     setDashboardSections: (state, data) => {
       state.dashboard_sections = data.dashboard_sections;

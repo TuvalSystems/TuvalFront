@@ -16,435 +16,398 @@
 
   <!-- Page Content -->
   <div class="content">
-    <BaseBlock title="Cotizaciones" content-full header-class="sales-list-header">
+    <BaseBlock
+      title="Cotizaciones"
+      content-full
+    >
       <template #options>
-        <div class="space-x-1">
-          <div class="block-options-item">
-            <div class="row g-3 align-items-center">
-              <div class="col-auto">
-                <label for="cot" class="col-form-label fs-sm">Cotización</label>
-              </div>
-              <div class="col-auto">
-                <input
-                  type="text"
-                  style="width: 150px"
-                  class="form-control form-control-sm"
-                  id="cot"
-                  v-model="cotizacion_filtro"
-                  @change="buscarCotizacion"
-                />
-              </div>
-              <div class="col-auto">
-                <label for="fecha_desde" class="col-form-label fs-sm"
-                  >Desde</label
-                >
-              </div>
-              <div class="col-auto">
-                <flat-pickr
-                  style="width: 120px"
-                  id="fecha_desde"
-                  class="form-control form-control-sm"
-                  v-model="fecha_desde"
-                  :config="flatPickrState.fecha_desde"
-                  @change="refrescarFecha()"
-                />
-              </div>
-              <div class="col-auto">
-                <label for="fecha_hasta" class="col-form-label fs-sm"
-                  >Hasta</label
-                >
-              </div>
-              <div class="col-auto">
-                <flat-pickr
-                  style="width: 120px"
-                  id="fecha_hasta"
-                  class="form-control form-control-sm"
-                  v-model="fecha_hasta"
-                  :config="flatPickrState.fecha_hasta"
-                  @change="refrescarFecha()"
-                />
-              </div>
-              <div class="col-auto">
-                <button class="btn btn-sm btn-primary" @click="limpiarFecha()">
-                  <i class="fa fa-eraser"></i> Limpiar fecha
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="block-options-item">
-            <button
-              type="button"
-              title="Refrescar tabla"
-              @click="refreshTable"
-              class="btn btn-success btn-sm"
-            >
-              <i class="si si-refresh"></i>
-            </button>
-          </div>
-          <div class="dropdown d-inline-block">
-            <button
-              type="button"
-              class="btn btn-sm btn-alt-secondary"
-              id="dropdown-recent-orders-filters"
-              data-bs-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-            >
-              <i class="fa fa-fw fa-flask"></i>
-              Filtrar
-              <i class="fa fa-angle-down ms-1"></i>
-            </button>
-            <div
-              class="dropdown-menu dropdown-menu-end shadow-sm"
-              aria-labelledby="dropdown-recent-orders-filters"
-            >
-              <a
-                v-for="item in listStatusQuote"
-                :key="item.value"
-                class="dropdown-item fw-medium d-flex align-items-center justify-content-between"
-                :class="{ active: selectedStatus === item.value }"
-                @click="selectQuoteStatus(item.value)"
-                href="javascript:void(0)"
-              >
-                {{ item.label }}
-              </a>
-            </div>
-          </div>
+        <div class="block-options-item">
+          <button
+            class="btn btn-outline-primary btn-sm"
+            @click="refresh"
+            :disabled="table.loading"
+            title="Restablecer filtros y refrescar"
+            aria-label="Restablecer filtros y refrescar"
+          >
+            <i v-if="!table.loading" class="fa fa-refresh"></i>
+            <span v-else class="spinner-border spinner-border-sm"></span>
+          </button>
         </div>
       </template>
-      <Dataset
-        v-slot="{ ds }"
-        :ds-data="cotizaciones.data"
-        :ds-sortby="sortBy"
-        :ds-search-in="[
-          'cotizacion',
-          'id',
-          'CLI_RAZON_SOCIAL',
-          'CLI_RUC',
-          'USERID',
-          'COND_ID',
-          'created_at',
-        ]"
+      <div class="row g-3 align-items-end px-2 pt-2 pb-1 mb-4">
+        <div class="col-12 col-lg-4">
+          <small class="text-muted d-block mb-1">Fecha</small>
+          <div class="d-flex align-items-center gap-1">
+            <flat-pickr
+              id="fecha_desde"
+              v-model="table.filters.fecha_desde"
+              :config="flatPickrState.fecha_desde"
+              class="form-control form-control-sm"
+              aria-label="Fecha desde"
+            />
+            <span class="text-muted">—</span>
+            <flat-pickr
+              id="fecha_hasta"
+              v-model="table.filters.fecha_hasta"
+              :config="flatPickrState.fecha_hasta"
+              class="form-control form-control-sm"
+              aria-label="Fecha hasta"
+            />
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              @click="clearDates"
+              title="Limpiar fechas"
+              aria-label="Limpiar fechas"
+            >
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+          <label for="cot" class="text-muted d-block mb-1 small"
+            >Cotización</label
+          >
+          <input
+            id="cot"
+            v-model="table.filters.cotizacion_filtro"
+            type="text"
+            maxlength="100"
+            class="form-control form-control-sm"
+          />
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="estado-cotizacion" class="text-muted d-block mb-1 small"
+            >Estado</label
+          >
+          <select
+            id="estado-cotizacion"
+            v-model="table.filters.estado"
+            class="form-select form-select-sm"
+          >
+            <option
+              v-for="item in listStatus"
+              :key="item.value"
+              :value="item.value"
+            >
+              {{ item.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="row justify-content-between align-items-center mb-3">
+        <div class="col-md-1">
+          <select
+            v-model="table.filters.perPage"
+            class="form-select form-select-sm"
+            aria-label="Cotizaciones por página"
+          >
+            <option
+              v-for="item in listPerpage"
+              :key="item.value"
+              :value="item.value"
+            >
+              {{ item.label }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <input
+            v-model="table.filters.search"
+            class="form-control form-control-sm"
+            placeholder="Buscar..."
+            aria-label="Buscar cotizaciones"
+            maxlength="150"
+          />
+        </div>
+      </div>
+      <div v-if="printError" class="alert alert-danger" role="alert">
+        {{ printError }}
+      </div>
+      <BaseTable
+        :processing="printing || checkingReserve"
+        :columns="columns"
+        :data="table.items"
+        :loading="table.loading"
+        :error="table.error"
+        retryable
+        :total-items="table.totalItems"
+        :current-page="table.currentPage"
+        :total-page="table.totalPage"
+        :per-page="table.filters.perPage"
+        sortable
+        :sort-field="table.filters.sortField"
+        :sort-order="table.filters.sortOrder"
+        @on-sort="onSort"
+        @on-page-change="fetchList"
+        @on-retry="fetchList()"
       >
-        <div class="row" :data-page-count="ds.dsPagecount">
-          <div id="datasetLength" class="col-md-8 py-2">
-            <DatasetShow />
-          </div>
-          <div class="col-md-4 py-2">
-            <DatasetSearch ds-search-placeholder="Buscar..." />
-          </div>
-        </div>
-        <hr />
-        <div v-if="cotizaciones.loading" class="text-center">
-          <div class="spinner-border text-primary mt-4" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <div
-          class="row"
-          v-if="
-            vercotizaciones && cotizaciones.data.length && !cotizaciones.loading
-          "
-        >
-          <div class="col-md-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-hover table-vcenter mb-0">
-                <thead>
-                  <tr>
-                    <th
-                      v-for="(th, index) in cols"
-                      :key="th.field"
-                      :class="['sort', th.sort]"
-                      @click="onSort($event, index)"
+        <template #cell-cotizacion="{ row }">
+          <a href="javascript:void(0);" @click="funcionvercotizacion(row)">{{
+            row.cotizacion
+          }}</a>
+        </template>
+        <template #cell-CLI_RAZON_SOCIAL="{ row }">
+          {{ row.CLI_RAZON_SOCIAL }}
+        </template>
+        <template #cell-CLI_RUC="{ row }">
+          {{ row.CLI_RUC }}
+        </template>
+        <template #cell-USERID="{ row }">
+          {{ row.USERID }}
+        </template>
+        <template #cell-COND_ID="{ row }">
+          {{ row.COND_ID }}
+        </template>
+        <template #cell-created_at="{ row }">
+          {{ row.created_at }}
+        </template>
+        <template #cell-total="{ row }">
+          ${{ format(parseFloat(row.total)) }}
+        </template>
+        <template #cell-estado="{ row }">
+          <span style="font-size: 12px" v-if="row.prospecto_id && !row.cliente_id"
+            :class="estadoClass(esEstado(row, 'procesado') ? 'procesado' : 'prospecto')">
+            {{ esEstado(row, 'procesado') ? 'Procesado' : 'Prospecto' }}
+          </span>
+          <a style="font-size: 12px" v-else-if="esEstado(row, 'espera')" href="javascript:void(0)"
+            :class="estadoClass(row.estado)" @click="motivoEspera(row)">
+            {{ estadoLabel(row) }}
+          </a>
+          <span style="font-size: 12px" v-else
+            :class="[estadoClass(row.estado), { pointer: esEstado(row, 'rechazado') && !!row.aprobado_comercial_mensaje }]"
+            @click="handleEstadoClick(row)">
+            {{ estadoLabel(row) }}
+          </span>
+        </template>
+        <template #cell-venta="{ row }">
+          <span style="font-size: 12px"
+            class="mx-1"
+            :class="getReminderClass(row)"
+            @click="row.recordatorioventa == 0 ? showModalNoVenta(row) : ''"
+          >
+            {{ row.recordatorioventa == 1 ? "Si" : "No" }}
+          </span>
+        </template>
+        <template #actions="{ row }"
+          ><div class="text-end text-nowrap">
+            <template v-if="row.prospecto_id && !row.cliente_id">
+              <button
+                type="button"
+                class="btn btn-sm btn-alt-secondary"
+                :id="`prospect-options-${row.id}`"
+                data-bs-toggle="dropdown"
+                aria-label="Acciones de cotización de prospecto"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                <i class="fa fa-fw fa-ellipsis-v"></i>
+              </button>
+              <ul
+                class="dropdown-menu dropdown-menu-end shadow-sm"
+                :aria-labelledby="`prospect-options-${row.id}`"
+              >
+                <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">
+                  Exportar
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item d-flex align-items-center gap-2 py-2"
+                    @click="printQuotation(row, 'prospect')"
+                  >
+                    <i class="fa-solid fa-file-pdf fa-fw"></i>
+                    <span>Cotización PDF</span>
+                  </button>
+                </li>
+                <li class="dropdown-divider my-2"></li>
+                <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">
+                  Gestión
+                </li>
+                <li v-if="row.estado != 'procesado'">
+                  <button
+                    type="button"
+                    class="dropdown-item d-flex align-items-center gap-2 py-2"
+                    @click="recuperarcotizacionprospecto(row)"
+                  >
+                    <i class="fa-solid fa-rotate-left fa-fw"></i>
+                    <span>Recuperar</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item d-flex align-items-center gap-2 py-2"
+                    @click="levantarcliente(row)"
+                  >
+                    <i class="fa-regular fa-clone fa-fw"></i>
+                    <span>Copiar</span>
+                  </button>
+                </li>
+              </ul> </template
+            ><template v-else>
+              <!-- dropdown -->
+              <button
+                type="button"
+                class="btn btn-sm btn-alt-secondary"
+                id="dropOptions"
+                data-bs-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                <i class="fa fa-fw fa-ellipsis-v"></i>
+              </button>
+              <ul
+                class="dropdown-menu dropdown-menu-end shadow-sm"
+                aria-labelledby="dropOptions"
+              >
+                <!-- exportaciones -->
+                <template
+                  v-if="
+                    row.imprimir === 'yes' &&
+                    !['caducado', 'borrador_app'].includes(row.estado)
+                  "
+                >
+                  <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">
+                    Exportar
+                  </li>
+
+                  <!-- imprimir cotizacion sin imagenes -->
+                  <li>
+                    <button
+                      class="dropdown-item d-flex align-items-center gap-2 py-2"
+                      @click="printQuotation(row)"
                     >
-                      {{ th.name }} <i class="gg-select float-end"></i>
-                    </th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <DatasetItem tag="tbody" class="fs-sm">
-                  <template #default="{ row }">
-                    <tr>
-                      <td class="fs-sm">
-                        <a
-                          href="javascript:void(0);"
-                          @click="funcionvercotizacion(row, index)"
-                          >{{ row.cotizacion }}</a
-                        >
-                      </td>
-                      <td class="fs-sm">
-                        {{ row.CLI_RAZON_SOCIAL }}
-                      </td>
-                      <td class="fs-sm">
-                        {{ row.CLI_RUC }}
-                      </td>
-                      <td class="fs-sm">
-                        {{ row.USERID }}
-                      </td>
-                      <td class="fs-sm">
-                        {{ row.COND_ID }}
-                      </td>
-                      <td class="fs-sm">
-                        {{ row.created_at }}
-                      </td>
-                      <td class="fs-sm text-end">
-                        ${{ format(parseFloat(row.total)) }}
-                      </td>
-                      <td
-                        v-if="row.prospecto_id && !row.cliente_id"
-                        class="fs-sm"
-                      >
-                        <span
-                          v-if="row.estado == 'procesado'"
-                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                        >
-                          procesado
-                        </span>
-                        <span
-                          v-else
-                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-info-light text-info"
-                        >
-                          prospecto
-                        </span>
-                      </td>
-                      <td v-else class="fs-sm">
-                        <a
-                          v-if="esEstado(row, 'espera')"
-                          href="javascript:void(0)"
-                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill bg-warning-light text-warning pointer"
-                          @click="motivoEspera(row)"
-                        >
-                          {{ estadoLabel(row) }}
-                        </a>
+                      <i class="fa-solid fa-file-pdf fa-fw"></i>
+                      <span>Cotización PDF</span>
+                    </button>
+                  </li>
 
-                        <span
-                          v-else
-                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill"
-                          :class="estadoClass(row)"
-                          @click="handleEstadoClick(row)"
-                        >
-                          {{ estadoLabel(row) }}
-                        </span>
-                      </td>
-                      <td class="fs-sm text-center">
-                        <span
-                          class="fs-xs fw-semibold d-inline-block py-1 px-3 rounded-pill mx-1"
-                          :class="getReminderClass(row)"
-                          @click="
-                            row.recordatorioventa == 0
-                              ? showModalNoVenta(row)
-                              : ''
-                          "
-                        >
-                          {{ row.recordatorioventa == 1 ? "Si" : "No" }}
-                        </span>
-                      </td>
-                      <td
-                        v-if="row.prospecto_id && !row.cliente_id"
-                        class="fs-sm nowrap text-end"
-                      >
-                        <button
-                          type="button"
-                          class="btn btn-primary btn-sm mx-2"
-                          title="Imprimir Cotización"
-                          @click="imprimircotizacionprospecto(row)"
-                        >
-                          <i class="fa fa-print"></i>
-                        </button>
-                        <button
-                          v-if="row.estado != 'procesado'"
-                          type="button"
-                          class="btn btn-success btn-sm mx-2"
-                          title="Recuperar Cotización"
-                          @click="recuperarcotizacionprospecto(row)"
-                        >
-                          <i class="fa fa-upload"></i>
-                        </button>
-                        <button
-                          type="button"
-                          class="btn btn-info btn-sm mx-1"
-                          title="Copiar pedido"
-                          @click="levantarcliente(row)"
-                        >
-                          <i class="fa fa-copy"></i>
-                        </button>
-                      </td>
-                      <td v-else class="fs-sm nowrap text-end">
-                        <!-- dropdown -->
-                        <button
-                          type="button"
-                          class="btn btn-sm btn-alt-secondary"
-                          id="dropOptions"
-                          data-bs-toggle="dropdown"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                        >
-                          <i class="fa fa-fw fa-ellipsis-v"></i>
-                        </button>
-                        <ul
-                          class="dropdown-menu dropdown-menu-end shadow-sm"
-                          aria-labelledby="dropOptions"
-                        >
-                          <!-- exportaciones -->
-                          <template
-                            v-if="
-                              row.imprimir === 'yes' &&
-                              !['caducado', 'borrador_app'].includes(row.estado)
-                            "
-                          >
-                            <li
-                              class="dropdown-header text-uppercase fs-xs fw-bold mt-1"
-                            >
-                              Exportar
-                            </li>
+                  <!-- imprimir cotizaciones con imagenes -->
+                  <li>
+                    <button
+                      class="dropdown-item d-flex align-items-center gap-2 py-2"
+                      @click="printQuotation(row, 'images')"
+                    >
+                      <i class="fa-solid fa-file-image fa-fw"></i>
+                      <span>Cotización (Img)</span>
+                    </button>
+                  </li>
+                  <li class="dropdown-divider my-2"></li>
+                </template>
+                <!-- gestios de cotizaciones -->
+                <li class="dropdown-header text-uppercase fs-xs fw-bold mt-1">
+                  Gestión
+                </li>
 
-                            <!-- imprimir cotizacion sin imagenes -->
-                            <li>
-                              <button
-                                class="dropdown-item d-flex align-items-center gap-2 py-2"
-                                @click="imprimircotizacion(row)"
-                              >
-                                <i
-                                  class="fa-solid fa-file-pdf fa-fw text-light"
-                                ></i>
-                                <span>Cotización PDF</span>
-                              </button>
-                            </li>
+                <!-- recuperar cotizacion -->
+                <li
+                  v-if="row.recuperar == 'yes' && canVolverAPedir(row.estado)"
+                >
+                  <button
+                    class="dropdown-item d-flex align-items-center gap-2 py-2"
+                    @click="recuperarcotizacion(row)"
+                  >
+                    <i class="fa-solid fa-rotate-left fa-fw"></i>
+                    <span>Recuperar</span>
+                  </button>
+                </li>
 
-                            <!-- imprimir cotizaciones con imagenes -->
-                            <li>
-                              <button
-                                class="dropdown-item d-flex align-items-center gap-2 py-2"
-                                @click="imprimircotizacionimagenes(row)"
-                              >
-                                <i
-                                  class="fa-solid fa-file-image fa-fw text-info"
-                                ></i>
-                                <span>Cotización (Img)</span>
-                              </button>
-                            </li>
-                            <li class="dropdown-divider my-2"></li>
-                          </template>
-                          <!-- gestios de cotizaciones -->
-                          <li
-                            class="dropdown-header text-uppercase fs-xs fw-bold mt-1"
-                          >
-                            Gestión
-                          </li>
+                <!-- volver a pedir  -->
+                <li>
+                  <button
+                    class="dropdown-item d-flex align-items-center gap-2 py-2"
+                    @click="volverapedir(row)"
+                  >
+                    <i class="fa-solid fa-cart-plus fa-fw"></i>
+                    <span>Volver a pedir</span>
+                  </button>
+                </li>
 
-                          <!-- recuperar cotizacion -->
-                          <li
-                            v-if="
-                              row.recuperar == 'yes' &&
-                              canVolverAPedir(row.estado)
-                            "
-                          >
-                            <button
-                              class="dropdown-item d-flex align-items-center gap-2 py-2"
-                              @click="recuperarcotizacion(row)"
-                            >
-                              <i
-                                class="fa-solid fa-rotate-left fa-fw text-primary"
-                              ></i>
-                              <span>Recuperar</span>
-                            </button>
-                          </li>
+                <!-- copiar cotizacion  -->
+                <li>
+                  <button
+                    class="dropdown-item d-flex align-items-center gap-2 py-2"
+                    @click="levantarcliente(row)"
+                  >
+                    <i class="fa-regular fa-clone fa-fw"></i>
+                    <span>Copiar</span>
+                  </button>
+                </li>
 
-                          <!-- volver a pedir  -->
-                          <li>
-                            <button
-                              class="dropdown-item d-flex align-items-center gap-2 py-2"
-                              @click="volverapedir(row)"
-                            >
-                              <i
-                                class="fa-solid fa-cart-plus fa-fw text-warning"
-                              ></i>
-                              <span>Volver a pedir</span>
-                            </button>
-                          </li>
+                <!-- solicitud de reserva -->
+                <li v-if="['espera', 'aprobado'].includes(row.estado)">
+                  <button
+                    class="dropdown-item d-flex align-items-center gap-2 py-2"
+                    @click="verModalReserva(row)"
+                  >
+                    <i class="fa-solid fa-calendar-check fa-fw"></i>
+                    <span>Solicitar Reserva</span>
+                  </button>
+                </li>
 
-                          <!-- copiar cotizacion  -->
-                          <li>
-                            <button
-                              class="dropdown-item d-flex align-items-center gap-2 py-2"
-                              @click="levantarcliente(row)"
-                            >
-                              <i
-                                class="fa-regular fa-clone fa-fw text-success"
-                              ></i>
-                              <span>Copiar</span>
-                            </button>
-                          </li>
+                <!-- rechazar una cotizacion en estado espera -->
+                <li v-if="row.estado === 'espera'">
+                  <div class="dropdown-divider my-2"></div>
+                  <button
+                    class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                    :disabled="loadingChange"
+                    @click="rechazarCotizacionEstadoEspera(row.id)"
+                  >
+                    <i class="fa-solid fa-ban fa-fw"></i>
+                    <span class="fw-semibold">Rechazar</span>
+                  </button>
+                </li>
+              </ul>
 
-                          <!-- solicitud de reserva -->
-                          <li
-                            v-if="['espera', 'aprobado'].includes(row.estado)"
-                          >
-                            <button
-                              class="dropdown-item d-flex align-items-center gap-2 py-2"
-                              @click="verModalReserva(row)"
-                            >
-                              <i
-                                class="fa-solid fa-calendar-check fa-fw text-white"
-                              ></i>
-                              <span>Solicitar Reserva</span>
-                            </button>
-                          </li>
-
-                          <!-- rechazar una cotizacion en estado espera -->
-                          <li v-if="row.estado === 'espera'">
-                            <div class="dropdown-divider my-2"></div>
-                            <button
-                              class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
-                              :disabled="loadingChange"
-                              @click="rechazarCotizacionEstadoEspera(row.id)"
-                            >
-                              <i class="fa-solid fa-ban fa-fw"></i>
-                              <span class="fw-semibold">Rechazar</span>
-                            </button>
-                          </li>
-                        </ul>
-
-                        <!-- dropdown -->
-                      </td>
-                    </tr>
-                  </template>
-                </DatasetItem>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div
-          class="d-flex flex-md-row flex-column justify-content-between align-items-center"
+              <!-- dropdown -->
+            </template>
+          </div></template
         >
-          <DatasetInfo class="py-3 fs-sm" />
-          <DatasetPager class="flex-wrap py-3 fs-sm" />
-        </div>
-      </Dataset>
+      </BaseTable>
     </BaseBlock>
   </div>
   <!-- END Page Content -->
 
-  <!-- Modal de ver cotizacion -->
-  <div
-    class="modal"
+  <BaseModal
     id="modal-cotizacion"
-    tabindex="-1"
-    aria-labelledby="modal-cotizacion"
-    aria-hidden="true"
     ref="vercotizacionModal"
+    title="Detalle de cotización"
+    :busy="detail.saving"
+    body-class="p-0"
+    @hidden="clearDetail"
   >
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content">
-        <VerCotizacionModal
-          :vercotizacion="vercotizacion"
-          :indexCotizacion="indexCotizacion"
-          :tipo="tipo"
-         @update:vercotizacion="Object.assign(vercotizacion, $event)">
-        </VerCotizacionModal>
-      </div>
+    <div v-if="detail.loading" class="text-center p-4" role="status">
+      <span class="spinner-border text-primary"></span
+      ><span class="visually-hidden">Cargando cotización...</span>
     </div>
-  </div>
+    <div v-else-if="detail.error" class="alert alert-danger m-3" role="alert">
+      {{ detail.error }}
+      <button
+        class="btn btn-sm btn-primary ms-2"
+        @click="loadDetail(detail.id)"
+      >
+        Reintentar
+      </button>
+    </div>
+    <VerCotizacionModal
+      v-else-if="detail.data"
+      :vercotizacion="detail.data.cabecera"
+      :detail-data="detail.data"
+      :saving="detail.saving"
+      @update:vercotizacion="Object.assign(detail.data.cabecera, $event)"
+      @save="saveNotes"
+    />
+    <div v-if="detail.saveError" class="alert alert-danger m-3" role="alert">
+      {{ detail.saveError }}
+      <button
+        class="btn btn-sm btn-primary ms-2"
+        :disabled="detail.saving"
+        @click="saveNotes"
+      >
+        Reintentar
+      </button>
+    </div>
+  </BaseModal>
 
   <!-- Modal de levantar cliente -->
   <div
@@ -479,7 +442,7 @@
         <VerNoVentaModalComponent
           v-if="datosModalNoVenta && datosModalNoVenta.id"
           :vercotizacion="datosModalNoVenta"
-          @actualizarEstado="refreshQuotes()"
+          @actualizarEstado="llenarcotizaciones()"
         ></VerNoVentaModalComponent>
       </div>
     </div>
@@ -506,17 +469,19 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, watch } from "vue";
+import { ref, reactive, onMounted, nextTick, watch } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
-import { useTemplateStore } from "@/stores/template";
 import { Modal } from "bootstrap";
 import {
-  swalInfo,
   swalSuccess,
   swalWarning,
   swalError,
 } from "@/functions/swal-alert.js";
+import BaseTable from "@/components/BaseTable.vue";
+import BaseModal from "@/components/BaseModal.vue";
+import { useQuotationsTable } from "@/composables/venta/cotizaciones/useQuotationsTable";
+import { useQuotationDetail } from "@/composables/venta/cotizaciones/useQuotationDetail";
 import VerCotizacionModal from "../modals/VerCotizacionModal.vue";
 import LevantarClienteModal from "../modals/LevantarCliente.vue";
 import flatPickr from "vue-flatpickr-component";
@@ -527,17 +492,20 @@ import { useMotivosStore } from "@/stores/cotizaciones/useMotivosStore";
 import { useTipoReservasStore } from "@/stores/cotizaciones/reservas/useTipoReservasStore";
 import { usePuntosVentaReservaLimits } from "@/stores/cotizaciones/reservas/usePuntosVentaReservaLimits";
 import VerSolicitudReservaModalComponent from "@/views/ventas/cotizaciones/modals/verSolicitudReservaModal.vue";
-import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
+import { useQuotationActions } from "@/composables/venta/cotizaciones/useQuotationActions";
 import { useUpdateQuotationStatus } from "@/composables/aprobaciones/cotizaciones/useUpdateQuotationStatus";
-import { useQuotationReserveRequestSale, validateReserveDispatch } from "@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale";
-import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
+import {
+  useQuotationReserveRequestSale,
+  validateReserveDispatch,
+} from "@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale";
+import { useQuotationPrint } from "@/composables/venta/cotizaciones/useQuotationPrint";
 import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions.js";
 const { loadingChange, changeStatusQuoteBeenWaiting } =
   useUpdateQuotationStatus();
 const motivoStore = useMotivosStore();
 const tipoReservasStore = useTipoReservasStore();
 const puntosVentaReservaLimitsStore = usePuntosVentaReservaLimits();
-const { checkExistingReserve } = useValidatesReserved();
+const { checkingReserve, canManageQuotation, recoverQuotation: recuperarcotizacion, reorderQuotation: volverapedir } = useQuotationActions();
 const { verifyStockBeforeRequestReserve } = useQuotationReserveRequestSale();
 //** imports pra nuevos procesos */
 import { useCustomerCreate } from "@/composables/venta/cliente/useCustomerCreate";
@@ -569,102 +537,11 @@ const flatPickrState = reactive({
     locale: Spanish,
   },
 });
-// Helper variables
-const cols = reactive([
-  {
-    name: "COTIZACION",
-    field: "cotizacion",
-    sort: "",
-  },
-  {
-    name: "Cliente",
-    field: "CLI_RAZON_SOCIAL",
-    sort: "",
-  },
-  {
-    name: "RUC",
-    field: "CLI_RUC",
-    sort: "",
-  },
-  {
-    name: "Usuario",
-    field: "USERID",
-    sort: "",
-  },
-  {
-    name: "Cond. Pago",
-    field: "COND_ID",
-    sort: "",
-  },
-  {
-    name: "Fecha/hora",
-    field: "created_at",
-    sort: "",
-  },
-  {
-    name: "Total",
-    field: "total",
-    sort: "",
-  },
-  {
-    name: "Estado",
-    field: "estado",
-    sort: "",
-  },
-  {
-    name: "Facturacion",
-    field: "venta",
-    sort: "",
-  },
-]);
-
-// Sort by functionality
-const sortBy = computed(() => {
-  return cols.reduce((acc, o) => {
-    if (o.sort) {
-      o.sort === "asc" ? acc.push(o.field) : acc.push("-" + o.field);
-    }
-    return acc;
-  }, []);
-});
-
-// On sort th click
-function onSort(event, i) {
-  let toset;
-  const sortEl = cols[i];
-
-  if (!event.shiftKey) {
-    cols.forEach((o) => {
-      if (o.field !== sortEl.field) {
-        o.sort = "";
-      }
-    });
-  }
-
-  if (!sortEl.sort) {
-    toset = "asc";
-  }
-
-  if (sortEl.sort === "desc") {
-    toset = event.shiftKey ? "" : "asc";
-  }
-
-  if (sortEl.sort === "asc") {
-    toset = "desc";
-  }
-
-  sortEl.sort = toset;
-}
-const templateStore = useTemplateStore();
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
 const vercotizacion = ref({});
-const indexCotizacion = ref(null);
 const tipo = ref(null);
-const fecha_desde = ref(null);
-const fecha_hasta = ref(null);
-const cotizacion_filtro = ref(null);
 
 function queryValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -774,44 +651,26 @@ function normalizeRouteStatus(value) {
     return "rechazadas";
   }
 
-  return "pendientes";
+  return status === "prospectos" ? "prospectos" : "pendientes";
 }
 
 function applyRouteFilters() {
   syncRoutePuntoVenta();
 
   if (hasQueryParam("cotizacion")) {
-    cotizacion_filtro.value = queryValue(route.query.cotizacion) || null;
+    table.filters.cotizacion_filtro =
+      queryValue(route.query.cotizacion) || null;
   }
 
   if (hasQueryParam("estado")) {
-    selectedStatus.value = normalizeRouteStatus(queryValue(route.query.estado));
+    table.filters.estado = normalizeRouteStatus(queryValue(route.query.estado));
   }
 }
 
-function limpiarFecha() {
-  fecha_desde.value = null;
-  fecha_hasta.value = null;
-  llenarcotizaciones();
-}
-
-function refrescarFecha() {
-  if (!fecha_desde.value) return;
-  if (!fecha_hasta.value) return;
-
-  llenarcotizaciones();
-}
 async function funcionvercotizacion(cotizacion) {
-  vercotizacion.value = cotizacion;
-  tipo.value = "cotizacion";
-  store.dispatch("detallecotizacion", cotizacion);
-  vercotizacionModalObj.show();
-}
-
-function buscarCotizacion() {
-  if (cotizacion_filtro.value && cotizacion_filtro.value.length > 0) {
-    llenarcotizaciones();
-  }
+  const loading = loadDetail(cotizacion.id);
+  vercotizacionModal.value?.show();
+  await loading;
 }
 
 let verReservaModal = ref(null);
@@ -900,66 +759,29 @@ function motivoEspera(cotizacion) {
   swalWarning(msg);
 }
 
-let vercotizacionModal = ref(null);
-let vercotizacionModalObj = null;
-
-const cotizaciones = computed(() => store.state.cotizaciones);
-const vercotizaciones = ref(false);
-
-// llenarcotizaciones("pendientes");
-
-async function llenarcotizaciones() {
-  const consulta = {
-    puntodeventa_id: getRoutePuntoVenta(),
-    estado: selectedStatus.value,
-    fecha_desde: fecha_desde.value,
-    fecha_hasta: fecha_hasta.value,
-    cotizacion_filtro: cotizacion_filtro.value,
-  };
-
-  try {
-    await store.dispatch("llenarcotizaciones", consulta);
-    vercotizaciones.value = true;
-  } catch (err) {
-    vercotizaciones.value = false;
-    swalError(
-      err.response?.data?.error || "Error al consultar las cotizaciones"
-    );
-  }
-}
-
-async function recuperarcotizacion(cotizacion) {
-  templateStore.pageLoader({ mode: "on" });
-  const respRes = await checkExistingReserve(cotizacion.id);
-  if (respRes?.exists) {
-    templateStore.pageLoader({ mode: "off" });
-    swalInfo(
-      "No puede recuperar la cotización: la cotización cuenta con una solicitud de reserva  "
-    );
-    return;
-  }
-  templateStore.pageLoader({ mode: "off" });
-  router.push({
-    name: "ventas-crearcotizacion",
-    query: { id: cotizacion.id, mode: "restore_quote" },
-  });
-}
-
-async function volverapedir(cotizacion) {
-  templateStore.pageLoader({ mode: "on" });
-  const respRes = await checkExistingReserve(cotizacion.id);
-  if (respRes?.exists) {
-    templateStore.pageLoader({ mode: "off" });
-    swalInfo(
-      "No puede volver a pedir la cotización ya que cuenta con una solicitud de reserva"
-    );
-    return;
-  }
-  templateStore.pageLoader({ mode: "off" });
-  router.push({
-    name: "ventas-crearcotizacion",
-    query: { id: cotizacion.id, mode: "reorder_quote" },
-  });
+const { printing, printError, printQuotation } =
+  useQuotationPrint(llenarcotizaciones);
+const vercotizacionModal = ref(null);
+const {
+  detail,
+  load: loadDetail,
+  clear: clearDetail,
+  saveNotes,
+} = useQuotationDetail();
+const {
+  table,
+  columns,
+  listStatus,
+  listPerpage,
+  fetchList,
+  onSort,
+  refresh,
+  clearDates,
+  estadoClass,
+  getReminderClass,
+} = useQuotationsTable(getRoutePuntoVenta);
+function llenarcotizaciones() {
+  return fetchList();
 }
 
 const infoProspecto = reactive({
@@ -996,18 +818,7 @@ async function recuperarcotizacionprospecto(cotizacion) {
 }
 
 async function levantarcliente(pedido) {
-  let respRes;
-  try {
-    respRes = await checkExistingReserve(pedido.id);
-  } catch {
-    return;
-  }
-  if (respRes?.exists) {
-    swalInfo(
-      "No puede copiar la cotización ya que cuenta con una solicitud de reserva"
-    );
-    return;
-  }
+  if (!await canManageQuotation(pedido)) return;
 
   levantarClienteModalObj.show();
   vercotizacion.value = pedido;
@@ -1016,69 +827,6 @@ async function levantarcliente(pedido) {
 
 let levantarClienteModal = ref(null);
 let levantarClienteModalObj = null;
-
-async function imprimircotizacion(cotizacion) {
-  store
-    .dispatch("imprimir", "/cotizaciones/imprimircotizacion/" + cotizacion.id)
-    .then((response) => {
-      if (response.status == 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          "cotizacion-" + cotizacion.cotizacion + ".pdf"
-        );
-        document.body.appendChild(link);
-        link.click();
-      }
-      llenarcotizaciones();
-    });
-}
-
-async function imprimircotizacionimagenes(cotizacion) {
-  store
-    .dispatch(
-      "imprimir",
-      "/cotizaciones/imprimircotizacionimagenes/" + cotizacion.id
-    )
-    .then((response) => {
-      if (response.status == 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          "cotizacion-" + cotizacion.cotizacion + ".pdf"
-        );
-        document.body.appendChild(link);
-        link.click();
-      }
-      llenarcotizaciones();
-    });
-}
-
-async function imprimircotizacionprospecto(cotizacion) {
-  store
-    .dispatch(
-      "imprimir",
-      `${QUOTE_API_ROUTES.PROSPECTS.PRINT}/${cotizacion.id}`
-    )
-    .then((response) => {
-      if (response.status == 200) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          "cotizacion-" + cotizacion.cotizacion + ".pdf"
-        );
-        document.body.appendChild(link);
-        link.click();
-      }
-      llenarcotizaciones();
-    });
-}
 
 let verNoVentaModal = ref(null);
 let verNoVentaModalObj = null;
@@ -1101,43 +849,13 @@ function showModalNoVenta(row) {
   });
 }
 
-function getReminderClass(row) {
-  if (row.recordatorioventa == 0) {
-    if (row.cotizacion_venta_motivo_id != null || row.recordar == 1) {
-      return "bg-success-light text-success";
-    } else {
-      return "bg-warning-light text-warning";
-    }
-  } else if (row.recordatorioventa == 1) {
-    return "bg-info-light text-info";
-  }
-
-  return "bg-danger-light text-danger";
-}
-
-function refreshQuotes() {
-  llenarcotizaciones();
-}
-
 onMounted(() => {
   applyRouteFilters();
   llenarcotizaciones();
 
-  vercotizacionModalObj = new Modal(vercotizacionModal.value);
   verReservaModalObj = new Modal(verReservaModal.value);
   levantarClienteModalObj = new Modal(levantarClienteModal.value);
   verNoVentaModalObj = new Modal(verNoVentaModal.value);
-  // Remove labels from
-  document.querySelectorAll("#datasetLength label").forEach((el) => {
-    el.remove();
-  });
-
-  // Replace select classes
-  let selectLength = document.querySelector("#datasetLength select");
-
-  selectLength.classList = "";
-  selectLength.classList.add("form-select");
-  selectLength.style.width = "80px";
   if (motivoStore.motivos.length == 0) {
     motivoStore.fetchMotivos();
   }
@@ -1173,29 +891,10 @@ const canVolverAPedir = (estado) => {
   return !BLOCKED_VOLVER_A_PEDIR_STATUSES.includes(estado);
 };
 
-const estadosClasses = {
-  aprobado: "bg-success-light text-success",
-  rechazado: "bg-danger-light text-danger",
-  caducado: "bg-danger-light text-danger",
-  procesado: "bg-info-light text-info",
-  espera: "bg-warning-light text-warning",
-  borrador_app: "bg-info-light text-info",
-};
-
 function normalizarEstados(estado) {
   return String(estado ?? "")
     .trim()
     .toLowerCase();
-}
-
-function estadoClass(row) {
-  const estado = normalizarEstados(row.estado);
-  const hasMensajeRechazo =
-    estado === "rechazado" && !!row.aprobado_comercial_mensaje;
-  return [
-    estadosClasses[estado] ?? "bg-secondary-light text-secondary",
-    hasMensajeRechazo ? "pointer" : "",
-  ];
 }
 
 function estadoLabel(row) {
@@ -1222,27 +921,6 @@ function handleEstadoClick(row) {
     swalWarning("Motivo de rechazo", row.aprobado_comercial_mensaje);
   }
 }
-
-/** opciones de filtro de estado */
-const selectedStatus = ref("pendientes");
-const listStatusQuote = reactive([
-  { label: "Todos", value: "" },
-  { label: "Pendientes", value: "pendientes" },
-  { label: "Procesadas", value: "procesadas" },
-  { label: "Prospectos", value: "prospectos" },
-  { label: "Caducadas", value: "caducado" },
-  { label: "Rechazadas", value: "rechazadas" },
-]);
-
-function selectQuoteStatus(status) {
-  selectedStatus.value = status;
-  llenarcotizaciones();
-}
-
-async function refreshTable() {
-  selectedStatus.value = "pendientes";
-  llenarcotizaciones();
-}
 </script>
 
 <style scoped>
@@ -1253,12 +931,4 @@ async function refreshTable() {
   text-align: center;
 }
 
-/* BLINDAJE VISUAL */
-.dropdown-menu {
-  /* Asegura que el menú flote por encima de las otras filas de la tabla */
-  z-index: 9999 !important;
-
-  /* Borde sutil */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
 </style>

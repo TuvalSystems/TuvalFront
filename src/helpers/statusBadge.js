@@ -44,6 +44,9 @@ const STATUS_MAPS = {
     documento: {
         ...COMMON_STATUS_MAP,
         espera: "danger",
+        caducado: "danger",
+        borrador_app: "info",
+        prospecto: "info",
         facturado: "primary",
         order_de_compra: "primary",
         orden_de_compra: "primary",
