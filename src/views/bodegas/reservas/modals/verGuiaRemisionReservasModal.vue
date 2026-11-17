@@ -567,7 +567,7 @@ onMounted(() => {
 
 .segmented .btn-check:checked {
   border-color: var(--accent-2);
-  color: #e0f2fe
+  color: var(--tuval-info-text)
 }
 
 .mini {

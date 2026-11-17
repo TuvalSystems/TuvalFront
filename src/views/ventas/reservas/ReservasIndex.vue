@@ -550,9 +550,9 @@ onBeforeUnmount(() => {
   align-items: center;
   padding: 4px 9px;
   border-radius: 6px;
-  background-color: #e7f1ff;
-  color: #0d47a1;
-  border: 1px solid #b6d4fe;
+  background-color: var(--tuval-primary-soft);
+  color: var(--tuval-primary-strong);
+  border: 1px solid var(--tuval-primary);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
@@ -563,9 +563,9 @@ onBeforeUnmount(() => {
   align-items: center;
   padding: 4px 9px;
   border-radius: 6px;
-  background-color: #e7f1ff;
-  color: #0d47a1;
-  border: 1px solid #b6d4fe;
+  background-color: var(--tuval-primary-soft);
+  color: var(--tuval-primary-strong);
+  border: 1px solid var(--tuval-primary);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;

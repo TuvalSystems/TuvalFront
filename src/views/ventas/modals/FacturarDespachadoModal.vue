@@ -120,7 +120,7 @@
                     </td>
                   </tr>
                   <tr v-if="articulo.proveedores.length">
-                    <td colspan="10" style="background:#EFEFEF">
+                    <td colspan="10" style="background:var(--tuval-surface-muted)">
                       <table class="table-sm table-vcenter">
                         <tr>
                           <th>Descripción L</th>

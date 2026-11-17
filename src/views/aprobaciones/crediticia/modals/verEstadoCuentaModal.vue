@@ -536,7 +536,7 @@ onMounted(() => { });
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--tuval-text-muted);
   margin-bottom: 0.2rem;
 }
 
@@ -614,7 +614,7 @@ onMounted(() => { });
 }
 
 .credit-link-danger {
-  color: #dc2626;
+  color: var(--tuval-danger-text);
 }
 
 .credit-link-danger:hover {
@@ -667,7 +667,7 @@ onMounted(() => { });
 }
 
 .credit-empty-state i {
-  color: #16a34a;
+  color: var(--tuval-success-text);
 }
 
 @media (max-width: 1199.98px) {
@@ -734,7 +734,7 @@ onMounted(() => { });
 }
 
 .summary-inline-danger {
-  color: #dc2626;
+  color: var(--tuval-danger-text);
 }
 
 .summary-inline-danger:hover {

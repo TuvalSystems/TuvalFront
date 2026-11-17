@@ -202,18 +202,18 @@ async function login() {
     linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
   background-size: 32px 32px;
-  --login-bg: #f6f7f9;
-  --login-surface: #ffffff;
-  --login-surface-muted: #f8fafc;
-  --login-border: #e2e8f0;
-  --login-border-strong: #cbd5e1;
-  --login-text: #0f172a;
-  --login-muted: #64748b;
-  --login-primary: #2563eb;
-  --login-action: #c2410c;
-  --login-action-hover: #9a3412;
-  --login-danger: #dc2626;
-  --login-focus: 0 0 0 0.16rem rgba(37, 99, 235, 0.18);
+  --login-bg: var(--tuval-bg);
+  --login-surface: var(--tuval-surface);
+  --login-surface-muted: var(--tuval-surface-muted);
+  --login-border: var(--tuval-border);
+  --login-border-strong: var(--tuval-border-strong);
+  --login-text: var(--tuval-text);
+  --login-muted: var(--tuval-text-muted);
+  --login-primary: var(--tuval-primary);
+  --login-action: var(--tuval-brand-action);
+  --login-action-hover: var(--tuval-brand-action-hover);
+  --login-danger: var(--tuval-danger-text);
+  --login-focus: var(--tuval-focus-ring);
 }
 
 .login-shell {

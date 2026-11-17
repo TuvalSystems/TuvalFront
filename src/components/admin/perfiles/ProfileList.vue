@@ -474,18 +474,18 @@ function clearSearch() {
     linear-gradient(
       135deg,
       rgba(var(--bs-primary-rgb), 0.16),
-      rgba(0, 0, 0, 0.18)
+      var(--tuval-bg)
     ) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 :global(.dark-mode #page-container .profile-stat-card) {
-  background: rgba(0, 0, 0, 0.18) !important;
+  background: var(--tuval-bg) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 :global(.dark-mode #page-container .profile-list-title) {
-  color: #f4f7fb !important;
+  color: var(--tuval-text) !important;
 }
 
 :global(.dark-mode #page-container .profile-list-subtitle),
@@ -501,7 +501,7 @@ function clearSearch() {
 }
 
 :global(.dark-mode #page-container .profile-empty-state) {
-  background: rgba(0, 0, 0, 0.16) !important;
+  background: var(--tuval-bg) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: rgba(255, 255, 255, 0.62) !important;
 }

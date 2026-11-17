@@ -292,18 +292,18 @@ async function printAccountStatementPdf() {
   gap: 0.5rem;
   margin: 0.75rem 0.75rem 0;
   padding: 0.75rem 0.875rem;
-  border: 1px solid #e7bc54;
+  border: 1px solid var(--tuval-warning-border);
   border-left: 4px solid #d99500;
   border-radius: 0.5rem;
-  background: #fff3cd;
-  color: #664d03;
+  background: var(--tuval-warning-bg);
+  color: var(--tuval-warning-text);
   font-size: 0.8125rem;
   line-height: 1.5;
 }
 
 .return-notice-icon {
   flex-shrink: 0;
-  color: #946200;
+  color: var(--tuval-warning-text);
   font-size: 1rem;
 }
 

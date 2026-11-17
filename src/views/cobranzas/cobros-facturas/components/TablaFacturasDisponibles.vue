@@ -637,7 +637,7 @@ function handleObservationChange(invoice) {
 
 .invoice-application-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(108, 117, 125, 0.45);
+  background: rgba(var(--bs-secondary-rgb), 0.45);
 }
 
 .invoice-application-scroll::-webkit-scrollbar-track {

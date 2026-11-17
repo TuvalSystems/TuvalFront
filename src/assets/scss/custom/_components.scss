@@ -2,6 +2,69 @@
 // Minimal UI refinements
 // --------------------------------------------------
 
+// Botones compartidos: las variantes conservan los colores del tema activo.
+html .btn {
+  --bs-btn-padding-x: 0.85rem;
+  --bs-btn-padding-y: 0.5rem;
+  --bs-btn-font-size: 0.875rem;
+  --bs-btn-border-radius: var(--tuval-radius-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 2.5rem;
+  letter-spacing: 0;
+}
+
+html .btn-sm,
+html .btn-group-sm > .btn {
+  --bs-btn-padding-x: 0.5rem;
+  --bs-btn-padding-y: 0.25rem;
+  --bs-btn-font-size: 0.8125rem;
+  min-height: 1.875rem;
+}
+
+html .btn-lg,
+html .btn-group-lg > .btn {
+  --bs-btn-padding-x: 1rem;
+  --bs-btn-padding-y: 0.65rem;
+  --bs-btn-font-size: 1.125rem;
+  min-height: 3rem;
+}
+
+html .btn:focus-visible {
+  box-shadow: var(--tuval-focus-ring) !important;
+}
+
+.sales-list-header {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  > .block-options {
+    flex: 1 1 40rem;
+    min-width: 0;
+    max-width: 100%;
+    padding-left: 0;
+
+    > .space-x-1 {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+
+      > * {
+        max-width: 100%;
+        margin-left: 0;
+      }
+
+      .block-options-item > .row {
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
 html.theme-minimal {
   text-rendering: optimizeLegibility;
 
@@ -69,8 +132,7 @@ a.block.block-link-pop:hover {
 }
 
 .btn {
-  border-radius: var(--tuval-radius-sm);
-  box-shadow: none !important;
+  box-shadow: none;
   letter-spacing: 0;
 }
 

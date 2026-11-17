@@ -95,7 +95,7 @@ const filterOption = (option, label, search) =>
 }
 .tuval-search-select :deep(.vs__dropdown-option--highlight) {
   background: var(--tuval-primary);
-  color: #fff;
+  color: var(--tuval-on-accent);
 }
 .tuval-search-select.vs--disabled :deep(.vs__dropdown-toggle),
 .tuval-search-select.vs--disabled :deep(.vs__search),

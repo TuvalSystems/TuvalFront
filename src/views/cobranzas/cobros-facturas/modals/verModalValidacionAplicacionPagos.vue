@@ -301,7 +301,7 @@ function getIssueBadgeClass(item) {
 
 .summary-card small {
   display: block;
-  color: #8f9bad;
+  color: var(--tuval-text-muted);
   text-transform: uppercase;
   font-weight: 700;
   font-size: 9px;
@@ -384,9 +384,9 @@ function getIssueBadgeClass(item) {
   gap: 8px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: #f5f7fb;
-  border: 1px solid #dbe3f0;
-  color: #44546a;
+  background: var(--tuval-surface-muted);
+  border: 1px solid var(--tuval-border);
+  color: var(--tuval-text);
   font-size: 11px;
   line-height: 1.4;
 }
@@ -397,9 +397,9 @@ function getIssueBadgeClass(item) {
 }
 
 .double-apply-item {
-  background: #fff5f5;
-  border-color: #f3b8b8;
-  color: #9f2424;
+  background: var(--tuval-danger-bg);
+  border-color: var(--tuval-danger-border);
+  color: var(--tuval-danger-text);
 }
 
 .detail-stack {
@@ -413,7 +413,7 @@ function getIssueBadgeClass(item) {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6c757d;
+  color: var(--tuval-text-muted);
   margin-bottom: 6px;
 }
 

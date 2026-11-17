@@ -126,7 +126,7 @@ function formatPayload(payload) {
 <style scoped>
 .section-title {
   margin-bottom: 0.45rem;
-  color: #88909a;
+  color: var(--tuval-text-muted);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -159,7 +159,7 @@ function formatPayload(payload) {
 .detail-field small {
   display: block;
   margin-bottom: 1px;
-  color: #8a929c;
+  color: var(--tuval-text-muted);
   font-size: 10px;
   line-height: 1.2;
 }
@@ -187,7 +187,7 @@ function formatPayload(payload) {
 .status-pill {
   padding: 2px 7px;
   border-radius: 10px;
-  color: #69717c;
+  color: var(--tuval-text-muted);
   background: rgba(127, 127, 127, 0.12);
   font-size: 10px;
   font-weight: 600;
@@ -198,8 +198,8 @@ function formatPayload(payload) {
   overflow: auto;
   padding: 0.65rem 0.75rem;
   border-radius: 5px;
-  background: #161b22;
-  color: #e6edf3;
+  background: var(--tuval-bg);
+  color: var(--tuval-text);
   font-size: 11px;
   line-height: 1.45;
   white-space: pre-wrap;
@@ -211,4 +211,5 @@ function formatPayload(payload) {
   color: inherit;
   font-family: Consolas, Monaco, "Courier New", monospace;
 }
+
 </style>

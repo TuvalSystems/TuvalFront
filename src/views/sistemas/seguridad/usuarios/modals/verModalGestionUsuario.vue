@@ -301,8 +301,8 @@ async function guardarCambios() {
   height: 52px;
   min-width: 52px;
   border-radius: 50%;
-  background: rgba(13, 110, 253, 0.16);
-  border: 1px solid rgba(13, 110, 253, 0.28);
+  background: rgba(var(--bs-primary-rgb), 0.16);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -334,7 +334,7 @@ async function guardarCambios() {
 }
 
 .text-label-muted {
-  color: #6c757d;
+  color: var(--tuval-text-muted);
   text-transform: uppercase;
   font-weight: 700;
   font-size: 10px;

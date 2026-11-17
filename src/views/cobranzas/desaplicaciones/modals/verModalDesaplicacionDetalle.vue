@@ -336,12 +336,12 @@ onMounted(() => { });
 .block-content {
   --jm-border: var(--bs-border-color-translucent);
   --jm-muted: var(--bs-secondary-color);
-  --jm-soft-bg: rgba(108, 117, 125, 0.07);
-  --jm-soft-bg-2: rgba(108, 117, 125, 0.045);
-  --jm-primary-soft: rgba(13, 110, 253, 0.08);
-  --jm-info-soft: rgba(13, 202, 240, 0.08);
-  --jm-success-soft: rgba(25, 135, 84, 0.10);
-  --jm-danger-soft: rgba(220, 53, 69, 0.10);
+  --jm-soft-bg: rgba(var(--bs-secondary-rgb), 0.07);
+  --jm-soft-bg-2: rgba(var(--bs-secondary-rgb), 0.045);
+  --jm-primary-soft: rgba(var(--bs-primary-rgb), 0.08);
+  --jm-info-soft: rgba(var(--bs-info-rgb), 0.08);
+  --jm-success-soft: rgba(var(--bs-success-rgb), 0.10);
+  --jm-danger-soft: rgba(var(--bs-danger-rgb), 0.10);
 }
 
 /* Cabecera resumen */
@@ -401,13 +401,13 @@ onMounted(() => { });
 .doc-chip-gp {
   color: var(--bs-primary);
   background: var(--jm-primary-soft);
-  border-color: rgba(13, 110, 253, 0.14);
+  border-color: rgba(var(--bs-primary-rgb), 0.14);
 }
 
 .doc-chip-web {
   color: var(--bs-info);
   background: var(--jm-info-soft);
-  border-color: rgba(13, 202, 240, 0.16);
+  border-color: rgba(var(--bs-info-rgb), 0.16);
 }
 
 /* Secciones */
@@ -449,7 +449,7 @@ onMounted(() => { });
 .table-vcenter tbody td {
   padding-top: 0.05rem;
   padding-bottom: 0.05rem;
-  border-bottom: 1px solid rgba(108, 117, 125, 0.10);
+  border-bottom: 1px solid rgba(var(--bs-secondary-rgb), 0.10);
 }
 
 .table-clean tbody tr:last-child td,
@@ -459,7 +459,7 @@ onMounted(() => { });
 
 .table-clean tbody tr:hover,
 .table-vcenter tbody tr:hover {
-  background: rgba(108, 117, 125, 0.045);
+  background: rgba(var(--bs-secondary-rgb), 0.045);
 }
 
 /* Códigos/documentos */
@@ -539,11 +539,11 @@ td .text-muted.mt-1 {
 .btn-success {
   color: var(--bs-success) !important;
   background: var(--jm-success-soft) !important;
-  border-color: rgba(25, 135, 84, 0.20) !important;
+  border-color: rgba(var(--bs-success-rgb), 0.20) !important;
 }
 
 .btn-success:hover {
-  color: #fff !important;
+  color: var(--tuval-on-accent) !important;
   background: var(--bs-success) !important;
   border-color: var(--bs-success) !important;
 }
@@ -551,8 +551,8 @@ td .text-muted.mt-1 {
 .btn-secondary,
 .btn-secondary:disabled {
   color: var(--jm-muted) !important;
-  background: rgba(108, 117, 125, 0.10) !important;
-  border-color: rgba(108, 117, 125, 0.12) !important;
+  background: rgba(var(--bs-secondary-rgb), 0.10) !important;
+  border-color: rgba(var(--bs-secondary-rgb), 0.12) !important;
   opacity: 0.8;
 }
 

@@ -397,13 +397,13 @@ function handleEdit(event) {
 }
 
 :global(.dark-mode #page-container .profile-card) {
-  background: #243447 !important;
-  color: #e5ecf5 !important;
+  background: var(--tuval-surface) !important;
+  color: var(--tuval-text) !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
 :global(.dark-mode #page-container .profile-card:hover) {
-  background: #2a3b50 !important;
+  background: var(--tuval-surface-muted) !important;
   border-color: rgba(var(--bs-primary-rgb), 0.45) !important;
 }
 
@@ -413,7 +413,7 @@ function handleEdit(event) {
 }
 
 :global(.dark-mode #page-container .profile-title) {
-  color: #f4f7fb !important;
+  color: var(--tuval-text) !important;
 }
 
 :global(.dark-mode #page-container .profile-subtitle) {

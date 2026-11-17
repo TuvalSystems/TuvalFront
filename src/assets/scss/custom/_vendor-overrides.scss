@@ -51,5 +51,6 @@
 .vel-btns-wrapper .btn__next,
 .vel-btns-wrapper .btn__prev {
   padding: 30px;
-  background: #000;
+  background: var(--tuval-surface);
+  color: var(--tuval-text);
 }

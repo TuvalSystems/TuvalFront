@@ -365,7 +365,7 @@ const editable_aprobado_comercial_mensaje = computed({
 .quotation-section { margin-bottom: .5rem; }
 .quotation-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .3rem .75rem; margin: 0; }
 .quotation-details > div:not(.quotation-segmentation) { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
-.quotation-details dt { flex-shrink: 0; display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6c757d; margin-bottom: 0; line-height: 1.3; }
+.quotation-details dt { flex-shrink: 0; display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--tuval-text-muted); margin-bottom: 0; line-height: 1.3; }
 .quotation-details dd { margin: 0; font-weight: 600; font-size: .8rem; line-height: 1.3; overflow-wrap: anywhere; min-width: 0; }
 .quotation-segmentation { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding-top: .15rem; }
 .quotation-segmentation dt { margin: 0; }

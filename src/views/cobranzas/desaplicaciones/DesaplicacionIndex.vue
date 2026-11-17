@@ -443,29 +443,29 @@ onMounted(() => {
 
 /* recibos */
 .cell-token-blue {
-  color: #0d6efd;
-  background-color: rgba(13, 110, 253, 0.07);
-  border-color: rgba(13, 110, 253, 0.12);
+  color: var(--tuval-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.07);
+  border-color: rgba(var(--bs-primary-rgb), 0.12);
 }
 
 /* documentos gp */
 .cell-token-cyan {
-  color: #087990;
-  background-color: rgba(13, 202, 240, 0.08);
-  border-color: rgba(13, 202, 240, 0.14);
+  color: var(--tuval-info-text);
+  background-color: rgba(var(--bs-info-rgb), 0.08);
+  border-color: rgba(var(--bs-info-rgb), 0.14);
 }
 
 /* usuarios */
 .cell-token-muted {
-  background-color: rgba(108, 117, 125, 0.08);
-  border-color: rgba(108, 117, 125, 0.14);
+  background-color: rgba(var(--bs-secondary-rgb), 0.08);
+  border-color: rgba(var(--bs-secondary-rgb), 0.14);
 }
 
 /* tipos de medio */
 .cell-token-soft {
-  color: #7a5c00;
-  background-color: rgba(255, 193, 7, 0.1);
-  border-color: rgba(255, 193, 7, 0.16);
+  color: var(--tuval-warning-text);
+  background-color: rgba(var(--bs-warning-rgb), 0.1);
+  border-color: rgba(var(--bs-warning-rgb), 0.16);
 }
 
 .cell-token-more {
@@ -475,13 +475,13 @@ onMounted(() => {
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 700;
-  color: #6c757d;
-  background-color: rgba(108, 117, 125, 0.1);
+  color: var(--tuval-text-muted);
+  background-color: rgba(var(--bs-secondary-rgb), 0.1);
 }
 
 .cell-na {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #adb5bd;
+  color: var(--tuval-text-muted);
 }
 </style>

@@ -691,18 +691,18 @@ function handleAuthorizationInput(event) {
 }
 
 .section-icon-info {
-  color: #0369a1;
-  background: #e0f2fe;
+  color: var(--tuval-info-text);
+  background: var(--tuval-info-bg);
 }
 
 .section-icon-success {
-  color: #047857;
-  background: #dcfce7;
+  color: var(--tuval-success-text);
+  background: var(--tuval-success-bg);
 }
 
 .section-icon-warning {
-  color: #b45309;
-  background: #fef3c7;
+  color: var(--tuval-warning-text);
+  background: var(--tuval-warning-bg);
 }
 
 .invoice-selector {
@@ -830,7 +830,7 @@ function handleAuthorizationInput(event) {
 
 .retention-cards-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(108, 117, 125, 0.45);
+  background: rgba(var(--bs-secondary-rgb), 0.45);
 }
 
 .retention-cards-scroll::-webkit-scrollbar-track {
@@ -854,8 +854,8 @@ function handleAuthorizationInput(event) {
 }
 
 .retention-card-icon {
-  color: #2563eb;
-  background: #dbeafe;
+  color: var(--tuval-primary);
+  background: var(--tuval-primary-soft);
 }
 
 .retention-card-title {

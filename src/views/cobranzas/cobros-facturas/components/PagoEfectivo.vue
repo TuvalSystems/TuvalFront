@@ -352,8 +352,8 @@ onMounted(() => {});
 }
 
 .section-icon-success {
-  color: #047857;
-  background: #dcfce7;
+  color: var(--tuval-success-text);
+  background: var(--tuval-success-bg);
 }
 
 .cash-grid {

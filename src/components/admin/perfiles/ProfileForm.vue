@@ -194,8 +194,8 @@ watch(
           </div>
         </div>
 
-        <div class="col-12 d-flex justify-content-between gap-2">
-          <button v-if="isEditing" type="button" class="btn btn-danger" :disabled="!canDelete"
+        <div class="col-12 d-flex justify-content-between gap-2 profile-form-actions">
+          <button v-if="isEditing" type="button" class="btn btn-outline-danger" :disabled="!canDelete"
             @click="handleDelete">
             <i class="me-1" :class="deleting ? 'fa fa-spinner fa-spin' : 'fa fa-trash'"></i>
             {{ deleting ? 'Eliminando...' : 'Eliminar' }}
@@ -203,7 +203,7 @@ watch(
 
           <div v-else></div>
 
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 profile-form-actions-main">
             <button type="button" class="btn btn-alt-secondary" :disabled="saving || deleting" @click="handleCancel">
               Cancelar
             </button>
@@ -220,6 +220,16 @@ watch(
 </template>
 
 <style scoped>
+.profile-form-actions {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.profile-form-actions-main {
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
 .profile-form-card {
   --profile-card-bg: var(--bs-body-bg);
   --profile-card-border: var(--bs-border-color);
@@ -287,8 +297,8 @@ watch(
 }
 
 :global(.dark-mode #page-container .profile-form-card) {
-  background: #243447 !important;
-  color: #e5ecf5 !important;
+  background: var(--tuval-surface) !important;
+  color: var(--tuval-text) !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
@@ -298,7 +308,7 @@ watch(
 }
 
 :global(.dark-mode #page-container .profile-current-state) {
-  background: rgba(0, 0, 0, 0.18) !important;
+  background: var(--tuval-bg) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 

@@ -404,7 +404,7 @@ async function handleCustomerSelected(selection) {
 
   <!-- Page Content -->
   <div class="content">
-    <BaseBlock title="Pedidos Consulta" content-full>
+    <BaseBlock title="Pedidos Consulta" content-full header-class="sales-list-header">
       <template #options>
         <div class="space-x-1">
           <div class="block-options-item">

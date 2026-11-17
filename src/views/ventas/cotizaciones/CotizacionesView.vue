@@ -16,7 +16,7 @@
 
   <!-- Page Content -->
   <div class="content">
-    <BaseBlock title="Cotizaciones" content-full>
+    <BaseBlock title="Cotizaciones" content-full header-class="sales-list-header">
       <template #options>
         <div class="space-x-1">
           <div class="block-options-item">

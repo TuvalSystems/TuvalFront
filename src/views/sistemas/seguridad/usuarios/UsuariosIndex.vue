@@ -480,13 +480,13 @@ onMounted(() => {
   height: 30px;
   min-width: 30px;
   border-radius: 50%;
-  background: rgba(13, 110, 253, 0.18);
+  background: rgba(var(--bs-primary-rgb), 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  border: 1px solid rgba(13, 110, 253, 0.25);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.25);
 }
 
 .fs-xs {

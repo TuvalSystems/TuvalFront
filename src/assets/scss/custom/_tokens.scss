@@ -3,6 +3,15 @@
 // --------------------------------------------------
 
 :root {
+  --tuval-on-accent: #{$white};
+  --tuval-brand-action: #c2410c;
+  --tuval-brand-action-hover: #9a3412;
+  @each $state in success, warning, danger, info {
+    $color: map-get($theme-colors, $state);
+    --tuval-#{$state}-bg: #{tint-color($color, 88%)};
+    --tuval-#{$state}-border: #{tint-color($color, 65%)};
+    --tuval-#{$state}-text: #{shade-color($color, 45%)};
+  }
   --tuval-primary: #4c78dd;
   --tuval-primary-soft: #e2e9f8;
   --tuval-primary-strong: #365eaf;
@@ -25,6 +34,10 @@
   --bs-primary-rgb: 76, 120, 221;
   --bs-body-bg: var(--tuval-bg);
   --bs-body-color: var(--tuval-text);
+  --bs-secondary-bg: var(--tuval-surface-muted);
+  --bs-tertiary-bg: var(--tuval-bg);
+  --bs-secondary-color: var(--tuval-text-muted);
+  --bs-emphasis-color: var(--tuval-text);
   --bs-border-color: var(--tuval-border);
   --bs-border-radius: var(--tuval-radius-md);
   --bs-border-radius-sm: var(--tuval-radius-sm);
@@ -65,15 +78,6 @@
   --tuval-primary: #6f95ed;
   --tuval-primary-soft: rgba(111, 149, 237, 0.16);
   --tuval-primary-strong: #9ab6f4;
-  --tuval-bg: #18202b;
-  --tuval-surface: #1f2937;
-  --tuval-surface-muted: #263242;
-  --tuval-border: #344154;
-  --tuval-border-strong: #46556b;
-  --tuval-text: #e9ecef;
-  --tuval-text-muted: #a5afbd;
-  --tuval-sidebar: #1f2937;
-  --tuval-sidebar-dark: #141b25;
   --tuval-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
   --tuval-shadow-md: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.28);
   --tuval-focus-ring: 0 0 0 0.25rem rgba(111, 149, 237, 0.24);
@@ -88,15 +92,6 @@
   --tuval-primary: #7f9ed8;
   --tuval-primary-soft: rgba(127, 158, 216, 0.14);
   --tuval-primary-strong: #a8bee5;
-  --tuval-bg: #111318;
-  --tuval-surface: #181b21;
-  --tuval-surface-muted: #1e222a;
-  --tuval-border: #2a2f39;
-  --tuval-border-strong: #3a414e;
-  --tuval-text: #e6e8ec;
-  --tuval-text-muted: #969daa;
-  --tuval-sidebar: #15181d;
-  --tuval-sidebar-dark: #0e1014;
   --tuval-shadow-sm: none;
   --tuval-shadow-md: 0 0.75rem 1.75rem rgba(0, 0, 0, 0.28);
   --tuval-focus-ring: 0 0 0 0.16rem rgba(127, 158, 216, 0.22);
@@ -187,6 +182,26 @@
 .theme-smooth.dark-mode,
 .theme-smooth .dark-mode {
   @include tuval-dark-palette($theme-smooth-primary, $theme-smooth-darker, $theme-smooth-body-bg-dark);
+}
+
+// Alinea los componentes que consumen tokens con el modo oscuro de OneUI.
+// No modifica acentos, radios, tipografía ni preferencias del tema claro.
+:root.dark-mode {
+  @each $state in success, warning, danger, info {
+    $color: map-get($theme-colors, $state);
+    --tuval-#{$state}-bg: #{rgba($color, 0.14)};
+    --tuval-#{$state}-border: #{rgba($color, 0.4)};
+    --tuval-#{$state}-text: #{tint-color($color, 40%)};
+  }
+  --tuval-bg: #{$tuval-dark-bg};
+  --tuval-surface: #{$tuval-dark-surface};
+  --tuval-surface-muted: #{lighten($tuval-dark-surface, 3%)};
+  --tuval-border: #{$tuval-dark-border};
+  --tuval-border-strong: #{lighten($tuval-dark-border, 8%)};
+  --tuval-text: #{$tuval-dark-text};
+  --tuval-text-muted: #{$tuval-dark-text-muted};
+  --tuval-sidebar: #{$tuval-dark-chrome};
+  --tuval-sidebar-dark: #{$tuval-dark-chrome};
 }
 
 @media (prefers-reduced-motion: reduce) {

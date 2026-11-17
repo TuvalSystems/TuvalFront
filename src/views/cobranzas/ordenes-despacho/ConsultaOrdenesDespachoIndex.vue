@@ -325,7 +325,7 @@ onMounted(() => {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--tuval-text-muted);
   margin-bottom: 0.35rem;
 }
 </style>

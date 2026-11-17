@@ -142,7 +142,7 @@ async function requestOpenCashBox() {
 
 <style lang="css" scoped>
 .cash-box-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--tuval-border);
   border-radius: 10px;
   padding: 12px 14px;
   /* background: #fff; */
@@ -161,17 +161,17 @@ async function requestOpenCashBox() {
 }
 
 .cash-box-warning {
-  border: 1px solid #f6d7a8;
-  background: #fff7e6;
-  color: #8a4b00;
+  border: 1px solid var(--tuval-warning-border);
+  background: var(--tuval-warning-bg);
+  color: var(--tuval-warning-text);
   border-radius: 8px;
   padding: 8px 10px;
 }
 
 .cash-box-success {
-  border: 1px solid #bfe8ce;
-  background: #ecfdf3;
-  color: #198754;
+  border: 1px solid var(--tuval-success-border);
+  background: var(--tuval-success-bg);
+  color: var(--tuval-success-text);
   border-radius: 8px;
   padding: 7px 10px;
   font-weight: 600;

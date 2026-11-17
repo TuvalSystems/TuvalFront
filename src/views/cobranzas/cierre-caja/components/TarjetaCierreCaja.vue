@@ -114,7 +114,7 @@ async function requestCloseCashBox() {
 
 <style lang="css" scoped>
 .cash-box-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--tuval-border);
   border-radius: 10px;
   padding: 12px 14px;
   /* background: #fff; */
@@ -132,9 +132,9 @@ async function requestCloseCashBox() {
   flex-shrink: 0;
 }
 .cash-box-warning {
-  border: 1px solid #f6d7a8;
-  background: #fff7e6;
-  color: #8a4b00;
+  border: 1px solid var(--tuval-warning-border);
+  background: var(--tuval-warning-bg);
+  color: var(--tuval-warning-text);
   border-radius: 8px;
   padding: 8px 10px;
 }

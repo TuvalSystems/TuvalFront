@@ -493,13 +493,13 @@ const routeSummary = computed(() => {
 }
 
 :global(.dark-mode #page-container .section-node-card) {
-  background: #243447 !important;
-  color: #e5ecf5 !important;
+  background: var(--tuval-surface) !important;
+  color: var(--tuval-text) !important;
   border-color: rgba(255, 255, 255, 0.10) !important;
 }
 
 :global(.dark-mode #page-container .section-node-card:hover) {
-  background: #2a3b50 !important;
+  background: var(--tuval-surface-muted) !important;
   border-color: rgba(var(--bs-primary-rgb), 0.45) !important;
 }
 
@@ -509,7 +509,7 @@ const routeSummary = computed(() => {
 }
 
 :global(.dark-mode #page-container .section-title) {
-  color: #f4f7fb !important;
+  color: var(--tuval-text) !important;
 }
 
 :global(.dark-mode #page-container .section-meta) {
@@ -517,7 +517,7 @@ const routeSummary = computed(() => {
 }
 
 :global(.dark-mode #page-container .section-route-box) {
-  background: rgba(0, 0, 0, 0.18) !important;
+  background: var(--tuval-bg) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 

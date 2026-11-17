@@ -589,7 +589,7 @@ input[type="number"] {
 .sticky-top {
   position: sticky;
   top: 0;
-  background-color: #f9fafc;
+  background-color: var(--tuval-surface-muted);
   /* Coincide con bg-body-light */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   /* Sombra sutil al hacer scroll */

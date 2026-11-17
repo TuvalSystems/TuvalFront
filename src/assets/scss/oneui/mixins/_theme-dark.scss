@@ -17,9 +17,66 @@
   $link-color,
   $link-hover-color
 ) {
+  // Mantiene los acentos de cada tema y suaviza solo sus superficies oscuras.
+  $primary-darker: $tuval-dark-surface;
+
   // Theme and dark mode live on the same centralized document root.
   &.dark-mode {
+    body,
+    #page-container,
+    #main-container {
+      background-color: $tuval-dark-bg;
+      color: $tuval-dark-text;
+    }
+
+    #page-container #sidebar,
+    #page-container #sidebar > .content-header,
+    #page-container #page-header {
+      background-color: $tuval-dark-chrome;
+    }
+
     // Main Structure
+    .btn-dark,
+    .btn-alt-dark {
+      @include button-variant(
+        $tuval-dark-chrome,
+        $tuval-dark-border,
+        $tuval-dark-text,
+        $tuval-dark-surface,
+        lighten($tuval-dark-border, 8%),
+        $tuval-dark-text
+      );
+    }
+
+    #page-container #page-header .btn-alt-secondary {
+      @include button-variant(
+        rgba($white, 0.06),
+        rgba($white, 0.09),
+        $tuval-dark-text-muted,
+        rgba($white, 0.12),
+        rgba($white, 0.18),
+        $tuval-dark-text,
+        rgba($white, 0.12),
+        rgba($white, 0.18),
+        $tuval-dark-text,
+        rgba($white, 0.06),
+        rgba($white, 0.09),
+        $tuval-dark-text-muted
+      );
+      color: var(--bs-btn-color);
+      background-color: var(--bs-btn-bg);
+      border-color: var(--bs-btn-border-color);
+
+      &:hover,
+      &:focus-visible,
+      &.show,
+      &:active {
+        color: var(--bs-btn-hover-color);
+        background-color: var(--bs-btn-hover-bg);
+        border-color: var(--bs-btn-hover-border-color);
+      }
+    }
+
     &,
     #side-overlay,
     #page-loader {
@@ -63,14 +120,14 @@
 
     // Links
     a:not(.badge):not(.btn):not(.btn-block-option):not(.block):not(.dropdown-item):not(.nav-link):not(.page-link):not(.alert-link):not(.nav-main-link):not(.list-group-item-action):not(.close):not(.fc-event):not(.text-success-light):not(.text-danger-light):not(.text-warning-light):not(.text-info-light) {
-      color: lighten($primary, 5%);
+      color: mix($primary, $white, 45%);
 
       &.link-fx::before {
-        background-color: lighten($primary, 5%);
+        background-color: mix($primary, $white, 45%);
       }
 
       &:hover {
-        color: $primary;
+        color: mix($primary, $white, 35%);
       }
     }
 
@@ -82,7 +139,7 @@
     @include bg-variant(".bg-muted", darken($body-bg-light, 30%));
 
     // Contextual text colors
-    @include text-emphasis-variant(".text-primary", lighten($primary, 5%));
+    @include text-emphasis-variant(".text-primary", mix($primary, $white, 45%));
 
     @include text-emphasis-variant(".text-success", lighten($success, 5%));
     @include text-emphasis-variant(".text-warning", lighten($warning, 5%));

@@ -266,13 +266,14 @@ onMounted(async () => {
 .chip {
     padding: .15rem .5rem;
     border-radius: 999px;
-    background: #0b1727;
-    color: #e6e9ef;
-    border: 1px solid #334155;
+    background: var(--tuval-surface-muted);
+    color: var(--tuval-text);
+    border: 1px solid var(--tuval-border);
     font-size: .72rem;
 }
 
 /* Key–value */
+
 .kv .fw-semibold {
     line-height: 1.1;
 }

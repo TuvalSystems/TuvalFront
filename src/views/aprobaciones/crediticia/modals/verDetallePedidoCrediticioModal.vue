@@ -542,7 +542,7 @@ async function rejectOrder() {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    color: #6c757d;
+    color: var(--tuval-text-muted);
     margin-bottom: 0.35rem;
 
 }

@@ -198,7 +198,7 @@ onMounted(() => { });
 }
 
 .text-label-muted {
-  color: #6c757d; 
+  color: var(--tuval-text-muted);
   text-transform: uppercase;
   font-weight: 700;
   /* fw-bold */
