@@ -36,7 +36,16 @@ export function useQuoteProspectActions() {
     }
 
 
+    const loadingSave = ref(false);
+    async function saveProspectQuotation(payload) {
+        return run(() => axiosClient.post(QUOTE_API_ROUTES.PROSPECTS.CREATE, payload), {
+            loadingRef: loadingSave,
+        });
+    }
+
     return {
+        loadingSave,
+        saveProspectQuotation,
         loadingDefault,
         fetchDefaultPriceListBySalesPoint,
         //carga de prospecto 

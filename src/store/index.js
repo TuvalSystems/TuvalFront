@@ -491,16 +491,6 @@ const store = createStore({
       });
     },
 
-    addCotizacion({ commit }, data) {
-      commit("setCotizacionLoading", true);
-      return axiosClient
-        .post("/cotizaciones/selectarticuloprospecto", data)
-        .then((res) => {
-          commit("setCotizacionLoading", false);
-          commit("addCotizacion", res.data.articulo);
-          return res;
-        });
-    },
     updateCantidad(_, updatecantidad) {
       return axiosClient
         .post("/cotizaciones/updatecantidad", updatecantidad)
@@ -512,14 +502,6 @@ const store = createStore({
     /**
      *  nuevas funciones
      */
-    guardarCotizacionProspecto({ commit }, info) {
-      return axiosClient
-        .post("/cotizaciones/guardarcotizacionprospecto", info)
-        .then((res) => {
-          commit("resetCotizacion");
-          return res;
-        });
-    },
     facturarPedido(_, pedido) {
       return axiosClient.post("/pedidos/facturarpedido", pedido).then((res) => {
         return res;
@@ -705,43 +687,6 @@ const store = createStore({
           return res.data;
         });
     },
-    recuperarCotizacionProspecto(_, cotizacion) {
-      return axiosClient
-        .post("/cotizaciones/recuperarcotizacionprospecto", cotizacion)
-        .then((res) => {
-          this.state.nuevoCliente = {
-            CLI_RUC: res.data.cliente.CLI_RUC,
-            CLI_RAZON_SOCIAL: res.data.cliente.CLI_RAZON_SOCIAL,
-            CLI_NOMBRE_CORTO: "",
-            CLI_CONTACTO: "",
-            CLI_DIRECCION: res.data.cliente.CLI_DIRECCION,
-            CLI_CIUDAD: "",
-            CLI_PROVINCIA: "",
-            CLI_TERRITORIO: "COSTA",
-            CLI_TELEFONO_1: res.data.cliente.CLI_TELEFONO_1,
-            CLI_TELEFONO_2: "",
-            CLI_TELEFONO_3: "",
-            CLI_TELEFONO_4: "",
-            CLI_CORREO_ELECT_SRI: res.data.cliente.CLI_CORREO_ELECT_SRI,
-            CLI_CORREO_ELECT_NOTIFICACION_INTERNA: "",
-            CLI_VENDEDOR: 9,
-            CLI_GRUPO: "",
-            CLI_SUBGRUPO: "",
-          };
-          this.state.cotizacion_id = res.data.cotizacion_id;
-          this.state.cotizacion_serial = cotizacion.cotizacion;
-          this.state.nota_interna = cotizacion.nota_interna;
-          this.state.orden_de_compra = cotizacion.orden_de_compra;
-          this.state.bodegaFacturacion = cotizacion.BOD_BODEGA;
-          this.state.despacho = cotizacion.despacho;
-          this.state.nota_cliente = cotizacion.nota_cliente;
-          this.state.condiciondepago_id = cotizacion.COND_ID;
-          this.state.condiciondepago_print = cotizacion.COND_ID;
-          sessionStorage.setItem("CONDICIONDEPAGOPRINT", cotizacion.COND_ID);
-          this.state.formadepago_id = cotizacion.DESC_FORMA_PAGO_CODIGO;
-        });
-    },
-
     estadoCaja({ commit }) {
       return axiosClient
         .get(

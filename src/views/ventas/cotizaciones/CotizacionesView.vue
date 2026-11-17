@@ -530,6 +530,7 @@ import VerSolicitudReservaModalComponent from "@/views/ventas/cotizaciones/modal
 import { useValidatesReserved } from "@/composables/venta/cotizaciones/reservas/useValidatesReserved";
 import { useUpdateQuotationStatus } from "@/composables/aprobaciones/cotizaciones/useUpdateQuotationStatus";
 import { useQuotationReserveRequestSale, validateReserveDispatch } from "@/composables/venta/cotizaciones/reservas/useQuotationReserveRequestSale";
+import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
 import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions.js";
 const { loadingChange, changeStatusQuoteBeenWaiting } =
   useUpdateQuotationStatus();
@@ -970,6 +971,7 @@ async function recuperarcotizacionprospecto(cotizacion) {
   const respRes = await validateIdentification(cotizacion.CLI_RUC);
   if (!respRes.ok) {
     swalWarning(respRes.message);
+    if (respRes.raw?.isAxiosError || respRes.canceled) return;
     await recuperarcotizacion(cotizacion);
     return;
   }
@@ -1060,7 +1062,7 @@ async function imprimircotizacionprospecto(cotizacion) {
   store
     .dispatch(
       "imprimir",
-      "/cotizaciones/imprimircotizacionprospecto/" + cotizacion.id
+      `${QUOTE_API_ROUTES.PROSPECTS.PRINT}/${cotizacion.id}`
     )
     .then((response) => {
       if (response.status == 200) {

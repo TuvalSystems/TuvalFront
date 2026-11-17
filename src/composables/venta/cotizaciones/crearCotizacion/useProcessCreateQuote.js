@@ -860,19 +860,6 @@ export function useProcessCreateQuote(draftId = 'default') {
     });
 
 
-    /** proceso de cotizaciones de prospecto  */
-
-    const loadingUpdateQuoteProspect = ref(false);
-    async function updateQuoteProspect(params) {
-        return await run(() => axiosClient.post(QUOTE_API_ROUTES.PROSPECTS.UPDATE, params), {
-            loadingRef: loadingUpdateQuoteProspect,
-            onError: (error) => {
-                console.error('Error al actualizar el pedido:', error);
-            },
-        });
-    }
-
-
     const loadingProyectSellers = ref(false);
     const dataProyectSellers = ref([]);
     async function fetchListProyectSellers() {
@@ -995,11 +982,6 @@ export function useProcessCreateQuote(draftId = 'default') {
         saveOrder,
         saveOrderAndUpdateQuote,
         finishSubmission,
-
-        //prospecto 
-        loadingUpdateQuoteProspect,
-        updateQuoteProspect,
-
 
         //manejo de borradores 
         loadingGetCurrentDraft,

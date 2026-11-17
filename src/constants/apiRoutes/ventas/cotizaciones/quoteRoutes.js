@@ -8,7 +8,8 @@ export const QUOTE_API_ROUTES = {
         DELETE: 'borradores/delete',
     },
     PROSPECTS: {
-        UPDATE: 'cotizaciones/prospecto/actualizar',
+        CREATE: 'cotizaciones/prospecto/guardar',
+        PRINT: 'cotizaciones/prospecto/imprimir',
         GET_DEFAULT_PRICE_LIST: 'cotizaciones/prospecto/obtener-lista-precio-defecto',
         RESTORE: 'cotizaciones/prospecto/recuperar'
     },

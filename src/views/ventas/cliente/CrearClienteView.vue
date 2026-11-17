@@ -2,8 +2,6 @@
 <script setup>
 import { onMounted, computed, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStore } from "vuex";
-import { useProcessCreateQuote } from "@/composables/venta/cotizaciones/crearCotizacion/useProcessCreateQuote";
 import { useQuoteProspectActions } from "@/composables/venta/cotizaciones/prospecto/useQuoteProspectActions";
 
 //store
@@ -17,8 +15,6 @@ import { swalError, swalWarning } from "@/functions/swal-alert";
 
 const router = useRouter();
 const route = useRoute();
-const store = useStore();
-const { updateQuoteProspect, loadingUpdateQuoteProspect } = useProcessCreateQuote();
 const { restoreProspect } = useQuoteProspectActions();
 const isProspect = computed(() => route.query.tipo === "prospecto");
 const loadingProspect = ref(false);
@@ -100,7 +96,7 @@ const loadingChangeValidation = computed(
 
 const loadingCustomerProcess = computed(
   () => loadingChangeValidation.value || loadingSaveCustomer.value ||
-    loadingProspect.value || loadingUpdateQuoteProspect.value
+    loadingProspect.value
 );
 
 const addressListError = computed(
@@ -118,20 +114,7 @@ async function redirectToQuotation(identification = form.identificacion) {
   });
 }
 
-async function linkProspectQuotation(customer) {
-  if (!customer?.id) {
-    swalWarning("El cliente fue creado, pero la respuesta no contiene su ID para vincular la cotización.");
-    return;
-  }
-  const response = await updateQuoteProspect({
-    cliente_id: customer.id,
-    PTO_VTA_ID: store.state.puntodeventaselect,
-    id: route.query.cotizacion_id,
-  });
-  if (!response?.ok) {
-    swalWarning(response?.message || "No se pudo vincular el cliente. Puede reintentar sin volver a crearlo.");
-    return;
-  }
+async function continueProspectQuotation() {
   await redirectToQuotation();
 }
 
@@ -176,7 +159,12 @@ async function handleSaveCustomer() {
     return;
   }
   if (createdProspectCustomer.value) {
-    await linkProspectQuotation(createdProspectCustomer.value);
+    await continueProspectQuotation();
+    return;
+  }
+
+  if (isProspect.value && String(form.identificacion).trim() !== prospectIdentification.value) {
+    swalWarning("Conserve la identificación del prospecto para recuperar su cotización.");
     return;
   }
 
@@ -206,7 +194,7 @@ async function handleSaveCustomer() {
   const createdCustomer = response.data?.cliente ?? response.data;
   if (isProspect.value) {
     createdProspectCustomer.value = createdCustomer;
-    await linkProspectQuotation(createdCustomer);
+    await continueProspectQuotation();
     return;
   }
   const identification = createdCustomer?.CLI_RUC ?? form.identificacion;
@@ -333,7 +321,7 @@ onMounted(async () => {
     <div v-if="isProspect" class="alert alert-info">
       Cliente del prospecto de la cotización #{{ route.query.cotizacion }}.
       Complete los datos requeridos para continuar con esta cotización.
-      <span v-if="createdProspectCustomer">El cliente ya fue creado; puede reintentar la vinculación.</span>
+      <span v-if="createdProspectCustomer">El cliente ya fue creado; puede continuar con la cotización.</span>
     </div>
     <form class="client-form" @submit.prevent="handleSaveCustomer">
       <BaseBlock class="client-form__block" content-full>
@@ -396,6 +384,7 @@ onMounted(async () => {
                   type="text"
                   autocomplete="off"
                   v-model.trim="form.identificacion"
+                  :readonly="isProspect"
                   :maxlength="identifyMaxAllowed"
                   :placeholder="identifyName"
                   :inputmode="identifyInputMode"
