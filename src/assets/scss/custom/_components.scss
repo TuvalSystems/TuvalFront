@@ -69,6 +69,26 @@ html .btn:focus-visible {
   padding-top: 1rem;
 }
 
+// Cabeceras simples compactas; los filtros conservan su espacio y ajuste de filas.
+.block-header:not(.sales-list-header) {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+
+  > .block-title {
+    min-height: 1.5rem;
+    line-height: 1.5rem;
+  }
+}
+
+.card-header {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+
+  > :is(h1, h2, h3, h4, h5, h6, .card-title) {
+    margin-bottom: 0;
+  }
+}
+
 .sales-list-header {
   flex-wrap: wrap;
   gap: 0.75rem;
