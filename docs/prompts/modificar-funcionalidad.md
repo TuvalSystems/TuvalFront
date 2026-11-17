@@ -10,6 +10,38 @@ No necesitas copiar toda la plantilla ni conocer los archivos internos. Investig
 
 Identifica la implementación existente a partir del nombre visible, enlace o descripción del usuario. No le pidas el módulo técnico ni la carpeta. Si varias pantallas coinciden, pregunta qué opción del menú utiliza o en qué paso observa el problema. Conserva la ubicación del flujo existente salvo que el cambio solicitado requiera expresamente modificarla.
 
+## Ejemplo para copiar y adaptar
+
+Este ejemplo es una guía de solicitud, no una tarea pendiente que el agente deba ejecutar al leer este archivo. Sustituye la necesidad por la tuya y pega el mensaje en el chat del agente con el proyecto TUVAL abierto.
+
+```text
+Usa docs/prompts/modificar-funcionalidad.md.
+
+En la pantalla de cotizaciones necesito agregar un filtro por vendedor.
+Actualmente puedo consultar las cotizaciones, pero quiero seleccionar
+un vendedor y ver únicamente las que le corresponden.
+
+El filtro debe combinarse con los filtros existentes y tener la opción
+“Todos los vendedores”. Al cambiarlo, la tabla debe volver a la primera
+página. Al cambiar de punto de venta, debe limpiar la selección anterior
+y cargar los vendedores correspondientes.
+
+Conserva las columnas, acciones, permisos y diseño actuales.
+Revisa si el API ya admite este filtro. Reutiliza el selector, la tabla
+y los métodos existentes; no dupliques lógica ni crees archivos innecesarios.
+
+Verifica el filtro individual, su combinación con otros filtros y el
+cambio de punto de venta.
+
+Crea una rama desde develop actualizado y entrega un PR hacia develop.
+Aunque uses devtuval, josemg23 o TuvalSystems, no subas directamente
+ni uses la excepción. No fusiones, no despliegues y no toques main.
+```
+
+## Dónde consultar esta guía
+
+En GitHub, selecciona la rama develop y abre docs/prompts/modificar-funcionalidad.md. GitHub muestra el Markdown con formato y permite copiar el ejemplo. En el proyecto local, abre este mismo archivo en tu editor. Los cambios nuevos estarán disponibles en develop después de aprobar y fusionar su PR; antes puedes consultarlos en la rama del PR. Esta guía no aparece automáticamente dentro de la aplicación TUVAL.
+
 ## Instrucciones para el agente
 
 Implementa el cambio solicitado siguiendo estas reglas:

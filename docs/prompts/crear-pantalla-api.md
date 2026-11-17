@@ -8,6 +8,37 @@ Envía al agente este mensaje, completando lo que conozcas:
 
 No necesitas conocer toda la respuesta del API ni los archivos internos. Investiga primero el proyecto y el API; pregunta solo por decisiones de negocio o información que no puedas obtener allí.
 
+## Ejemplo para copiar y adaptar
+
+Este ejemplo es una guía de solicitud, no una tarea pendiente que el agente deba ejecutar al leer este archivo. Sustituye la necesidad por la tuya y pega el mensaje en el chat del agente con el proyecto TUVAL abierto.
+
+```text
+Usa docs/prompts/crear-pantalla-api.md.
+
+Necesito consultar las cotizaciones que todavía no se han convertido
+en pedidos. Lo utilizarán los vendedores para dar seguimiento a sus clientes.
+
+Debe mostrar número de cotización, fecha, cliente, vendedor, total y estado.
+Debe permitir buscar por cliente y filtrar por fechas y punto de venta.
+Desde el listado quiero abrir el detalle de la cotización.
+
+No conozco el API. Revisa si ya existe una consulta y si esta funcionalidad
+puede incorporarse en una pantalla actual antes de crear otra.
+Si falta soporte del API, indícalo; no inventes datos ni endpoints.
+
+Reutiliza componentes y métodos. Conserva el diseño y la estructura de
+TUVAL, con código legible y sin archivos innecesarios. Verifica que al
+cambiar de punto de venta se limpien los datos anteriores sin recargar.
+
+Crea una rama desde develop actualizado y entrega un PR hacia develop.
+Aunque uses devtuval, josemg23 o TuvalSystems, no subas directamente
+ni uses la excepción. No fusiones, no despliegues y no toques main.
+```
+
+## Dónde consultar esta guía
+
+En GitHub, selecciona la rama develop y abre docs/prompts/crear-pantalla-api.md. GitHub muestra el Markdown con formato y permite copiar el ejemplo. En el proyecto local, abre este mismo archivo en tu editor. Los cambios nuevos estarán disponibles en develop después de aprobar y fusionar su PR; antes puedes consultarlos en la rama del PR. Esta guía no aparece automáticamente dentro de la aplicación TUVAL.
+
 ## Identificar la ubicación a partir de la necesidad
 
 No pidas al usuario que identifique un módulo, carpeta, componente o ruta técnica. Interpreta su necesidad en términos del proceso de negocio: qué quiere hacer, con qué información, quién lo usa y en qué momento del trabajo.
