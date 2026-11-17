@@ -1,5 +1,5 @@
 <script setup>
-import GuiaArchivosConsulta from './GuiaArchivosConsulta.vue';
+import GuiaArchivosConsulta from "./GuiaArchivosConsulta.vue";
 import BaseTable from "@/components/BaseTable.vue";
 import { useTransferenciasEnviadasPagination } from "../../../composables/bodegas/consultas/useTransferenciasEnviadasPagination";
 import { onMounted, reactive, ref } from "vue";
@@ -82,7 +82,11 @@ const columns = [
     tdClass: "d-none d-md-table-cell",
   },
   {
-    label: "Vehiculo", key: "GUI_REM_PLACA", sortable: true, clickable: false, thClass: "d-none d-md-table-cell",
+    label: "Vehiculo",
+    key: "GUI_REM_PLACA",
+    sortable: true,
+    clickable: false,
+    thClass: "d-none d-md-table-cell",
     tdClass: "d-none d-md-table-cell",
   },
   {
@@ -130,30 +134,28 @@ const handleClick = ({ row, col }) => {
 const loadindDetalleGuia = ref(null);
 const showTable = ref(true);
 const showDetalleGuia = ref(false);
-const guiaSeleccionada = ref(null)   // cabecera
+const guiaSeleccionada = ref(null); // cabecera
 const detalleItems = ref([]);
 
 async function buscarDetalleGuia(guia) {
   try {
-    guiaSeleccionada.value = guia
-    showTable.value = true
-    showDetalleGuia.value = false
+    guiaSeleccionada.value = guia;
+    showTable.value = true;
+    showDetalleGuia.value = false;
     loadindDetalleGuia.value.statusLoading();
     const result = await fetchDetailGuides(guia.id);
 
     if (result) {
-      showTable.value = false
-      showDetalleGuia.value = true
-      detalleItems.value = result
+      showTable.value = false;
+      showDetalleGuia.value = true;
+      detalleItems.value = result;
       loadindDetalleGuia.value.statusNormal();
     }
   } catch (error) {
-
-    showTable.value = true
-    showDetalleGuia.value = false
+    showTable.value = true;
+    showDetalleGuia.value = false;
     swalError(error);
   }
-
 }
 
 const resetConsult = () => {
@@ -165,24 +167,18 @@ const resetConsult = () => {
 };
 
 const optionShowTable = () => {
-  showTable.value = !showTable.value
-}
+  showTable.value = !showTable.value;
+};
 
 const optionShowDetalleGuia = () => {
-
-  showDetalleGuia.value = !showDetalleGuia.value
+  showDetalleGuia.value = !showDetalleGuia.value;
   if (showDetalleGuia.value === true) {
     loadindDetalleGuia.value.statusLoading();
     setTimeout(() => {
       loadindDetalleGuia.value.statusNormal();
     }, 2000);
   }
-
 };
-
-
-
-
 
 onMounted(async () => {
   ptoVta.fetchAll();
@@ -191,46 +187,76 @@ onMounted(async () => {
     fetchItems(1);
   }
 });
-
 </script>
 
 <template>
   <div class="block-content">
     <BaseBlock rounded title="Transferencias Enviadas">
       <template #options>
-
         <div class="block-options-item">
-          <button class="btn btn-outline-primary btn-sm" @click="refresh" :disabled="table.loading" title="Refrescar"
-            aria-label="Refrescar">
+          <button
+            class="btn btn-outline-primary btn-sm"
+            @click="refresh"
+            :disabled="table.loading"
+            title="Refrescar"
+            aria-label="Refrescar"
+          >
             <i v-if="!table.loading" class="fa fa-refresh"></i>
             <span v-else class="spinner-border spinner-border-sm"></span>
           </button>
         </div>
         <div class="block-options-item">
-          <button type="button" class="btn-block-option" @click="optionShowTable">
-            <i :class="['fa', showTable ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
+          <button
+            type="button"
+            class="btn-block-option"
+            @click="optionShowTable"
+          >
+            <i
+              :class="[
+                'fa',
+                showTable ? 'fa-angle-up' : 'fa-angle-down',
+                'opacity-100',
+              ]"
+            ></i>
           </button>
         </div>
       </template>
       <div v-show="showTable">
-           <div class="row g-3 align-items-end px-2 pt-2 pb-1 mb-4">
+        <div class="row g-3 align-items-end px-2 pt-2 pb-1 mb-4">
           <!-- fecha -->
           <div class="col-12 col-lg-4">
             <small class="text-muted d-block mb-1">Fecha</small>
             <div class="d-flex align-items-center">
-              <flat-pickr id="fecha_desde" class="form-control form-control-sm" v-model="table.fecha_desde"
-                :config="flatPickrState.fecha_desde" />
+              <flat-pickr
+                id="fecha_desde"
+                class="form-control form-control-sm"
+                v-model="table.fecha_desde"
+                :config="flatPickrState.fecha_desde"
+              />
               <span class="text-muted">—</span>
-              <flat-pickr id="fecha_hasta" class="form-control form-control-sm" v-model="table.fecha_hasta"
-                :config="flatPickrState.fecha_hasta" />
+              <flat-pickr
+                id="fecha_hasta"
+                class="form-control form-control-sm"
+                v-model="table.fecha_hasta"
+                :config="flatPickrState.fecha_hasta"
+              />
             </div>
           </div>
           <!-- bodega -->
           <div class="col-12 col-sm-6 col-lg-2">
             <small class="text-muted d-block mb-1">Bodega</small>
-            <select name="" id="" class="form-control form-control-sm" v-model="table.ptovta">
+            <select
+              name=""
+              id=""
+              class="form-control form-control-sm"
+              v-model="table.ptovta"
+            >
               <option value="">Todos</option>
-              <option v-for="p in ptoVta.list" :key="p.PTO_VTA_BOD_PUNTO_VENTA" :value="p.PTO_VTA_BOD_PUNTO_VENTA">
+              <option
+                v-for="p in ptoVta.list"
+                :key="p.PTO_VTA_BOD_PUNTO_VENTA"
+                :value="p.PTO_VTA_BOD_PUNTO_VENTA"
+              >
                 {{ p.PTO_VTA_BOD_BODEGA }}
               </option>
             </select>
@@ -238,7 +264,7 @@ onMounted(async () => {
         </div>
         <div class="row justify-content-between align-items-center mb-3">
           <div class="col-md-1">
-            <select v-model="table.perPage" class="form-select">
+            <select v-model="table.perPage" class="form-select form-select-sm">
               <option value="5">5</option>
               <option value="10">10</option>
               <option value="20">20</option>
@@ -247,23 +273,47 @@ onMounted(async () => {
           </div>
 
           <div class="col-md-4">
-            <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+            <input
+              v-model="table.searchTerm"
+              placeholder="Buscar..."
+              class="form-control form-control-sm"
+            />
           </div>
         </div>
-        <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable
-        @onRetry="fetchItems(table.currentPage)" :perPage="table.perPage"
-          :totalItems="table.totalItems" :currentPage="table.currentPage" :totalPage="table.totalPage"
-          :sortField="table.sortField" :sortOrder="table.sortOrder" @onSort="onSort" @onPageChange="fetchItems"
-          @onSearch="table.searchTerm" @onClick="handleClick" @onKeyDown="handleClick">
+        <BaseTable
+          :columns="columns"
+          :data="table.items"
+          :loading="table.loading"
+          :error="table.error"
+          retryable
+          @onRetry="fetchItems(table.currentPage)"
+          :perPage="table.perPage"
+          :totalItems="table.totalItems"
+          :currentPage="table.currentPage"
+          :totalPage="table.totalPage"
+          :sortField="table.sortField"
+          :sortOrder="table.sortOrder"
+          @onSort="onSort"
+          @onPageChange="fetchItems"
+          @onSearch="table.searchTerm"
+          @onClick="handleClick"
+          @onKeyDown="handleClick"
+        >
           <template #actions="{ row }">
-            <GuiaArchivosConsulta :guide="row" type="transferencia" @print="imprimirGuia(row)" />
+            <GuiaArchivosConsulta
+              :guide="row"
+              type="transferencia"
+              @print="imprimirGuia(row)"
+            />
           </template>
 
           <!-- Slot de vacío -->
           <template #empty>
             <div class="text-center py-5">
               <i class="fa fa-box-open fa-2x text-muted mb-2"></i>
-              <p class="text-muted mb-0">No se encontraron registros para mostrar</p>
+              <p class="text-muted mb-0">
+                No se encontraron registros para mostrar
+              </p>
             </div>
           </template>
         </BaseTable>
@@ -271,11 +321,27 @@ onMounted(async () => {
     </BaseBlock>
 
     <!-- secccionde la informacion de la guia -->
-    <BaseBlock rounded title="Información de Guia" ref="loadindDetalleGuia" themed class="mb-3">
+    <BaseBlock
+      rounded
+      title="Información de Guia"
+      ref="loadindDetalleGuia"
+      themed
+      class="mb-3"
+    >
       <template #options>
         <div class="block-options-item">
-          <button type="button" class="btn-block-option" @click="optionShowDetalleGuia">
-            <i :class="['fa', showDetalleGuia ? 'fa-angle-up' : 'fa-angle-down', 'opacity-100']"></i>
+          <button
+            type="button"
+            class="btn-block-option"
+            @click="optionShowDetalleGuia"
+          >
+            <i
+              :class="[
+                'fa',
+                showDetalleGuia ? 'fa-angle-up' : 'fa-angle-down',
+                'opacity-100',
+              ]"
+            ></i>
           </button>
         </div>
       </template>
@@ -286,7 +352,9 @@ onMounted(async () => {
             <tbody>
               <tr>
                 <th class="text-uppercase fs-sm text-muted">Guia</th>
-                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_GUIA_REMISION }}</td>
+                <td class="fs-sm">
+                  {{ guiaSeleccionada.GUI_REM_GUIA_REMISION }}
+                </td>
                 <th class="text-uppercase fs-sm text-muted">Pedido</th>
                 <td class="fs-sm">{{ guiaSeleccionada.pedido }}</td>
                 <th class="text-uppercase fs-sm text-muted">bodega destino</th>
@@ -294,17 +362,30 @@ onMounted(async () => {
               </tr>
               <tr>
                 <th class="text-uppercase fs-sm text-muted">cliente</th>
-                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_RAZON_SOCIAL_DESTINATARIO }}</td>
+                <td class="fs-sm">
+                  {{ guiaSeleccionada.GUI_REM_RAZON_SOCIAL_DESTINATARIO }}
+                </td>
                 <th class="text-uppercase fs-sm text-muted">Ruc</th>
-                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_IDENTIFICACION_DESTINATARIO || 'N/A' }}</td>
+                <td class="fs-sm">
+                  {{
+                    guiaSeleccionada.GUI_REM_IDENTIFICACION_DESTINATARIO ||
+                    "N/A"
+                  }}
+                </td>
                 <th class="text-uppercase fs-sm text-muted">Dirección</th>
-                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_DIRECCION_DESTINATARIO || 'N/A' }}</td>
+                <td class="fs-sm">
+                  {{ guiaSeleccionada.GUI_REM_DIRECCION_DESTINATARIO || "N/A" }}
+                </td>
               </tr>
               <tr>
                 <th class="text-uppercase fs-sm text-muted">Transporte</th>
-                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}</td>
+                <td class="fs-sm">
+                  {{ guiaSeleccionada.GUI_REM_RAZON_SOCIAL_TRANSPORTISTA }}
+                </td>
                 <th class="text-uppercase fs-sm text-muted">Placa</th>
-                <td class="fs-sm">{{ guiaSeleccionada.GUI_REM_PLACA || 'N/A' }}</td>
+                <td class="fs-sm">
+                  {{ guiaSeleccionada.GUI_REM_PLACA || "N/A" }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -313,8 +394,12 @@ onMounted(async () => {
           <div class="col-md-6" v-if="detalleItems.transferencias.length > 0">
             <table>
               <tbody>
-                <th class="fs-sm text-uppercase text-muted">PEDIDO(S) : <span
-                    v-for="(item) in detalleItems.transferencias" :key="item">{{ item }},</span></th>
+                <th class="fs-sm text-uppercase text-muted">
+                  PEDIDO(S) :
+                  <span v-for="item in detalleItems.transferencias" :key="item"
+                    >{{ item }},</span
+                  >
+                </th>
               </tbody>
             </table>
           </div>
@@ -323,24 +408,38 @@ onMounted(async () => {
           </div>
         </div>
         <!-- detalle de la guia -->
-        <div style="text-align: right;">
-          <p class="fs-sm text-muted text-uppercase">Peso total: {{ formatPrice(detalleItems.peso_total, 2) }} Kg</p>
+        <div style="text-align: right">
+          <p class="fs-sm text-muted text-uppercase">
+            Peso total: {{ formatPrice(detalleItems.peso_total, 2) }} Kg
+          </p>
         </div>
         <div class="card-body p-4">
-
           <div class="table-responsive">
             <table class="table table-striped table-sm table-vcenter">
               <thead>
                 <tr>
-                  <th class="fs-sm text-uppercase text-muted text-center">codigo</th>
-                  <th class="fs-sm text-uppercase text-muted text-center">cod. let. itm</th>
-                  <th class="fs-sm text-uppercase text-muted text-end">Cantidad</th>
-                  <th class="fs-sm text-uppercase text-muted text-end">unidad</th>
-                  <th class="fs-sm text-uppercase text-muted text-center">descripción</th>
+                  <th class="fs-sm text-uppercase text-muted text-center">
+                    codigo
+                  </th>
+                  <th class="fs-sm text-uppercase text-muted text-center">
+                    cod. let. itm
+                  </th>
+                  <th class="fs-sm text-uppercase text-muted text-end">
+                    Cantidad
+                  </th>
+                  <th class="fs-sm text-uppercase text-muted text-end">
+                    unidad
+                  </th>
+                  <th class="fs-sm text-uppercase text-muted text-center">
+                    descripción
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(articulo, index) in detalleItems.detalle" :key="index">
+                <tr
+                  v-for="(articulo, index) in detalleItems.detalle"
+                  :key="index"
+                >
                   <td class="fs-sm text-center">
                     {{ articulo.GUI_REM_CODI_INTERNO }}
                   </td>
@@ -355,7 +454,11 @@ onMounted(async () => {
                   </td>
                   <td class="fs-sm text-center">
                     {{ articulo.GUI_REM_DESCRIPCION }}
-                    <span v-if="articulo.CHECK_ALTERNATIVO == 1" class="text-danger">(Alternativa)</span>
+                    <span
+                      v-if="articulo.CHECK_ALTERNATIVO == 1"
+                      class="text-danger"
+                      >(Alternativa)</span
+                    >
                     <span v-else></span>
                   </td>
                 </tr>
@@ -363,8 +466,12 @@ onMounted(async () => {
             </table>
           </div>
         </div>
-        <div style="text-align: right;">
-          <button type="button" class="btn btn-outline-primary btn-sm mx-2" @click="imprimirGuia(guiaSeleccionada)">
+        <div style="text-align: right">
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm mx-2"
+            @click="imprimirGuia(guiaSeleccionada)"
+          >
             <i class="fa fa-print"></i>
           </button>
         </div>

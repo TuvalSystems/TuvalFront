@@ -167,13 +167,13 @@ onMounted(async () => {
             </template>
             <div class="row justify-content-between align-items-center mb-3">
                 <div class="col-md-1">
-                    <select v-model="table.perPage" class="form-select">
+                    <select v-model="table.perPage" class="form-select form-select-sm">
                         <option v-for="item in listPerpage" :key="item.value" :value="item.value"> {{ item.label }}
                         </option>
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+                    <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control form-control-sm" />
                 </div>
             </div>
             <BaseTable :columns="columns" :data="table.items" :loading="table.loading" :error="table.error" retryable

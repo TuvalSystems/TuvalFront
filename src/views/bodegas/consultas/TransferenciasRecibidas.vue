@@ -233,7 +233,7 @@ onMounted(async () => {
         </div>
         <div class="row justify-content-between align-items-center mb-3">
           <div class="col-md-1">
-            <select v-model="table.perPage" class="form-select">
+            <select v-model="table.perPage" class="form-select form-select-sm">
               <option value="5">5</option>
               <option value="10">10</option>
               <option value="20">20</option>
@@ -241,7 +241,7 @@ onMounted(async () => {
             </select>
           </div>
           <div class="col-md-4">
-            <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control" />
+            <input v-model="table.searchTerm" placeholder="Buscar..." class="form-control form-control-sm" />
           </div>
         </div>
 

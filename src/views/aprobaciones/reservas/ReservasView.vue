@@ -73,7 +73,9 @@ const handleClick = ({ row, col }) => {
 };
 
 const verCotizacionDetalleModal = ref(null);
-const verCotizacionDetalleModalObj = useBootstrapModal(verCotizacionDetalleModal);
+const verCotizacionDetalleModalObj = useBootstrapModal(
+  verCotizacionDetalleModal
+);
 let datosModalCotizacionDetalle = ref(null);
 let datosModalCotizacionSegmento = ref(null);
 
@@ -129,7 +131,9 @@ const verDetalleCotizacionAprobacionModalObj = useBootstrapModal(
 );
 let dataModalReserva = ref(null);
 const verUsoFacturaDemandaModal = ref(null);
-const verUsoFacturaDemandaModalObj = useBootstrapModal(verUsoFacturaDemandaModal);
+const verUsoFacturaDemandaModalObj = useBootstrapModal(
+  verUsoFacturaDemandaModal
+);
 const dataModal = ref(null);
 async function verModalAprobacionReserva(row) {
   if (row.tipo_reserva_id === 1) {
@@ -355,7 +359,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="row justify-content-between align-items-center mb-3">
         <div class="col-md-1">
-          <select v-model="table.perPage" class="form-select">
+          <select v-model="table.perPage" class="form-select form-select-sm">
             <option
               v-for="item in listPerpage"
               :key="item.value"
@@ -369,14 +373,16 @@ onBeforeUnmount(() => {
           <input
             v-model="table.searchTerm"
             placeholder="Buscar..."
-            class="form-control"
+            class="form-control form-control-sm"
           />
         </div>
       </div>
       <BaseTable
         :columns="columns"
         :data="table.items"
-        :loading="table.loading" :error="table.error" retryable
+        :loading="table.loading"
+        :error="table.error"
+        retryable
         @onRetry="fetchReservationRequests(table.currentPage)"
         :perPage="table.perPage"
         :totalItems="table.totalItems"
