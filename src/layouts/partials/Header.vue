@@ -99,7 +99,7 @@ onUnmounted(() => {
     <slot>
       <div class="content-header">
         <slot name="content">
-          <div class="d-flex align-items-center">
+          <div class="d-flex align-items-center header-location">
             <slot name="content-left">
               <button type="button" class="btn btn-sm btn-alt-secondary me-2 d-lg-none"
                 @click="store.sidebar({ mode: 'toggle' })">
@@ -111,13 +111,13 @@ onUnmounted(() => {
                 <i class="fa fa-fw fa-ellipsis-v"></i>
               </button>
 
-              <div class="d-flex align-items-center ms-2">
-                <label for="select-punto-venta" class="fs-sm fw-medium me-2 d-none d-sm-inline-block mb-0">
+              <div class="d-flex align-items-center header-location-selector">
+                <label for="select-punto-venta" class="fs-sm fw-medium me-2 d-none d-md-inline-block mb-0">
                   <i class="fa fa-store me-1 opacity-50"></i> Punto de venta:
                 </label>
                 <select class="form-select form-select-sm border-0 bg-body-extra-light fw-semibold" 
                   id="select-punto-venta" 
-                  style="width: 200px;"
+                  aria-label="Punto de venta"
                   @change="selectpuntodeventa($event)">
                   <option v-for="(punto, index) in puntosdeventa" :key="index" :value="index"
                     :selected="punto.PTO_VTA_ID == puntodeventaselect">
@@ -200,6 +200,35 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.header-location,
+.header-location-selector {
+  min-width: 0;
+}
+
+.header-location-selector label {
+  white-space: nowrap;
+}
+
+#select-punto-venta {
+  width: 200px;
+  min-width: 0;
+  min-height: 2rem;
+}
+
+@media (max-width: 575.98px) {
+  .header-location {
+    flex: 1;
+  }
+
+  .header-location-selector {
+    flex: 1;
+  }
+
+  #select-punto-venta {
+    width: 100%;
+  }
+}
+
 .cursor-pointer {
   cursor: pointer;
 }

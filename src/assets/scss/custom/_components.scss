@@ -37,6 +37,21 @@ html .btn:focus-visible {
 }
 
 // Densidad compartida sin alterar el ancho ni los estados del menú.
+#page-header > .content-header,
+#sidebar > .content-header {
+  gap: 0.5rem;
+}
+
+#page-header > .content-header .btn-sm,
+#sidebar > .content-header .btn-sm {
+  min-height: 2rem;
+}
+
+#sidebar > .content-header img {
+  max-height: 2.5rem !important;
+  object-fit: contain;
+}
+
 #sidebar .content-side {
   padding-top: 0.5rem;
   padding-bottom: 0.75rem;
@@ -152,7 +167,7 @@ html.theme-minimal {
 }
 
 #sidebar .content-header img {
-  max-height: 72px !important;
+  max-height: 2.5rem !important;
   object-fit: contain;
 }
 
