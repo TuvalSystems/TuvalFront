@@ -30,14 +30,15 @@ Reutiliza componentes y métodos. Conserva el diseño y la estructura de
 TUVAL, con código legible y sin archivos innecesarios. Verifica que al
 cambiar de punto de venta se limpien los datos anteriores sin recargar.
 
-Crea una rama desde develop actualizado y entrega un PR hacia develop.
+Destino del PR: [qa o develop; elige uno].
+Crea una rama desde el destino actualizado y entrega el PR hacia esa misma rama.
 Aunque uses devtuval, josemg23 o TuvalSystems, no subas directamente
 ni uses la excepción. No fusiones, no despliegues y no toques main.
 ```
 
 ## Dónde consultar esta guía
 
-En GitHub, selecciona la rama develop y abre docs/prompts/crear-pantalla-api.md. GitHub muestra el Markdown con formato y permite copiar el ejemplo. En el proyecto local, abre este mismo archivo en tu editor. Los cambios nuevos estarán disponibles en develop después de aprobar y fusionar su PR; antes puedes consultarlos en la rama del PR. Esta guía no aparece automáticamente dentro de la aplicación TUVAL.
+En GitHub, selecciona la rama de destino (qa o develop) y abre docs/prompts/crear-pantalla-api.md. GitHub muestra el Markdown con formato y permite copiar el ejemplo. En el proyecto local, abre este mismo archivo en tu editor. Los cambios nuevos estarán disponibles en la rama de destino después de aprobar y fusionar su PR; antes puedes consultarlos en la rama del PR. Esta guía no aparece automáticamente dentro de la aplicación TUVAL.
 
 ## Identificar la ubicación a partir de la necesidad
 
@@ -98,16 +99,18 @@ Antes de entregar, revisa el diff y confirma en la respuesta qué recursos reuti
 
 Este flujo forma parte de la tarea al invocar esta plantilla:
 
-PR obligatorio para todas las cuentas: esta plantilla siempre exige publicar en una rama de trabajo y crear o actualizar un pull request hacia develop, incluso si se ejecuta como devtuval, josemg23 o TuvalSystems. La excepción de GitHub para esas cuentas no autoriza al agente a subir directamente a develop ni a omitir revisiones o verificaciones. No uses bypass, privilegios de administrador, cambios de protección, actualizaciones de referencias ni escrituras mediante API para eludir este flujo. No fusiones por iniciativa propia ni actives auto-merge. Si no puedes crear el PR, informa el bloqueo y conserva los cambios en la rama de trabajo; nunca recurras al push directo.
+Destino permitido: qa o develop. El usuario puede indicar «Destino del PR: qa» o «Destino del PR: develop». Usa el destino explícito de la solicitud o del contexto vigente; no lo deduzcas únicamente de la rama local, del módulo o de la URL del entorno de pruebas. Si no está definido, pregunta «¿El cambio debe ir a qa o a develop?» antes de crear la rama o implementar cambios dependientes de su versión. Puedes revisar la estructura mientras se define el destino.
 
-Restricción temporal: trabaja exclusivamente desde origin/develop y abre pull requests únicamente hacia develop. No crees ni redirijas PR hacia main, no prepares ramas basadas en main, no modifiques su protección ni integres develop en main. Esta restricción se mantiene hasta que el usuario autorice expresamente retomar la actualización completa de main con develop; no la levantes por iniciativa propia. Antes de publicar o actualizar un PR, verifica que su rama base sea develop.
+PR obligatorio para todas las cuentas: publica en una rama de trabajo y crea o actualiza un pull request hacia el destino elegido, incluso si se ejecuta como devtuval, josemg23 o TuvalSystems. Sus excepciones en GitHub no autorizan al agente a subir directamente ni a omitir revisiones o verificaciones. No uses bypass, privilegios de administrador, cambios de protección, actualizaciones de referencias ni escrituras mediante API para eludir este flujo. Si el usuario solicita expresamente trabajo solo local o indica que publicará por su cuenta, deja los cambios locales y no hagas push ni crees PR; esta instrucción no autoriza un push directo del agente.
 
-1. Antes de editar código, revisa el estado de Git y actualiza las referencias del remoto con fetch. Crea una rama codex/<descripcion-breve> desde origin/develop actualizado. No trabajes ni hagas commits o push directamente en develop o main.
+Restricción temporal: solo se permiten qa y develop como ramas de destino. No crees ni redirijas PR hacia main, no prepares ramas basadas en main, no modifiques su protección ni integres cambios en main. Esta restricción se mantiene hasta que el usuario autorice expresamente retomar su actualización; no la levantes por iniciativa propia.
+
+1. Antes de editar código, revisa el estado de Git y actualiza con fetch la referencia del destino. Comprueba que origin/qa u origin/develop exista según lo solicitado; no crees la rama de destino ni la sustituyas por otra si falta. Crea una rama codex/<descripcion-breve> desde origin/<destino> actualizado. No trabajes ni hagas commits o push directamente en qa, develop o main.
 2. Conserva los cambios locales y el trabajo ajeno. Si el checkout tiene cambios de otra tarea, utiliza un worktree aislado cuando sea necesario; no los descartes, mezcles ni incluyas en el PR.
-3. Implementa y valida en la rama de trabajo. Antes de publicar, vuelve a consultar origin/develop e incorpora sus cambios si la rama quedó atrasada. Sigue la estrategia del repositorio; si no existe una, integra origin/develop mediante merge en la rama de trabajo para evitar reescribir historial publicado. Resuelve conflictos conservando el comportamiento de ambas partes y repite las verificaciones afectadas.
-4. Haz commits únicamente con los cambios de la tarea, publica la rama de trabajo y crea un pull request con base develop. Si ya existe un PR para esa misma tarea, actualízalo en lugar de crear otro. Incluye problema, comportamiento resultante, validación realizada y limitaciones. Entrega el enlace real del PR.
-5. El PR debe mantenerse actualizado respecto de develop antes de fusionarse y tener los controles requeridos aprobados. Si develop avanza durante la revisión, actualiza la misma rama y el mismo PR, resuelve conflictos y repite las verificaciones afectadas. No fusiones el PR, no actives auto-merge y no despliegues sin solicitud expresa.
-6. Si no hay acceso para publicar o crear el PR, conserva el trabajo y comunica el bloqueo exacto; nunca lo sustituyas por un push directo a develop. No afirmes que el PR existe si no se creó.
+3. Implementa y valida en la rama de trabajo. Antes de publicar, vuelve a consultar origin/<destino> e incorpora sus cambios si la rama quedó atrasada. Sigue la estrategia del repositorio; si no existe una, integra origin/<destino> mediante merge en la rama de trabajo para evitar reescribir historial publicado. Resuelve conflictos y repite las verificaciones afectadas. No mezcles qa y develop ni promociones cambios entre ellas sin una solicitud explícita.
+4. Haz commits únicamente con los cambios de la tarea, publica la rama de trabajo y crea un PR con base exactamente igual al destino elegido. Antes de crearlo o actualizarlo, comprueba base, diff y commits para excluir cambios ajenos. Si ya existe un PR para esa misma tarea y destino, actualízalo; no lo redirijas a la otra rama por iniciativa propia. Incluye problema, comportamiento resultante, validación y limitaciones. Entrega el enlace real del PR.
+5. El PR debe mantenerse actualizado respecto de su rama de destino y tener los controles requeridos aprobados antes de fusionarse. Si esa rama avanza, actualiza la misma rama de trabajo y PR y repite las verificaciones afectadas. No fusiones por iniciativa propia, no actives auto-merge y no despliegues sin solicitud expresa.
+6. Si no hay acceso para publicar o crear el PR, conserva el trabajo y comunica el bloqueo exacto; nunca lo sustituyas por un push directo a qa o develop. No afirmes que el PR existe si no se creó.
 
 La exigencia anterior es parte del flujo del agente. Esta plantilla no configura protecciones del repositorio: no afirmes que GitHub bloquea ramas desactualizadas o pushes directos sin verificar sus reglas. No modifiques esas reglas como parte de una tarea de pantalla.
 
