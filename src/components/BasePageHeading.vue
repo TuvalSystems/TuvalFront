@@ -16,8 +16,8 @@ defineProps({
 </script>
 
 <template>
-  <div class="bg-body-light border-bottom shadow-sm">
-    <div class="content py-2 py-sm-3"> <slot>
+  <div class="page-heading bg-body-light border-bottom shadow-sm">
+    <div class="content page-heading-content"> <slot>
         <div
           v-if="title || $slots.extra"
           class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center"
@@ -48,12 +48,22 @@ defineProps({
   max-width: 100%; 
 }
 
+.page-heading-content {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 :deep(.breadcrumb) {
   margin-bottom: 0;
   font-size: 0.75rem; /* fs-xs para móviles */
 }
 
 @media (min-width: 576px) {
+  .page-heading-content {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
   :deep(.breadcrumb) {
     font-size: 0.875rem; /* fs-sm para escritorio */
   }
