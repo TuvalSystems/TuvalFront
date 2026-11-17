@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { swalError } from "@/functions/swal-alert";
+import { useCambioPuntoVenta } from "@/composables/useCambioPuntoVenta";
 import { useTemplateStore } from "@/stores/template";
 import { useStore } from 'vuex';
 import { useNotificationCenter } from "@/composables/notificaciones/useNotificationCenter";
@@ -18,39 +20,20 @@ const user = actions.state.user.data;
 const puntosdeventa = computed(() => actions.state.puntosdeventa);
 
 const puntodeventaselect = computed(() => actions.state.puntodeventaselect);
-const currentCliente = ref(actions.state.currentCliente);
-const currentSucursal = ref(actions.state.currentSucursal);
+const { cambioEnCurso, cambiarPuntoVenta } = useCambioPuntoVenta();
 
-function selectpuntodeventa(event,) {
-  const puntoVenta = puntosdeventa.value[event.target.value];
-
-  sessionStorage.setItem('CURRENTCLIENTE', null);
-  sessionStorage.setItem('CURRENTSUCURSAL', null);
-  currentCliente.value = null;
-  currentSucursal.value = null;
-  sessionStorage.setItem('PTO_ANTERIOR', actions.state.puntodeventaselect);
-
-  sessionStorage.setItem('PUNTODEVENTASELECT', puntoVenta.PTO_VTA_ID);
-  if (puntoVenta.id) {
-    sessionStorage.setItem('PUNTOVENTASELECTID', puntoVenta.id);
-  } else {
-    sessionStorage.removeItem('PUNTOVENTASELECTID');
+async function selectpuntodeventa(event) {
+  const select = event.target;
+  try {
+    await cambiarPuntoVenta(puntosdeventa.value[select.value]);
+  } catch (error) {
+    swalError(error.message || "No se pudo cambiar el punto de venta.");
+  } finally {
+    select.value = puntosdeventa.value.findIndex(
+      (punto) => String(punto.PTO_VTA_ID) === String(puntodeventaselect.value)
+    );
   }
-  actions.state.puntodeventaselect = puntoVenta.PTO_VTA_ID;
-  actions.state.puntoventaselectid = puntoVenta.id ?? null;
-  actions.state.bodegas = puntoVenta.bodegas;
-  sessionStorage.setItem('BODEGAS', JSON.stringify(puntoVenta.bodegas));
-
-  const url = new URL(window.location.href);
-  if (url.searchParams.has('draft')) {
-    url.searchParams.delete('draft'); // Borramos el rastro de California
-    // Reemplazamos la URL actual sin el draft para que al recargar empiece limpio
-    window.history.replaceState({}, '', url.toString());
-  }
-
-  location.reload();
 }
-
 // Reactive variables
 const baseSearchTerm = ref("");
 
@@ -117,7 +100,7 @@ onUnmounted(() => {
                 </label>
                 <select class="form-select form-select-sm border-0 bg-body-extra-light fw-semibold" 
                   id="select-punto-venta" 
-                  aria-label="Punto de venta"
+                  aria-label="Punto de venta" :disabled="cambioEnCurso"
                   @change="selectpuntodeventa($event)">
                   <option v-for="(punto, index) in puntosdeventa" :key="index" :value="index"
                     :selected="punto.PTO_VTA_ID == puntodeventaselect">

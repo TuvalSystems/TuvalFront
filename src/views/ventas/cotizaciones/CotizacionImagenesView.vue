@@ -1,4 +1,5 @@
 <script setup>
+import { onBeforePuntoVentaChange } from "@/composables/useCambioPuntoVenta";
 import { computed } from "vue";
 import VueEasyLightbox from "vue-easy-lightbox";
 import { onBeforeRouteLeave } from "vue-router";
@@ -49,7 +50,7 @@ function startAgain() {
   resetSearch();
 }
 
-onBeforeRouteLeave(async () => {
+async function validarSalida() {
   if (!pendingRequest.value && !creating.value) return true;
   const result = await toast.fire({
     title: "Creación pendiente",
@@ -60,7 +61,9 @@ onBeforeRouteLeave(async () => {
     cancelButtonText: "Salir de la vista",
   });
   return result.dismiss === "cancel";
-});
+}
+onBeforeRouteLeave(validarSalida);
+onBeforePuntoVentaChange(validarSalida);
 </script>
 
 <template>

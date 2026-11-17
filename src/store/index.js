@@ -35,8 +35,8 @@ function getStoredPuntoVentaSelectId() {
   return selected?.id ?? null;
 }
 
-const store = createStore({
-  state: {
+function createInitialState() {
+  return {
     user: {
       data: readSessionJson("USERDATA"),
       token: sessionStorage.getItem("TOKEN"),
@@ -401,7 +401,11 @@ const store = createStore({
       loading: false,
       data: [],
     },
-  },
+  };
+}
+
+const store = createStore({
+  state: createInitialState,
   getters: {},
   actions: {
     login({ commit }, user) {
@@ -1099,6 +1103,32 @@ const store = createStore({
     },
       },
   mutations: {
+    cambiarPuntoVenta(state, punto) {
+      sessionStorage.setItem("PTO_ANTERIOR", state.puntodeventaselect);
+      state.puntodeventaselect = punto.PTO_VTA_ID;
+      state.puntoventaselectid = punto.id ?? null;
+      state.bodegas = punto.bodegas ?? [];
+      sessionStorage.setItem("PUNTODEVENTASELECT", punto.PTO_VTA_ID);
+      if (punto.id != null) sessionStorage.setItem("PUNTOVENTASELECTID", punto.id);
+      else sessionStorage.removeItem("PUNTOVENTASELECTID");
+      sessionStorage.setItem("BODEGAS", JSON.stringify(state.bodegas));
+      for (const key of ["CURRENTCLIENTE", "CURRENTSUCURSAL", "REGISTROCOPIA"]) {
+        sessionStorage.removeItem(key);
+      }
+      // Restaurar también formularios y resultados de cobranzas, devoluciones,
+      // despachos y consultas que antes desaparecían al recargar el navegador.
+      const initial = createInitialState();
+      const conservar = new Set([
+        "user", "must_change_password", "menu", "home", "puntosdeventa",
+        "bodegas", "puntodeventaselect", "puntoventaselectid", "formasdepago",
+        "condiciondepago", "proveedores", "pregunta_facturar",
+        "factura_posterior_despacho", "factura_a_demanda", "factura_siguiente_mes",
+        "alerta_facturar", "notificaciones",
+      ]);
+      for (const key of Object.keys(initial)) {
+        if (!conservar.has(key)) state[key] = initial[key];
+      }
+    },
     /* FUNCIONES EN INTERVALOS */
 
 

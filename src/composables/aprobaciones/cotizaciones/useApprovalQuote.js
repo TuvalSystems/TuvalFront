@@ -49,3 +49,8 @@ export function useApprovalQuote() {
         countQuotesConsult,
     };
 }
+
+export function resetApprovalQuotes() {
+  quotes.value = [];
+  quotesConsult.value = [];
+}

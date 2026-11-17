@@ -1,3 +1,4 @@
+import { iniciarSolicitud, finalizarSolicitud } from "@/utils/puntoVentaRequests";
 import axios from 'axios';
 import store from './store';
 import router from './router';
@@ -40,14 +41,18 @@ axiosPrint.interceptors.request.use(config => {
         config.headers["X-Current-Route"] = currentRouteName;
     }
 
-    return config;
+    return iniciarSolicitud(config);
 }, error => {
     return Promise.reject(error);
 })
 
 axiosPrint.interceptors.response.use(
-    response => response,
+    response => {
+        finalizarSolicitud(response.config);
+        return response;
+    },
     error => {
+        finalizarSolicitud(error.config);
         normalizeRequestError(error);
         const { response } = error;
 

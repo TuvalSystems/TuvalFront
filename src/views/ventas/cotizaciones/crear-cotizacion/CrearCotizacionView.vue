@@ -1,4 +1,5 @@
 <script setup>
+import { onBeforePuntoVentaChange } from "@/composables/useCambioPuntoVenta";
 import { createSubmissionGuard } from "@/composables/venta/cotizaciones/crearCotizacion/submissionGuard";
 import { useQuoteImageGallery } from "@/composables/venta/cotizaciones/crearCotizacion/useQuoteImageGallery";
 
@@ -185,6 +186,7 @@ const {
 
 // No abandonar un borrador con cambios pendientes o cuyo guardado falló.
 onBeforeRouteLeave(() => flushDraftSave());
+onBeforePuntoVentaChange(() => flushDraftSave());
 onBeforeRouteUpdate((to, from) => {
   if (to.query.draft !== from.query.draft) return flushDraftSave();
 });

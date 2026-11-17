@@ -58,3 +58,8 @@ export function useApprovalOrder() {
         validateStockForOrderApproval 
     };
 }
+
+export function resetApprovalOrders() {
+  orders.value = [];
+  orderConsult.value = [];
+}

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted } from "vue";
+import { useCambioPuntoVenta } from "@/composables/useCambioPuntoVenta";
 import { useTemplateStore } from "@/stores/template";
 
 // Import all layout partials
@@ -9,6 +10,7 @@ import BaseSideOverlay from "@/layouts/partials/SideOverlay.vue";
 import BaseFooter from "@/layouts/partials/Footer.vue";
 // Main store
 const store = useTemplateStore();
+const { cambiandoPuntoVenta, cambioEnCurso } = useCambioPuntoVenta();
 
 // Render main classes based on store options
 const classContainer = computed(() => {
@@ -120,9 +122,9 @@ onMounted(() => {
     <!-- END Header -->
 
     <!-- Main Container -->
-    <div id="main-container">
+    <div id="main-container" :inert="cambioEnCurso || undefined" :aria-busy="cambioEnCurso">
       <slot name="page-top-content"></slot>
-      <RouterView />
+      <RouterView v-if="!cambiandoPuntoVenta" />
     </div>
     <!-- END Main Container -->
 

@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, getCurrentScope, onScopeDispose } from "vue";
 
 //contador para manejar loading por ref (concurrencia/abort)
 const loadingCounters = new WeakMap();
@@ -8,11 +8,15 @@ function isAbortError(err) { return err?.name === 'AbortError' || err?.code === 
 
 export function useApiAction() {
     const loading = ref(false);
+    let disposed = false;
+    if (getCurrentScope()) onScopeDispose(() => { disposed = true; });
+    const canceled = () => ({ ok: false, canceled: true, stale: true, message: 'Cancelado' });
     // Las instancias de una misma pantalla no deben descartar respuestas entre sí.
     const latestSeq = new Map();
     function nextSeq(key) { const n = (latestSeq.get(key) ?? 0) + 1; latestSeq.set(key, n); return n; }
 
     async function run(requestFn, { loadingRef, errorRef, onSuccess, onError, successMessage, latestOnly = false, key } = {}) {
+        if (disposed) return canceled();
         const targetLoading = loadingRef ?? loading;
         inc(targetLoading);
         targetLoading.value = true;
@@ -22,6 +26,7 @@ export function useApiAction() {
         const seqId = latestOnly && key ? nextSeq(key) : null;
         try {
             const response = await requestFn();
+            if (disposed) return canceled();
             const data = response?.data ?? {};
             const ok = data.success === true || data.exists === true;
             const info = data.data ?? {};
@@ -35,6 +40,7 @@ export function useApiAction() {
             onSuccess && onSuccess(info, data);
             return { ok: true, data: info, raw: data, message: msg };
         } catch (error) {
+            if (disposed) return canceled();
             if (isAbortError(error)) {
                 return { ok: false, canceled: true, raw: error, message: "Cancelado" };
             }
