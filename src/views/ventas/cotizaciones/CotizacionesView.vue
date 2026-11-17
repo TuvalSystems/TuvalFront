@@ -588,14 +588,16 @@ function findRoutePuntoVenta() {
   return null;
 }
 
-function getRoutePuntoVenta() {
+function getRoutePuntoVentaId() {
   const puntoVenta = findRoutePuntoVenta();
-  if (puntoVenta?.PTO_VTA_ID) return puntoVenta.PTO_VTA_ID;
+  if (puntoVenta?.id) return puntoVenta.id;
+
+  const pvId = queryValue(route.query.pvId);
+  if (pvId) return Number(pvId);
 
   const pvCodigo = queryValue(route.query.pvCodigo);
-  if (pvCodigo) return pvCodigo;
-
-  return store.state.puntodeventaselect;
+  if (pvCodigo && !samePuntoVentaCode(pvCodigo, store.state.puntodeventaselect)) return null;
+  return store.state.puntoventaselectid;
 }
 
 function syncRoutePuntoVenta() {
@@ -779,7 +781,7 @@ const {
   clearDates,
   estadoClass,
   getReminderClass,
-} = useQuotationsTable(getRoutePuntoVenta);
+} = useQuotationsTable(getRoutePuntoVentaId);
 function llenarcotizaciones() {
   return fetchList();
 }

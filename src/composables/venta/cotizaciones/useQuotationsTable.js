@@ -5,7 +5,7 @@ import { getStatusBadgeClass, getBadgeClassByVariant } from "@/helpers/statusBad
 import axiosClient from "@/axios";
 import { QUOTE_API_ROUTES } from "@/constants/apiRoutes/ventas/cotizaciones/quoteRoutes";
 
-export function useQuotationsTable(getPuntoVenta) {
+export function useQuotationsTable(getPuntoVentaId) {
   const { run, invalidate } = useApiAction();
   const defaultFilters = () => ({
     search: "", perPage: "10", sortField: "created_at", sortOrder: "desc",
@@ -42,7 +42,7 @@ export function useQuotationsTable(getPuntoVenta) {
     controller?.abort();
     controller = new AbortController();
     table.currentPage = page;
-    const query = { ...table.filters, puntodeventa_id: getPuntoVenta() };
+    const query = { ...table.filters, pv_id: getPuntoVentaId() };
     const result = await run(
       () => axiosClient.post(QUOTE_API_ROUTES.QUOTES.LIST,
         { ...query, page: table.currentPage }, { signal: controller.signal }),
@@ -93,7 +93,7 @@ export function useQuotationsTable(getPuntoVenta) {
   }
 
   watch(
-    () => ({ ...table.filters, puntodeventa_id: getPuntoVenta() }),
+    () => ({ ...table.filters, pv_id: getPuntoVentaId() }),
     () => {
       controller?.abort();
       invalidate(requestKey);
