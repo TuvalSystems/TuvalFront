@@ -34,6 +34,13 @@ const {
     validateStockForOrderApproval
 } = useApprovalOrder();
 
+const isProcessing = computed(() =>
+  loadingValidateStockOrderApproval.value ||
+  laodingCreditApproval.value ||
+  loadingCreditRejection.value ||
+  loadingCreditRejectionStock.value
+);
+
 
 const orderHeader = computed(() => props.info?.pedido ?? {});
 const orderDetail = computed(() => props.info?.detalle ?? []);
@@ -133,6 +140,7 @@ function showDiscountDiff(row) {
 }
 
 async function approveOrder() {
+  if (isProcessing.value) return;
 
     const resp = await validateStockForOrderApproval(orderHeader.value?.id);
     if (!resp?.ok) {
@@ -157,6 +165,7 @@ async function approveOrder() {
 }
 
 async function rejectOrder() {
+  if (isProcessing.value) return;
     const resp = await rejectCreditOrder(orderHeader.value?.id, approvalMessage.value);
     if (resp?.ok) {
         swalSuccess(resp?.message);
@@ -473,13 +482,13 @@ async function rejectOrder() {
                     </div>
                     <div class="col-sm-3 text-sm-end">
                         <button type="button" class="btn btn-success btn-sm me-1" @click="approveOrder"
-                            :disabled="(loadingValidateStockOrderApproval || laodingCreditApproval || loadingCreditRejectionStock)">
+                            :disabled="isProcessing">
                             <i class="fa fa-check me-1"></i>
                             Aprobar
                         </button>
 
                         <button type="button" class="btn btn-danger btn-sm" @click="rejectOrder"
-                            :disabled="loadingCreditRejection">
+                            :disabled="isProcessing">
                             <i class="fa fa-times me-1"></i>
                             Rechazar
                         </button>

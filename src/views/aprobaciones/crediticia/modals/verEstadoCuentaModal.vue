@@ -25,14 +25,25 @@ const props = defineProps({
 
 const {
   //process
+  laodingCreditApproval,
+  loadingCreditRejection,
+  loadingCreditRejectionStock,
   approveCreditOrder,
   rejectCreditOrder,
   rejectCreditOrderForStock
 } = useCreditOrdersActions();
 
 const {
+  loadingValidateStockOrderApproval,
   validateStockForOrderApproval
 } = useApprovalOrder();
+
+const isProcessing = computed(() =>
+  loadingValidateStockOrderApproval.value ||
+  laodingCreditApproval.value ||
+  loadingCreditRejection.value ||
+  loadingCreditRejectionStock.value
+);
 async function closeModalEvent() {
   emit('closeModal');
 }
@@ -74,6 +85,7 @@ function showCreditExceededMessage() {
 
 
 async function approveOrder() {
+  if (isProcessing.value) return;
   const resp = await validateStockForOrderApproval(orderHeader.value?.id);
   if (!resp?.ok) {
     const respRejection = await rejectCreditOrderForStock(orderHeader.value?.id, resp?.message)
@@ -97,6 +109,7 @@ async function approveOrder() {
 }
 
 async function rejectOrder() {
+  if (isProcessing.value) return;
   const resp = await rejectCreditOrder(orderHeader.value?.id, approvalMessage.value);
   if (resp?.ok) {
     swalSuccess(resp?.message);
@@ -441,12 +454,12 @@ onMounted(() => { });
               placeholder="Motivo de rechazo" />
           </div>
           <div class="col-sm-3 text-sm-end">
-            <button type="button" class="btn btn-success btn-sm me-1" @click="approveOrder">
+            <button type="button" class="btn btn-success btn-sm me-1" @click="approveOrder" :disabled="isProcessing">
               <i class="fa fa-check me-1"></i>
               Aprobar
             </button>
 
-            <button type="button" class="btn btn-danger btn-sm" @click="rejectOrder">
+            <button type="button" class="btn btn-danger btn-sm" @click="rejectOrder" :disabled="isProcessing">
               <i class="fa fa-times me-1"></i>
               Rechazar
             </button>
