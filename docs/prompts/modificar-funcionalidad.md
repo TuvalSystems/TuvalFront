@@ -1,10 +1,14 @@
 # Modificar una funcionalidad de TUVAL
 
+## Lectura obligatoria antes de implementar
+
+Antes de implementar, lee los AGENTS.md aplicables, si existen, y README.md y docs/prompts/modificar-funcionalidad.md. Sigue las instrucciones adicionales que esos documentos referencien y que apliquen al cambio. Contrasta la documentación con el código actual, reutiliza su estructura y conserva las reglas de negocio. Si falta una referencia, búscala en el proyecto y comunica la limitación sin inventar su contenido.
+
 ## Cómo usar esta plantilla
 
 Envía al agente este mensaje, completando tu necesidad:
 
-> Usa docs/prompts/modificar-funcionalidad.md para modificar [nombre de la pantalla o función que uso, o enlace]. Actualmente [comportamiento actual] y necesito [resultado esperado]. API relacionada, si la conozco: [endpoint].
+> Antes de implementar, lee los AGENTS.md aplicables, si existen, y README.md y docs/prompts/modificar-funcionalidad.md. Sigue las instrucciones adicionales que esos documentos referencien y que apliquen al cambio. Contrasta la documentación con el código actual, reutiliza su estructura y conserva las reglas de negocio. Si falta una referencia, búscala en el proyecto y comunica la limitación sin inventar su contenido. Usa docs/prompts/modificar-funcionalidad.md para modificar [nombre de la pantalla o función que uso, o enlace]. Actualmente [comportamiento actual] y necesito [resultado esperado]. API relacionada, si la conozco: [endpoint].
 
 No necesitas copiar toda la plantilla ni conocer los archivos internos. Investiga primero el proyecto y pregunta solo por decisiones de negocio o información que no puedas obtener allí.
 
@@ -15,6 +19,13 @@ Identifica la implementación existente a partir del nombre visible, enlace o de
 Este ejemplo es una guía de solicitud, no una tarea pendiente que el agente deba ejecutar al leer este archivo. Sustituye la necesidad por la tuya y pega el mensaje en el chat del agente con el proyecto TUVAL abierto.
 
 ```text
+Antes de implementar, lee los AGENTS.md aplicables, si existen, y README.md y
+docs/prompts/modificar-funcionalidad.md. Sigue las instrucciones adicionales que esos
+documentos referencien y que apliquen al cambio. Contrasta la documentación con el
+código actual, reutiliza su estructura y conserva las reglas de negocio. Si falta una
+referencia, búscala en el proyecto y comunica la limitación sin inventar su
+contenido.
+
 Usa docs/prompts/modificar-funcionalidad.md.
 
 En la pantalla de cotizaciones necesito agregar un filtro por vendedor.

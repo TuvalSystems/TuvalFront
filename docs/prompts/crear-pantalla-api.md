@@ -1,10 +1,14 @@
 # Crear una pantalla conectada al API en TUVAL
 
+## Lectura obligatoria antes de implementar
+
+Antes de implementar, lee los AGENTS.md aplicables, si existen, y README.md y docs/prompts/crear-pantalla-api.md. Sigue las instrucciones adicionales que esos documentos referencien y que apliquen al cambio. Contrasta la documentación con el código actual, reutiliza su estructura y conserva las reglas de negocio. Si falta una referencia, búscala en el proyecto y comunica la limitación sin inventar su contenido.
+
 ## Cómo usar esta plantilla
 
 Envía al agente este mensaje, completando lo que conozcas:
 
-> Usa docs/prompts/crear-pantalla-api.md. Necesito [describir lo que quiero hacer]. Lo usarán [personas o cargos, si los conozco] para [objetivo del trabajo]. Debe mostrar [información] y permitir [acciones]. Debe respetar [reglas de negocio]. Si conozco una pantalla relacionada o el API, te lo indicaré. Identifica tú dónde corresponde incorporarlo en TUVAL.
+> Antes de implementar, lee los AGENTS.md aplicables, si existen, y README.md y docs/prompts/crear-pantalla-api.md. Sigue las instrucciones adicionales que esos documentos referencien y que apliquen al cambio. Contrasta la documentación con el código actual, reutiliza su estructura y conserva las reglas de negocio. Si falta una referencia, búscala en el proyecto y comunica la limitación sin inventar su contenido. Usa docs/prompts/crear-pantalla-api.md. Necesito [describir lo que quiero hacer]. Lo usarán [personas o cargos, si los conozco] para [objetivo del trabajo]. Debe mostrar [información] y permitir [acciones]. Debe respetar [reglas de negocio]. Si conozco una pantalla relacionada o el API, te lo indicaré. Identifica tú dónde corresponde incorporarlo en TUVAL.
 
 No necesitas conocer toda la respuesta del API ni los archivos internos. Investiga primero el proyecto y el API; pregunta solo por decisiones de negocio o información que no puedas obtener allí.
 
@@ -13,6 +17,13 @@ No necesitas conocer toda la respuesta del API ni los archivos internos. Investi
 Este ejemplo es una guía de solicitud, no una tarea pendiente que el agente deba ejecutar al leer este archivo. Sustituye la necesidad por la tuya y pega el mensaje en el chat del agente con el proyecto TUVAL abierto.
 
 ```text
+Antes de implementar, lee los AGENTS.md aplicables, si existen, y README.md y
+docs/prompts/crear-pantalla-api.md. Sigue las instrucciones adicionales que esos
+documentos referencien y que apliquen al cambio. Contrasta la documentación con el
+código actual, reutiliza su estructura y conserva las reglas de negocio. Si falta una
+referencia, búscala en el proyecto y comunica la limitación sin inventar su
+contenido.
+
 Usa docs/prompts/crear-pantalla-api.md.
 
 Necesito consultar las cotizaciones que todavía no se han convertido
